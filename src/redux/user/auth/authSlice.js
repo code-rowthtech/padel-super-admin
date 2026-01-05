@@ -58,6 +58,7 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+    // login slice
       .addCase(loginUser.pending, (state) => {
         state.userAuthLoading = true;
         state.error = null;
@@ -74,6 +75,7 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
+      // login phone number slice
       .addCase(loginUserNumber.pending, (state) => {
         state.userAuthLoading = true;
         state.error = null;
@@ -90,6 +92,7 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
+      // user signup slice
       .addCase(Usersignup.pending, (state) => {
         state.userSignUpLoading = true;
         state.errorSignUp = null;
@@ -103,6 +106,7 @@ const authSlice = createSlice({
         state.errorSignUp = action.payload;
       })
 
+      // send otp slice
       .addCase(sendOtp.pending, (state) => {
         state.userAuthLoading = true;
         state.errorSignUp = null;
@@ -115,7 +119,7 @@ const authSlice = createSlice({
         state.userAuthLoading = false;
         state.error = action.payload;
       })
-
+// verify otp slice
       .addCase(verifyOtp.pending, (state) => {
         state.userAuthLoading = true;
         state.error = null;
@@ -129,6 +133,7 @@ const authSlice = createSlice({
         state.error = action.payload || "OTP verification failed";
       })
 
+      // get user slice
       .addCase(getUser.pending, (state) => {
         state.userAuthLoading = true;
         state.error = null;
@@ -142,6 +147,7 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
+      // get all users slice
       .addCase(getAllUsers.pending, (state) => {
         state.userAuthLoading = true;
         state.error = null;
@@ -155,6 +161,7 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
+      // get logo slice
       .addCase(getLogo.pending, (state) => {
         state.logoLoading = true;
         state.error = null;
@@ -169,6 +176,7 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
+      // update user slice
       .addCase(updateUser.pending, (state) => {
         state.userLoading = true;
         state.error = null;
@@ -182,6 +190,8 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
+
+      // get profile slice
       .addCase(getUserProfile.pending, (state) => {
         state.userLoading = true;
         state.error = null;
@@ -195,6 +205,8 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
+
+      // get state slice
       .addCase(getStates.pending, (state) => {
         state.statesLoading = true;
         state.statesError = null;

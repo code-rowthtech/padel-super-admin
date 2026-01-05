@@ -126,10 +126,10 @@ const Cancellation = () => {
   const renderSlotTimes = (slotTimes) =>
     slotTimes?.length ? slotTimes.map((slot) => slot.time).join(", ") : "-";
   return (
-    <Container fluid className="">
-      <Row className="mb-3">
+    <Container fluid className="px-0">
+      <Row className="mb-md-3 mb-2">
         <Col xs={12}>
-          <div className="d-flex flex-column flex-lg-row justify-content-between align-items-start align-lg-center gap-3">
+          <div className="d-flex flex-column flex-lg-row justify-content-between align-items-start align-lg-center gap-2">
             <Box sx={{ bgcolor: "white", width: { xs: "100%", lg: "auto" } }}>
               <AppBar
                 position="static"
@@ -161,7 +161,7 @@ const Cancellation = () => {
                         <b style={{ color: "#16a34a" }}>({requestCount})</b>
                       </span>
                     }
-                    className="fw-medium table-data"
+                    className="fw-medium table-data px-2"
                   />
                   <Tab
                     label={
@@ -170,7 +170,7 @@ const Cancellation = () => {
                         <b style={{ color: "#16a34a" }}>({cancelledCount})</b>
                       </span>
                     }
-                    className="fw-medium table-data"
+                    className="fw-medium table-data px-2"
                   />
                   <Tab
                     label={
@@ -179,13 +179,13 @@ const Cancellation = () => {
                         <b style={{ color: "#16a34a" }}>({rejectedCount})</b>
                       </span>
                     }
-                    className="fw-medium table-data"
+                    className="fw-medium table-data px-2"
                   />
                 </Tabs>
               </AppBar>
             </Box>
 
-            <div className="d-flex align-items-center">
+            <div className="d-flex align-items-center justify-content-end col-md-6 col-12">
               {!showDatePicker && !startDate && !endDate ? (
                 <div
                   className="d-flex align-items-center justify-content-center rounded p-2"
@@ -251,8 +251,8 @@ const Cancellation = () => {
       </Row>
       <Row>
         <Col md={12}>
-          <div className="bg-white rounded shadow-sm p-3">
-            <h6 className="mb-3 tabel-title">
+          <div className="bg-white rounded shadow-sm p-md-3 p-2">
+            <h6 className="mb-md-3 mb-2 tabel-title">
               {
                 [
                   "Requested Cancellations",
@@ -346,7 +346,7 @@ const Cancellation = () => {
 
                 <div className="mobile-card-table d-block d-md-none">
                   {bookings?.map((item) => (
-                    <div key={item?._id} className="card">
+                    <div key={item?._id} className="card mb-2">
                       <div className="card-body">
                         <div className="mobile-card-item">
                           <span className="mobile-card-label">User:</span>

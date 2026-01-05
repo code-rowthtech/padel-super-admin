@@ -71,7 +71,7 @@ const UpdatePlayers = ({
   const getPlayerLevelsLoading = useSelector(
     (state) => state?.userNotificationData?.getPlayerLevelLoading || []
   );
-  const requestLoading = useSelector((state) => state?.userPlayerRequest?.requestCreateLoading || false
+  const requestLoading = useSelector((state) => state?.requestData?.requestCreateLoading
   );
   const searchUserData = useSelector(
     (state) => state.searchUserByNumber.getSearchData
@@ -250,7 +250,10 @@ const UpdatePlayers = ({
       }
       setFormData((prev) => ({ ...prev, type: matchId.gender, gender: autoGender }));
       setUserEnteredData((prev) => ({ ...prev, gender: autoGender }));
+      setErrors({});
+      setShowErrors({});
     } else if (!showModal) {
+      // Complete form reset when modal closes
       setFormData({
         name: "",
         email: "",
@@ -270,6 +273,8 @@ const UpdatePlayers = ({
         gender: "",
       });
       setLastSearchedNumber("");
+      setErrors({});
+      setShowErrors({});
     }
   }, [showModal, matchId?.gender]);
 
@@ -379,7 +384,7 @@ const UpdatePlayers = ({
                 +91
               </span>
               <input
-                type="text"
+                type="tel"
                 maxLength={10}
                 className="form-control border-0"
                 placeholder="Enter phone"
@@ -387,7 +392,7 @@ const UpdatePlayers = ({
                 onChange={(e) => {
                   let v = e.target.value.replace(/[^0-9]/g, "");
                   if (v.length === 1 && !['6', '7', '8', '9'].includes(v)) {
-                    v = '6';
+                    v = '';
                   }
                   if (v.length <= 10) {
                     setFormData((prev) => ({ ...prev, phoneNumber: v }));

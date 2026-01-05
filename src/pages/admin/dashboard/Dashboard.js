@@ -10,14 +10,10 @@ import {
 } from "react-bootstrap";
 import {
   ResponsiveContainer,
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
-  defs,
   Bar,
   BarChart,
 } from "recharts";
@@ -55,12 +51,11 @@ const AdminDashboard = () => {
 
   const {
     dashboardLoading,
-    dashboardRevenueLoading,
     dashboardRevenue,
     dashboardCounts,
     dashboardRecentBookings,
     dashboardCancelledBookings,
-  } = useSelector((state) => state.dashboard);
+  } = useSelector((state) => state?.dashboard);
   const formatNumber = (num) => {
     if (!num) return "0";
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -85,11 +80,11 @@ const AdminDashboard = () => {
       value: `${dashboardCounts?.totalBookingHours || 0} Hrs`,
       percent: calculatePercentage(
         dashboardCounts?.totalBookingHours || 0,
-        previousPeriod.totalBookingHours
+        previousPeriod?.totalBookingHours
       ),
       icon: calculatePercentage(
         dashboardCounts?.totalBookingHours || 0,
-        previousPeriod.totalBookingHours
+        previousPeriod?.totalBookingHours
       ).startsWith("+") ? (
         <FaArrowUp />
       ) : (
@@ -97,7 +92,7 @@ const AdminDashboard = () => {
       ),
       color: calculatePercentage(
         dashboardCounts?.totalBookingHours || 0,
-        previousPeriod.totalBookingHours
+        previousPeriod?.totalBookingHours
       ).startsWith("+")
         ? "success"
         : "danger",
@@ -108,11 +103,11 @@ const AdminDashboard = () => {
       value: `${dashboardCounts?.upcomingBookingHours || 0} Hrs`,
       percent: calculatePercentage(
         dashboardCounts?.upcomingBookingHours || 0,
-        previousPeriod.upcomingBookingHours
+        previousPeriod?.upcomingBookingHours
       ),
       icon: calculatePercentage(
         dashboardCounts?.upcomingBookingHours || 0,
-        previousPeriod.upcomingBookingHours
+        previousPeriod?.upcomingBookingHours
       ).startsWith("+") ? (
         <FaArrowUp />
       ) : (
@@ -120,7 +115,7 @@ const AdminDashboard = () => {
       ),
       color: calculatePercentage(
         dashboardCounts?.upcomingBookingHours || 0,
-        previousPeriod.upcomingBookingHours
+        previousPeriod?.upcomingBookingHours
       ).startsWith("+")
         ? "success"
         : "danger",
@@ -131,11 +126,11 @@ const AdminDashboard = () => {
       value: `₹ ${formatNumber(dashboardCounts?.totalRevenue) || 0}`,
       percent: calculatePercentage(
         dashboardCounts?.totalRevenue || 0,
-        previousPeriod.totalRevenue
+        previousPeriod?.totalRevenue
       ),
       icon: calculatePercentage(
         dashboardCounts?.totalRevenue || 0,
-        previousPeriod.totalRevenue
+        previousPeriod?.totalRevenue
       ).startsWith("+") ? (
         <FaArrowUp />
       ) : (
@@ -143,7 +138,7 @@ const AdminDashboard = () => {
       ),
       color: calculatePercentage(
         dashboardCounts?.totalRevenue || 0,
-        previousPeriod.totalRevenue
+        previousPeriod?.totalRevenue
       ).startsWith("+")
         ? "success"
         : "danger",
@@ -154,11 +149,11 @@ const AdminDashboard = () => {
       value: `${dashboardCounts?.cancellationRequestCount || 0}`,
       percent: calculatePercentage(
         dashboardCounts?.cancellationRequestCount || 0,
-        previousPeriod.cancellationRequestCount
+        previousPeriod?.cancellationRequestCount
       ),
       icon: calculatePercentage(
         dashboardCounts?.cancellationRequestCount || 0,
-        previousPeriod.cancellationRequestCount
+        previousPeriod?.cancellationRequestCount
       ).startsWith("+") ? (
         <FaArrowDown />
       ) : (
@@ -166,7 +161,7 @@ const AdminDashboard = () => {
       ),
       color: calculatePercentage(
         dashboardCounts?.cancellationRequestCount || 0,
-        previousPeriod.cancellationRequestCount
+        previousPeriod?.cancellationRequestCount
       ).startsWith("+")
         ? "danger"
         : "success",
@@ -187,7 +182,7 @@ const AdminDashboard = () => {
   }, [dispatch]);
 
   const renderSlotTimes = (slotTimes) =>
-    slotTimes?.length ? slotTimes.map((slot) => slot.time).join(", ") : "-";
+    slotTimes?.length ? slotTimes?.map((slot) => slot?.time).join(", ") : "-";
 
   const handleBookingDetails = async (id, type) => {
     setLoadingById(id);
@@ -205,10 +200,9 @@ const AdminDashboard = () => {
   };
   const {
     getBookingData,
-    getBookingLoading,
     getBookingDetailsData,
     updateBookingLoading,
-  } = useSelector((state) => state.booking);
+  } = useSelector((state) => state?.booking);
 
   const bookings = getBookingData?.bookings || [];
   const bookingDetails = getBookingDetailsData?.booking || {};
@@ -267,7 +261,7 @@ const AdminDashboard = () => {
     December: "Dec",
   };
 
-  let chartData = months.map((month) => ({
+  let chartData = months?.map((month) => ({
     month,
     Booking: 0,
     totalAmount: 0,
@@ -276,24 +270,24 @@ const AdminDashboard = () => {
   }));
 
   dashboardRevenue?.forEach((item) => {
-    const shortMonth = monthMap[item.month];
-    const monthIndex = chartData.findIndex((d) => d.month === shortMonth);
+    const shortMonth = monthMap[item?.month];
+    const monthIndex = chartData.findIndex((d) => d?.month === shortMonth);
     if (monthIndex !== -1) {
       chartData[monthIndex].Booking =
-        (chartData[monthIndex].Booking || 0) + (item.totalBookings || 0);
+        (chartData[monthIndex].Booking || 0) + (item?.totalBookings || 0);
       chartData[monthIndex].totalAmount =
-        (chartData[monthIndex].totalAmount || 0) + (item.totalAmount || 0);
+        (chartData[monthIndex].totalAmount || 0) + (item?.totalAmount || 0);
       chartData[monthIndex].year = item.year || 2025;
     }
   });
 
   dashboardRevenue?.forEach((item) => {
     const shortMonth = monthMap[item.month];
-    const monthIndex = chartData.findIndex((d) => d.month === shortMonth);
+    const monthIndex = chartData.findIndex((d) => d?.month === shortMonth);
     if (monthIndex !== -1) {
       chartData[monthIndex].Cancelation =
-        (chartData[monthIndex].Cancelation || 0) + (item.cancelBookings || 0);
-      chartData[monthIndex].year = item.year || 2025;
+        (chartData[monthIndex].Cancelation || 0) + (item?.cancelBookings || 0);
+      chartData[monthIndex].year = item?.year || 2025;
     }
   });
 
@@ -317,16 +311,16 @@ const AdminDashboard = () => {
         <DataLoading height="80vh" />
       ) : (
         <>
-          <Row className="mb-4">
-            {summaryCards.map((card, index) => (
+          <Row className="mb-md-4 mb-0">
+            {summaryCards?.map((card, index) => (
               <Col key={index} xs={12} sm={6} lg={3} className="mb-3">
                 <Card className="shadow border-0 rounded-0 h-100">
                   <Card.Body className="d-flex justify-content-between">
                     <div className="mt-2">
-                      <div className="table-data">{card.title}</div>
-                      <div className="card-value">{card.value}</div>
+                      <div className="table-data">{card?.title}</div>
+                      <div className="card-value">{card?.value}</div>
                       <div
-                        className={`d-flex align-items-center gap-1 text-${card.color} fw-semibold`}
+                        className={`d-flex align-items-center gap-1 text-${card?.color} fw-semibold`}
                       >
                         {/* <div
                           className="d-flex align-items-center justify-content-center"
@@ -361,7 +355,7 @@ const AdminDashboard = () => {
                     </div>
                     <div className=" mb-2 text-end">
                       <div className="mb-4 text-end text-dark">
-                        {card.bigicon}
+                        {card?.bigicon}
                       </div>
                     </div>
                   </Card.Body>
@@ -448,8 +442,8 @@ const AdminDashboard = () => {
                           border: "none",
                         }}
                         content={({ label, payload }) => {
-                          if (payload && payload.length > 0) {
-                            const dataPoint = payload[0].payload;
+                          if (payload && payload?.length > 0) {
+                            const dataPoint = payload[0]?.payload;
                             return (
                               <div
                                 style={{
@@ -481,7 +475,7 @@ const AdminDashboard = () => {
                                       color: "#3b82f6",
                                     }}
                                   >
-                                    {dataPoint.Booking}
+                                    {dataPoint?.Booking}
                                   </span>
                                 </div>
                                 <div className="d-flex justify-content-between align-items-center mb-1">
@@ -494,7 +488,7 @@ const AdminDashboard = () => {
                                       color: "#ef4444",
                                     }}
                                   >
-                                    {dataPoint.Cancelation}
+                                    {dataPoint?.Cancelation}
                                   </span>
                                 </div>
                                 <hr
@@ -516,7 +510,7 @@ const AdminDashboard = () => {
                                   >
                                     ₹
                                     {(
-                                      dataPoint.totalAmount || 0
+                                      dataPoint?.totalAmount || 0
                                     ).toLocaleString()}
                                   </span>
                                 </div>
@@ -569,7 +563,7 @@ const AdminDashboard = () => {
                       overflowY:
                         dashboardCancelledBookings?.length > 9
                           ? "auto"
-                          : "hidden",
+                          : "scroll",
                     }}
                   >
                     {dashboardCancelledBookings?.length > 0 ? (
@@ -664,7 +658,7 @@ const AdminDashboard = () => {
 
                         <div className="mobile-card-table d-block d-md-none">
                           {dashboardCancelledBookings?.map((item) => (
-                            <div key={item?._id} className="card">
+                            <div key={item?._id} className="card mb-2">
                               <div className="card-body">
                                 <div className="mobile-card-item">
                                   <span className="mobile-card-label">
@@ -872,7 +866,7 @@ const AdminDashboard = () => {
 
                       <div className="mobile-card-table d-block d-md-none">
                         {dashboardRecentBookings?.map((item) => (
-                          <div key={item._id} className="card">
+                          <div key={item._id} className="card mb-2">
                             <div className="card-body">
                               <div className="mobile-card-item">
                                 <span className="mobile-card-label">User:</span>
@@ -991,7 +985,7 @@ const AdminDashboard = () => {
         handleClose={() => setShowCancellation(false)}
         updateStatus={() => {
           dispatch(
-            updateBookingStatus({ id: bookingDetails._id, status: "refunded" })
+            updateBookingStatus({ id: bookingDetails?._id, status: "refunded" })
           )
             .unwrap()
             .then(() => {
@@ -1012,7 +1006,7 @@ const AdminDashboard = () => {
         openRequestModal={(reason) => {
           dispatch(
             updateBookingStatus({
-              id: bookingDetails._id,
+              id: bookingDetails?._id,
               status: "rejected",
               cancellationReasonForOwner: reason,
             })

@@ -11,7 +11,7 @@ import {
 } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { getUserSlotBooking } from "../../../redux/user/slot/thunk";
+import { getUserSlotBooking, getUserSlotPrice } from "../../../redux/user/slot/thunk";
 import { ButtonLoading, DataLoading, Loader } from "../../../helpers/loading/Loaders";
 import "react-datepicker/dist/react-datepicker.css";
 import {
@@ -37,6 +37,7 @@ import {
 import { getUserProfile } from "../../../redux/user/auth/authThunk";
 import { getPlayerLevel, getQuestionData } from "../../../redux/user/notifiction/thunk";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
+import { MatchplayerShimmer } from "../../../helpers/loading/ShimmerLoading";
 
 const parseTimeToHour = (timeStr) => {
   if (!timeStr) return null;
@@ -51,21 +52,6 @@ const parseTimeToHour = (timeStr) => {
 const timeToMinutes = (timeStr) => {
   const hour = parseTimeToHour(timeStr);
   return hour !== null ? hour * 60 : null;
-};
-
-const filterSlotsByTab = (slot, eventKey) => {
-  const slotHour = parseTimeToHour(slot?.time);
-  if (slotHour === null) return false;
-  switch (eventKey) {
-    case "morning":
-      return slotHour >= 0 && slotHour < 12;
-    case "noon":
-      return slotHour >= 12 && slotHour < 17;
-    case "night":
-      return slotHour >= 17 && slotHour <= 23;
-    default:
-      return true;
-  }
 };
 
 const CreateMatches = () => {
@@ -93,14 +79,16 @@ const CreateMatches = () => {
   const store = useSelector((state) => state);
   const getToken = getUserFromSession();
   const [currentStep, setCurrentStep] = useState(0);
-  const [selectedCourts, setSelectedCourts] = useState([]);
+  const [selectedCourts, setSelectedCourts] = useState(location?.state?.selectedCourts || []);
   const [selectedTimes, setSelectedTimes] = useState({});
   const [selectedDate, setSelectedDate] = useState(initialSelectedDate);
   const [errorShow, setErrorShow] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [selectedBuisness, setSelectedBuisness] = useState([]);
+  const [errorMessage, setErrorMessage] = useState(location?.state?.paymentError || "");
+  const [selectedDuration, setSelectedDuration] = useState(60);
+  const [halfSelectedSlots, setHalfSelectedSlots] = useState(new Set());
+  const [activeHalves, setActiveHalves] = useState(new Map()); // Single source of truth for 30min
+  const slotPrice = useSelector((state) => state?.userSlot?.slotPriceData?.data || []);
   const [showUnavailable, setShowUnavailable] = useState(false);
-  const [selectedLevel, setSelectedLevel] = useState([]);
   const [currentCourtId, setCurrentCourtId] = useState(null);
   const { slotData } = useSelector((state) => state?.userSlot);
   const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
@@ -108,31 +96,109 @@ const CreateMatches = () => {
   const getPlayerLevels = useSelector((state) => state?.userNotificationData?.getPlayerLevel?.data) || [];
   const getPlayerLevelsLoading = useSelector((state) => state?.userNotificationData?.getPlayerLevelLoading) || [];
   const [dynamicSteps, setDynamicSteps] = useState([]);
-  const [selectedAnswers, setSelectedAnswers] = useState({});
-  const getQuestionLoading = useSelector((state) => state?.userNotificationData?.getQuestionLoading);
+  const [selectedAnswers, setSelectedAnswers] = useState(location?.state?.finalSkillDetails || {});
   const [slotError, setSlotError] = useState("");
+  const [selectedBuisness, setSelectedBuisness] = useState([]);
+
+  // Dynamic MAX_SLOTS based on duration
+  const getMaxSlots = () => {
+    switch (selectedDuration) {
+      case 30: return 6;  // 6 half slots
+      case 60: return 3;  // 3 full slots
+      case 90: return 2;  // 2 slots (first + auto second)
+      case 120: return 2; // 2 slots (consecutive pair)
+      default: return 3;
+    }
+  };
+  const MAX_SLOTS = getMaxSlots();
+
+  // Add price calculation function
+  const getPriceForSlot = (slotTime, day = selectedDate?.day) => {
+    if (!slotPrice || !Array.isArray(slotPrice) || slotPrice.length === 0) return 2000;
+
+    const slotHour = parseTimeToHour(slotTime);
+    if (slotHour === null) return 2000;
+
+    let period = "morning";
+    if (slotHour >= 17) period = "evening";
+    else if (slotHour >= 12) period = "afternoon";
+
+    const entry = slotPrice.find(p =>
+      p.day === day &&
+      p.duration === selectedDuration &&
+      p.timePeriod === period
+    );
+
+    return entry?.price || 2000;
+  };
+
+  const getSortedSlots = (court) => {
+    return [...(court?.slots || [])].sort((a, b) => {
+      const hourA = parseTimeToHour(a.time);
+      const hourB = parseTimeToHour(b.time);
+      return hourA - hourB;
+    });
+  };
   const [key, setKey] = useState("morning");
   const [matchPlayer, setMatchPlayer] = useState(false);
   const [isFinalLevelStepLoaded, setIsFinalLevelStepLoaded] = useState(false);
   const [finalLevelStep, setFinalLevelStep] = useState(null);
   const [addedPlayers, setAddedPlayers] = useState(() => {
+    if (location?.state?.addedPlayers) {
+      return location.state.addedPlayers;
+    }
     const saved = localStorage.getItem("addedPlayers");
     return saved ? JSON.parse(saved) : {};
   });
   const [isExpanded, setIsExpanded] = useState(false);
   const [showMobileModal, setShowMobileModal] = useState(false);
   const [existsOpenMatchData, setExistsOpenMatchData] = useState(false);
-  const [userGender, setUserGender] = useState("");
+  const [userGender, setUserGender] = useState(location?.state?.selectedGender || "");
   const [profileLoading, setProfileLoading] = useState(true);
   useEffect(() => {
     localStorage.setItem("addedPlayers", JSON.stringify(addedPlayers));
   }, [addedPlayers]);
 
-  const tabData = [
-    { Icon: PiSunHorizonFill, label: "Morning", key: "morning" },
-    { Icon: BsSunFill, label: "Noon", key: "noon" },
-    { Icon: HiMoon, label: "Evening", key: "night" },
+  useEffect(() => {
+    if (location?.state?.paymentError) {
+      setErrorMessage(location.state.paymentError);
+      setErrorShow(true);
+      const timer = setTimeout(() => {
+        setErrorShow(false);
+        setErrorMessage("");
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [location?.state?.paymentError]);
+
+  useEffect(() => {
+    if (location?.state?.selectedCourts && location.state.selectedCourts.length > 0) {
+      const restoredTimes = {};
+      location.state.selectedCourts.forEach(court => {
+        if (court.time && court.time.length > 0) {
+          restoredTimes[court._id] = court.time;
+        }
+      });
+      setSelectedTimes(restoredTimes);
+      setSelectedBuisness(location.state.selectedCourts.flatMap(c => c.time));
+    }
+  }, [location?.state?.selectedCourts]);
+
+  const durationOptions = [
+    { label: "30min", value: 30 },
+    { label: "60min", value: 60 },
+    { label: "90min", value: 90 },
+    { label: "120min", value: 120 },
   ];
+
+  // Clear selections when duration changes
+  useEffect(() => {
+    setSelectedTimes({});
+    setSelectedBuisness([]);
+    setSelectedCourts([]);
+    setHalfSelectedSlots(new Set());
+    setActiveHalves(new Map()); // Clear activeHalves on duration change
+  }, [selectedDuration]);
 
   const handleClickOutside = (e) => {
     if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
@@ -213,152 +279,393 @@ const CreateMatches = () => {
     setShowUnavailable(!showUnavailable);
   };
 
-  // Validate that no duplicate time slots exist across courts
-  const validateCourtTimeConsistency = () => {
-    const allTimes = Object.values(selectedTimes).flat().map(t => t.time);
-    const uniqueTimes = [...new Set(allTimes)];
-    return allTimes.length === uniqueTimes.length;
-  };
 
-  // Get all selected time slots across all courts
-  const getAllSelectedTimeSlots = () => {
-    return Object.values(selectedTimes).flat().map(t => timeToMinutes(t.time)).sort((a, b) => a - b);
-  };
 
-  // Get allowed time slots based on current selections
-  const getAllowedTimeSlots = () => {
-    const allSelected = getAllSelectedTimeSlots();
-    if (allSelected.length === 0) return null; // No restrictions
+  const toggleTime = (time, courtId, date, clickSide = null) => {
+    const dateKey = date || selectedDate?.fullDate;
+    const sortedSlots = getSortedSlots(slotData?.data?.find(c => c?._id === courtId));
+    const currentIndex = sortedSlots.findIndex(s => s._id === time._id);
+    const nextSlot = sortedSlots[currentIndex + 1];
+    const currentCourtTimes = selectedTimes[courtId] || [];
+    const isAlreadySelected = currentCourtTimes.some((t) => t?._id === time?._id);
 
-    const min = Math.min(...allSelected);
-    const max = Math.max(...allSelected);
+    // ========== 30MIN DURATION LOGIC ==========
+    if (selectedDuration === 30) {
+      if (!clickSide) return;
 
-    // Allow slots that extend the consecutive range
-    const allowed = [];
-    if (allSelected.length < 3) {
-      allowed.push(min - 60); // Previous slot
-      allowed.push(max + 60); // Next slot
-    }
+      const slotKey = `${courtId}-${time._id}-${dateKey}`;
+      const currentActiveHalf = activeHalves.get(slotKey);
 
-    return allowed.filter(slot => slot >= 0); // Remove negative hours
-  };
+      // If clicking same side that's already active - unselect
+      if (currentActiveHalf === clickSide) {
+        setActiveHalves(prev => {
+          const newMap = new Map(prev);
+          newMap.delete(slotKey);
+          return newMap;
+        });
 
-  const toggleTime = (time, courtId) => {
-    const currentSelectedDate = selectedDate?.fullDate || new Date().toISOString().split("T")[0];
-    const currentSelectedDay = selectedDate?.day || new Date().toLocaleDateString("en-US", { weekday: "long" });
-    if (
-      selectedCourts.length > 0 &&
-      selectedCourts[0].date !== currentSelectedDate
-    ) {
-      setSelectedCourts([]);
-      setSelectedTimes({});
-      setSelectedBuisness([]);
-      setSlotError("");
-    }
+        // Remove from selected times
+        const filteredTimes = currentCourtTimes.filter(t => t._id !== time._id);
+        setSelectedTimes(prev => ({
+          ...prev,
+          [courtId]: filteredTimes.length > 0 ? filteredTimes : [],
+        }));
 
-    const currentSelectedTimes = selectedTimes[courtId] || [];
-    const allSelectedTimes = Object.values(selectedTimes).flat();
-    const isAlreadySelected = currentSelectedTimes.some((t) => t._id === time._id);
-    const totalSlots = allSelectedTimes.length;
-    const timeMinutes = timeToMinutes(time.time);
+        setSelectedBuisness(prev => prev.filter(t => t._id !== time._id));
 
-    // Check if this time is already selected in any other court
-    const isTimeAlreadyUsed = allSelectedTimes.some(t => t.time === time.time && !currentSelectedTimes.some(ct => ct._id === t._id));
-
-    if (isAlreadySelected) {
-      // Remove selected slot
-      const filtered = currentSelectedTimes.filter((t) => t._id !== time._id);
-
-      setSelectedTimes((prev) => {
-        const updated = { ...prev };
-        if (filtered.length === 0) {
-          delete updated[courtId];
-        } else {
-          updated[courtId] = filtered;
-        }
-        return updated;
-      });
-
-      setSelectedBuisness((prev) => prev.filter((t) => t._id !== time._id));
-
-      setSelectedCourts((prev) =>
-        prev
-          .map((c) =>
-            c._id === courtId
-              ? {
-                ...c,
-                time: c.time.filter((t) => t._id !== time._id),
-              }
-              : c
-          )
-          .filter((c) => c.time.length > 0)
-      );
-
-      setSlotError("");
-      return;
-    }
-
-    // Check if maximum slots reached
-    if (totalSlots >= 3) {
-      setSlotError("Maximum 3 slots allowed in total.");
-      return;
-    }
-
-    // Check if time is already used in another court
-    if (isTimeAlreadyUsed) {
-      setSlotError("This time slot is already selected in another court.");
-      return;
-    }
-
-    // Check if this slot is allowed based on global consecutive rule
-    if (totalSlots > 0) {
-      const allowedSlots = getAllowedTimeSlots();
-      if (allowedSlots && !allowedSlots.includes(timeMinutes)) {
-        setSlotError("You can only select consecutive slots across all courts.");
+        setSelectedCourts(prev =>
+          prev
+            .map(c =>
+              c._id === courtId
+                ? { ...c, time: c.time.filter(t => t._id !== time._id) }
+                : c
+            )
+            .filter(c => c.time.length > 0)
+        );
+        setSlotError("");
         return;
       }
+
+      // Check slot limit for new selections
+      if (!currentActiveHalf && activeHalves.size >= MAX_SLOTS) {
+        setSlotError(`Maximum ${MAX_SLOTS} half slots allowed for 30min duration.`);
+        return;
+      }
+
+      // Set new active half (this automatically handles switching)
+      setActiveHalves(prev => {
+        const newMap = new Map(prev);
+        newMap.set(slotKey, clickSide);
+        return newMap;
+      });
+
+      const newTimeEntry = {
+        _id: time._id,
+        time: time.time,
+        amount: getPriceForSlot(time.time),
+      };
+
+      const newTimes = [...currentCourtTimes.filter(t => t._id !== time._id), newTimeEntry];
+      setSelectedTimes(prev => ({ ...prev, [courtId]: newTimes }));
+      setSelectedBuisness(prev => [...prev.filter(t => t._id !== time._id), newTimeEntry]);
+
+      const currentCourt = slotData?.data?.find((c) => c._id === courtId);
+      if (currentCourtTimes.length === 0) {
+        setSelectedCourts(prev => [
+          ...prev,
+          {
+            _id: currentCourt._id,
+            courtName: currentCourt.courtName,
+            type: currentCourt.type,
+            date: dateKey,
+            day: selectedDate?.day,
+            time: [newTimeEntry],
+          },
+        ]);
+      } else {
+        setSelectedCourts(prev =>
+          prev.map(c =>
+            c._id === courtId
+              ? { ...c, time: [...c.time.filter(t => t._id !== time._id), newTimeEntry] }
+              : c
+          )
+        );
+      }
+      setSlotError("");
+      return;
     }
 
-    // Add new slot
-    const newTimeEntry = {
-      _id: time._id,
-      time: time.time,
-      amount: time.amount || 1000,
-    };
+    // ========== 60MIN DURATION LOGIC ==========
+    if (selectedDuration === 60) {
+      // If already selected, unselect
+      if (isAlreadySelected) {
+        const filteredTimes = currentCourtTimes.filter(t => t._id !== time._id);
+        setSelectedTimes(prev => ({
+          ...prev,
+          [courtId]: filteredTimes,
+        }));
 
-    setSelectedTimes((prev) => ({
-      ...prev,
-      [courtId]: [...(prev[courtId] || []), time],
-    }));
-    setSelectedBuisness((prev) => [...prev, time]);
+        setSelectedBuisness(prev => prev.filter(t => t._id !== time._id));
 
-    const currentCourt = slotData?.data?.find((c) => c._id === courtId);
+        setSelectedCourts(prev =>
+          prev
+            .map(c =>
+              c._id === courtId
+                ? { ...c, time: c.time.filter(t => t._id !== time._id) }
+                : c
+            )
+            .filter(c => c.time.length > 0)
+        );
+        setSlotError("");
+        return;
+      }
 
-    if (currentSelectedTimes.length === 0) {
-      // First slot for this court
-      setSelectedCourts((prev) => [
-        ...prev,
-        {
-          _id: currentCourt._id,
-          courtName: currentCourt.courtName,
-          type: currentCourt.type,
-          date: currentSelectedDate,
-          day: currentSelectedDay,
-          time: [newTimeEntry],
-        },
-      ]);
-    } else {
-      // Additional slot for existing court
-      setSelectedCourts((prev) =>
-        prev.map((c) =>
-          c._id === courtId
-            ? { ...c, time: [...c.time, newTimeEntry] }
-            : c
-        )
-      );
+      // Check slot limit
+      const totalSlots = Object.values(selectedTimes).flat().length;
+      if (totalSlots >= MAX_SLOTS) {
+        setSlotError(`Maximum ${MAX_SLOTS} slots allowed in total.`);
+        return;
+      }
+
+      // Select slot
+      const newTimeEntry = {
+        _id: time._id,
+        time: time.time,
+        amount: getPriceForSlot(time.time),
+      };
+
+      const newTimes = [...currentCourtTimes, newTimeEntry];
+      setSelectedTimes(prev => ({ ...prev, [courtId]: newTimes }));
+      setSelectedBuisness(prev => [...prev, newTimeEntry]);
+
+      const currentCourt = slotData?.data?.find((c) => c._id === courtId);
+      if (currentCourtTimes.length === 0) {
+        setSelectedCourts(prev => [
+          ...prev,
+          {
+            _id: currentCourt._id,
+            courtName: currentCourt.courtName,
+            type: currentCourt.type,
+            date: dateKey,
+            day: selectedDate?.day,
+            time: [newTimeEntry],
+          },
+        ]);
+      } else {
+        setSelectedCourts(prev =>
+          prev.map(c =>
+            c._id === courtId
+              ? { ...c, time: [...c.time, newTimeEntry] }
+              : c
+          )
+        );
+      }
+      setSlotError("");
+      return;
     }
 
-    setSlotError("");
+    // ========== 90MIN DURATION LOGIC ==========
+    if (selectedDuration === 90) {
+      if (!nextSlot || parseTimeToHour(nextSlot.time) !== parseTimeToHour(time.time) + 1) {
+        setSlotError("Not enough consecutive slots for 90 minutes");
+        return;
+      }
+
+      const nextSlotKey = `${courtId}-${nextSlot._id}-${dateKey}`;
+      const currentActiveHalf = activeHalves.get(nextSlotKey);
+      const isFirstSlotSelected = isAlreadySelected;
+      const isSecondSlotHalfSelected = currentActiveHalf !== undefined;
+
+      // Case 1: First slot is selected and second slot has half selection - unselect this pair
+      if (isFirstSlotSelected && isSecondSlotHalfSelected) {
+        if (time._id === currentCourtTimes.find(t => t._id === time._id)?._id) {
+          // Clear the activeHalves for the next slot
+          setActiveHalves(prev => {
+            const newMap = new Map(prev);
+            newMap.delete(nextSlotKey);
+            return newMap;
+          });
+
+          const filteredTimes = currentCourtTimes.filter(t => t._id !== time._id);
+          setSelectedTimes(prev => ({ ...prev, [courtId]: filteredTimes }));
+
+          setSelectedBuisness(prev => prev.filter(t => t._id !== time._id));
+
+          setSelectedCourts(prev =>
+            prev
+              .map(c =>
+                c._id === courtId
+                  ? { ...c, time: c.time.filter(t => t._id !== time._id) }
+                  : c
+              )
+              .filter(c => c.time.length > 0)
+          );
+          setSlotError("");
+          return;
+        }
+
+        // If clicking second slot with clickSide
+        if (clickSide && time._id === nextSlot._id) {
+          if (clickSide === "left") {
+            if (currentActiveHalf === "left") {
+              // Unselect left half
+              setActiveHalves(prev => {
+                const newMap = new Map(prev);
+                newMap.delete(nextSlotKey);
+                return newMap;
+              });
+              const filteredTimes = currentCourtTimes.filter(t => t._id !== time._id && t._id !== nextSlot._id);
+              const prevSlot = sortedSlots[sortedSlots.findIndex(s => s._id === time._id) - 1];
+              if (prevSlot && currentCourtTimes.some(t => t._id === prevSlot._id)) {
+                filteredTimes.push(...currentCourtTimes.filter(t => t._id === prevSlot._id));
+              }
+              setSelectedTimes(prev => ({ ...prev, [courtId]: filteredTimes }));
+            } else {
+              // Switch to left half
+              setActiveHalves(prev => {
+                const newMap = new Map(prev);
+                newMap.set(nextSlotKey, "left");
+                return newMap;
+              });
+            }
+          } else if (clickSide === "right") {
+            if (currentActiveHalf === "right") {
+              // Unselect right half
+              setActiveHalves(prev => {
+                const newMap = new Map(prev);
+                newMap.delete(nextSlotKey);
+                return newMap;
+              });
+              const filteredTimes = currentCourtTimes.filter(t => t._id !== time._id && t._id !== nextSlot._id);
+              const prevSlot = sortedSlots[sortedSlots.findIndex(s => s._id === time._id) - 1];
+              if (prevSlot && currentCourtTimes.some(t => t._id === prevSlot._id)) {
+                filteredTimes.push(...currentCourtTimes.filter(t => t._id === prevSlot._id));
+              }
+              setSelectedTimes(prev => ({ ...prev, [courtId]: filteredTimes }));
+            } else {
+              // Switch to right half
+              setActiveHalves(prev => {
+                const newMap = new Map(prev);
+                newMap.set(nextSlotKey, "right");
+                return newMap;
+              });
+            }
+          }
+          return;
+        }
+      }
+
+      // Case 2: New selection - check slot limit (count full slots only)
+      const totalSlots = Object.values(selectedTimes).flat().length;
+      if (totalSlots >= MAX_SLOTS) {
+        setSlotError(`Maximum ${MAX_SLOTS} slots allowed for 90min duration.`);
+        return;
+      }
+
+      // Select first slot and auto half-select second slot (left side)
+      setActiveHalves(prev => {
+        const newMap = new Map(prev);
+        newMap.set(nextSlotKey, "left");
+        return newMap;
+      });
+
+      const newTimeEntry = {
+        _id: time._id,
+        time: time.time,
+        amount: getPriceForSlot(time.time),
+      };
+
+      const newTimes = [...currentCourtTimes, newTimeEntry];
+      setSelectedTimes(prev => ({ ...prev, [courtId]: newTimes }));
+      setSelectedBuisness(prev => [...prev, newTimeEntry]);
+
+      const currentCourt = slotData?.data?.find((c) => c._id === courtId);
+      if (currentCourtTimes.length === 0) {
+        setSelectedCourts(prev => [
+          ...prev,
+          {
+            _id: currentCourt._id,
+            courtName: currentCourt.courtName,
+            type: currentCourt.type,
+            date: dateKey,
+            day: selectedDate?.day,
+            time: [newTimeEntry],
+          },
+        ]);
+      } else {
+        setSelectedCourts(prev =>
+          prev.map(c =>
+            c._id === courtId
+              ? { ...c, time: [...c.time, newTimeEntry] }
+              : c
+          )
+        );
+      }
+      setSlotError("");
+      return;
+    }
+
+    // ========== 120MIN DURATION LOGIC ==========
+    if (selectedDuration === 120) {
+      if (!nextSlot || parseTimeToHour(nextSlot.time) !== parseTimeToHour(time.time) + 1) {
+        setSlotError("Not enough consecutive slots for 120 minutes");
+        return;
+      }
+
+      // Check if this specific pair is already selected
+      const isPairSelected = currentCourtTimes.some(t => t._id === time._id) &&
+        currentCourtTimes.some(t => t._id === nextSlot._id);
+
+      // If this pair is selected, unselect both
+      if (isPairSelected) {
+        const filteredTimes = currentCourtTimes.filter(t =>
+          t._id !== time._id && t._id !== nextSlot._id
+        );
+        setSelectedTimes(prev => ({ ...prev, [courtId]: filteredTimes }));
+
+        setSelectedBuisness(prev => prev.filter(t => t._id !== time._id && t._id !== nextSlot._id));
+
+        setSelectedCourts(prev =>
+          prev
+            .map(c =>
+              c._id === courtId
+                ? { ...c, time: c.time.filter(t => t._id !== time._id && t._id !== nextSlot._id) }
+                : c
+            )
+            .filter(c => c.time.length > 0)
+        );
+        setSlotError("");
+        return;
+      }
+
+      // Check slot limit (need 2 slots)
+      const totalSlots = Object.values(selectedTimes).flat().length;
+      if (totalSlots >= MAX_SLOTS) {
+        setSlotError(`Maximum ${MAX_SLOTS} slots allowed for 120min duration.`);
+        return;
+      }
+
+      // Auto select both consecutive slots
+      const timeEntry1 = {
+        _id: time._id,
+        time: time.time,
+        amount: getPriceForSlot(time.time),
+      };
+      const timeEntry2 = {
+        _id: nextSlot._id,
+        time: nextSlot.time,
+        amount: getPriceForSlot(nextSlot.time),
+      };
+
+      const newTimes = [...currentCourtTimes, timeEntry1, timeEntry2];
+      setSelectedTimes(prev => ({ ...prev, [courtId]: newTimes }));
+      setSelectedBuisness(prev => [...prev, timeEntry1, timeEntry2]);
+
+      const currentCourt = slotData?.data?.find((c) => c._id === courtId);
+      if (currentCourtTimes.length === 0) {
+        setSelectedCourts(prev => [
+          ...prev,
+          {
+            _id: currentCourt._id,
+            courtName: currentCourt.courtName,
+            type: currentCourt.type,
+            date: dateKey,
+            day: selectedDate?.day,
+            time: [timeEntry1, timeEntry2],
+          },
+        ]);
+      } else {
+        setSelectedCourts(prev =>
+          prev.map(c =>
+            c._id === courtId
+              ? { ...c, time: [...c.time, timeEntry1, timeEntry2] }
+              : c
+          )
+        );
+      }
+      setSlotError("");
+      return;
+    }
   };
 
   const maxSelectableDate = new Date();
@@ -396,12 +703,21 @@ const CreateMatches = () => {
           register_club_id: savedClubId,
           day: selectedDate.day,
           date: selectedDate.fullDate,
+          duration: selectedDuration,
           courtId: currentCourtId || "",
+        })
+      );
+      dispatch(
+        getUserSlotPrice({
+          day: selectedDate.day,
+          register_club_id: savedClubId,
+          duration: selectedDuration
         })
       );
     }
   }, [
     selectedDate.day,
+    selectedDuration,
     currentCourtId,
     savedClubId,
     dispatch,
@@ -411,41 +727,14 @@ const CreateMatches = () => {
     if (
       slotData?.data?.length > 0 &&
       slotData.data[0]?.courts?.length > 0 &&
-      selectedCourts.length === 0
+      selectedCourts?.length === 0
     ) {
-      const firstCourt = slotData.data[0].courts[0];
+      const firstCourt = slotData?.data[0]?.courts[0];
       setCurrentCourtId(firstCourt._id);
     }
   }, [slotData, selectedDate?.fullDate]);
 
-  useEffect(() => {
-    const counts = [0, 0, 0];
-    slotData?.data?.forEach((court) => {
-      court?.slots?.forEach((slot) => {
-        if (
-          showUnavailable ||
-          (slot.availabilityStatus === "available" &&
-            slot.status !== "booked" &&
-            !isPastTime(slot.time))
-        ) {
-          const slotHour = parseTimeToHour(slot.time);
-          if (slotHour !== null) {
-            if (slotHour >= 0 && slotHour < 12) counts[0]++;
-            else if (slotHour >= 12 && slotHour < 17) counts[1]++;
-            else if (slotHour >= 17 && slotHour <= 23) counts[2]++;
-          }
-        }
-      });
-    });
-
-    let defaultTab = "morning";
-    if (counts[0] === 0) {
-      const firstAvailableIndex = counts.findIndex((c) => c > 0);
-      if (firstAvailableIndex !== -1)
-        defaultTab = tabData[firstAvailableIndex].key;
-    }
-    setKey(defaultTab);
-  }, [slotData, showUnavailable]);
+  // Remove old tab counting logic since we're showing all slots now
 
   const getFilteredLastStepOptions = () => {
     if (!dynamicSteps || dynamicSteps.length === 0) return [];
@@ -524,11 +813,6 @@ const CreateMatches = () => {
   const handleNext = async () => {
     if (selectedCourts.length === 0) {
       setSlotError("Select a slot to enable booking");
-      return;
-    }
-
-    if (!validateCourtTimeConsistency()) {
-      setSlotError("All courts must have the same time slots selected.");
       return;
     }
 
@@ -698,96 +982,295 @@ const CreateMatches = () => {
     scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" });
 
   const renderSlotButton = (slot, index, courtId) => {
-    const isSelected = selectedTimes[courtId]?.some((s) => s._id === slot._id) || false;
-    const allSelectedTimes = Object.values(selectedTimes).flat();
+    const dateKey = selectedDate?.fullDate;
     const currentCourtTimes = selectedTimes[courtId] || [];
-    const totalSlots = allSelectedTimes.length;
-    const slotMinutes = timeToMinutes(slot.time);
+    const isSlotSelected = currentCourtTimes.some(t => t._id === slot._id);
+    const totalSlots = Object.values(selectedTimes).flat().length;
+    const price = getPriceForSlot(slot.time);
 
-    let isDisabled = slot.status === "booked" || slot.availabilityStatus !== "available" || isPastTime(slot.time) || slot.amount <= 0;
+    let isDisabled = slot?.status === "booked" || slot?.availabilityStatus !== "available" || isPastTime(slot?.time);
 
-    // Check if this time is already used in another court
-    const isTimeAlreadyUsed = allSelectedTimes.some(t => t.time === slot.time && !currentCourtTimes.some(ct => ct._id === t._id));
+    // For 90min: Check if this is the first slot of a 90min selection
+    const sortedSlots = getSortedSlots(slotData?.data?.find(c => c?._id === courtId));
+    const currentIndex = sortedSlots.findIndex(s => s._id === slot._id);
+    const nextSlotFor90 = sortedSlots[currentIndex + 1];
+    const isFirstSlotOf90 = selectedDuration === 90 && isSlotSelected && nextSlotFor90 &&
+      activeHalves.has(`${courtId}-${nextSlotFor90._id}-${dateKey}`);
+    const bookingTime = slot?.bookingTime?.trim();
+    const isLeftBooked = bookingTime && /:00\s*(AM|PM)?$/i.test(bookingTime);
+    const isRightBooked = bookingTime && /:30\s*(AM|PM)?$/i.test(bookingTime);
+    const isHalfBooked = isLeftBooked || isRightBooked;
 
-    if (!isSelected) {
-      // Disable if maximum total slots reached
-      if (totalSlots >= 3) {
-        isDisabled = true;
-      }
-      // Disable if time already used in another court
-      else if (isTimeAlreadyUsed) {
-        isDisabled = true;
-      }
-      // Check global consecutive rule
-      else if (totalSlots > 0) {
-        const allowedSlots = getAllowedTimeSlots();
-        if (allowedSlots && !allowedSlots.includes(slotMinutes)) {
+    // hide for 60 / 120
+    if ((selectedDuration === 60 || selectedDuration === 120) && isHalfBooked) {
+      return null;
+    }
+
+    // Get activeHalf for display
+    const slotKey = `${courtId}-${slot._id}-${dateKey}`;
+    const activeHalf = activeHalves.get(slotKey);
+
+    // Disable logic based on slot limits
+    if (!isSlotSelected && !activeHalf) {
+      if (selectedDuration === 30) {
+        // For 30min, check activeHalves count
+        if (activeHalves.size >= MAX_SLOTS) {
+          isDisabled = true;
+        }
+      } else {
+        // For other durations, check full slots count
+        if (totalSlots >= MAX_SLOTS) {
           isDisabled = true;
         }
       }
     }
 
-    return (
-      <div key={index} className="col-3 col-sm-3 col-md-3 col-lg-2 mb-1 mt-1">
-        <button
-          className={`btn rounded-1 w-100 ${isSelected ? "border-0" : ""} slot-time-btn`}
-          onClick={() => toggleTime(slot, courtId)}
-          disabled={isDisabled}
-          title={(() => {
-            if (isDisabled && !isSelected) {
-              if (totalSlots >= 3) return 'Maximum 3 slots allowed in total';
+    // Background logic
+    const getBackground = () => {
+      // For 90min - first slot should show full blue background
+      if (selectedDuration === 90 && isFirstSlotOf90) {
+        return "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"; // Full blue background for first slot
+      }
 
-              if (isTimeAlreadyUsed) return 'This time slot is already selected in another court';
+      // For 60min and 120min - full slot selection
+      if (selectedDuration === 60 || selectedDuration === 120) {
+        if (isSlotSelected) {
+          return "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"; // Full blue background
+        }
+        return "#FFFFFF"; // White background
+      }
 
-              if (totalSlots > 0) {
-                const allowedSlots = getAllowedTimeSlots();
-                if (allowedSlots && !allowedSlots.includes(slotMinutes)) {
-                  return 'Only consecutive slots allowed across all courts';
-                }
-              }
+      // For 30min and 90min (second slot) - half slot selection
+      if (selectedDuration === 30 || selectedDuration === 90) {
+        // Single source of truth for 30min
+        if (selectedDuration === 30) {
+          if (activeHalf === "left") {
+            if (isRightBooked) {
+              return "linear-gradient(to right, #0034E4 50%, #5a6883ff 50%)";
             }
-            return '';
-          })()}
+            return "linear-gradient(to right, #0034E4 50%, #FFFFFF 50%)";
+          }
+          if (activeHalf === "right") {
+            if (isLeftBooked) {
+              return "linear-gradient(to right, #a1b1cfff 50%, #0034E4 50%)";
+            }
+            return "linear-gradient(to right, #FFFFFF 50%, #0034E4 50%)";
+          }
+        }
+
+        // 90min logic (use activeHalves)
+        if (selectedDuration === 90) {
+          if (activeHalf === "left") {
+            if (isRightBooked) {
+              return "linear-gradient(to right, #0034E4 50%, #5a6883ff 50%)";
+            }
+            return "linear-gradient(to right, #0034E4 50%, #FFFFFF 50%)";
+          }
+          if (activeHalf === "right") {
+            if (isLeftBooked) {
+              return "linear-gradient(to right, #a1b1cfff 50%, #0034E4 50%)";
+            }
+            return "linear-gradient(to right, #FFFFFF 50%, #0034E4 50%)";
+          }
+        }
+
+        // If neither side is selected, show booking status
+        if (isLeftBooked && !isRightBooked) {
+          return "linear-gradient(to right, #a1b1cfff 50%, #FFFFFF 50%)";
+        }
+
+        if (isRightBooked && !isLeftBooked) {
+          return "linear-gradient(to right, #FFFFFF 50%, #5a6883ff 50%)";
+        }
+
+        return "#FFFFFF";
+      }
+      return "#FFFFFF";
+    };
+
+    // Click handler
+    const handleClick = (e) => {
+      if (isDisabled) return;
+
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const clickSide = x < rect.width / 2 ? "left" : "right";
+
+      // Block clicks on booked halves
+      if ((clickSide === "left" && isLeftBooked) || (clickSide === "right" && isRightBooked)) {
+        return;
+      }
+
+      // For 30min and 90min, pass clickSide
+      if (selectedDuration === 30 || selectedDuration === 90) {
+        // For 90min, handle first and second slot clicks
+        if (selectedDuration === 90) {
+          const isFirstSlotSelected = currentCourtTimes.some(t => t._id === slot._id);
+
+          // If this is the first slot, allow any click
+          if (isFirstSlotSelected) {
+            toggleTime(slot, courtId, dateKey);
+            return;
+          }
+
+          // If this is the second slot (half-selected), allow both sides
+          if (activeHalf) {
+            toggleTime(slot, courtId, dateKey, clickSide);
+            return;
+          }
+        }
+
+        // For 30min, allow both sides
+        if (selectedDuration === 30) {
+          toggleTime(slot, courtId, dateKey, clickSide);
+          return;
+        }
+      }
+
+      // For 60min and 120min, no clickSide needed
+      toggleTime(slot, courtId, dateKey);
+    };
+
+    return (
+      <div key={index} className="col-3 col-sm-3 col-md-3 col-lg-2 mb-2">
+        <button
+          className="btn rounded-2 w-100 text-nowrap slot-time-btn position-relative overflow-hidden"
+          disabled={isDisabled}
+          onClick={handleClick}
           style={{
-            background: isDisabled ? "#c9cfcfff" : isSelected ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" : "#FFFFFF",
-            color: isDisabled ? "#000000" : isSelected ? "white" : "#000000",
+            background: getBackground(),
             cursor: isDisabled ? "not-allowed" : "pointer",
             opacity: isDisabled ? 0.6 : 1,
-            borderTop: isSelected ? "1px solid transparent" : "1px solid #4949491A",
-            borderRight: isSelected ? "1px solid transparent" : "1px solid #4949491A",
-            borderBottom: isSelected ? "1px solid transparent" : "1px solid #4949491A",
-            borderLeft: "3px solid #0034E4",
-            fontSize: "11px",
-            padding: "4px 2px",
-            height: "32px",
-
-
-          }}
-          onMouseEnter={(e) => {
-            if (!isDisabled && slot.availabilityStatus === "available" && !isSelected) {
-              e.currentTarget.style.borderTop = "1px solid #0034E4";
-              e.currentTarget.style.borderRight = "1px solid #0034E4";
-              e.currentTarget.style.borderBottom = "1px solid #0034E4";
-              e.currentTarget.style.borderLeft = "3px solid #0034E4";
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!isDisabled && slot.availabilityStatus === "available") {
-              e.currentTarget.style.borderTop = isSelected ? "1px solid transparent" : "1px solid #4949491A";
-              e.currentTarget.style.borderRight = isSelected ? "1px solid transparent" : "1px solid #4949491A";
-              e.currentTarget.style.borderBottom = isSelected ? "1px solid transparent" : "1px solid #4949491A";
-              e.currentTarget.style.borderLeft = "3px solid #0034E4";
-            }
+            border: "1px solid #dee2e6",
+            borderRadius: "12px",
+            height: "68px",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            position: "relative"
           }}
         >
-          {formatTimeForDisplay(slot.time)}
+          {/* For 30min and 90min half-selected slots, show split text colors */}
+          {(() => {
+            // For 30min, use activeHalves Map
+            if (selectedDuration === 30) {
+              if (activeHalf) {
+                return (
+                  <>
+                    <span
+                      style={{
+                        fontWeight: 600,
+                        fontSize: "14px",
+                        background: activeHalf === "left"
+                          ? "linear-gradient(to right, white 50%, #111827 50%)"
+                          : "linear-gradient(to right, #111827 50%, white 50%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text"
+                      }}
+                    >
+                      {formatTimeForDisplay(slot.time)}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "12px",
+                        background: activeHalf === "left"
+                          ? "linear-gradient(to right, white 50%, #6b7280 50%)"
+                          : "linear-gradient(to right, #6b7280 50%, white 50%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text"
+                      }}
+                    >
+                      ₹{price}
+                    </span>
+                  </>
+                );
+              }
+            }
+
+            // For 90min, use activeHalves Map
+            if (selectedDuration === 90) {
+              if (activeHalf) {
+                return (
+                  <>
+                    <span
+                      style={{
+                        fontWeight: 600,
+                        fontSize: "14px",
+                        background: activeHalf === "left"
+                          ? "linear-gradient(to right, white 50%, #111827 50%)"
+                          : "linear-gradient(to right, #111827 50%, white 50%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text"
+                      }}
+                    >
+                      {formatTimeForDisplay(slot.time)}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "12px",
+                        background: activeHalf === "left"
+                          ? "linear-gradient(to right, white 50%, #6b7280 50%)"
+                          : "linear-gradient(to right, #6b7280 50%, white 50%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text"
+                      }}
+                    >
+                      ₹{price}
+                    </span>
+                  </>
+                );
+              }
+            }
+            
+            // Normal single text display for full selections or no selection
+            return (
+              <>
+                <span
+                  style={{
+                    fontWeight: 600,
+                    fontSize: "14px",
+                    color:
+                      (selectedDuration === 60 || selectedDuration === 120) && isSlotSelected
+                        ? "white"
+                        : (selectedDuration === 90 && isFirstSlotOf90)
+                        ? "white"
+                        : activeHalf
+                        ? "white"
+                        : "#111827",
+                  }}
+                >
+                  {formatTimeForDisplay(slot.time)}
+                </span>
+                <span
+                  style={{
+                    fontSize: "12px",
+                    color:
+                      (selectedDuration === 60 || selectedDuration === 120) && isSlotSelected
+                        ? "white"
+                        : (selectedDuration === 90 && isFirstSlotOf90)
+                        ? "white"
+                        : activeHalf 
+                        ? "white" 
+                        : "#6b7280",
+                  }}
+                >
+                  ₹{price}
+                </span>
+              </>
+            );
+          })()}
         </button>
       </div>
     );
   };
 
   const renderCurrentQuestion = () => {
-    if (!dynamicSteps || dynamicSteps.length === 0) {
+    if (!dynamicSteps || dynamicSteps?.length === 0) {
       return <div>Loading questions...</div>;
     }
 
@@ -796,21 +1279,21 @@ const CreateMatches = () => {
       return <div>Loading questions...</div>;
     }
 
-    const isLastStep = currentStep === dynamicSteps.length - 1;
-    const currentAnswer = selectedAnswers[currentStep] || (step.isMultiSelect ? [] : "");
-    const optionsToShow = isLastStep ? getFilteredLastStepOptions() : (step.options || []);
+    const isLastStep = currentStep === dynamicSteps?.length - 1;
+    const currentAnswer = selectedAnswers[currentStep] || (step?.isMultiSelect ? [] : "");
+    const optionsToShow = isLastStep ? getFilteredLastStepOptions() : (step?.options || []);
 
     return (
       <Form>
         {optionsToShow.map((opt, i) => {
-          const isSelected = step.isMultiSelect
-            ? currentAnswer.includes(opt.value)
-            : currentAnswer === opt.value;
+          const isSelected = step?.isMultiSelect
+            ? currentAnswer.includes(opt?.value)
+            : currentAnswer === opt?.value;
 
           return (
             <div
-              key={opt._id}
-              onClick={() => handleAnswerSelect(currentStep, opt.value)}
+              key={opt?._id}
+              onClick={() => handleAnswerSelect(currentStep, opt?.value)}
               className="d-flex align-items-center mb-3 p-3 rounded shadow-sm border step-option"
               style={{
                 backgroundColor: isSelected ? "#eef2ff" : "#fff",
@@ -822,7 +1305,7 @@ const CreateMatches = () => {
               }}
             >
               <Form.Check
-                type={step.isMultiSelect ? "checkbox" : "radio"}
+                type={step?.isMultiSelect ? "checkbox" : "radio"}
                 checked={isSelected}
                 onChange={() => { }}
                 style={{ flexShrink: 0 }}
@@ -835,7 +1318,7 @@ const CreateMatches = () => {
                   color: "#1f2937",
                 }}
               >
-                {opt.value}
+                {opt?.value}
               </span>
             </div>
           );
@@ -886,6 +1369,14 @@ const CreateMatches = () => {
                               getUserSlotBooking({
                                 day,
                                 date: formattedDate,
+                                duration: selectedDuration,
+                                register_club_id: localStorage.getItem("register_club_id") || "",
+                              })
+                            );
+                            dispatch(
+                              getUserSlotPrice({
+                                day: day,
+                                duration: selectedDuration,
                                 register_club_id: localStorage.getItem("register_club_id") || "",
                               })
                             );
@@ -1036,10 +1527,10 @@ const CreateMatches = () => {
                 >
                   {dates.map((d, i) => {
                     const formatDate = (date) => date.toISOString().split("T")[0];
-                    const isSelected = formatDate(new Date(selectedDate?.fullDate)) === d.fullDate;
+                    const isSelected = formatDate(new Date(selectedDate?.fullDate)) === d?.fullDate;
                     const slotCount = selectedCourts
-                      .filter(court => court.date === d.fullDate)
-                      .reduce((acc, court) => acc + court.time.length, 0);
+                      .filter(court => court?.date === d?.fullDate)
+                      .reduce((acc, court) => acc + court?.time?.length, 0);
                     return (
                       <button
                         key={i}
@@ -1052,17 +1543,18 @@ const CreateMatches = () => {
                             : "#FFFFFF", boxShadow: isSelected ? "0px 4px 4px 0px #00000040" : "", borderRadius: "12px", color: isSelected ? "#FFFFFF" : "#374151"
                         }}
                         onClick={() => {
-                          setSelectedDate({ fullDate: d.fullDate, day: d.day });
-                          const [year, month, dayNum] = d.fullDate.split('-').map(Number);
+                          setSelectedDate({ fullDate: d?.fullDate, day: d?.day });
+                          const [year, month, dayNum] = d?.fullDate?.split('-').map(Number);
                           setStartDate(new Date(year, month - 1, dayNum));
-                          dispatch(getUserSlotBooking({ day: d.day, date: d.fullDate, register_club_id: localStorage.getItem("register_club_id") || "" }));
+                          dispatch(getUserSlotBooking({ day: d?.day, date: d?.fullDate, duration: selectedDuration, register_club_id: localStorage.getItem("register_club_id") || "" }));
+                          dispatch(getUserSlotPrice({ day: d?.day, duration: selectedDuration, register_club_id: localStorage.getItem("register_club_id") || "" }));
                         }}
                         onMouseEnter={(e) => !isSelected && (e.currentTarget.style.border = "1px solid #3DBE64")}
                         onMouseLeave={(e) => (e.currentTarget.style.border = "1px solid #4949491A")}
                       >
                         <div className="text-center">
-                          <div className="date-center-date">{d.date}</div>
-                          <div className="date-center-day">{dayShortMap[d.day]}</div>
+                          <div className="date-center-date">{d?.date}</div>
+                          <div className="date-center-day">{dayShortMap[d?.day]}</div>
                         </div>
                         {slotCount > 0 && (
                           <span
@@ -1091,6 +1583,34 @@ const CreateMatches = () => {
               </div>
             </div>
 
+            {/* Duration Filter Buttons */}
+            <div className="row mb-3 mx-auto">
+              <div className="col-12 d-flex justify-content-center align-items-center px-0">
+                <div className="duration-tabs-wrapper w-100">
+                  <div className="duration-tabs rounded-3 d-flex justify-content-center align-items-center">
+                    {durationOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        className="btn rounded-3 flex-fill mx-1"
+                        style={{
+                          fontSize: "14px",
+                          fontWeight: "500",
+                          minWidth: "80px",
+                          transition: "all 0.2s",
+                          color: selectedDuration === option.value ? "white" : "black",
+                          border: selectedDuration === option.value ? "0px solid white" : "1px solid #928f8fff",
+                          background: selectedDuration === option.value ? "linear-gradient(180deg, #0034E4 0%, #001B76 100%)" : "#FFFFFF",
+                        }}
+                        onClick={() => setSelectedDuration(option.value)}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div
               className="mb-3 overflow-slot border-0 rounded-3"
               style={{
@@ -1106,10 +1626,9 @@ const CreateMatches = () => {
                       {slotData?.data?.some((court) =>
                         court?.slots?.some((slot) =>
                           showUnavailable ||
-                          (slot.availabilityStatus === "available" &&
-                            slot.status !== "booked" &&
-                            !isPastTime(slot.time) &&
-                            slot.amount > 0)
+                          (slot?.availabilityStatus === "available" &&
+                            slot?.status !== "booked" &&
+                            !isPastTime(slot?.time))
                         )
                       ) && (
                           <>
@@ -1176,18 +1695,17 @@ const CreateMatches = () => {
                             }
                           }
                         `}</style>
-                        {slotData?.data.map((court, courtIndex) => {
+                        {slotData?.data?.map((court, courtIndex) => {
                           const filteredSlots = court?.slots?.filter((slot) =>
                             showUnavailable
                               ? true
-                              : slot.availabilityStatus === "available" &&
-                              slot.status !== "booked" &&
-                              !isPastTime(slot.time) &&
-                              slot.amount > 0
+                              : slot?.availabilityStatus === "available" &&
+                              slot?.status !== "booked" &&
+                              !isPastTime(slot?.time)
                           );
                           if (filteredSlots?.length === 0) return null;
                           return (
-                            <div key={court._id} className="row mb-md-3 mb-0 align-items-start pb-3 pb-md-0 border_bottom_line mt-2 mt-md-0">
+                            <div key={court?._id} className="row mb-md-3 mb-0 align-items-start pb-3 pb-md-0 border_bottom_line mt-2 mt-md-0">
                               <div className="col-md-3 col-12 border-end mb-0 d-flex d-md-block align-items-center justify-content-start">
                                 <div
                                   className="court-item p-1 ps-0 ps-md-1 text-center text-lg-start h-100 d-flex d-md-block align-items-center justify-content-center"
@@ -1219,7 +1737,7 @@ const CreateMatches = () => {
 
                               <div className="col-md-9 col-12">
                                 <div className="row g-1">
-                                  {filteredSlots.map((slot, i) => renderSlotButton(slot, i, court._id))}
+                                  {filteredSlots?.map((slot, i) => renderSlotButton(slot, i, court?._id))}
                                 </div>
                               </div>
                             </div>
@@ -1230,9 +1748,9 @@ const CreateMatches = () => {
                       {slotData?.data?.some((court) =>
                         court?.slots?.some((slot) =>
                           showUnavailable ||
-                          (slot.availabilityStatus === "available" &&
-                            slot.status !== "booked" &&
-                            !isPastTime(slot.time))
+                          (slot?.availabilityStatus === "available" &&
+                            slot?.status !== "booked" &&
+                            !isPastTime(slot?.time))
                         )
                       ) && (
                           <div className="d-flex justify-content-end pt-2 pb-2 d-lg-none">
@@ -1244,7 +1762,7 @@ const CreateMatches = () => {
                                 fontWeight: "600",
                                 fontSize: "13px",
                               }}
-                              disabled={selectedCourts.length === 0}
+                              disabled={selectedCourts?.length === 0}
                               onClick={() => {
                                 if (existsOpenMatchData) {
                                   setMatchPlayer(true);
@@ -1264,16 +1782,16 @@ const CreateMatches = () => {
                         !court?.slots?.some(
                           (slot) =>
                             showUnavailable ||
-                            (slot.availabilityStatus === "available" &&
-                              slot.status !== "booked" &&
-                              !isPastTime(slot.time))
+                            (slot?.availabilityStatus === "available" &&
+                              slot?.status !== "booked" &&
+                              !isPastTime(slot?.time))
                         )
                     ) && (
                         <div
                           className="text-center py-4 d-flex flex-column justify-content-center align-items-center mt-5"
-                          style={{ fontFamily: "Poppins", fontWeight: 500, color: "#6B7280" ,}}
+                          style={{ fontFamily: "Poppins", fontWeight: 500, color: "#6B7280", }}
                         >
-                          <p className="mb-1 label_font text-danger">No slots are available for this date and {tabData.find(t => t.key === key)?.label || 'time'}.</p>
+                          <p className="mb-1 label_font text-danger">No slots are available for this date.</p>
                           <p className="mb-0 label_font text-danger">Please choose another date</p>
                         </div>
                       )}
@@ -1281,7 +1799,7 @@ const CreateMatches = () => {
                 )
               ) : (
                 <div className="text-center py-4 d-flex flex-column justify-content-center align-items-center mt-5" style={{ fontFamily: "Poppins", fontWeight: 500, color: "#6B7280" }}>
-                  <p className="mb-1 label_font text-danger">No slots are available for this date and {tabData.find(t => t.key === key)?.label || 'time'}.</p>
+                  <p className="mb-1 label_font text-danger">No slots are available for this date.</p>
                   <p className="mb-0 label_font text-danger">Please choose another date</p>
                 </div>
               )}
@@ -1303,18 +1821,18 @@ const CreateMatches = () => {
               padding: "0px 15px",
             }}
           >
-            {selectedCourts.length > 0 && (
+            {selectedCourts?.length > 0 && (
               <>
                 <div
                   className="mobile-expanded-slots"
                   style={{
                     maxHeight: isExpanded
-                      ? selectedCourts.reduce((s, c) => s + c.time.length, 0) > 2
+                      ? selectedCourts.reduce((s, c) => s + c?.time?.length, 0) > 2
                         ? "120px"
                         : "auto"
                       : "0px",
                     overflowY:
-                      selectedCourts.reduce((s, c) => s + c.time.length, 0) > 2 && isExpanded
+                      selectedCourts.reduce((s, c) => s + c?.time?.length, 0) > 2 && isExpanded
                         ? "auto"
                         : "hidden",
                     overflowX: "hidden",
@@ -1345,8 +1863,36 @@ const CreateMatches = () => {
                     }
                   `}</style>
 
-                  {selectedCourts.map((court, idx) =>
-                    court.time.map((timeSlot, tIdx) => (
+                  {selectedCourts?.map((court, idx) => {
+                    const courtTimes = [...court?.time];
+
+                    // Add half-selected slots for 30min and 90min durations
+                    if (selectedDuration === 30 || selectedDuration === 90) {
+                      Array.from(activeHalves.entries()).forEach(([key, side]) => {
+                        if (key.startsWith(`${court._id}-`) && key.includes(`-${court.date}-`)) {
+                          const parts = key.split('-');
+                          const slotId = parts[1];
+                          
+                          const originalSlot = court.time.find(t => t._id === slotId);
+                          if (originalSlot && !courtTimes.some(t => t._id === `${slotId}-${side}`)) {
+                            let displayTime = originalSlot.time;
+                            if (side === 'right') {
+                              displayTime = originalSlot.time.replace(':00', ':30');
+                            }
+                            
+                            courtTimes.push({
+                              ...originalSlot,
+                              time: displayTime,
+                              _id: `${slotId}-${side}`,
+                              originalId: slotId,
+                              side: side
+                            });
+                          }
+                        }
+                      });
+                    }
+
+                    return courtTimes.map((timeSlot, tIdx) => (
                       <div key={`${idx}-${tIdx}`} className="row mb-1">
                         <div className="col-12 d-flex gap-1 mb-0 m-0 align-items-center justify-content-between">
                           <div className="d-flex text-white">
@@ -1357,10 +1903,10 @@ const CreateMatches = () => {
                                 fontSize: "11px",
                               }}
                             >
-                              {court.date
-                                ? `${new Date(court.date).toLocaleString("en-US", {
+                              {court?.date
+                                ? `${new Date(court?.date).toLocaleString("en-US", {
                                   day: "2-digit",
-                                })}, ${new Date(court.date).toLocaleString("en-US", {
+                                })}, ${new Date(court?.date).toLocaleString("en-US", {
                                   month: "short",
                                 })}`
                                 : ""}
@@ -1373,7 +1919,7 @@ const CreateMatches = () => {
                                 fontSize: "11px",
                               }}
                             >
-                              {formatTimeForDisplay(timeSlot.time)}
+                              {formatTimeForDisplay(timeSlot?.time)}
                             </span>
                             <span
                               className="ps-1"
@@ -1383,7 +1929,7 @@ const CreateMatches = () => {
                                 fontSize: "10px",
                               }}
                             >
-                              {court.courtName}
+                              {court?.courtName}
                             </span>
                           </div>
 
@@ -1396,43 +1942,54 @@ const CreateMatches = () => {
                                 fontSize: "11px",
                               }}
                             >
-                              ₹ {timeSlot.amount || "N/A"}
+                              ₹ {timeSlot?.amount || "N/A"}
                             </span>
                             <MdOutlineDeleteOutline
                               className="ms-1 text-white"
                               style={{ cursor: "pointer", fontSize: "14px" }}
                               onClick={() => {
+                                const targetId = timeSlot.originalId || timeSlot._id;
                                 const updatedCourts = selectedCourts
-                                  .map((c) =>
+                                  ?.map((c) =>
                                     c._id === court._id
                                       ? {
                                         ...c,
-                                        time: c.time.filter((t) => t._id !== timeSlot._id),
+                                        time: c?.time.filter((t) => t?._id !== targetId),
                                       }
                                       : c
                                   )
-                                  .filter((c) => c.time.length > 0);
+                                  .filter((c) => c?.time?.length > 0);
                                 setSelectedCourts(updatedCourts);
 
                                 const updatedTimes = { ...selectedTimes };
-                                if (updatedTimes[court._id]) {
-                                  updatedTimes[court._id] = updatedTimes[court._id].filter(
-                                    (t) => t._id !== timeSlot._id
+                                if (updatedTimes[court?._id]) {
+                                  updatedTimes[court?._id] = updatedTimes[court?._id].filter(
+                                    (t) => t?._id !== targetId
                                   );
-                                  if (updatedTimes[court._id].length === 0)
-                                    delete updatedTimes[court._id];
+                                  if (updatedTimes[court?._id]?.length === 0)
+                                    delete updatedTimes[court?._id];
                                 }
                                 setSelectedTimes(updatedTimes);
+
+                                setSelectedBuisness(prev => prev.filter(t => t._id !== targetId));
+
+                                // Remove from activeHalves if any
+                                if (timeSlot.side) {
+                                  const key = `${court._id}-${timeSlot.originalId}-${court.date}`;
+                                  setActiveHalves(prev => {
+                                    const newMap = new Map(prev);
+                                    newMap.delete(key);
+                                    return newMap;
+                                  });
+                                }
                               }}
                             />
                           </div>
                         </div>
                       </div>
-                    ))
-                  )}
+                    ));
+                  })}
                 </div>
-
-
               </>
             )}
           </div>
@@ -1511,40 +2068,40 @@ const CreateMatches = () => {
 
                     <Form>
                       {(() => {
-                        if (!dynamicSteps || dynamicSteps.length === 0 || !dynamicSteps[currentStep]) {
+                        if (!dynamicSteps || dynamicSteps?.length === 0 || !dynamicSteps[currentStep]) {
                           return <div>Loading options...</div>;
                         }
 
                         const step = dynamicSteps[currentStep];
-                        if (!step || !step.options) {
+                        if (!step || !step?.options) {
                           return <div>Loading options...</div>;
                         }
 
-                        const currentAnswer = selectedAnswers[currentStep] || (step.isMultiSelect ? [] : "");
-                        const isLastStep = currentStep === dynamicSteps.length - 1;
-                        const optionsToShow = isLastStep ? getFilteredLastStepOptions() : (step.options || []);
+                        const currentAnswer = selectedAnswers[currentStep] || (step?.isMultiSelect ? [] : "");
+                        const isLastStep = currentStep === dynamicSteps?.length - 1;
+                        const optionsToShow = isLastStep ? getFilteredLastStepOptions() : (step?.options || []);
 
-                        return optionsToShow.map((opt, i) => {
-                          const optValue = opt.value || opt.code || opt;
-                          const isSelected = step.isMultiSelect
+                        return optionsToShow?.map((opt, i) => {
+                          const optValue = opt?.value || opt?.code || opt;
+                          const isSelected = step?.isMultiSelect
                             ? Array.isArray(currentAnswer) && currentAnswer.includes(optValue)
                             : currentAnswer === optValue;
 
                           return (
                             <div
-                              key={opt._id || i}
+                              key={opt?._id || i}
                               onClick={() => handleAnswerSelect(currentStep, optValue)}
                               className="d-flex align-items-center mb-0 border-0 px-3 py-2  shadow-sm  step-option"
                               style={{
                                 backgroundColor: isSelected ? "#eef2ff" : "#fff",
                                 borderColor: isSelected ? "#4f46e5" : "#e5e7eb",
-                                cursor: selectedCourts.length === 0 ? "not-allowed" : "pointer",
+                                cursor: selectedCourts?.length === 0 ? "not-allowed" : "pointer",
                                 gap: "12px",
                                 transition: "all 0.2s ease",
                               }}
                             >
                               <Form.Check
-                                type={step.isMultiSelect ? "checkbox" : "radio"}
+                                type={step?.isMultiSelect ? "checkbox" : "radio"}
                                 checked={isSelected}
                                 onChange={() => { }}
                                 style={{ flexShrink: 0 }}
@@ -1557,7 +2114,7 @@ const CreateMatches = () => {
                                   color: "#1f2937",
                                 }}
                               >
-                                {opt.value || `${opt.code} - ${opt.title || opt.question}`}
+                                {opt?.value || `${opt?.code} - ${opt?.title || opt?.question}`}
                               </span>
                             </div>
                           );
@@ -1567,7 +2124,7 @@ const CreateMatches = () => {
                   </>
                 )}
 
-                {slotError && (
+                {(slotError || errorMessage) && (
                   <div
                     className="text-center mb-3 p-2 rounded"
                     style={{
@@ -1578,7 +2135,7 @@ const CreateMatches = () => {
                       fontSize: "14px",
                     }}
                   >
-                    {slotError}
+                    {slotError || errorMessage}
                   </div>
                 )}
 
@@ -1599,12 +2156,12 @@ const CreateMatches = () => {
                       border: "none",
                     }}
                     className="rounded-pill px-4 mb-0 py-1 ms-auto"
-                    disabled={selectedCourts.length === 0 || !isCurrentStepValid()}
+                    disabled={selectedCourts?.length === 0 || !isCurrentStepValid()}
                     onClick={handleNext}
                   >
                     {getPlayerLevelsLoading === true ? (
                       <ButtonLoading color="#fff" />
-                    ) : currentStep === dynamicSteps.length - 1 && isFinalLevelStepLoaded ? (
+                    ) : currentStep === dynamicSteps?.length - 1 && isFinalLevelStepLoaded ? (
                       "Submit"
                     ) : (
                       "Next"
@@ -1617,7 +2174,7 @@ const CreateMatches = () => {
 
           {profileLoading ? (
             <></>
-          ) : !matchPlayer && !existsOpenMatchData && dynamicSteps.length > 0 && (
+          ) : !matchPlayer && !existsOpenMatchData && dynamicSteps?.length > 0 && (
             <div className="d-none d-lg-block">
               <div style={{ backgroundColor: "#F1F4FF", borderRadius: "12px" }}>
                 <div className="d-flex pt-4 align-items-center" style={{ position: "relative" }}>
@@ -1633,7 +2190,7 @@ const CreateMatches = () => {
                   </div>
 
                   <div className="d-flex justify-content-center w-100 gap-2">
-                    {dynamicSteps.map((_, i) => (
+                    {dynamicSteps?.map((_, i) => (
                       <div
                         key={i}
                         style={{
@@ -1663,18 +2220,18 @@ const CreateMatches = () => {
 
                   <div
                     style={{
-                      opacity: selectedCourts.length === 0 ? 0.5 : 1,
-                      pointerEvents: selectedCourts.length === 0 ? "none" : "auto",
+                      opacity: selectedCourts?.length === 0 ? 0.5 : 1,
+                      pointerEvents: selectedCourts?.length === 0 ? "none" : "auto",
                     }}
                   >
                     {renderCurrentQuestion()}
                   </div>
                 </div>
 
-                {slotError && (
+                {(slotError || errorMessage) && (
                   <div className="text-center p-3">
                     <div style={{ backgroundColor: "#ffebee", color: "#c62828", padding: "10px", borderRadius: "8px" }}>
-                      {slotError}
+                      {slotError || errorMessage}
                     </div>
                   </div>
                 )}
@@ -1691,12 +2248,12 @@ const CreateMatches = () => {
                       border: "none",
                     }}
                     className="rounded-pill px-4 py-2 pt-1 d-flex align-items-center justify-content-center"
-                    disabled={selectedCourts.length === 0 || !isCurrentStepValid()}
+                    disabled={selectedCourts?.length === 0 || !isCurrentStepValid()}
                     onClick={handleNext}
                   >
                     {getPlayerLevelsLoading === true ? (
                       <ButtonLoading color={'white'} />
-                    ) : currentStep === dynamicSteps.length - 1 && isFinalLevelStepLoaded ? (
+                    ) : currentStep === dynamicSteps?.length - 1 && isFinalLevelStepLoaded ? (
                       "Submit"
                     ) : (
                       "Next"
@@ -1707,14 +2264,16 @@ const CreateMatches = () => {
             </div>
           )}
 
-          {!profileLoading && matchPlayer && (
+          {profileLoading ? (<>
+            <MatchplayerShimmer />
+          </>) : matchPlayer && (
             <MatchPlayer
               addedPlayers={addedPlayers}
               setAddedPlayers={setAddedPlayers}
               selectedCourts={selectedCourts}
               selectedDate={selectedDate}
-              finalSkillDetails={existsOpenMatchData ? [] : (selectedAnswers && Object.keys(selectedAnswers).length > 0 ? selectedAnswers : {})}
-              totalAmount={selectedCourts.reduce((sum, c) => sum + c.time.reduce((s, t) => s + Number(t.amount || 0), 0), 0)}
+              finalSkillDetails={existsOpenMatchData ? [] : (selectedAnswers && Object.keys(selectedAnswers)?.length > 0 ? selectedAnswers : {})}
+              totalAmount={selectedCourts.reduce((sum, c) => sum + c?.time.reduce((s, t) => s + Number(t?.amount || 0), 0), 0)}
               existsOpenMatchData={existsOpenMatchData}
               slotError={slotError}
               userGender={userGender}

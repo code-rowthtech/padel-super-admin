@@ -17,32 +17,37 @@ const LoginPage = () => {
     const location = useLocation();
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
         const cleanedPhone = phone.replace(/\D/g, '').slice(0, 10);
+        
+        // Validate phone number
+        if (!cleanedPhone || cleanedPhone.length !== 10 || !/^[6-9]/.test(cleanedPhone)) {
+            setShowAlert(true);
+            return;
+        }
+        
         setPhone(cleanedPhone);
-        dispatch(sendOtp({ phoneNumber: cleanedPhone, countryCode: "+91", type: "Signup" }))
-            .unwrap()
-            .then(() => {
-                const { redirectTo, paymentState } = location.state || {};
-                if (redirectTo && paymentState) {
-                    navigate('/verify-otp', {
-                        state: {
-                            phone,
-                            redirectTo,
-                            paymentState
-                        }
-                    });
-                } else if (redirectTo) {
-                    navigate('/verify-otp', {
-                        state: {
-                            phone,
-                            redirectTo,
-                        }
-                    });
-                } else {
-                    navigate('/verify-otp', { state: { phone } });
-                }
-                dispatch(resetAuth());
-            });
+        
+        try {
+            await dispatch(sendOtp({ 
+                phoneNumber: cleanedPhone, 
+                countryCode: "+91", 
+                type: "Signup" 
+            })).unwrap();
+            
+            const { redirectTo, paymentState } = location.state || {};
+            const navigationState = {
+                phone: cleanedPhone,
+                ...(redirectTo && { redirectTo }),
+                ...(paymentState && { paymentState })
+            };
+            
+            navigate('/verify-otp', { state: navigationState });
+            dispatch(resetAuth());
+        } catch (error) {
+            console.error('OTP send failed:', error);
+            setShowAlert(true);
+        }
     };
 
     useEffect(() => {

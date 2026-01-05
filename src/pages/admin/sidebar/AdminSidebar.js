@@ -1,40 +1,32 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import {
   FaTachometerAlt,
   FaCalendarAlt,
   FaChevronDown,
   FaChevronUp,
-  FaEdit,
   FaUsersCog,
   FaBuilding,
   FaUser,
 } from "react-icons/fa";
-import { logout } from "../../../redux/admin/auth/slice";
 import { useDispatch, useSelector } from "react-redux";
-import { RiLogoutCircleLine, RiWallet3Line } from "react-icons/ri";
+import {  RiWallet3Line } from "react-icons/ri";
 import { LuSwords } from "react-icons/lu";
 import { FaRankingStar } from "react-icons/fa6";
 import { LiaFileInvoiceDollarSolid } from "react-icons/lia";
 import { IoTennisballOutline } from "react-icons/io5";
 import { getOwnerRegisteredClub } from "../../../redux/thunks";
 import { getOwnerFromSession } from "../../../helpers/api/apiCore";
-import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
+import { ButtonLoading } from "../../../helpers/loading/Loaders";
 
 const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   const Owner = getOwnerFromSession();
-
   const ownerId = Owner?._id || Owner?.generatedBy;
-  const { getClubData, ownerClubLoading } = useSelector(
-    (state) => state?.manualBooking
-  );
-  const statedate = useSelector(
-    (state) => state.manualBooking?.ownerClubData?.[0]?.logo
-  );
-
+  const {  ownerClubLoading } = useSelector((state) => state?.manualBooking);
+  const statedate = useSelector((state) => state.manualBooking?.ownerClubData?.[0]?.logo);
   const [isBookingOpen, setBookingOpen] = useState(false);
   const [clubLogo, setClubLogo] = useState(null);
   const [hoveredItem, setHoveredItem] = useState(null);
@@ -63,8 +55,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   }, [statedate]);
 
   const linkClasses = ({ isActive }) =>
-    `d-flex align-items-center px-4 py-2 my-1 text-decoration-none mx-3 rounded-2 cursor-pointer ${
-      isActive ? "active-parent-link" : "bg-transparent"
+    `d-flex align-items-center px-4 py-2 my-1 text-decoration-none mx-3 rounded-2 cursor-pointer ${isActive ? "active-parent-link" : "bg-transparent"
     }`;
 
   const isDropdownActive = bookingPaths.includes(location.pathname);
@@ -79,9 +70,8 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
 
   return (
     <aside
-      className={`admin-sidebar text-white vh-100 d-flex flex-column ${
-        isOpen ? "mobile-open" : ""
-      } ${isCollapsed ? "collapsed" : ""}`}
+      className={`admin-sidebar text-white vh-100 d-flex flex-column ${isOpen ? "mobile-open" : ""
+        } ${isCollapsed ? "collapsed" : ""}`}
       style={{
         width: isCollapsed ? "70px" : "250px",
         backgroundColor: "#1C2434",
@@ -99,17 +89,19 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             />
           ) : (
             <>
+
               {clubLogo ? (
                 <div
                   style={{
-                    width: "100px",
-                    height: "100px",
+                    width: "80px",
+                    height: "80px",
                     borderRadius: "50%",
                     overflow: "hidden",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     backgroundColor: "#f9f9f9",
+                    cursor: "pointer",
                   }}
                 >
                   <img
@@ -118,19 +110,8 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
                     style={{
                       width: "100%",
                       height: "100%",
-                      backgroundSize: "contain",
-                      width: isCollapsed
-                        ? "60px"
-                        : window.innerWidth <= 768
-                        ? "90px"
-                        : "110px",
-                      height: isCollapsed
-                        ? "60px"
-                        : window.innerWidth <= 768
-                        ? "90px"
-                        : "110px",
-                      cursor: "pointer",
-                      marginTop: "13px",
+                      objectFit: "cover",
+                      objectPosition: "center"
                     }}
                     onClick={() => handleNavigation("/admin/dashboard")}
                   />
@@ -231,11 +212,10 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
                 setBookingOpen((prev) => !prev);
               }
             }}
-            className={`btn ${
-              isCollapsed && window.innerWidth > 768
-                ? "w-auto d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2"
-                : " d-flex align-items-center px-4 py-2 my-1 text-decoration-none mx-3 rounded-2"
-            } ${isDropdownActive ? "active-parent-link" : "bg-transparent"}`}
+            className={`btn ${isCollapsed && window.innerWidth > 768
+              ? "w-auto d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2"
+              : " d-flex align-items-center px-4 py-2 my-1 text-decoration-none mx-3 rounded-2"
+              } ${isDropdownActive ? "active-parent-link" : "bg-transparent"}`}
             style={{
               backgroundColor: isDropdownActive ? "#333B48" : "transparent",
               color: "#CCD2DD",
@@ -251,9 +231,8 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             }}
           >
             <div
-              className={`d-flex align-items-center fs-6 ${
-                isCollapsed && window.innerWidth > 768 ? "" : "w-100"
-              }`}
+              className={`d-flex align-items-center fs-6 ${isCollapsed && window.innerWidth > 768 ? "" : "w-100"
+                }`}
             >
               <FaCalendarAlt
                 className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
@@ -300,11 +279,11 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
                   (e.target.style.backgroundColor = "#4A5568")
                 }
                 onMouseLeave={(e) =>
-                  (e.target.style.backgroundColor =
-                    location.pathname === "/admin/booking" ||
+                (e.target.style.backgroundColor =
+                  location.pathname === "/admin/booking" ||
                     location.pathname === "/admin/manualbooking"
-                      ? "#333B48"
-                      : "transparent")
+                    ? "#333B48"
+                    : "transparent")
                 }
                 onClick={() => {
                   setShowDropdown(false);
@@ -332,10 +311,10 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
                   (e.target.style.backgroundColor = "#4A5568")
                 }
                 onMouseLeave={(e) =>
-                  (e.target.style.backgroundColor =
-                    location.pathname === "/admin/cancellation"
-                      ? "#333B48"
-                      : "transparent")
+                (e.target.style.backgroundColor =
+                  location.pathname === "/admin/cancellation"
+                    ? "#333B48"
+                    : "transparent")
                 }
                 onClick={() => {
                   setShowDropdown(false);
@@ -363,10 +342,10 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
                   (e.target.style.backgroundColor = "#4A5568")
                 }
                 onMouseLeave={(e) =>
-                  (e.target.style.backgroundColor =
-                    location.pathname === "/admin/court-availability"
-                      ? "#333B48"
-                      : "transparent")
+                (e.target.style.backgroundColor =
+                  location.pathname === "/admin/court-availability"
+                    ? "#333B48"
+                    : "transparent")
                 }
                 onClick={() => {
                   setShowDropdown(false);
@@ -384,8 +363,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             <NavLink
               to="/admin/booking"
               className={({ isActive }) =>
-                `d-flex align-items-center px-4 py-2 my-1 text-decoration-none ${
-                  isActive ? "active-child-link" : ""
+                `d-flex align-items-center px-4 py-2 my-1 text-decoration-none ${isActive ? "active-child-link" : ""
                 }`
               }
               style={({ isActive }) => ({
@@ -405,8 +383,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             <NavLink
               to="/admin/cancellation"
               className={({ isActive }) =>
-                `d-flex align-items-center px-4 py-2 my-1 text-decoration-none ${
-                  isActive ? "active-child-link" : ""
+                `d-flex align-items-center px-4 py-2 my-1 text-decoration-none ${isActive ? "active-child-link" : ""
                 }`
               }
               style={({ isActive }) => ({
@@ -426,8 +403,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             <NavLink
               to="/admin/court-availability"
               className={({ isActive }) =>
-                `d-flex align-items-center px-4 py-2 my-1 text-decoration-none ${
-                  isActive ? "active-child-link" : ""
+                `d-flex align-items-center px-4 py-2 my-1 text-decoration-none ${isActive ? "active-child-link" : ""
                 }`
               }
               style={({ isActive }) => ({
@@ -512,20 +488,18 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
           <NavLink
             to="/admin/open-matches"
             className={({ isActive }) =>
-              `d-flex align-items-center ${
-                isCollapsed && window.innerWidth > 768
-                  ? "justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2"
-                  : "px-4 py-2 my-1 text-decoration-none mx-3 rounded-2"
-              } cursor-pointer ${
-                isActive || location.pathname === "/admin/create-match"
-                  ? "active-parent-link"
-                  : ""
+              `d-flex align-items-center ${isCollapsed && window.innerWidth > 768
+                ? "justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2"
+                : "px-4 py-2 my-1 text-decoration-none mx-3 rounded-2"
+              } cursor-pointer ${isActive || location.pathname === "/admin/create-match"
+                ? "active-parent-link"
+                : ""
               }`
             }
             style={() => ({
               backgroundColor:
                 location.pathname === "/admin/open-matches" ||
-                location.pathname === "/admin/create-match"
+                  location.pathname === "/admin/create-match"
                   ? "#333B48"
                   : "transparent",
               color: "#CCD2DD",
@@ -534,7 +508,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               fontFamily: "Poppins",
               boxShadow:
                 location.pathname === "/admin/open-matches" ||
-                location.pathname === "/admin/create-match"
+                  location.pathname === "/admin/create-match"
                   ? "-28px 22px 45px 0px #1B1D4224"
                   : "none",
               minHeight:
@@ -638,20 +612,18 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
           <NavLink
             to="/admin/packages"
             className={({ isActive }) =>
-              `d-flex align-items-center ${
-                isCollapsed && window.innerWidth > 768
-                  ? "justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2"
-                  : "px-4 py-2 my-1 text-decoration-none mx-3 rounded-2"
-              } cursor-pointer ${
-                isActive || location.pathname === "/admin/package-details"
-                  ? "active-parent-link"
-                  : ""
+              `d-flex align-items-center ${isCollapsed && window.innerWidth > 768
+                ? "justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2"
+                : "px-4 py-2 my-1 text-decoration-none mx-3 rounded-2"
+              } cursor-pointer ${isActive || location.pathname === "/admin/package-details"
+                ? "active-parent-link"
+                : ""
               }`
             }
             style={() => ({
               backgroundColor:
                 location.pathname === "/admin/packages" ||
-                location.pathname === "/admin/package-details"
+                  location.pathname === "/admin/package-details"
                   ? "#333B48"
                   : "transparent",
               color: "#CCD2DD",
@@ -660,7 +632,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               fontFamily: "Poppins",
               boxShadow:
                 location.pathname === "/admin/packages" ||
-                location.pathname === "/admin/package-details"
+                  location.pathname === "/admin/package-details"
                   ? "-28px 22px 45px 0px #1B1D4224"
                   : "none",
               minHeight:

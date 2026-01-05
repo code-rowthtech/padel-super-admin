@@ -7,7 +7,6 @@ import {
   Row,
   Tooltip,
 } from "react-bootstrap";
-import DatePicker from "react-datepicker";
 import { FaArrowLeft, FaTrash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { BookingSuccessModal } from "./BookingModal";
@@ -15,6 +14,7 @@ import {
   getOwnerRegisteredClub,
   getActiveCourts,
   manualBookingByOwner,
+  getUserSlotPrice,
 } from "../../../../redux/thunks";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -31,6 +31,7 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { searchUserByNumber } from "../../../../redux/admin/searchUserbynumber/thunk";
 import { resetSearchData } from "../../../../redux/admin/searchUserbynumber/slice";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
+import { duration } from "@mui/material/styles";
 
 const ManualBooking = () => {
   const dispatch = useDispatch();
@@ -42,13 +43,47 @@ const ManualBooking = () => {
     ownerClubData,
     activeCourtsLoading,
     activeCourtsData,
-  } = useSelector((state) => state.manualBooking);
+  } = useSelector((state) => state?.manualBooking);
   const searchUserData = useSelector(
-    (state) => state.searchUserByNumber.getSearchData
+    (state) => state?.searchUserByNumber?.getSearchData
   );
   const searchUserDataLoading = useSelector(
-    (state) => state.searchUserByNumber.getSearchLoading
+    (state) => state?.searchUserByNumber?.getSearchLoading
   );
+  const slotPrice = useSelector((state) => state?.userSlot?.slotPriceData?.data || []);
+  console.log({ slotPrice });
+  
+  // Add price calculation function
+  const getPriceForSlot = (slotTime, day = selectedDay) => {
+    if (!slotPrice || !Array.isArray(slotPrice) || slotPrice.length === 0) return 1000;
+
+    // Parse hour from time string
+    const parseTimeToHour = (timeStr) => {
+      if (!timeStr) return null;
+      const [hourStr, period] = timeStr.toLowerCase().split(" ");
+      let hour = parseInt(hourStr);
+      if (isNaN(hour)) return null;
+      if (period === "pm" && hour !== 12) hour += 12;
+      if (period === "am" && hour === 12) hour = 0;
+      return hour;
+    };
+
+    const slotHour = parseTimeToHour(slotTime);
+    if (slotHour === null) return 1000;
+
+    let period = "morning";
+    if (slotHour >= 17) period = "evening";
+    else if (slotHour >= 12) period = "afternoon";
+
+    // Find matching price entry (60min duration for manual booking)
+    const entry = slotPrice.find(p =>
+      p.day === day &&
+      p.duration === 60 &&
+      p.timePeriod === period
+    );
+
+    return entry?.price || 1000;
+  };
   const [startDate, setStartDate] = useState(new Date());
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
@@ -72,7 +107,7 @@ const ManualBooking = () => {
   }, []);
 
   const today = new Date();
-  const dates = Array.from({ length: 41 }).map((_, i) => {
+  const dates = Array.from({ length: 41 })?.map((_, i) => {
     const date = new Date(today);
     date.setDate(date.getDate() + i);
     return {
@@ -118,12 +153,12 @@ const ManualBooking = () => {
     const courtId = selectedCourts[0];
     const dateSlots = selectedSlots[selectedDate] || {};
     const courtData = dateSlots[courtId] || { slots: [], businessHours: [] };
-    const courtSlots = courtData.slots;
-    const exists = courtSlots.some((t) => t._id === slot?._id);
+    const courtSlots = courtData?.slots;
+    const exists = courtSlots.some((t) => t?._id === slot?._id);
 
     const totalSlots = Object.values(selectedSlots).reduce(
       (acc, ds) =>
-        acc + Object.values(ds).reduce((acc2, cd) => acc2 + cd.slots.length, 0),
+        acc + Object.values(ds).reduce((acc2, cd) => acc2 + cd?.slots?.length, 0),
       0
     );
 
@@ -136,13 +171,18 @@ const ManualBooking = () => {
 
     let newCourtSlots;
     if (exists) {
-      newCourtSlots = courtSlots.filter((t) => t._id !== slot?._id);
+      newCourtSlots = courtSlots.filter((t) => t?._id !== slot?._id);
     } else {
-      newCourtSlots = [...courtSlots, slot];
+      // Add price to the slot when selecting
+      const slotWithPrice = {
+        ...slot,
+        amount: getPriceForSlot(slot.time, selectedDay)
+      };
+      newCourtSlots = [...courtSlots, slotWithPrice];
     }
 
     const selectedCourtData = activeCourtsData?.data?.find(
-      (c) => c._id === courtId
+      (c) => c?._id === courtId
     );
     const slotData = selectedCourtData?.slot?.[0];
     const formattedBusinessHours =
@@ -157,7 +197,7 @@ const ManualBooking = () => {
     };
 
     let newDateSlots;
-    if (newCourtSlots.length === 0) {
+    if (newCourtSlots?.length === 0) {
       const { [courtId]: _, ...rest } = dateSlots;
       newDateSlots = rest;
     } else {
@@ -178,12 +218,12 @@ const ManualBooking = () => {
   const removeSlot = (date, courtId, slotId) => {
     const dateSlots = selectedSlots[date] || {};
     const courtData = dateSlots[courtId] || { slots: [] };
-    const newCourtSlots = courtData.slots.filter((t) => t._id !== slotId);
+    const newCourtSlots = courtData?.slots.filter((t) => t?._id !== slotId);
 
     const newCourtData = { ...courtData, slots: newCourtSlots };
 
     let newDateSlots;
-    if (newCourtSlots.length === 0) {
+    if (newCourtSlots?.length === 0) {
       const { [courtId]: _, ...rest } = dateSlots;
       newDateSlots = rest;
     } else {
@@ -241,6 +281,13 @@ const ManualBooking = () => {
           courtId: "",
         })
       );
+      dispatch(
+        getUserSlotPrice({
+          day: selectedDay,
+          register_club_id: ownerClubData?.[0]?._id,
+          duration:''
+        })
+      );
     }
   }, [ownerClubData?.[0]?._id, selectedDay, selectedDate]);
 
@@ -254,20 +301,27 @@ const ManualBooking = () => {
           courtId: selectedCourts[0],
         })
       );
+      dispatch(
+        getUserSlotPrice({
+          day: selectedDay,
+          register_club_id: ownerClubData?.[0]?._id,
+          duration:''
+        })
+      );
     }
   }, [selectedCourts[0], selectedDay, selectedDate]);
 
   useEffect(() => {
     if (activeCourtsData?.allCourts?.[0]?.court) {
-      setAllCourtsList(activeCourtsData.allCourts[0].court);
-    } else if (activeCourtsData?.data && allCourtsList.length === 0) {
-      setAllCourtsList(activeCourtsData.data);
+      setAllCourtsList(activeCourtsData?.allCourts[0]?.court);
+    } else if (activeCourtsData?.data && allCourtsList?.length === 0) {
+      setAllCourtsList(activeCourtsData?.data);
     }
   }, [activeCourtsData]);
 
   useEffect(() => {
-    if (allCourtsList?.length > 0 && selectedCourts.length === 0) {
-      setSelectedCourts([allCourtsList[0]._id]);
+    if (allCourtsList?.length > 0 && selectedCourts?.length === 0) {
+      setSelectedCourts([allCourtsList[0]?._id]);
     }
   }, [allCourtsList?.length]);
 
@@ -302,7 +356,7 @@ const ManualBooking = () => {
     Object.entries(selectedSlots).forEach(([date, dateSlots]) => {
       Object.entries(dateSlots).forEach(([courtId, courtData]) => {
         const { slots, businessHours } = courtData;
-        const court = allCourtsList.find((c) => c._id === courtId) || {
+        const court = allCourtsList.find((c) => c?._id === courtId) || {
           courtName: "Unknown",
         };
 
@@ -313,7 +367,7 @@ const ManualBooking = () => {
             slotTimes: [
               {
                 time: timeSlot?.time,
-                amount: timeSlot?.amount || 0,
+                amount: timeSlot?.amount || getPriceForSlot(timeSlot?.time, selectedDay),
               },
             ],
             courtName: court?.courtName,
@@ -324,7 +378,7 @@ const ManualBooking = () => {
       });
     });
 
-    if (slotsPayload.length === 0) {
+    if (slotsPayload?.length === 0) {
       showInfo("Please select at least one time slot for a court.");
       return;
     }
@@ -390,23 +444,22 @@ const ManualBooking = () => {
     scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" });
 
   useEffect(() => {
-    if (phone.length === 10) {
+    if (phone?.length === 10) {
       dispatch(searchUserByNumber({ phoneNumber: phone, type: '' }));
     }
   }, [phone, dispatch]);
-  console.log({ searchUserData });
   useEffect(() => {
-    if (searchUserData?.result?.[0]?.name && phone.length === 10) {
+    if (searchUserData?.result?.[0]?.name && phone?.length === 10) {
       if (!name || name.trim() === "") {
-        setName(searchUserData.result?.[0]?.name);
+        setName(searchUserData?.result?.[0]?.name);
       }
     }
   }, [searchUserData, phone]);
 
   useEffect(() => {
-    if (phone.length === 10 && searchUserData?.result?.[0]?.name) {
-      setName(searchUserData.result?.[0]?.name);
-    } else if (phone.length === 9 || phone.length === 9 || phone.length === 0) {
+    if (phone?.length === 10 && searchUserData?.result?.[0]?.name) {
+      setName(searchUserData?.result?.[0]?.name);
+    } else if (phone?.length === 9 || phone?.length === 9 || phone?.length === 0) {
       dispatch(resetSearchData());
     }
   }, [searchUserData, phone]);
@@ -438,8 +491,8 @@ const ManualBooking = () => {
             className="mx-auto  bg-white shadow-sm rounded-3"
             style={{ height: "83vh" }}
           >
-            <Col xs={12} lg={8} className="p-2 p-md-4">
-              <div className="mb-3 mb-md-4">
+            <Col xs={12} lg={8} className="p-0 p-md-4 pt-2">
+              <div className="mb-0 mb-md-2 px-2 px-md-0">
                 <div
                   className="all-matches mb-2"
                   style={{
@@ -448,16 +501,16 @@ const ManualBooking = () => {
                 >
                   Select Court
                 </div>
-                <div className="d-flex flex-wrap gap-2 mb-3">
+                <div className="d-flex flex-wrap gap-2 mb-md-2 mb-2 ">
                   {allCourtsList?.map((court) => (
                     <button
                       key={court._id}
                       type="button"
                       onClick={() => handleCourtSelect(court._id)}
-                      className="btn py-2 shadow-sm"
+                      className="btn py-2 shadow-sm align-items-center justify-content-center d-flex"
                       style={{
                         borderRadius: "12px",
-                        minWidth: "90px",
+                        minWidth: "72px",
                         transition: "all 0.2s ease-in-out",
                         backgroundColor: selectedCourts?.includes(court._id)
                           ? "#374151"
@@ -472,7 +525,8 @@ const ManualBooking = () => {
                           ? "2px solid #374151"
                           : "1px solid #ccd2d9ff",
                         fontFamily: "Poppins",
-                        fontSize: "12px",
+                        fontSize: "11px",
+                        height: "30px"
                       }}
                       onMouseEnter={(e) =>
                         (e.currentTarget.style.border = "1px solid #3DBE64")
@@ -487,9 +541,9 @@ const ManualBooking = () => {
                 </div>
               </div>
 
-              <div className="calendar-strip">
+              <div className="calendar-strip px-2 px-md-0">
                 <div
-                  className="all-matches mb-3"
+                  className="all-matches mb-2"
                   style={{
                     color: "#374151",
                   }}
@@ -516,7 +570,7 @@ const ManualBooking = () => {
 
                     {isOpen && (
                       <div
-                        className="position-absolute mt-2 z-3 bg-white border rounded shadow"
+                        className="position-absolute mt-2 z-3 bg-white border rounded shadow left_chnage_num"
                         style={{ top: "100%", left: "0", minWidth: "100%" }}
                       >
                         <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -549,7 +603,7 @@ const ManualBooking = () => {
                     className="d-flex justify-content-center p-0 mb-3 align-items-center rounded-pill"
                     style={{
                       backgroundColor: "#f3f3f5",
-                      width: "30px",
+                      width: "20px",
                       height: "58px",
                     }}
                   >
@@ -572,7 +626,7 @@ const ManualBooking = () => {
                     style={{ position: "relative", maxWidth: "95%" }}
                   >
                     <button
-                      className="btn p-2 border-0"
+                      className="btn p-2 border-0 d-md-block d-none"
                       style={{
                         position: "absolute",
                         left: -65,
@@ -610,7 +664,7 @@ const ManualBooking = () => {
                           <button
                             key={i}
                             ref={(el) => (dateRefs.current[d.fullDate] = el)}
-                            className={`calendar-day-btn mb-3 me-2 position-relative ${isSelected ? "text-white" : "bg-white"
+                            className={` mb-3 me-1 position-relative add_width_low ${isSelected ? "text-white" : "bg-white"
                               }`}
                             style={{
                               backgroundColor: isSelected
@@ -673,7 +727,7 @@ const ManualBooking = () => {
                       })}
                     </div>
                     <button
-                      className="btn border-0 p-2"
+                      className="btn border-0 p-2 d-md-block d-none"
                       style={{
                         position: "absolute",
                         right: -26,
@@ -689,7 +743,7 @@ const ManualBooking = () => {
                 <hr />
               </div>
 
-              <div className="mb-3">
+              <div className="mb-3 px-2 px-md-0">
                 <div className="d-flex justify-content-between align-items-center mb-3">
                   <p
                     className="mb-0 all-matches"
@@ -735,7 +789,7 @@ const ManualBooking = () => {
                 {activeCourtsLoading ? (
                   <DataLoading height="10vh" />
                 ) : (
-                  <div className="d-flex flex-wrap gap-2 mb-4">
+                  <div className="d-flex flex-wrap gap-2 mb-md-4 mb-0">
                     {slotTimes?.length === 0 ? (
                       <div
                         className="d-flex text-danger justify-content-center align-items-center w-100"
@@ -771,15 +825,12 @@ const ManualBooking = () => {
                               const isBooked = slot?.status === "booked";
                               const isAvailable =
                                 slot?.availabilityStatus === "available";
-                              const hasAmount =
-                                slot?.amount && slot?.amount !== 0;
                               return {
                                 slot,
                                 isPast,
                                 isSelected,
                                 isBooked,
                                 isAvailable,
-                                hasAmount,
                               };
                             })
                             .filter(
@@ -787,12 +838,10 @@ const ManualBooking = () => {
                                 isPast,
                                 isBooked,
                                 isAvailable,
-                                hasAmount,
                               }) => {
                                 return (
                                   showUnavailable ||
                                   (isAvailable &&
-                                    hasAmount &&
                                     !isBooked &&
                                     !isPast)
                                 );
@@ -821,14 +870,11 @@ const ManualBooking = () => {
                                 isSelected,
                                 isBooked,
                                 isAvailable,
-                                hasAmount,
                               },
                               i
                             ) => {
                               let tooltipText = "";
-                              if (!hasAmount)
-                                tooltipText = "Amount not available";
-                              else if (isBooked) tooltipText = "Booked";
+                              if (isBooked) tooltipText = "Booked";
                               else if (isPast)
                                 tooltipText = "Cannot book slot in past hours";
                               else if (!isAvailable)
@@ -838,13 +884,12 @@ const ManualBooking = () => {
                               const buttonEl = (
                                 <span className="d-inline-block">
                                   <button
-                                    className={`border rounded-3 slot-time-btn text-nowrap py-1 ${isBooked ? "bg-danger text-white" : ""
+                                    className={`border rounded-3 slot-time-btn text-nowrap py-1 add_font_slot m-0${isBooked ? "bg-danger text-white" : ""
                                       }`}
                                     onClick={() => toggleTime(slot)}
                                     disabled={
                                       isPast ||
                                       isBooked ||
-                                      !hasAmount ||
                                       !isAvailable
                                     }
                                     style={{
@@ -859,14 +904,13 @@ const ManualBooking = () => {
                                               : "#FFFFFF",
                                       border: "2px solid #4949491A",
                                       cursor:
-                                        !hasAmount ||
-                                          !isAvailable ||
+                                        !isAvailable ||
                                           isBooked ||
                                           isPast
                                           ? "not-allowed"
                                           : "pointer",
                                       fontFamily: "Poppins",
-                                      fontSize: "14px",
+                                      fontSize: "11px",
                                       transition: "all 0.2s ease",
                                       color:
                                         slot.status === "booked" || isPast
@@ -874,6 +918,8 @@ const ManualBooking = () => {
                                           : isSelected
                                             ? "white"
                                             : "#000000",
+                                      width: "72px",
+                                      height: "30px",
                                     }}
                                     onMouseEnter={(e) =>
                                     (e.currentTarget.style.border =
@@ -909,9 +955,9 @@ const ManualBooking = () => {
                 )}
               </div>
             </Col>
-            <Col xs={12} lg={4} className="py-2  py-md-4 px-2 mt-lg-4  px-md-3">
+            <Col xs={12} lg={4} className="py-2  py-md-4 px-0 mt-lg-4  px-md-3">
               <div
-                className=" rounded-3 p-2 p-md-3  "
+                className=" rounded-3 p-2 p-md-3 bg-white "
                 style={{ minHeight: "40vh" }}
               >
                 <div
@@ -993,7 +1039,7 @@ const ManualBooking = () => {
                                   {slots?.map((slot) => (
                                     <div
                                       key={slot?._id}
-                                      className="row mb-2 pt-2 ps-2 "
+                                      className="row mb-md-2 mb-0 pt-2 ps-2 "
                                     >
                                       <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
                                         <div
@@ -1138,7 +1184,7 @@ const ManualBooking = () => {
                         >
                           User Information
                         </p>
-                        <div className="d-flex gap-3 mb-3">
+                        <div className="d-flex flex-column gap-3 mb-3">
                           <input
                             type="text"
                             className="form-control rounded-3 py-2 shadow-sm"
@@ -1217,7 +1263,7 @@ const ManualBooking = () => {
                         </div>
                         <div className="d-flex justify-content-end gap-3 align-items-end">
                           <button
-                            className="btn btn-secondary rounded-pill p-2 shadow-sm"
+                            className="btn btn-secondary rounded-pill p-md-2 p-1 shadow-sm"
                             style={{
                               minWidth: "120px",
                               fontWeight: "500",
@@ -1236,7 +1282,7 @@ const ManualBooking = () => {
                             Cancel
                           </button>
                           <button
-                            className="btn text-white rounded-pill p-2 shadow-sm"
+                            className="btn text-white rounded-pill p-md-2 p-1 shadow-sm"
                             style={{
                               minWidth: "120px",
                               fontWeight: "500",
@@ -1271,6 +1317,13 @@ const ManualBooking = () => {
                   day: selectedDay,
                   date: selectedDate,
                   courtId: selectedCourts[0],
+                })
+              );
+              dispatch(
+                getUserSlotPrice({
+                  day: selectedDay,
+                  register_club_id: ownerClubData?.[0]?._id,
+                  duration:''
                 })
               );
             }}

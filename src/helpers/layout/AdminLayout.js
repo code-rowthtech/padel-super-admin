@@ -6,7 +6,6 @@ import AdminSidebar from "../../pages/admin/sidebar/AdminSidebar";
 const AdminLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-
     const { pathname } = useLocation();
 
     const getPageName = (path) => {

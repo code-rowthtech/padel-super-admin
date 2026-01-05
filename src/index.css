@@ -196,7 +196,7 @@ h1.display-5 {
 
 .slot-time-btn {
   width: 90px;
-  height: 40px;
+  height: 40px !important;
   border: 1px solid #cbd6ff1a;
   font-size: 14px;
   font-weight: 500;
@@ -313,7 +313,7 @@ h1.display-5 {
   font-size: 22px;
   font-weight: 500;
   color: #374151;
-  font-family: "Poppins"sans-serif;
+  font-family: "Poppins" sans-serif;
 }
 
 .custom-radio .form-check-input[type="radio"] {
@@ -329,20 +329,20 @@ h1.display-5 {
   font-size: 20px;
   font-weight: 700;
   color: #04103b;
-  font-family: "Nunito"sans-serif;
+  font-family: "Nunito" sans-serif;
 }
 
 .dashboard-viewmore {
   font-size: 12px;
   font-weight: 600;
-  font-family: "Nunito"sans-serif;
+  font-family: "Nunito" sans-serif;
 }
 
 .card-value {
   font-size: 30px;
   color: #04103b;
   font-weight: 700;
-  font-family: "Nunito"sans-serif;
+  font-family: "Nunito" sans-serif;
 }
 
 .table-data .dropdown-item {
@@ -366,13 +366,13 @@ h1.display-5 {
 .table-data {
   font-size: 16px;
   font-weight: 500;
-  font-family: "Poppins"sans-serif;
+  font-family: "Poppins" sans-serif;
   color: #000000;
 }
 
 .manual-heading {
   font-weight: 600;
-  font-family: "Poppins"sans-serif;
+  font-family: "Poppins" sans-serif;
   font-size: 26px;
   color: #04103b;
 }
@@ -800,10 +800,12 @@ h1.display-5 {
   font-weight: 600;
   font-family: "Poppins";
 }
+
 .label_font {
-    font-size: 16px;
-    line-height: 18px;
+  font-size: 16px;
+  line-height: 18px;
 }
+
 .averageRating-count {
   font-weight: 600;
   font-family: "Poppins";
@@ -841,7 +843,7 @@ h1.display-5 {
 }
 
 .custom-heading-use {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
   font-family: "Poppins";
   color: #374151 !important;
@@ -874,6 +876,10 @@ h1.display-5 {
         rgba(255, 255, 255, 0) 94.23%) !important;
     border-image-slice: 1 !important;
 
+  }
+
+  .add_position_notification {
+    right: -40px !important;
   }
 
   .add_font_heading_mobile {
@@ -947,10 +953,11 @@ h1.display-5 {
     height: 200px !important;
     min-height: 200px !important;
   } */
-.label_font {
+  .label_font {
     font-size: 12px;
     line-height: 15px;
-}
+  }
+
   .home-upcoming-heading {
     font-size: 12px !important;
   }
@@ -1604,13 +1611,16 @@ h1.display-5 {
     height: 28px;
 
   }
-  .add_font_mobile_bottom_extra{
-    font-size: 16px!important;
+
+  .add_font_mobile_bottom_extra {
+    font-size: 16px !important;
   }
-  .font_size_mobile_button{
-    font-size: 12px!important;
+
+  .font_size_mobile_button {
+    font-size: 12px !important;
   }
-  .view_match_data{
+
+  .view_match_data {
     position: absolute;
     top: 0px;
     bottom: 0px;
@@ -2360,9 +2370,11 @@ h1.display-5 {
     padding-top: 0 !important;
     margin-top: -8px !important;
   }
-.add_margin_top_minus{
-  margin-top: -20px;
-}
+
+  .add_margin_top_minus {
+    margin-top: -20px;
+  }
+
   /* Container padding reduction */
   .container.mb-5.px-4 {
     padding-left: 0.5rem !important;
@@ -2451,6 +2463,15 @@ h1.display-5 {
     border-radius: 5px !important;
   }
 
+  .add_height_data {
+    height: auto !important;
+    overflow-y: scroll;
+  }
+
+  .add_font_small_admin {
+    font-size: 13px !important;
+  }
+
   .d-flex.justify-content-start.border img {
     width: 34px !important;
     height: 34px !important;
@@ -2493,6 +2514,11 @@ h1.display-5 {
     left: 8% !important;
   }
 
+  .add_width_low {
+    width: 38px !important;
+    min-width: 38px !important;
+  }
+
   .position-absolute[style*="top: 11px"]>div {
     width: 40px !important;
     height: 40px !important;
@@ -2526,6 +2552,26 @@ h1.display-5 {
 
   .add_top_margin {
     margin-top: 3.7rem !important;
+  }
+
+  .grid-container {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  .custom_small_font_admin {
+    font-size: 11px !important;
+    padding: .375rem 1.7rem .375rem .35rem !important;
+
+  }
+
+  .add_font_slot {
+    font-size: 11px !important;
+    width: 72px !important;
+    height: 30px !important;
+  }
+
+  .left_chnage_num {
+    left: -85px !important;
   }
 }
 
@@ -2619,6 +2665,10 @@ button:focus .book-now-arrow {
   border-radius: 3px;
 }
 
+.grid-container {
+  grid-template-columns: repeat(4, 1fr);
+}
+
 .mobile-expanded-slots.expanded::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.2);
   border-radius: 3px;
@@ -2633,6 +2683,17 @@ button:focus .book-now-arrow {
 
 .mobile-expanded-slots.expanded::-webkit-scrollbar-thumb:hover {
   background: #cccccc;
+}
+
+.add_width_low {
+  /* flex: 0 0 91px !important; */
+  height: 58px !important;
+  max-width: 48px !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1px 19px !important;
+  border: 1px solid #4949491A;
 }
 
 /* Firefox scrollbar */
@@ -2797,4 +2858,27 @@ button:focus .book-now-arrow {
 .view-match-btn:hover {
   background: #1F41BB;
   color: white;
+}
+
+.add_height_data {
+  height: 36rem;
+  overflow-y: scroll;
+}
+
+/* viewmatch laoding */
+.shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite linear;
+  border-radius: 4px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }

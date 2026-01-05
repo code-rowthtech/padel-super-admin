@@ -556,8 +556,9 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
       } else {
         result = await dispatch(registerClub(apiFormData)).unwrap();
       }
+      console.log({result});
       // Check status 200
-      if (result?.status === 200 || result?.success === true) {
+      if (result?.status === 200 || result?.message === 'res') {
         onNext(); // Only call if status is 200
       } else {
         // showInfo(result?.message || "Something went wrong.");

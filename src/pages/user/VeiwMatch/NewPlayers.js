@@ -209,7 +209,6 @@ const NewPlayers = ({
       dispatch(getPlayerLevelBySkillLevel(skillDetails?.[0]));
     }
   }, [showAddMeForm, dispatch]);
-  console.log(skillDetails, 'skillDetails');
 
   useEffect(() => {
     const timers = Object.keys(showErrors)
@@ -422,7 +421,7 @@ const NewPlayers = ({
                 +91
               </span>
               <input
-                type="text"
+                type="tel"
                 maxLength={10}
                 value={formData.phoneNumber}
                 onChange={(e) => {

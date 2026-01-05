@@ -26,7 +26,7 @@ const DAYS_OF_WEEK = [
 ];
 const containerStyle = {
   borderRadius: "8px",
-  padding: "3px 10px",
+  padding: "3px 0px",
 };
 function normalizeTimeKey(timeStr) {
   if (!timeStr) return null;
@@ -103,6 +103,7 @@ const Pricing = ({
   const { updateClubLoading, clubLoading, clubData } = useSelector(
     (state) => state.club
   );
+  console.log({clubData});
   const PricingData = clubData?.data || [];
   const [formData, setFormData] = useState({
     selectedSlots: "Morning",
@@ -113,7 +114,6 @@ const Pricing = ({
     prices: { Morning: {}, Afternoon: {}, Evening: {}, All: {} },
     changesConfirmed: true,
   });
-  console.log({formData})
   const [hasPriceChanges, setHasPriceChanges] = useState(false);
   const [showSlotModal, setShowSlotModal] = useState(false);
   const [selectedSlotData, setSelectedSlotData] = useState(null);
@@ -271,7 +271,7 @@ const Pricing = ({
         key={day}
         type="checkbox"
         id={`day-${day}`}
-        className="mb-3 d-flex justify-content-between align-items-center"
+        className="mb-md-3 mb-0 d-flex justify-content-between align-items-center"
       >
         <div className="d-flex align-items-center w-100">
           <Form.Check.Input
@@ -279,6 +279,7 @@ const Pricing = ({
             type="checkbox"
             checked={!!formData.days[day]}
             onChange={() => handleDayChange(day)}
+            className="mt-0"
             style={{
               width: "20px",
               height: "20px",
@@ -286,7 +287,7 @@ const Pricing = ({
               border: "2px solid #1F2937",
               backgroundColor: formData.days[day] ? "#1F2937" : "transparent",
               cursor: "pointer",
-              transform: "scale(1.2)",
+              // transform: "scale(1.2)",
             }}
           />
           <label
@@ -332,15 +333,15 @@ const Pricing = ({
 
   const renderTimeSlots = () => {
     if (selectAllChecked) return renderAllSlots();
-    const slotType = formData.selectedSlots;
+    const slotType = formData?.selectedSlots;
     const allSlotData = PricingData?.[0]?.slot?.[0]?.slotTimes || [];
     const slotData = filterSlotsByPeriod(allSlotData, slotType);
-    if (!slotData.length)
+    if (!slotData?.length)
       return <div>No {slotType.toLowerCase()} slots available</div>;
     return slotData.map((slot) => {
       const display = formatTo12HourDisplay(slot?.time);
       const key = slot?._id || `${display}-${slot?.time}`;
-      const value = formData.prices[slotType]?.[display] ?? (slot?.amount ? String(slot.amount) : "");
+      const value = formData?.prices[slotType]?.[display] ?? (slot?.amount ? String(slot.amount) : "");
       const invalid =
         !value || parseFloat(value) <= 0 || isNaN(parseFloat(value));
       return (
@@ -522,10 +523,11 @@ const Pricing = ({
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
+            // gridTemplateColumns: "repeat(4, 1fr)",
             gap: "8px",
             marginBottom: "16px",
-          }}
+          }} 
+          className="grid-container"
         >
           {allTimesRaw.map((timeRaw) => {
             const display = formatTo12HourDisplay(timeRaw);
@@ -617,13 +619,6 @@ const Pricing = ({
       ...eveningPrices
     } : allPrices;
     
-    console.log('Morning prices:', morningPrices);
-    console.log('Afternoon prices:', afternoonPrices);
-    console.log('Evening prices:', eveningPrices);
-    console.log('All prices:', allPrices);
-    console.log('Combined slot prices:', allSlotPrices);
-    console.log('Morning slots in combined prices:', Object.keys(morningPrices));
-    console.log('Afternoon slots in combined prices:', Object.keys(afternoonPrices));
 
     // Skip validation when called from updateRegisteredClub
     if (!allSlotPrices || Object.keys(allSlotPrices).length === 0) {
@@ -645,7 +640,6 @@ const Pricing = ({
       return price && price.toString().trim() !== '' && !isNaN(parseFloat(price)) && parseFloat(price) > 0;
     });
     
-    console.log('Selected display times with valid prices:', selectedDisplayTimes);
     console.log('Morning times in selected:', selectedDisplayTimes.filter(t => {
       const [time, period] = t.split(' ');
       const [hour] = time.split(':').map(Number);
@@ -662,22 +656,18 @@ const Pricing = ({
       if (period === 'AM' && hour === 12) hour24 = 0;
       return hour24 >= 12 && hour24 < 17;
     }));
-    console.log('Total slot times from API:', slotTimes.length);
     
     // Log all API slot times for comparison
     slotTimes.forEach((slot, index) => {
       const displayTime = formatTo12HourDisplay(slot.time);
-      console.log(`API Slot ${index}: ${slot.time} -> ${displayTime}`);
     });
     
     const targetedSlotTimes = slotTimes.filter((slot) => {
       const displayTime = formatTo12HourDisplay(slot.time);
       const isIncluded = selectedDisplayTimes.includes(displayTime);
-      console.log(`Slot ${displayTime} (${slot.time}) - included: ${isIncluded}`);
       return isIncluded;
     });
     
-    console.log('Targeted slot times:', targetedSlotTimes.length, 'out of', slotTimes.length);
     if (targetedSlotTimes.length === 0) {
       return; // Silently return if no targeted slots
     }
@@ -794,15 +784,16 @@ const Pricing = ({
     <div className="">
       <Row>
         <Col xs={12} md={2}>
-          <div style={containerStyle} className="mb-3 mb-md-0">
+          <div style={containerStyle} className="my-2 mt-md-0 gap-3 mb-md-3 d-flex d-md-block overflow-scroll">
             <Form.Check
               type="checkbox"
-              className="d-flex mb-3 align-items-start"
+              className="d-flex mb-md-3 mb-0 align-items-start"
               id="select-all-days"
             >
               <Form.Check.Input
                 type="checkbox"
                 id="select-all-days"
+                className="mt-0"
                 checked={selectAllDays}
                 onChange={(e) => {
                   const checked = e.target.checked;
@@ -844,7 +835,7 @@ const Pricing = ({
           </div>
         </Col>
         <Col xs={12} md={8} className="position-relative">
-          <div className="d-flex justify-content-between align-items-center mb-3 d-md-none">
+          <div className="d-flex justify-content-end align-items-center mb-0 d-md-none">
             <Dropdown className="">
               <Dropdown.Toggle
                 variant="secondary"
@@ -859,6 +850,7 @@ const Pricing = ({
                   alignItems: "center",
                   gap: "8px",
                 }}
+                className="py-1"
               >
                 {formData.selectedSlots}
                 <IoChevronDown style={{ fontSize: "10px" }} />

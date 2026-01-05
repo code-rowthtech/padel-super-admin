@@ -3,6 +3,8 @@ import * as Url from "../../../helpers/api/apiEndpoint";
 import { userApi } from "../../../helpers/api/apiCore";
 import { showError, showSuccess } from "../../../helpers/Toast";
 
+// login user thunk
+
 export const loginUser = createAsyncThunk(
   "auth/login",
   async (data, { rejectWithValue }) => {
@@ -17,6 +19,8 @@ export const loginUser = createAsyncThunk(
   }
 );
 
+// login number thunk
+
 export const loginUserNumber = createAsyncThunk(
   "auth/loginNumber",
   async (data, { rejectWithValue }) => {
@@ -30,6 +34,8 @@ export const loginUserNumber = createAsyncThunk(
   }
 );
 
+// signup user thunk
+
 export const Usersignup = createAsyncThunk(
   "auth/Usersignup",
   async (data, { rejectWithValue }) => {
@@ -42,6 +48,9 @@ export const Usersignup = createAsyncThunk(
     }
   }
 );
+
+// send otp thunk
+
 export const sendOtp = createAsyncThunk(
   "auth/sendOtp",
   async (data, { rejectWithValue }) => {
@@ -54,6 +63,9 @@ export const sendOtp = createAsyncThunk(
     }
   }
 );
+
+// verify otp thunk
+
 export const verifyOtp = createAsyncThunk(
   "auth/verifyOtp",
   async (data, { rejectWithValue }) => {
@@ -66,6 +78,8 @@ export const verifyOtp = createAsyncThunk(
     }
   }
 );
+
+// get user thunk
 
 export const getUser = createAsyncThunk(
   "auth/getUser",
@@ -80,6 +94,9 @@ export const getUser = createAsyncThunk(
     }
   }
 );
+
+// get all user thunk
+
 export const getAllUsers = createAsyncThunk(
   "auth/getAllUsers",
   async (data, { rejectWithValue }) => {
@@ -94,6 +111,8 @@ export const getAllUsers = createAsyncThunk(
   }
 );
 
+// get logo thunk
+
 export const getLogo = createAsyncThunk(
   "auth/getLogo",
   async (data, { rejectWithValue }) => {
@@ -106,19 +125,23 @@ export const getLogo = createAsyncThunk(
   }
 );
 
+// update user thunk
+
 export const updateUser = createAsyncThunk(
   "auth/updateUser",
   async (data, { rejectWithValue }) => {
     try {
       const res = await userApi.put(Url.UPDATE_USER, data);
-      showSuccess(res?.data?.message);
-      return res?.data;
+        // showSuccess(res?.data?.message);
+      // return res?.data;
     } catch (error) {
       showError(error?.message || error);
       return rejectWithValue(error)
     }
   }
 )
+
+// get profile thunk
 
 export const getUserProfile = createAsyncThunk(
   "auth/getUserProfile",
@@ -132,6 +155,8 @@ export const getUserProfile = createAsyncThunk(
     }
   }
 )
+
+// get state thunk
 
 export const getStates = createAsyncThunk(
   "auth/getStates",

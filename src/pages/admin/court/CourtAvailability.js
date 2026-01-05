@@ -55,7 +55,6 @@ const CourtAvailability = () => {
 
   const [selectedSlots, setSelectedSlots] = useState({});
   const [selectedCourt, setSelectedCourt] = useState("all");
-console.log({selectedSlots});
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
   );
@@ -344,24 +343,24 @@ console.log({selectedSlots});
         <Container className="p-0" fluid>
           <Row
             className="mx-auto bg-white shadow-sm rounded-3"
-            style={{ height: "88vh" }}
+            style={{ height: "90vh" }}
           >
             <Col
               xs={12}
               lg={selectedCourt === "all" ? 8 : 8}
-              className="p-2 p-md-4"
+              className="p-0 p-md-4 pt-md-2"
             >
-              <div className="mb-3">
+              <div className="mb-2 px-2 pt-2">
                 <div className="all-matches mb-2" style={{ color: "#374151" }}>
                   Select Court
                 </div>
                 <div className="d-flex flex-wrap gap-2">
                   <button
                     onClick={() => handleCourtSelect("all")}
-                    className="btn py-2 shadow-sm"
+                    className="btn py-2 shadow-sm d-flex align-items-center justify-content-center"
                     style={{
                       borderRadius: "12px",
-                      minWidth: "90px",
+                      minWidth: "72px",
                       backgroundColor:
                         selectedCourt === "all" ? "#374151" : "#F3F4F6",
                       color: selectedCourt === "all" ? "#FFF" : "#000",
@@ -370,8 +369,9 @@ console.log({selectedSlots});
                         selectedCourt === "all"
                           ? "2px solid #374151"
                           : "1px solid #ccd2d9",
-                      fontSize: "12px",
+                      fontSize: "11px",
                       fontFamily: "Poppins",
+                      height:"30px",
                     }}
                   >
                     All Courts
@@ -380,10 +380,10 @@ console.log({selectedSlots});
                     <button
                       key={court._id}
                       onClick={() => handleCourtSelect(court._id)}
-                      className="btn py-2 shadow-sm"
+                      className="btn py-2 shadow-sm d-flex align-items-center justify-content-center"
                       style={{
                         borderRadius: "12px",
-                        minWidth: "90px",
+                        minWidth: "72px",
                         backgroundColor:
                           selectedCourt === court._id ? "#374151" : "#F3F4F6",
                         color: selectedCourt === court._id ? "#FFF" : "#000",
@@ -392,8 +392,9 @@ console.log({selectedSlots});
                           selectedCourt === court._id
                             ? "2px solid #374151"
                             : "1px solid #ccd2d9",
-                        fontSize: "12px",
+                        fontSize: "11px",
                         fontFamily: "Poppins",
+                         height:"30px",
                       }}
                     >
                       {court.courtName}
@@ -402,10 +403,10 @@ console.log({selectedSlots});
                 </div>
               </div>
 
-              <div className="calendar-strip">
+              <div className="calendar-strip px-2">
                 <div className="calendar-strip">
                   <div
-                    className="all-matches mb-3"
+                    className="all-matches mb-2"
                     style={{
                       color: "#374151",
                     }}
@@ -431,7 +432,7 @@ console.log({selectedSlots});
                       </span>
                       {isOpen && (
                         <div
-                          className="position-absolute mt-2 z-3 bg-white border rounded shadow"
+                          className="position-absolute mt-2 z-3 bg-white border rounded shadow left_chnage_num"
                           style={{ top: "100%", left: "0", minWidth: "100%" }}
                         >
                           <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -465,10 +466,10 @@ console.log({selectedSlots});
                   </div>
                   <div className="d-flex align-items-center mb-3 gap-2 border-bottom">
                     <div
-                      className="d-flex justify-content-center p-0 mb-3 align-items-center rounded-pill"
+                      className="d-flex justify-content-center p-0 mb-md-3 mb-2 align-items-center rounded-pill"
                       style={{
                         backgroundColor: "#f3f3f5",
-                        width: "30px",
+                        width: "20px",
                         height: "58px",
                       }}
                     >
@@ -493,7 +494,7 @@ console.log({selectedSlots});
                       style={{ position: "relative", maxWidth: "95%" }}
                     >
                       <button
-                        className="btn p-2 border-0"
+                        className="btn p-2 border-0 d-md-block d-none"
                         style={{
                           position: "absolute",
                           left: -65,
@@ -531,7 +532,7 @@ console.log({selectedSlots});
                             <button
                               key={i}
                               ref={(el) => (dateRefs.current[d.fullDate] = el)}
-                              className={`calendar-day-btn mb-3 me-1 position-relative ${
+                              className={` mb-md-3 mb-2 me-1 position-relative add_width_low ${
                                 isSelected ? "text-white border-0" : "bg-white"
                               }`}
                               style={{
@@ -584,7 +585,7 @@ console.log({selectedSlots});
                         })}
                       </div>
                       <button
-                        className="btn border-0 p-2"
+                        className="btn border-0 p-2 d-md-block d-none"
                         style={{
                           position: "absolute",
                           right: -26,
@@ -619,7 +620,7 @@ console.log({selectedSlots});
                 </div>
               </div>
 
-              <div className="d-flex justify-content-between align-items-center mb-3">
+              <div className="d-flex justify-content-between align-items-center mb-2 px-2">
                 <p className="mb-0 all-matches" style={{ color: "#374151" }}>
                   Available Slots <span className="fs-6 text-muted">(60m)</span>
                 </p>
@@ -699,7 +700,7 @@ console.log({selectedSlots});
               {activeCourtsLoading ? (
                 <DataLoading height="15vh" />
               ) : (
-                <div className="mb-4">
+                <div className="mb-2 add_height_data px-2 bg-white">
                   {selectedCourt === "all" ? (
                     <div>
                       {courts.map((court) => {
@@ -725,7 +726,7 @@ console.log({selectedSlots});
                         });
 
                         return (
-                          <div key={court._id} className="mb-4">
+                          <div key={court._id} className="mb-2">
                             <h6
                               style={{
                                 color: "#374151",
@@ -790,7 +791,7 @@ console.log({selectedSlots});
                                     >
                                       <span className="d-inline-block">
                                         <button
-                                          className={`border rounded-3 slot-time-btn text-nowrap py-1 ${
+                                          className={`border rounded-3 text-nowrap py-1 ${
                                             isBooked
                                               ? "bg-danger text-white"
                                               : ""
@@ -859,11 +860,14 @@ console.log({selectedSlots});
                                               isSelected || isBooked
                                                 ? "white"
                                                 : "#000000",
-                                            fontSize: "12px",
+                                            fontSize: "11px",
                                             fontFamily: "Poppins",
                                             position: "relative",
                                             minWidth: "70px",
                                             overflow: "hidden",
+                                                                      height:"30px",
+                                                                      width:"72px",
+          
                                           }}
                                         >
                                           {isBooked
@@ -988,7 +992,7 @@ console.log({selectedSlots});
                                 }}
                               >
                                 <button
-                                  className={`border rounded-3 slot-time-btn text-nowrap py-1 ${
+                                  className={`border rounded-3 slot-time-btn text-nowrap py-1 m-0 ${
                                     isBooked ? "bg-danger text-white" : ""
                                   }`}
                                   onClick={() => toggleTime(slot)}
@@ -1005,11 +1009,13 @@ console.log({selectedSlots});
                                       isSelected || isBooked
                                         ? "white"
                                         : "#000000",
-                                    fontSize: "12px",
+                                    fontSize: "11px",
                                     fontFamily: "Poppins",
                                     position: "relative",
                                     minWidth: "70px",
                                     overflow: "hidden",
+                                    width:"72px",
+                                    height:"30px",
                                   }}
                                 >
                                   {isBooked
@@ -1072,9 +1078,9 @@ console.log({selectedSlots});
             </Col>
 
             {selectedCourt !== "all" && (
-              <Col xs={12} lg={4} className="py-2 py-md-4 px-2 px-md-3">
+              <Col xs={12} lg={4} className="py-2 py-md-4 px-0 px-md-3">
                 <div
-                  className="bg-white rounded-3 p-3"
+                  className="bg-white rounded-3 p-2"
                   style={{ minHeight: "40vh" }}
                 >
                   <h6 className="all-matches" style={{ color: "#374151" }}>
@@ -1082,7 +1088,7 @@ console.log({selectedSlots});
                   </h6>
 
                   {allSelectedSlots.length > 0 && (
-                    <div className="mb-3">
+                    <div className="mb-md-3 mb-2">
                       <Form.Select
                         value={commonStatus}
                         onChange={(e) => setCommonStatus(e.target.value)}
@@ -1105,12 +1111,12 @@ console.log({selectedSlots});
                   <div
                     className="custom-scrollbar"
                     style={{
-                      maxHeight: "35vh",
+                      maxHeight: "31vh",
                       overflowY: "auto",
-                      paddingRight: "8px",
+                      // paddingRight: "8px",
                     }}
                   >
-                    <style jsx>{`
+                    <style>{`
                       .custom-scrollbar::-webkit-scrollbar {
                         width: 8px;
                         border-radius: 3px;
@@ -1136,7 +1142,6 @@ console.log({selectedSlots});
                     ) : (
                       allSelectedSlots?.map(
                         ({ slot, status, date, courtId }, idx) => {
-                          console.log({status});
                           const court = courts.find((c) => c._id === courtId);
                           const dayName = new Date(date).toLocaleDateString(
                             "en-US",
@@ -1151,7 +1156,7 @@ console.log({selectedSlots});
                           return (
                             <div
                               key={`${date}-${courtId}-${slot._id}`}
-                              className="d-flex align-items-center justify-content-between p-2 "
+                              className="d-flex align-items-center justify-content-between p-1 "
                               style={{
                                 backgroundColor: "#f8f9fa",
                                 borderBottom: "1px solid #e9ecef",
@@ -1202,7 +1207,7 @@ console.log({selectedSlots});
                   </div>
 
                   {allSelectedSlots.length > 0 && (
-                    <div className="d-flex justify-content-end gap-2 mt-3">
+                    <div className="d-flex justify-content-end gap-2 mt-md-3 mt-2">
                       <Button
                         className="btn btn-secondary border-0 rounded-pill px-4 py-2 shadow-sm"
                         style={{

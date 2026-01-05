@@ -1,19 +1,20 @@
 import React, { useState, useEffect, useCallback, memo, useRef } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { padal, club, player } from "../../../assets/files";
+import { padal } from "../../../assets/files";
 import { useDispatch, useSelector } from "react-redux";
 import { getMatchesView, removePlayers } from "../../../redux/user/matches/thunk";
 import { DataLoading, ButtonLoading } from "../../../helpers/loading/Loaders";
-import { Avatar, Modal, Box, Button } from "@mui/material";
+import {  Modal, Box, Button } from "@mui/material";
 import { Tooltip } from 'react-tooltip';
 import { Offcanvas } from "react-bootstrap";
 import UpdatePlayers from "./UpdatePlayers";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { getPlayerLevelBySkillLevel } from "../../../redux/user/notifiction/thunk";
 import { getRequest, updateRequest } from "../../../redux/user/playerrequest/thunk";
-import ChatPopup from "./ChatPopup";
 import io from 'socket.io-client';
 import config from "../../../config";
+import { ViewmatchShimmer } from "../../../helpers/loading/ShimmerLoading";
+import ChatPopup from "./ChatPopup";
 
 const SOCKET_URL = `${config.API_URL}/match`;;
 
@@ -69,12 +70,12 @@ const PlayerSlot = memo(function PlayerSlot({
     }
 
     const getInitials = (name) => {
-        if (!name) return "U";
+        if (!name || typeof name !== 'string') return "U";
         const words = name.trim().split(/\s+/);
-        if (words.length >= 2) {
+        if (words.length >= 2 && words[0] && words[1]) {
             return (words[0][0] + words[1][0]).toUpperCase();
         }
-        return name[0].toUpperCase();
+        return name[0] ? name[0].toUpperCase() : "U";
     };
 
     return (
@@ -109,32 +110,35 @@ const PlayerSlot = memo(function PlayerSlot({
 
             <p
                 className="mb-0 mt-2 fw-semibold text-center"
-                data-tooltip-id={user.name && user.name.length > 12 ? tooltipId : undefined}
-                data-tooltip-content={user.name && user.name.length > 12 ? user.name : undefined}
+                data-tooltip-id={user.name && window.innerWidth > 768 && user.name.length > 12 ? tooltipId : undefined}
+                data-tooltip-content={user.name && window.innerWidth > 768 && user.name.length > 12 ? user.name : undefined}
                 style={{
                     maxWidth: 150,
                     overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
+                    textOverflow: window.innerWidth <= 768 ? "clip" : "ellipsis",
+                    whiteSpace: window.innerWidth <= 768 ? "normal" : "nowrap",
                     fontSize: "12px",
                     fontWeight: "500",
                     fontFamily: "Poppins",
-                    cursor: user.name && user.name.length > 12 ? "pointer" : "default"
+                    wordBreak: window.innerWidth <= 768 ? "break-word" : "normal",
+                    cursor: user.name && window.innerWidth > 768 && user.name.length > 12 ? "pointer" : "default"
                 }}
             >
-                {user.name && user.name.length > 12
-                    ? user.name.slice(0, 12) + "..."
-                    : user.name
+                {user.name
+                    ? window.innerWidth <= 768
                         ? user.name.charAt(0).toUpperCase() + user.name.slice(1)
-                        : "Unknown"}
+                        : user.name.length > 12
+                            ? user.name.slice(0, 12) + "..."
+                            : user.name.charAt(0).toUpperCase() + user.name.slice(1)
+                    : "Unknown"}
             </p>
-            {user.name && user.name.length > 12 && <Tooltip id={tooltipId} />}
+            {user.name && window.innerWidth > 768 && user.name.length > 12 && <Tooltip id={tooltipId} />}
             <span
                 className="badge text-white"
                 style={{ backgroundColor: team === "A" ? "#3DBE64" : "#1F41BB" }}
             >
                 {
-                    user?.level?.split(' - ')[0] || user?.level || "A"
+                    user?.level ? (user.level.includes(' - ') ? user.level.split(' - ')[0] : user.level) : "A"
                 }
             </span>
 
@@ -145,11 +149,12 @@ const PlayerSlot = memo(function PlayerSlot({
     );
 });
 
-const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatches, isFromBookingHistory = false }) => {
+const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, isFromBookingHistory = false }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const user = getUserFromSession();
     const { state } = useLocation();
+    console.log({ state });
     const matchesData = useSelector((state) => state.userMatches?.viewMatchesData);
     const userLoading = useSelector((state) => state.userMatches?.viewMatchesLoading);
     const RequestData = useSelector((state) => state.requestData?.requestData?.requests);
@@ -159,13 +164,11 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
     const getPlayerLevelsData = useSelector(
         (state) => state?.userNotificationData?.getPlayerLevel?.data[0]?.levelIds || []
     );
-    const logo = localStorage.getItem("logo") ? JSON.parse(localStorage.getItem("logo")) : null;
     const teamAData = matchesData?.data?.teamA || [];
     const teamBData = matchesData?.data?.teamB || [];
     const totalPlayers = [...teamAData, ...teamBData].filter(p => p).length;
     const isUserInMatch = [...teamAData, ...teamBData].some(p => (p?.userId?._id || p?._id) === user?._id);
     const isChatEnabled = totalPlayers >= 2 && isUserInMatch;
-    const clubData = matchesData?.data?.clubId || {};
     const [showModal, setShowModal] = useState(false);
     const [teamName, setTeamName] = useState('teamA');
     const [showShareDropdown, setShowShareDropdown] = useState(false);
@@ -182,16 +185,22 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
     const [showChat, setShowChat] = useState(false);
     const [chatMessage, setChatMessage] = useState("");
     const [unreadCount, setUnreadCount] = useState();
-    console.log({ unreadCount });
     const { id } = useParams();
     const matchId = id || state?.match?._id || match?._id;
-    
-    // Ensure matchId is always a string
+
     const getMatchIdString = (id) => {
         if (typeof id === 'string') return id;
         if (typeof id === 'object' && id?._id) return id._id;
         return id?.toString() || null;
     };
+
+    const isMatchFull = () => {
+        const teamAPlayers = teamAData?.filter(p => p).length || 0;
+        const teamBPlayers = teamBData?.filter(p => p).length || 0;
+        return (teamAPlayers + teamBPlayers) >= 4 ||
+            (teamAPlayers === 2 && teamBPlayers === 2);
+    };
+
     const shareDropdownRef = useRef(null);
     const matchDetailsRef = useRef(null);
     const socketRef = useRef(null);
@@ -200,6 +209,12 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
+
+    useEffect(() => {
+        if (state?.matchId && state?.type === 'match_message') {
+            setShowChat(true);
+        }
+    }, [state?.matchId, state?.type === 'match_message'])
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -253,7 +268,6 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                 }
             });
             socketRef.current.on('unreadCount', (data) => {
-                console.log(data, 'datadatadatadata');
                 setUnreadCount(data?.count || 0);
             });
 
@@ -282,14 +296,18 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
         );
 
         const timesInMinutes = allTimes.map((t) => {
-            const [timePart, period] = t.split(" ");
-            const [hourStr, minuteStr = "0"] = timePart.split(":");
+            if (!t || typeof t !== 'string') return 0;
+            const parts = t.split(" ");
+            if (parts.length < 2) return 0;
+            const [timePart, period] = parts;
+            const timeParts = timePart.split(":");
+            const [hourStr, minuteStr = "0"] = timeParts;
 
-            let hour = parseInt(hourStr);
-            let minute = parseInt(minuteStr);
+            let hour = parseInt(hourStr) || 0;
+            let minute = parseInt(minuteStr) || 0;
 
-            if (period.toLowerCase() === "pm" && hour !== 12) hour += 12;
-            if (period.toLowerCase() === "am" && hour === 12) hour = 0;
+            if (period && period.toLowerCase() === "pm" && hour !== 12) hour += 12;
+            if (period && period.toLowerCase() === "am" && hour === 12) hour = 0;
 
             return hour * 60 + minute;
         });
@@ -314,6 +332,7 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
         const times = slots.flatMap((slot) => slot.slotTimes.map((slotTime) => slotTime.time));
 
         const formattedTimes = times.map(time => {
+            if (!time || typeof time !== 'string') return { hour: 0, period: 'AM' };
             let hour, period;
             if (/am|pm/i.test(time)) {
                 const match = time.match(/(\d+)\s*(am|pm)/i);
@@ -321,11 +340,13 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                     hour = parseInt(match[1], 10);
                     period = match[2].toUpperCase();
                 } else {
-                    return time;
+                    return { hour: 0, period: 'AM' };
                 }
             } else {
-                const [hours, minutes] = time.split(":");
-                const hourNum = parseInt(hours, 10);
+                const timeParts = time.split(":");
+                if (timeParts.length < 2) return { hour: 0, period: 'AM' };
+                const [hours, minutes] = timeParts;
+                const hourNum = parseInt(hours, 10) || 0;
                 period = hourNum >= 12 ? "PM" : "AM";
                 hour = hourNum > 12 ? hourNum - 12 : hourNum === 0 ? 12 : hourNum;
             }
@@ -571,116 +592,118 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                         )}
                     </div>
                 </div>
+                {userLoading ? (
+                    <>
+                        <ViewmatchShimmer />
+                    </>
+                ) : (<>
 
-                <div className="rounded-4 border px-3 pt-2 pb-0 mb-2" style={{ backgroundColor: "#CBD6FF1A" }}>
-                    <div className="d-flex  justify-content-between align-items-start py-2 px-2">
-                        <div className="d-flex align-items-center justify-content-md-between justify-content-start gap-2">
-                            <img src={padal} alt="padel" width={24} />
-                            <span className="ms-2 all-matches" style={{ color: "#374151" }}>
-                                Open Match
-                            </span>
+                    <div className="rounded-4 border px-3 pt-2 pb-0 mb-2" style={{ backgroundColor: "#CBD6FF1A" }}>
+                        <div className="d-flex  justify-content-between align-items-start py-2 px-2">
+                            <div className="d-flex align-items-center justify-content-md-between justify-content-start gap-2">
+                                <img src={padal} alt="padel" width={24} />
+                                <span className="ms-2 all-matches" style={{ color: "#374151" }}>
+                                    Open Match
+                                </span>
+                            </div>
+                            <small className="text-muted d-none d-lg-block" style={{ fontWeight: 500 }}>
+                                {matchDate?.day}, {matchDate?.formattedDate} | {matchTime}
+                            </small>
+                            <small className="text-muted d-lg-none add_font_mobile" style={{ fontWeight: 500 }}>
+                                {matchDate?.day}, {matchDate?.formattedDate} {matchTime}
+                            </small>
                         </div>
-                        <small className="text-muted d-none d-lg-block" style={{ fontWeight: 500 }}>
-                            {matchDate.day}, {matchDate.formattedDate} | {matchTime}
-                        </small>
-                        <small className="text-muted d-lg-none add_font_mobile" style={{ fontWeight: 500 }}>
-                            {matchDate.day}, {matchDate.formattedDate} {matchTime}
-                        </small>
-                    </div>
-                    <div className="row text-center border-top">
-                        <div className="col py-2">
-                            <p className="mb-md-1 mb-0 add_font_mobile " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Game Type</p>
-                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>{matchesData?.data?.gender || "Any"}</p>
-                        </div>
-                        <div className="col border-start border-end py-2">
-                            <p className="mb-1 add_font_mobile  " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Level</p>
-                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>{matchesData?.data?.skillLevel || "Intermediate"}</p>
-                        </div>
-                        <div className="col py-2">
-                            <p className="mb-1 add_font_mobile  " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Your Share</p>
-                            <p className="mb-0 add_font_mobile_bottom_extra fw-bold" style={{ fontSize: '20px', color: '#1F41BB' }}>
-                                ₹{" "}
-                                {Math.round(
-                                    (matchesData?.data?.slot?.reduce((total, court) => {
-                                        return total + court.slotTimes.reduce((sum, slotTime) => sum + Number(slotTime.amount), 0);
-                                    }, 0) || 0) / 4
-                                ).toLocaleString("en-IN")}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                {user?._id === matchesData?.data?.createdBy && !isFromBookingHistory && (<div
-                    className="d-flex justify-content-between py-2 rounded-3 p-3 mb-2 border"
-                    style={{ backgroundColor: "#CBD6FF1A", cursor: "pointer" }}
-                    onClick={() => setShowRequestModal(true)}
-                >
-                    <div className="d-flex align-items-center gap-3">
-                        <i className="bi bi-people fs-4" style={{ color: "#1F41BB" }} />
-                        <div>
-                            <h6 className="mb-0" style={{ fontSize: "14px", fontWeight: 600, fontFamily: "Poppins", color: "#374151" }}>
-                                Player's Requests
-                            </h6>
-                            <p className="mb-0" style={{ fontSize: "12px", color: "#6B7280", fontFamily: "Poppins" }}>
-                                View the status of player's requests <br /> to join.
-                            </p>
+                        <div className="row text-center border-top">
+                            <div className="col py-2">
+                                <p className="mb-md-1 mb-0 add_font_mobile " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Game Type</p>
+                                <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>{matchesData?.data?.gender || "Any"}</p>
+                            </div>
+                            <div className="col border-start border-end py-2">
+                                <p className="mb-1 add_font_mobile  " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Level</p>
+                                <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>{matchesData?.data?.skillLevel || "Intermediate"}</p>
+                            </div>
+                            <div className="col py-2">
+                                <p className="mb-1 add_font_mobile  " style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>Your Share</p>
+                                <p className="mb-0 add_font_mobile_bottom_extra fw-bold" style={{ fontSize: '20px', color: '#1F41BB' }}>
+                                    ₹{" "}
+                                    {Math.round(
+                                        (matchesData?.data?.slot?.reduce((total, court) => {
+                                            return total + court?.slotTimes.reduce((sum, slotTime) => sum + Number(slotTime?.amount), 0);
+                                        }, 0) || 0) / 4
+                                    ).toLocaleString("en-IN")}
+                                </p>
+                            </div>
                         </div>
                     </div>
-                    <div className="d-flex align-items-center">
-                        <span className="badge bg-primary rounded-pill d-flex align-items-center justify-content-center" style={{ fontSize: "10px", width: "20px", height: "20px", }}>{RequestData?.length}</span>
-                        <i className="bi bi-chevron-right ms-2" style={{ color: "#6B7280" }} />
-                    </div>
-                </div>)}
+                    {user?._id === matchesData?.data?.createdBy && !isFromBookingHistory && (<div
+                        className="d-flex justify-content-between py-2 rounded-3 p-3 mb-2 border"
+                        style={{ backgroundColor: "#CBD6FF1A", cursor: "pointer" }}
+                        onClick={() => setShowRequestModal(true)}
+                    >
+                        <div className="d-flex align-items-center gap-3">
+                            <i className="bi bi-people fs-4" style={{ color: "#1F41BB" }} />
+                            <div>
+                                <h6 className="mb-0" style={{ fontSize: "14px", fontWeight: 600, fontFamily: "Poppins", color: "#374151" }}>
+                                    Player's Requests
+                                </h6>
+                                <p className="mb-0" style={{ fontSize: "12px", color: "#6B7280", fontFamily: "Poppins" }}>
+                                    View the status of player's requests <br /> to join.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="d-flex align-items-center">
+                            <span className="badge bg-primary rounded-pill d-flex align-items-center justify-content-center" style={{ fontSize: "10px", width: "20px", height: "20px", }}>{RequestData?.length}</span>
+                            <i className="bi bi-chevron-right ms-2" style={{ color: "#6B7280" }} />
+                        </div>
+                    </div>)}
 
+                    <div className="p-md-3 px-3 pt-2 pb-1 rounded-3 mb-2 border" style={{ backgroundColor: "#CBD6FF1A" }}>
+                        <h6 className="mb-3 all-matches" style={{ color: "#374151" }}>
+                            Players
+                        </h6>
+                        <div className="row mx-auto">
+                            <div className="col-6 d-flex justify-content-between align-items-start flex-wrap px-0 d-md-flex d-md-align-items-center">
+                                {slots?.slice(0, 2)?.map((s) => (
+                                    <PlayerSlot
+                                        key={s.index}
+                                        player={s.player}
+                                        index={s.index}
+                                        isRemovable={s.removable}
+                                        team={s.team}
+                                        onRemove={handleRemove}
+                                        onAdd={() => handleAdd(s.team)}
+                                        openMatches={matchesData?.data}
+                                        isFromBookingHistory={isFromBookingHistory}
+                                        onPlayerClick={handlePlayerClick}
+                                    />
+                                ))}
+                            </div>
 
+                            <div className="col-6 d-flex justify-content-between align-items-start flex-wrap px-0 border-start border-0 border-lg-start d-md-flex d-md-align-items-center">
+                                {slots?.slice(2, 4)?.map((s) => (
+                                    <PlayerSlot
+                                        key={s.index}
+                                        player={s.player}
+                                        index={s.index}
+                                        isRemovable={s.removable}
+                                        team={s.team}
+                                        onRemove={handleRemove}
+                                        onAdd={() => handleAdd(s.team)}
+                                        openMatches={matchesData?.data}
+                                        isFromBookingHistory={isFromBookingHistory}
+                                        onPlayerClick={handlePlayerClick}
+                                    />
+                                ))}
+                            </div>
 
-
-                <div className="p-md-3 px-3 pt-2 pb-1 rounded-3 mb-2 border" style={{ backgroundColor: "#CBD6FF1A" }}>
-                    <h6 className="mb-3 all-matches" style={{ color: "#374151" }}>
-                        Players
-                    </h6>
-
-                    <div className="row mx-auto">
-                        <div className="col-6 d-flex justify-content-between align-items-center flex-wrap px-0 ">
-                            {slots.slice(0, 2).map((s) => (
-                                <PlayerSlot
-                                    key={s.index}
-                                    player={s.player}
-                                    index={s.index}
-                                    isRemovable={s.removable}
-                                    team={s.team}
-                                    onRemove={handleRemove}
-                                    onAdd={() => handleAdd(s.team)}
-                                    openMatches={matchesData?.data}
-                                    isFromBookingHistory={isFromBookingHistory}
-                                    onPlayerClick={handlePlayerClick}
-                                />
-                            ))}
                         </div>
 
-                        <div className="col-6 d-flex justify-content-between align-items-center flex-wrap px-0 border-start border-0 border-lg-start">
-                            {slots.slice(2, 4).map((s) => (
-                                <PlayerSlot
-                                    key={s.index}
-                                    player={s.player}
-                                    index={s.index}
-                                    isRemovable={s.removable}
-                                    team={s.team}
-                                    onRemove={handleRemove}
-                                    onAdd={() => handleAdd(s.team)}
-                                    openMatches={matchesData?.data}
-                                    isFromBookingHistory={isFromBookingHistory}
-                                    onPlayerClick={handlePlayerClick}
-                                />
-                            ))}
+                        <div className="d-flex justify-content-between mt-2">
+                            <p className="mb-1" style={{ fontSize: "11px", fontWeight: "500", fontFamily: "Poppins", color: "#3DBE64" }}>Team A</p>
+                            <p className="mb-0" style={{ fontSize: "11px", fontWeight: "500", fontFamily: "Poppins", color: "#1F41BB" }}>Team B</p>
                         </div>
-
                     </div>
-
-                    <div className="d-flex justify-content-between mt-2">
-                        <p className="mb-1" style={{ fontSize: "11px", fontWeight: "500", fontFamily: "Poppins", color: "#3DBE64" }}>Team A</p>
-                        <p className="mb-0" style={{ fontSize: "11px", fontWeight: "500", fontFamily: "Poppins", color: "#1F41BB" }}>Team B</p>
-                    </div>
-                </div>
+                </>)}
                 <div className="col-md-9 mx-auto col-12">
                     <div className="d-flex justify-content-between align-items-center mt-4">
                         <h6 className="mb-2 all-matches" style={{ color: "#374151" }}>
@@ -697,8 +720,8 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                                 </p>
                                 <p className="mb-0" style={{ fontSize: "14px", fontWeight: 500, color: "#374151" }}>
                                     {matchesData?.data?.courtType
-                                        ? matchesData.data.courtType.charAt(0).toUpperCase() +
-                                        matchesData.data.courtType.slice(1)
+                                        ? matchesData?.data?.courtType.charAt(0).toUpperCase() +
+                                        matchesData?.data?.courtType.slice(1)
                                         : "Unknown"}
                                 </p>
                             </div>
@@ -787,13 +810,13 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                                     style={{
                                         width: 80,
                                         height: 80,
-                                        backgroundColor: selectedPlayer.profilePic ? "transparent" : "#1F41BB",
+                                        backgroundColor: selectedPlayer?.profilePic ? "transparent" : "#1F41BB",
                                         overflow: "hidden",
                                     }}
                                 >
-                                    {selectedPlayer.profilePic ? (
+                                    {selectedPlayer?.profilePic ? (
                                         <img
-                                            src={selectedPlayer.profilePic}
+                                            src={selectedPlayer?.profilePic}
                                             alt="player"
                                             style={{ width: "100%", height: "100%", objectFit: "cover" }}
                                         />
@@ -809,42 +832,43 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                                 <div className="mb-2 d-flex gap-2 align-items-center    ">
                                     <strong style={{ fontSize: "14px", color: "#374151", fontFamily: 'Poppins' }}>Name:</strong>
                                     <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500, fontFamily: 'Poppins' }}>
-                                        {selectedPlayer.name || "Unknown"}
+                                        {selectedPlayer?.name || "Unknown"}
                                     </p>
                                 </div>
 
-                                {selectedPlayer.email && (
+                                {selectedPlayer?.email && (
                                     <div className="mb-2 d-flex gap-2 align-items-center    ">
                                         <strong style={{ fontSize: "14px", color: "#374151", fontFamily: 'Poppins' }}>Email:</strong>
                                         <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500, fontFamily: 'Poppins' }}>
-                                            {selectedPlayer.email}
+                                            {selectedPlayer?.email}
                                         </p>
                                     </div>
                                 )}
 
-                                {selectedPlayer.phoneNumber && (
+                                {selectedPlayer?.phoneNumber && (
                                     <div className="mb-2 d-flex gap-2 align-items-center    ">
                                         <strong style={{ fontSize: "14px", color: "#374151", fontFamily: 'Poppins' }}>Phone:</strong>
                                         <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500, fontFamily: 'Poppins' }}>
-                                            +91 {selectedPlayer.phoneNumber}
+                                            +91 {selectedPlayer?.phoneNumber}
                                         </p>
                                     </div>
                                 )}
 
-                                {selectedPlayer.level && (
+                                {(selectedPlayer?.level || matchesData?.data?.skillDetails) && (
                                     <div className="mb-2 d-flex gap-2 align-items-center    ">
                                         <strong style={{ fontSize: "14px", color: "#374151", fontFamily: 'Poppins' }}>Level:</strong>
                                         <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500, fontFamily: 'Poppins' }}>
-                                            {selectedPlayer?.level}
+                                            {selectedPlayer?.level || matchesData?.data?.skillDetails}
                                         </p>
                                     </div>
                                 )}
+                                {console.log(matchesData?.data,selectedPlayer,'matchesData?.data')}
 
-                                {selectedPlayer.skillLevel && (
+                                {(selectedPlayer?.skillLevel || matchesData?.data?.skillLevel) && (
                                     <div className="mb-2 d-flex gap-2 align-items-center    ">
                                         <strong style={{ fontSize: "14px", color: "#374151", fontFamily: 'Poppins' }}>Skill Level:</strong>
                                         <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500, fontFamily: 'Poppins' }}>
-                                            {matchesData?.data?.skillLevel || "Unknown"}
+                                            {matchesData?.data?.skillLevel || selectedPlayer?.skillLevel || "Unknown"}
                                         </p>
                                     </div>
                                 )}
@@ -871,7 +895,7 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                 show={showRequestModal}
                 onHide={() => setShowRequestModal(false)}
                 placement={windowWidth >= 992 ? "end" : "bottom"}
-                backdrop={true}  // click outside close
+                backdrop={true}  
                 keyboard={true}
                 enforceFocus={false}
                 style={{
@@ -896,8 +920,9 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                             <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500, fontFamily: "Poppins" }}>Players approved</p>
                         </div>
                         <div className="d-flex flex-column ">
+                            {console.log({ RequestData })}
                             {RequestDataLoading ? <DataLoading /> : RequestData?.length > 0 ? (
-                                RequestData.map((player, index) => (
+                                RequestData?.map((player, index) => (
                                     <div key={index} className="d-flex align-items-center justify-content-between p-3 border-bottom rounded-3">
                                         <div className="d-flex align-items-center gap-3">
                                             <div
@@ -911,7 +936,7 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                                                     fontSize: "12px"
                                                 }}
                                             >
-                                                {player?.requesterId?.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                                                {player?.requesterId?.name ? player?.requesterId?.name.split(' ').map(n => n?.[0] || '').join('').toUpperCase() : 'U'}
                                             </div>
                                             <div style={{ maxWidth: "200px" }}>
                                                 <h6 className="mb-0" style={{ fontSize: "14px", fontWeight: 600, fontFamily: "Poppins", wordBreak: "break-word" }}>
@@ -930,22 +955,51 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                                             </div>
                                         </div>
                                         <div className="d-flex gap-2">
-                                            <i className="bi bi-check-circle-fill"
-                                                style={{ color: "#28a745", fontSize: "20px", cursor: player?.status === 'pending' ? "pointer" : "not-allowed", opacity: player?.status === 'pending' ? 1 : 0.5 }}
-                                                onClick={() => {
-                                                    if (player?.status === 'pending') {
-                                                        setSelectedPlayerForAction(player);
-                                                        setShowConfirmModal(true);
-                                                    }
-                                                }}></i>
-                                            <i className="bi bi-x-circle-fill"
-                                                style={{ color: "#dc3545", fontSize: "20px", cursor: player?.status === 'pending' ? "pointer" : "not-allowed", opacity: player?.status === 'pending' ? 1 : 0.5 }}
-                                                onClick={() => {
-                                                    if (player?.status === 'pending') {
-                                                        setSelectedPlayerForAction(player);
-                                                        setShowRejectModal(true);
-                                                    }
-                                                }}></i>
+                                            <div className="position-relative d-inline-block" data-tooltip-id={isMatchFull() ? `tooltip-disabled-${index}` : undefined}>
+                                                <i
+                                                    className="bi bi-check-circle-fill"
+                                                    style={{
+                                                        color: "#28a745",
+                                                        fontSize: "20px",
+                                                        cursor: (player?.status === 'pending' && !isMatchFull()) ? "pointer" : "not-allowed",
+                                                        opacity: (player?.status === 'pending' && !isMatchFull()) ? 1 : 0.5
+                                                    }}
+                                                    onClick={() => {
+                                                        if (player?.status === 'pending' && !isMatchFull()) {
+                                                            setSelectedPlayerForAction(player);
+                                                            setShowConfirmModal(true);
+                                                        }
+                                                    }}
+                                                />
+                                            </div>
+
+                                            <div className="position-relative d-inline-block ms-2" data-tooltip-id={isMatchFull() ? `tooltip-disabled-${index}` : undefined}>
+                                                <i
+                                                    className="bi bi-x-circle-fill"
+                                                    style={{
+                                                        color: "#dc3545",
+                                                        fontSize: "20px",
+                                                        cursor: (player?.status === 'pending' && !isMatchFull()) ? "pointer" : "not-allowed",
+                                                        opacity: (player?.status === 'pending' && !isMatchFull()) ? 1 : 0.5
+                                                    }}
+                                                    onClick={() => {
+                                                        if (player?.status === 'pending' && !isMatchFull()) {
+                                                            setSelectedPlayerForAction(player);
+                                                            setShowRejectModal(true);
+                                                        }
+                                                    }}
+                                                />
+                                            </div>
+
+                                            {/* Tooltip for disabled buttons */}
+                                            {isMatchFull() && (
+                                                <Tooltip
+                                                    id={`tooltip-disabled-${index}`}
+                                                    place="top"
+                                                    content="Match is already full"
+                                                    style={{ fontSize: "12px", backgroundColor: "#333", color: "#fff" }}
+                                                />
+                                            )}
                                         </div>
                                     </div>
                                 ))
@@ -1115,20 +1169,20 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, filteredMatche
                 playerNames={(() => {
                     const allPlayers = [...teamAData, ...teamBData]
                         .filter(p => p)
-                        .map(p => {
+                        ?.map(p => {
                             const playerId = p?.userId?._id || p?._id;
                             const playerName = p?.userId?.name || p?.name;
                             return { id: playerId, name: playerName };
                         })
-                        .filter(p => p.name);
+                        .filter(p => p?.name);
 
-                    const currentUserIndex = allPlayers.findIndex(p => p.id === user?._id);
+                    const currentUserIndex = allPlayers.findIndex(p => p?.id === user?._id);
                     if (currentUserIndex > -1) {
                         const currentUser = allPlayers.splice(currentUserIndex, 1)[0];
                         allPlayers.unshift({ ...currentUser, name: 'You' });
                     }
 
-                    return allPlayers.map(p => p.name).slice(0, 4).join(', ');
+                    return allPlayers?.map(p => p?.name).slice(0, 4).join(', ');
                 })()}
             />
 

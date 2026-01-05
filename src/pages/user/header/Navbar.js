@@ -23,6 +23,7 @@ import updateLocale from "dayjs/plugin/updateLocale";
 import { getNotificationCount, getNotificationData, getNotificationView, readAllNotification } from '../../../redux/user/notifiction/thunk';
 import { clearall } from '../../../assets/files'
 import { getUserClub } from '../../../redux/thunks';
+import sendSound from '../../../assets/images/pixel_10_notification.mp3';
 const SOCKET_URL = config.API_URL;
 const Navbar = () => {
     const dispatch = useDispatch();
@@ -35,7 +36,6 @@ const Navbar = () => {
 
     const User = useSelector((state) => state?.userAuth)
     const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0]) || [];
-
     const notificationData = useSelector((state) => state.notificationData?.getNotificationData);
     const notificationLoading = useSelector((state) => state.notificationData?.getCountLoading);
     let token = isUserAuthenticated()
@@ -43,8 +43,8 @@ const Navbar = () => {
     const { user, } = useSelector((state) => state?.userAuth);
     const [open, setOpen] = useState(false);
     const dropdownRef = useRef(null);
-    const mobileDropdownRef = useRef(null);
     const [notifications, setNotifications] = useState([]);
+    console.log({ notifications });
     const userId = getUserFromSession()?._id;
     const [notificationCount, setNotificationCount] = useState();
     dayjs.extend(relativeTime);
@@ -67,57 +67,101 @@ const Navbar = () => {
             yy: "%d years",
         },
     });
+
+    const playNotificationSound = () => {
+        const audio = new Audio(sendSound);
+        audio.volume = 0.5;
+        audio.play().catch(err => console.log("Notification sound failed:", err));
+    };
     useEffect(() => {
-        if (userId) {
+        if (!userId) return;
+        let isMounted = true;
+        const socket = io(SOCKET_URL, {
+            transports: ["websocket", "polling"],
+            reconnection: true,
+            reconnectionAttempts: 3,
+            reconnectionDelay: 2000,
+            timeout: 10000,
+            forceNew: true
+        });
 
+        // Load initial notifications
+        const loadNotifications = async () => {
+            try {
+                const [notificationRes, countRes] = await Promise.all([
+                    dispatch(getNotificationData()).unwrap(),
+                    dispatch(getNotificationCount()).unwrap()
+                ]);
 
-            const socket = io(SOCKET_URL, { transports: ["websocket"] });
-
-            dispatch(getNotificationData()).unwrap().then((res) => {
-                if (res?.notifications) {
-                    setNotifications(res.notifications);
+                if (isMounted) {
+                    if (notificationRes?.notifications) {
+                        setNotifications(notificationRes.notifications);
+                    }
+                    setNotificationCount(countRes);
                 }
-            });
+            } catch (err) {
+                console.error('Failed to load notifications:', err);
+            }
+        };
+
+        loadNotifications();
+
+        const handleConnect = () => {
+            socket.emit("registerUser", userId);
             dispatch(getNotificationCount()).unwrap().then((res) => {
-                if (res?.notifications) {
-                    setNotificationCount(res);
-                }
-            });
-            socket.on("connect", () => {
-                socket.emit("registerUser", userId);
-            });
+                if (isMounted) setNotificationCount(res);
+            }).catch(err => console.error('Failed to load notification count:', err));
+        };
 
+        const handleUserRequest = (data) => {
+            if (!isMounted) return;
+            setNotifications((prev) => [data, ...prev.slice(0, 49)]); 
+            setNotificationCount(prev => ({ ...prev, unreadCount: (prev?.unreadCount || 0) + 1 }));
+            playNotificationSound();
+        };
 
+        const handleMatchNotification = (notification) => {
+            console.log(notification, 'notificationnotification');
+            if (!isMounted) return;
+            playNotificationSound();
+            setNotifications((prev) => [notification, ...prev.slice(0, 49)]);
+            setNotificationCount(prev => ({ ...prev, unreadCount: (prev?.unreadCount || 0) + 1 }));
+        };
 
-            socket.on("user_request", (data) => {
-                setNotifications((prevNotifications) => [data, ...prevNotifications]);
-            });
+        const handleApprovedRequest = (data) => {
+            if (!isMounted) return;
+            setNotifications((prev) => [data, ...prev.slice(0, 49)]);
+            setNotificationCount(prev => ({ ...prev, unreadCount: (prev?.unreadCount || 0) + 1 }));
+            playNotificationSound();
+        };
 
-            socket.on("userNotificationCountUpdate", (data) => {
-                console.log(data, 'pankaj1');
-                setNotificationCount(data);
-            });
-            socket.on('matchNotification', (notification) => {
-                console.log(notification, 'pankaj2');
-                setNotifications((prevNotifications) => [notification, ...prevNotifications]);
+        const handleNotificationCountUpdate = (data) => {
+            if (!isMounted) return;
+            setNotificationCount(data);
+        };
 
-            })
+        const handleConnectError = (error) => {
+            console.error("Socket connection error:", error);
+        };
 
-            socket.on("approved_request", (data) => {
-                console.log(data, 'datahdata');
-                setNotifications((prevNotifications) => [data, ...prevNotifications]);
-            });
+        socket.on("connect", handleConnect);
+        socket.on("user_request", handleUserRequest);
+        socket.on('matchNotification', handleMatchNotification);
+        socket.on("approved_request", handleApprovedRequest);
+        socket.on("userNotificationCountUpdate", handleNotificationCountUpdate);
+        socket.on("connect_error", handleConnectError);
 
-            socket.on("userNotificationCountUpdate", (data) => {
-                console.log(data, 'pankaj3');
-
-                setNotificationCount(data);
-            });
-
-
-            return () => socket.disconnect();
-        }
-    }, [userId, dispatch, open, SOCKET_URL]);
+        return () => {
+            isMounted = false;
+            socket.off("connect", handleConnect);
+            socket.off("user_request", handleUserRequest);
+            socket.off('matchNotification', handleMatchNotification);
+            socket.off("approved_request", handleApprovedRequest);
+            socket.off("userNotificationCountUpdate", handleNotificationCountUpdate);
+            socket.off("connect_error", handleConnectError);
+            socket.disconnect();
+        };
+    }, [userId, dispatch]);
 
     useEffect(() => {
         if (store?.user?.status === '200' && store?.user?.response?.user) {
@@ -135,8 +179,6 @@ const Navbar = () => {
                 setUserData(null);
             }
         }
-
-
 
         const updateUserData = () => {
             const userLocal = localStorage.getItem('padel_user');
@@ -158,8 +200,8 @@ const Navbar = () => {
             window.removeEventListener('storage', updateUserData);
         };
     }, [store?.user?.status, store?.user?.response?.user,]);
-    const updateName = JSON.parse(localStorage.getItem("updateprofile"));
-    const initialFormData = {
+        const updateName = JSON.parse(localStorage.getItem("updateprofile"));
+        const initialFormData = {
         fullName: user?.response?.name || updateName?.fullName || User?.name || "",
         phone: user?.response?.phoneNumber || updateName?.phone || User?.phoneNumber || "",
         profileImage: updateName?.profile || user?.response?.profilePic || store?.userSignUp?.response?.profilePic || User?.profilePic,
@@ -176,49 +218,70 @@ const Navbar = () => {
     }, [dispatch]);
 
     useEffect(() => {
-        if (clubData && clubData._id) {
-            localStorage.setItem("register_club_id", clubData._id);
+        if (clubData && clubData?._id) {
+            localStorage.setItem("register_club_id", clubData?._id);
             localStorage.setItem("owner_id", clubData?.ownerId?._id);
         }
     }, [clubData]);
 
     useEffect(() => {
         const handleClickOutside = (e) => {
-            // Only close on desktop, not mobile
             if (window.innerWidth >= 992 && dropdownRef.current && !dropdownRef.current.contains(e.target)) {
                 setOpen(false);
             }
         };
-        if (open) {
+        if (open && window.innerWidth >= 992) {
             document.addEventListener("mousedown", handleClickOutside);
         }
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [open]);
 
+    const getTimeSlot = (matchTime) => {
+        if (!matchTime) return null;
+        const firstTime = matchTime.split(',')[0].trim();
+        const timeMatch = firstTime.match(/(\d+)\s*(am|pm)/i);
+        if (!timeMatch) return null;
+
+        let hour = parseInt(timeMatch[1]);
+        const period = timeMatch[2].toLowerCase();
+
+        if (period === 'pm' && hour !== 12) hour += 12;
+        if (period === 'am' && hour === 12) hour = 0;
+
+        if (hour >= 5 && hour <= 11) return 'morning';
+        if (hour >= 12 && hour <= 16) return 'afternoon';
+        if (hour >= 17 && hour <= 23) return 'evening';
+        return null;
+    };
+
     const handleViewNotification = (note) => {
         console.log({ note });
         const socket = io(SOCKET_URL, { transports: ["websocket"] });
 
-        dispatch(getNotificationView({ noteId: note._id })).unwrap()
+        dispatch(getNotificationView({ noteId: note?._id })).unwrap()
             .then(() => {
-                if (note?.notificationType === 'match_message' || note?.notificationType === "match_request_accept" || note?.notificationType === "match_request_reject" || note?.notificationType === 'join_match_request' && note?.matchId) {
+                if (note?.notificationType === 'match_message' || note?.type === "match_message" || note?.notificationType === "match_request_accept" || note?.type === "match_request_accept" || note?.type === "match_request_rejected" || note?.notificationType === "match_request_rejected" || note?.notificationType === 'join_match_request' || note?.type === "join_match_request" && note?.matchId) {
                     const matchDate = note?.matchCreateDate || note?.createdAt || new Date().toISOString();
+                    const formattedDate = dayjs(matchDate).format('YYYY-MM-DD');
                     const dateObj = new Date(matchDate);
+                    const timeSlot = getTimeSlot(note?.matchTime);
                     navigate('/open-matches', {
                         state: {
                             matchId: note.matchId,
                             selectedDate: {
-                                fullDate: matchDate,
+                                fullDate: formattedDate,
                                 day: dateObj.toLocaleDateString("en-US", { weekday: "long" })
-                            }
+                            },
+                            selectedTimeSlot: timeSlot,
+                            type: note?.notificationType || note?.type
                         }
                     });
                     setOpen(false)
                 } else {
                     navigate(note?.notificationUrl);
+                    setOpen(false)
                 }
                 socket.on("userNotificationCountUpdate", (data) => {
-                    console.log(data, 'pankaj4');
                     setNotificationCount(data);
                 });
                 dispatch(getNotificationData()).unwrap().then((res) => {
@@ -235,7 +298,6 @@ const Navbar = () => {
         dispatch(readAllNotification()).unwrap()
             .then(() => {
                 socket.on("userNotificationCountUpdate", (data) => {
-                    console.log(data, 'pankaj5');
                     setNotificationCount(data);
                 });
                 dispatch(getNotificationData()).unwrap().then((res) => {
@@ -270,7 +332,8 @@ const Navbar = () => {
                                     style={{
                                         width: "100%",
                                         height: "auto",
-                                        backgroundSize: "cover",
+                                        objectFit: "cover",
+                                        objectPosition: "center"
                                     }}
                                 />
                             </div>
@@ -291,7 +354,7 @@ const Navbar = () => {
                             </Avatar>
                         )}
 
-                        <h4 className='text-dark m-0 ps-2 add_font_size_nav_logo' style={{ fontFamily: "Poppins", fontSize: "18px", fontWeight: "500" }}>{clubData?.clubName || "Courtline"}</h4>
+                        <h4 className='text-dark m-0 ps-2 add_font_size_nav_logo' style={{ fontFamily: "Poppins", fontSize: "18px", fontWeight: "500" }}>{clubData?.clubName || "Swoot"}</h4>
                     </Link>
 
                     <div className="mx-auto d-none d-lg-flex col-6 align-items-center justify-content-center">
@@ -378,8 +441,8 @@ const Navbar = () => {
                                         }}
                                     >
                                         <div className="d-flex justify-content-between align-items-center mb-0 pt-1 ps-1">
-                                            <h6 style={{ fontWeight: 600, fontFamily: "Poppins" }}>Notifications pankaj</h6>
-                                            {notifications.length > 3 && (
+                                            {notifications?.length > 1 && (<h6 style={{ fontWeight: 600, fontFamily: "Poppins" }}>Notifications</h6>)}
+                                            {notifications?.length > 3 && (
                                                 <button
                                                     className="btn btn-link p-0"
                                                     style={{
@@ -394,7 +457,6 @@ const Navbar = () => {
                                                 </button>
                                             )}
                                         </div>
-
                                         <div style={{ maxHeight: "320px", overflowY: "auto" }} className="hide-notification-scrollbar">
                                             {notificationLoading ? <ButtonLoading /> :
                                                 notifications?.length > 0 ? (
@@ -408,8 +470,6 @@ const Navbar = () => {
                                                             }}
                                                             onClick={() => handleViewNotification(note)}
                                                         >
-
-
                                                             <div style={{ flex: 1 }}>
                                                                 <div style={{ fontWeight: 500, fontSize: "13px" }}>
                                                                     {note?.adminId ? "Padel" : ''} – {note.title}
@@ -419,7 +479,7 @@ const Navbar = () => {
                                                                         className="text-muted mb-1"
                                                                         style={{ fontSize: "12px", fontFamily: "Poppins" }}
                                                                     >
-                                                                        {note.message}
+                                                                        {note?.message?.length < 40 ? note?.message : note?.message?.slice(0, 40) + "..."}
                                                                     </p>
                                                                 )}
                                                                 <p
@@ -561,7 +621,7 @@ const Navbar = () => {
                                                                             className="text-muted mb-1"
                                                                             style={{ fontSize: "12px", fontFamily: "Poppins" }}
                                                                         >
-                                                                            {note.message}
+                                                                            {note?.message?.length < 40 ? note?.message : note?.message?.slice(0, 40) + "..."}
                                                                         </p>
                                                                     )}
                                                                     <p
@@ -702,6 +762,7 @@ const Navbar = () => {
                                         width: "40px",
                                         height: "40px",
                                         objectFit: "cover",
+                                        objectPosition: "center"
                                     }}
                                 />
                             ) : (

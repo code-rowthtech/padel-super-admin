@@ -1,10 +1,13 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getMatchesSlot, getMathcesSlot, getUnavailableSlot, getUserSlot, getUserSlotBooking } from "./thunk";
+import { getMatchesSlot, getMathcesSlot, getUnavailableSlot, getUserSlot, getUserSlotBooking, getUserSlotPrice } from "./thunk";
 
 const initialState = {
     slotLoading: false,
     slotData: null,
     slotError: null,
+    slotPriceLoading: false,
+    slotPriceData: null,
+    slotPriceError: null,
 };
 
 const slotSlice = createSlice({
@@ -15,6 +18,9 @@ const slotSlice = createSlice({
             state.slotLoading = false;
             state.slotData = null;
             state.slotError = null;
+            state.slotPriceLoading = false;
+            state.slotPriceData = null;
+            state.slotPriceError = null;
         }
     },
     extraReducers: (builder) => {
@@ -30,18 +36,28 @@ const slotSlice = createSlice({
             })
             .addCase(getUserSlot.rejected, (state, action) => {
                 state.slotLoading = false;
+                state.slotPriceError = action.payload;
+            })
+
+             .addCase(getUserSlotPrice.pending, (state, action) => {
+                state.slotPriceLoading = true;
+                state.slotPriceError = null;
+            })
+            .addCase(getUserSlotPrice.fulfilled, (state, action) => {
+
+                state.slotPriceLoading = false;
+                state.slotPriceData = action.payload;
+            })
+            .addCase(getUserSlotPrice.rejected, (state, action) => {
+                state.slotPriceLoading = false;
                 state.slotError = action.payload;
             })
 
             .addCase(getUserSlotBooking.pending, (state,action) => {
-                console.log("getUserSlot pending action:", action);
-
                 state.slotLoading = action?.meta?.arg?.socket ? false : true;
                 state.slotError = null;
             })
             .addCase(getUserSlotBooking.fulfilled, (state, action) => {
-                console.log("getUserSlot pending action:", action);
-
                 state.slotLoading = false;
                 state.slotData = action.payload;
             })
