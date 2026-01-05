@@ -17,14 +17,20 @@ const BookingSummary = ({
     errorMessage,
     buttonConfig,
     className,
-    handleBookNow, displayedSlotCount
+    handleBookNow,
+    displayedSlotCount,
+    duration  // Add duration prop
 }) => {
-    const formatTime = (timeStr) => {
+    // Helper function to format time with duration-based ranges
+    const formatTimeDisplay = (timeStr, duration) => {
         if (!timeStr) return "";
+        
+        // First format the base time
         let cleaned = timeStr.toString().toLowerCase().trim();
         let hour, minute = "00", period = "";
+        
         if (cleaned.includes("am") || cleaned.includes("pm")) {
-            period = cleaned.endsWith("am") ? "am" : "pm";
+            period = cleaned.endsWith("am") ? "AM" : "PM";
             cleaned = cleaned.replace(/am|pm/gi, "").trim();
         }
 
@@ -39,8 +45,37 @@ const BookingSummary = ({
 
         let formattedHour = hourNum.toString().padStart(2, "0");
         minute = minute ? minute.padStart(2, "0") : "00";
-
-        return `${formattedHour}:${minute} ${period}`.trim();
+        const formatted = `${formattedHour}:${minute} ${period}`.trim();
+        
+        // For 30min, 90min, and 120min, show time ranges
+        if (duration === 30 || duration === 90 || duration === 120) {
+            const match = formatted.match(/(\d+):(\d+)\s*(AM|PM)/i);
+            if (match) {
+                let startHour = parseInt(match[1]);
+                let startMinute = parseInt(match[2]);
+                const startPeriod = match[3].toUpperCase();
+                
+                // Convert to 24-hour format
+                let hour24 = startHour;
+                if (startPeriod === "PM" && startHour !== 12) hour24 += 12;
+                if (startPeriod === "AM" && startHour === 12) hour24 = 0;
+                
+                // Add duration minutes
+                let totalMinutes = hour24 * 60 + startMinute + duration;
+                let endHour24 = Math.floor(totalMinutes / 60) % 24;
+                let endMinute = totalMinutes % 60;
+                
+                // Convert back to 12-hour format
+                let endPeriod = endHour24 >= 12 ? "PM" : "AM";
+                let endHour = endHour24 % 12;
+                if (endHour === 0) endHour = 12;
+                
+                return `${formatted} - ${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')} ${endPeriod}`;
+            }
+        }
+        
+        // For 60min, just return formatted time
+        return formatted;
     };
     return (
         <>
@@ -238,9 +273,26 @@ const BookingSummary = ({
                             style={{ height: "18vh" }}
                         >
                             {selectedCourts?.length > 0 ? (
-                                selectedCourts?.map((court, index) =>
-                                    court?.time?.map((timeSlot, timeIndex) => (
-                                        <div key={`${index}-${timeIndex}`} className="row mb-2">
+                                (() => {
+                                    let allSlots = [];
+                                    selectedCourts.forEach((court, courtIndex) => {
+                                        let timeSlotsToShow = court?.time || [];
+                                        
+                                        if (duration === 90) {
+                                            timeSlotsToShow = timeSlotsToShow.filter(t => !t._id?.includes('-left') && !t._id?.includes('-right'));
+                                        }
+                                        
+                                        if (duration === 120) {
+                                            timeSlotsToShow = timeSlotsToShow.filter((_, idx) => idx % 2 === 0);
+                                        }
+                                        
+                                        timeSlotsToShow.forEach((timeSlot, timeIndex) => {
+                                            allSlots.push({ court, timeSlot, courtIndex, timeIndex });
+                                        });
+                                    });
+                                    
+                                    return allSlots.map(({ court, timeSlot, courtIndex, timeIndex }) => (
+                                        <div key={`${courtIndex}-${timeIndex}`} className="row mb-2">
                                             <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
                                                 <div className="d-flex text-white">
                                                     <span
@@ -272,7 +324,7 @@ const BookingSummary = ({
                                                             fontSize: "14px",
                                                         }}
                                                     >
-                                                        {formatTime(timeSlot?.time)}
+                                                        {formatTimeDisplay(timeSlot?.time, duration)}
                                                     </span>
                                                     <span
                                                         className="ps-2"
@@ -296,7 +348,16 @@ const BookingSummary = ({
 
                                                         }}
                                                     >
-                                                        {timeSlot?.amount ? Number(timeSlot?.amount).toLocaleString("en-IN") : "N/A"}
+                                                        {(() => {
+                                                            // For 120min, show combined amount of both slots
+                                                            if (duration === 120) {
+                                                                const currentIdx = court.time.findIndex(t => t._id === timeSlot._id);
+                                                                const nextSlot = court.time[currentIdx + 1];
+                                                                const totalAmount = Number(timeSlot?.amount || 0) + Number(nextSlot?.amount || 0);
+                                                                return totalAmount.toLocaleString("en-IN");
+                                                            }
+                                                            return timeSlot?.amount ? Number(timeSlot?.amount).toLocaleString("en-IN") : "N/A";
+                                                        })()}
                                                     </span>
                                                     <MdOutlineDeleteOutline
                                                         className="ms-1 mb-1 mt-1 text-white"
@@ -314,8 +375,8 @@ const BookingSummary = ({
                                                 </div>
                                             </div>
                                         </div>
-                                    ))
-                                )
+                                    ));
+                                })()
                             ) : (
                                 <div
                                     className="d-flex flex-column justify-content-center align-items-center text-white"
@@ -380,10 +441,27 @@ const BookingSummary = ({
 
                                 {isExpanded &&
                                     selectedCourts.length > 0 &&
-                                    selectedCourts.map((court, index) =>
-                                        court.time.map((timeSlot, timeIndex) => (
+                                    (() => {
+                                        let allSlots = [];
+                                        selectedCourts.forEach((court, courtIndex) => {
+                                            let timeSlotsToShow = court.time || [];
+                                            
+                                            if (duration === 90) {
+                                                timeSlotsToShow = timeSlotsToShow.filter(t => !t._id?.includes('-left') && !t._id?.includes('-right'));
+                                            }
+                                            
+                                            if (duration === 120) {
+                                                timeSlotsToShow = timeSlotsToShow.filter((_, idx) => idx % 2 === 0);
+                                            }
+                                            
+                                            timeSlotsToShow.forEach((timeSlot, timeIndex) => {
+                                                allSlots.push({ court, timeSlot, courtIndex, timeIndex });
+                                            });
+                                        });
+                                        
+                                        return allSlots.map(({ court, timeSlot, courtIndex, timeIndex }) => (
                                             <div
-                                                key={`${index}-${timeIndex}`}
+                                                key={`${courtIndex}-${timeIndex}`}
                                                 className="row mb-0"
                                             >
                                                 <div className="col-12 d-flex gap-1 mb-0 m-0 align-items-center justify-content-between">
@@ -417,7 +495,7 @@ const BookingSummary = ({
                                                                 fontSize: "11px",
                                                             }}
                                                         >
-                                                            {formatTime(timeSlot.time)}
+                                                            {formatTimeDisplay(timeSlot.time, duration)}
                                                         </span>
                                                         <span
                                                             className="ps-1"
@@ -439,7 +517,15 @@ const BookingSummary = ({
                                                                 fontSize: "11px",
                                                             }}
                                                         >
-                                                            ₹ {timeSlot.amount || "N/A"}
+                                                            ₹ {(() => {
+                                                                if (duration === 120) {
+                                                                    const currentIdx = court.time.findIndex(t => t._id === timeSlot._id);
+                                                                    const nextSlot = court.time[currentIdx + 1];
+                                                                    const totalAmount = Number(timeSlot?.amount || 0) + Number(nextSlot?.amount || 0);
+                                                                    return totalAmount;
+                                                                }
+                                                                return timeSlot.amount || "N/A";
+                                                            })()}
                                                         </span>
                                                         <MdOutlineDeleteOutline
                                                             className="ms-1 text-white"
@@ -459,8 +545,8 @@ const BookingSummary = ({
                                                     </div>
                                                 </div>
                                             </div>
-                                        ))
-                                    )}
+                                        ));
+                                    })()}
                             </div>
                         </div>
                     </div>

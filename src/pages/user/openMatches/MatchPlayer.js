@@ -78,6 +78,7 @@ const MatchPlayer = ({
     userSkillLevel, selectedAnswers,
     dynamicSteps,
     finalLevelStep,
+    selectedDuration,
     onBackToSlots, matchPlayer
 }) => {
     const dispatch = useDispatch();
@@ -322,6 +323,7 @@ const MatchPlayer = ({
                 dynamicSteps,
                 finalLevelStep,
                 addedPlayers: latestPlayers,
+                selectedDuration: selectedDuration || 60,
             },
         });
     };

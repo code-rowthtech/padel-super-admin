@@ -196,6 +196,7 @@ const Payment = ({ className = "" }) => {
           const slotHour = parseTimeToHour(slotTimeStr);
 
           let bookingTime = slotTimeStr; // default
+          let slotDuration = duration === 90 ? 60 : duration || 60; // For 90min, send 60 as duration
 
           if (duration === 30) {
             const leftKey = `${courtId}-${timeSlot._id}-${dateKey}-left`;
@@ -243,10 +244,6 @@ const Payment = ({ className = "" }) => {
 
           // Calculate amount (existing logic)
           const isHalfAutoSlot = duration === 90 && halfSelectedSlots?.has?.(`${courtId}-${timeSlot._id}-${dateKey}`);
-          let actualTotalTime = duration;
-          if (duration === 90) {
-            actualTotalTime = isHalfAutoSlot ? 30 : 60;
-          }
 
           const baseAmount = timeSlot?.amount || 300;
           const adjustedAmount = isHalfAutoSlot
@@ -266,9 +263,9 @@ const Payment = ({ className = "" }) => {
             courtName: court?.courtName,
             courtId: court?._id,
             bookingDate: court?.date,
-            duration: duration,
-            totalTime: actualTotalTime,
-            bookingTime: bookingTime // ← यही नया field
+            duration: slotDuration,
+            totalTime: duration,
+            bookingTime: bookingTime
           };
         });
       });
@@ -372,7 +369,49 @@ const Payment = ({ className = "" }) => {
   };
 
   const formatTime = (timeStr) => {
-    return timeStr.replace(" am", ":00 am").replace(" pm", ":00 pm");
+    if (!timeStr) return "";
+    // If time already has minutes (e.g., "2:30 pm"), just uppercase AM/PM
+    if (timeStr.includes(":")) {
+      return timeStr.replace(" am", " AM").replace(" pm", " PM");
+    }
+    // If time doesn't have minutes (e.g., "2 pm"), add :00
+    return timeStr.replace(" am", ":00 AM").replace(" pm", ":00 PM");
+  };
+
+  // Helper function to format time with duration-based ranges
+  const formatTimeDisplay = (timeStr, duration) => {
+    if (!timeStr) return "";
+    const formatted = formatTime(timeStr);
+    
+    // For 30min, 90min, and 120min, show time ranges
+    if (duration === 30 || duration === 90 || duration === 120) {
+      const match = formatted.match(/(\d+):(\d+)\s*(AM|PM)/i);
+      if (match) {
+        let startHour = parseInt(match[1]);
+        let startMinute = parseInt(match[2]);
+        const startPeriod = match[3].toUpperCase();
+        
+        // Convert to 24-hour format
+        let hour24 = startHour;
+        if (startPeriod === "PM" && startHour !== 12) hour24 += 12;
+        if (startPeriod === "AM" && startHour === 12) hour24 = 0;
+        
+        // Add duration minutes
+        let totalMinutes = hour24 * 60 + startMinute + duration;
+        let endHour24 = Math.floor(totalMinutes / 60) % 24;
+        let endMinute = totalMinutes % 60;
+        
+        // Convert back to 12-hour format
+        let endPeriod = endHour24 >= 12 ? "PM" : "AM";
+        let endHour = endHour24 % 12;
+        if (endHour === 0) endHour = 12;
+        
+        return `${formatted} - ${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')} ${endPeriod}`;
+      }
+    }
+    
+    // For 60min, just return formatted time
+    return formatted;
   };
 
   const width = 370;
@@ -684,7 +723,7 @@ const Payment = ({ className = "" }) => {
                               })}
                             </span>
                             <span className="ps-1" style={{ fontSize: "14px", fontWeight: "600" }}>
-                              {formatTime(slot.time)}
+                              {formatTimeDisplay(slot.time, duration)}
                             </span>
                             <span className="ps-2" style={{ fontSize: "14px", fontWeight: "500" }}>
                               {court.courtName}
@@ -748,7 +787,7 @@ const Payment = ({ className = "" }) => {
                               })}
                             </span>
                             <span className="ps-1" style={{ fontSize: "11px", fontWeight: "600" }}>
-                              {formatTime(slot.time)}
+                              {formatTimeDisplay(slot.time, duration)}
                             </span>
                             <span className="ps-1" style={{ fontSize: "10px", fontWeight: "500" }}>
                               {court.courtName}

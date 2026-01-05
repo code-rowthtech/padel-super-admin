@@ -163,7 +163,7 @@ const Booking = ({ className = "" }) => {
   });
 
   // Add this function inside Booking component
-  const getPriceForSlot = useCallback((slotTime, day = selectedDate?.day) => {
+  const getPriceForSlot = useCallback((slotTime, day = selectedDate?.day, forDisplay = false) => {
     if (!slotPrice || !Array.isArray(slotPrice) || slotPrice.length === 0) return 2000;
 
     const slotHour = parseTimeToHour(slotTime);
@@ -173,6 +173,14 @@ const Booking = ({ className = "" }) => {
     if (slotHour >= 17) period = "evening";
     else if (slotHour >= 12) period = "afternoon";
 
+    // For 90min: show 60min price in slots, but total (60+30) for booking
+    if (selectedDuration === 90) {
+      const price60 = slotPrice.find(p => p.day === day && p.duration === 60 && p.timePeriod === period)?.price || 3000;
+      if (forDisplay) return price60; // Show only 60min price in slot buttons
+      const price30 = slotPrice.find(p => p.day === day && p.duration === 30 && p.timePeriod === period)?.price || 1500;
+      return price60 + price30; // Use total for booking amount
+    }
+
     const entry = slotPrice.find(p =>
       p.day === day &&
       p.duration === selectedDuration &&
@@ -181,6 +189,23 @@ const Booking = ({ className = "" }) => {
 
     return entry?.price || 2000;
   }, [slotPrice, selectedDuration, selectedDate?.day]);
+
+  // Get 30min price note for 90min duration
+  const get30MinPriceNote = useCallback((slotTime, day = selectedDate?.day) => {
+    if (selectedDuration !== 90) return null;
+    
+    const slotHour = parseTimeToHour(slotTime);
+    if (slotHour === null) return null;
+
+    let period = "morning";
+    if (slotHour >= 17) period = "evening";
+    else if (slotHour >= 12) period = "afternoon";
+
+    const price60 = slotPrice.find(p => p.day === day && p.duration === 60 && p.timePeriod === period)?.price || 3000;
+    const price30 = slotPrice.find(p => p.day === day && p.duration === 30 && p.timePeriod === period)?.price || 1500;
+    
+    return `₹${price60} + ₹${price30}`;
+  }, [selectedDuration, selectedDate?.day, slotPrice]);
 
   const getSortedSlots = (court) => {
     return [...(court?.slots || [])].sort((a, b) => {
@@ -224,10 +249,11 @@ const Booking = ({ className = "" }) => {
   };
 
   const updateSelectedBusinessAndCourts = (times, courtId, dateKey) => {
-    // For 30min and 90min duration, add half-selected slots to the times array
+    // For 30min duration only, add half-selected slots to the times array
+    // For 90min, we don't add half-selected slots as they're just markers
     let allTimes = [...times];
 
-    if (selectedDuration === 30 || selectedDuration === 90) {
+    if (selectedDuration === 30) {
       const court = slotData?.data?.find(c => c?._id === courtId);
       if (court) {
         // Find all half-selected slots for this court/date
@@ -417,7 +443,7 @@ const Booking = ({ className = "" }) => {
     // ========== 90MIN DURATION LOGIC ==========
     if (selectedDuration === 90) {
       if (!nextSlot || parseTimeToHour(nextSlot.time) !== parseTimeToHour(time.time) + 1) {
-        setErrorMessage("Not enough consecutive slots for 90 minutes");
+        setErrorMessage("Select consecutive slots for 90 minutes");
         setErrorShow(true);
         return;
       }
@@ -427,110 +453,42 @@ const Booking = ({ className = "" }) => {
       const isLeftSelected = halfSelectedSlots.has(leftKey);
       const isRightSelected = halfSelectedSlots.has(rightKey);
       const isFirstSlotSelected = isAlreadySelected;
-      const isSecondSlotHalfSelected = isLeftSelected || isRightSelected;
 
-      // Case 1: First slot is selected and second slot has half selection - unselect this pair
-      if (isFirstSlotSelected && isSecondSlotHalfSelected) {
-        // If clicking first slot - unselect this pair only
-        if (time._id === currentCourtTimes.find(t => t._id === time._id)?._id) {
-          setHalfSelectedSlots(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(leftKey);
-            newSet.delete(rightKey);
-            return newSet;
-          });
-
-          const filteredTimes = currentCourtTimes.filter(t => t._id !== time._id);
-          setSelectedTimes(prev => ({
-            ...prev,
-            [courtId]: {
-              ...prev[courtId],
-              [dateKey]: filteredTimes.length > 0 ? filteredTimes : undefined,
-            },
-          }));
-          updateSelectedBusinessAndCourts(filteredTimes, courtId, dateKey);
-          return;
-        }
-
-        // If clicking second slot with clickSide
-        if (clickSide && time._id === nextSlot._id) {
-          if (clickSide === "left") {
-            if (isLeftSelected) {
-              // Unselect this pair
-              setHalfSelectedSlots(prev => {
-                const newSet = new Set(prev);
-                newSet.delete(leftKey);
-                return newSet;
-              });
-              const filteredTimes = currentCourtTimes.filter(t => t._id !== time._id && t._id !== nextSlot._id);
-              const firstSlot = sortedSlots.find(s => s._id === time._id);
-              const prevSlot = sortedSlots[sortedSlots.findIndex(s => s._id === time._id) - 1];
-              if (prevSlot && currentCourtTimes.some(t => t._id === prevSlot._id)) {
-                filteredTimes.push(...currentCourtTimes.filter(t => t._id === prevSlot._id));
-              }
-              setSelectedTimes(prev => ({
-                ...prev,
-                [courtId]: {
-                  ...prev[courtId],
-                  [dateKey]: filteredTimes.length > 0 ? filteredTimes : undefined,
-                },
-              }));
-              updateSelectedBusinessAndCourts(filteredTimes, courtId, dateKey);
-            } else {
-              // Switch to left
-              setHalfSelectedSlots(prev => {
-                const newSet = new Set(prev);
-                newSet.delete(rightKey);
-                newSet.add(leftKey);
-                return newSet;
-              });
-            }
-          } else if (clickSide === "right") {
-            if (isRightSelected) {
-              // Unselect this pair
-              setHalfSelectedSlots(prev => {
-                const newSet = new Set(prev);
-                newSet.delete(rightKey);
-                return newSet;
-              });
-              const filteredTimes = currentCourtTimes.filter(t => t._id !== time._id && t._id !== nextSlot._id);
-              const prevSlot = sortedSlots[sortedSlots.findIndex(s => s._id === time._id) - 1];
-              if (prevSlot && currentCourtTimes.some(t => t._id === prevSlot._id)) {
-                filteredTimes.push(...currentCourtTimes.filter(t => t._id === prevSlot._id));
-              }
-              setSelectedTimes(prev => ({
-                ...prev,
-                [courtId]: {
-                  ...prev[courtId],
-                  [dateKey]: filteredTimes.length > 0 ? filteredTimes : undefined,
-                },
-              }));
-              updateSelectedBusinessAndCourts(filteredTimes, courtId, dateKey);
-            } else {
-              // Switch to right
-              setHalfSelectedSlots(prev => {
-                const newSet = new Set(prev);
-                newSet.delete(leftKey);
-                newSet.add(rightKey);
-                return newSet;
-              });
-            }
-          }
-          return;
-        }
+      // UNSELECT
+      if (isFirstSlotSelected) {
+        setHalfSelectedSlots(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(leftKey);
+          newSet.delete(rightKey);
+          return newSet;
+        });
+        const filteredTimes = currentCourtTimes.filter(t => t._id !== time._id);
+        setSelectedTimes(prev => ({
+          ...prev,
+          [courtId]: {
+            ...prev[courtId],
+            [dateKey]: filteredTimes.length > 0 ? filteredTimes : undefined,
+          },
+        }));
+        updateSelectedBusinessAndCourts(filteredTimes, courtId, dateKey);
+        return;
       }
 
-      // Case 2: New selection - check slot limit
+      // NEW SELECTION
+      if (isLeftSelected || isRightSelected) {
+        setErrorMessage("Slot already occupied");
+        setErrorShow(true);
+        return;
+      }
+
       if (totalSlots >= MAX_SLOTS) {
         setErrorMessage(`You can select up to ${MAX_SLOTS} slots only`);
         setErrorShow(true);
         return;
       }
 
-      // Select first slot and auto half-select second slot (left side)
       setHalfSelectedSlots(prev => {
         const newSet = new Set(prev);
-        // Only clear conflicting selections for this specific pair
         newSet.delete(leftKey);
         newSet.delete(rightKey);
         newSet.add(leftKey);
@@ -809,13 +767,13 @@ const Booking = ({ className = "" }) => {
 
     switch (selectedDuration) {
       case 30:
-        return Number((totalSlots * 0.5).toFixed(1)); // 1 slot = 0.5
+        return Number((totalSlots * 0.5).toFixed(1)); // 1 slot = 0.5 hours
       case 60:
         return totalSlots;                            // 1 slot = 1 hour
       case 90:
-        return Number((totalSlots * 0.75).toFixed(1)); // 2 slots = 1.5
+        return Number((totalSlots * 1.5).toFixed(1)); // 1 slot = 1.5 hours
       case 120:
-        return totalSlots;                            // 2 slots = 2 hours
+        return totalSlots;                            // 2 slots = 2 hours (but counted as pair)
       default:
         return totalSlots;
     }
@@ -853,9 +811,9 @@ const Booking = ({ className = "" }) => {
     setIsExpanded(false);
   }, [selectedDuration]);
 
-  // Update booking summary whenever halfSelectedSlots changes
+  // Update booking summary whenever halfSelectedSlots changes (only for 30min)
   useEffect(() => {
-    if (selectedDuration === 30 || selectedDuration === 90) {
+    if (selectedDuration === 30) {
       Object.keys(selectedTimes).forEach(courtId => {
         Object.keys(selectedTimes[courtId] || {}).forEach(dateKey => {
           const times = selectedTimes[courtId][dateKey] || [];
@@ -1612,6 +1570,17 @@ const Booking = ({ className = "" }) => {
                             <div className="col-md-9 col-12">
                               <h6 className="all-matches text-center mb-0 me-2 me-md-0">
                                 Available Slots
+                                {selectedDuration === 90 && slotPrice.length > 0 && (
+                                  <span style={{ fontSize: "10px", color: "#6b7280", marginLeft: "8px", fontWeight: "400" }}>
+                                    {(() => {
+                                      const firstSlot = slotData?.data?.[0]?.slots?.[0];
+                                      if (firstSlot) {
+                                        return get30MinPriceNote(firstSlot.time);
+                                      }
+                                      return null;
+                                    })()}
+                                  </span>
+                                )}
                               </h6>
                             </div>
                           </div>
@@ -1701,11 +1670,14 @@ const Booking = ({ className = "" }) => {
 
                                     // booking info
                                     const bookingTime = slot?.bookingTime?.trim();
-                                    const isLeftBooked = bookingTime && /:00\s*(AM|PM)?$/i.test(bookingTime);
-                                    const isRightBooked = bookingTime && /:30\s*(AM|PM)?$/i.test(bookingTime);
+                                    const slotDuration = slot?.duration;
+                                    // Check for :00 format (8:00 pm) or no colon format (8 pm) for left half
+                                    const isLeftBooked = bookingTime && slotDuration === 30 && (/:(00|0)\s*(AM|PM)?$/i.test(bookingTime) || /^\d{1,2}\s*(am|pm)$/i.test(bookingTime));
+                                    // Check for :30 format (8:30 pm) for right half
+                                    const isRightBooked = bookingTime && slotDuration === 30 && /:30\s*(AM|PM)?$/i.test(bookingTime);
                                     const isHalfBooked = isLeftBooked || isRightBooked;
 
-                                    const price = getPriceForSlot(slot.time);
+                                    const price = getPriceForSlot(slot.time, selectedDate?.day, true);
 
                                     // hide for 60 / 120
                                     if ((selectedDuration === 60 || selectedDuration === 120) && isHalfBooked) {
@@ -1720,6 +1692,18 @@ const Booking = ({ className = "" }) => {
                                     const sortedSlots = getSortedSlots(slotData?.data?.find(c => c?._id === courtId));
                                     const currentIndex = sortedSlots.findIndex(s => s._id === slot._id);
                                     const nextSlotFor90 = sortedSlots[currentIndex + 1];
+
+                                    // For 90min: Hide slot if next slot is not available
+                                    if (selectedDuration === 90) {
+                                      if (!nextSlotFor90 || 
+                                          parseTimeToHour(nextSlotFor90.time) !== parseTimeToHour(slot.time) + 1 ||
+                                          nextSlotFor90.status === "booked" ||
+                                          nextSlotFor90.availabilityStatus !== "available" ||
+                                          isPastTime(nextSlotFor90.time)) {
+                                        return null;
+                                      }
+                                    }
+
                                     const isFirstSlotOf90 = selectedDuration === 90 && isSlotSelected && nextSlotFor90 &&
                                       (halfSelectedSlots.has(`${courtId}-${nextSlotFor90._id}-${dateKey}-left`) ||
                                         halfSelectedSlots.has(`${courtId}-${nextSlotFor90._id}-${dateKey}-right`));
@@ -1776,11 +1760,11 @@ const Booking = ({ className = "" }) => {
 
                                         // If neither side is selected, show booking status
                                         if (isLeftBooked && !isRightBooked) {
-                                          return "linear-gradient(to right, #a1b1cfff 50%, #FFFFFF 50%)";
+                                          return "linear-gradient(to right, rgb(224, 224, 224) 50%, rgb(255, 255, 255) 50%)";
                                         }
 
                                         if (isRightBooked && !isLeftBooked) {
-                                          return "linear-gradient(to right, #FFFFFF 50%, #5a6883ff 50%)";
+                                          return "linear-gradient(to right, rgb(255, 255, 255) 50%, rgb(224, 224, 224) 50%)";
                                         }
 
                                         return "#FFFFFF";
@@ -1898,9 +1882,7 @@ const Booking = ({ className = "" }) => {
                                                       ? "white"
                                                       : (selectedDuration === 90 && isFirstSlotOf90)
                                                         ? "white"
-                                                        : leftHalf || rightHalf || isLeftBooked || isRightBooked
-                                                          ? "white"
-                                                          : "#111827",
+                                                        : "#000000",
                                                 }}
                                               >
                                                 {formatTimeForDisplay(slot?.time)}
@@ -1914,9 +1896,7 @@ const Booking = ({ className = "" }) => {
                                                       ? "white"
                                                       : (selectedDuration === 90 && isFirstSlotOf90)
                                                         ? "white"
-                                                        : leftHalf || rightHalf
-                                                          ? "white"
-                                                          : "#6b7280",
+                                                        : "#000000",
                                                 }}
                                               >
                                                 ₹{price}
@@ -1986,6 +1966,7 @@ const Booking = ({ className = "" }) => {
             className={className}
             handleBookNow={handleBookNow}
             displayedSlotCount={displayedSlotCount}
+            duration={selectedDuration}
           />
 
         </div>
@@ -1996,3 +1977,5 @@ const Booking = ({ className = "" }) => {
 };
 
 export default Booking;
+
+
