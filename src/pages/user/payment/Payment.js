@@ -210,14 +210,16 @@ const Payment = ({ className = "" }) => {
             if (isLeftHalf && !isRightHalf) {
               bookingTime = slotTimeStr;
             } else if (isRightHalf && !isLeftHalf) {
-              const nextHour = (slotHour + 0.5);
-              const isPM = slotTimeStr.toLowerCase().includes("pm");
-              const baseHour = slotHour % 12 || 12;
-              const newHour = Math.floor(nextHour);
-              const minutes = nextHour % 1 === 0.5 ? "30" : "00";
-              const displayHour = newHour % 12 || 12;
-              const period = (nextHour >= 12 && nextHour < 24) || nextHour >= 24 ? "PM" : "AM";
-              bookingTime = `${displayHour}:${minutes} ${period}`;
+              // Convert time like "4 pm" to "4:30 pm" or "6:00 AM" to "6:30 AM"
+              if (slotTimeStr.includes(':00')) {
+                bookingTime = slotTimeStr.replace(':00', ':30');
+              } else {
+                // Handle formats like "4 pm" -> "4:30 pm"
+                const timeMatch = slotTimeStr.match(/(\d+)\s*(am|pm)/i);
+                if (timeMatch) {
+                  bookingTime = `${timeMatch[1]}:30 ${timeMatch[2]}`;
+                }
+              }
             } else if (isLeftHalf && isRightHalf) {
               bookingTime = slotTimeStr;
             }
@@ -230,10 +232,16 @@ const Payment = ({ className = "" }) => {
             if (isLeftHalf) {
               bookingTime = slotTimeStr;
             } else if (isRightHalf) {
-              const nextHour = (slotHour + 0.5);
-              const displayHour = nextHour % 12 || 12;
-              const period = nextHour >= 12 ? "PM" : "AM";
-              bookingTime = `${displayHour}:30 ${period}`;
+              // Convert time like "4 pm" to "4:30 pm" or "6:00 AM" to "6:30 AM"
+              if (slotTimeStr.includes(':00')) {
+                bookingTime = slotTimeStr.replace(':00', ':30');
+              } else {
+                // Handle formats like "4 pm" -> "4:30 pm"
+                const timeMatch = slotTimeStr.match(/(\d+)\s*(am|pm)/i);
+                if (timeMatch) {
+                  bookingTime = `${timeMatch[1]}:30 ${timeMatch[2]}`;
+                }
+              }
             } else {
               bookingTime = slotTimeStr;
             }
