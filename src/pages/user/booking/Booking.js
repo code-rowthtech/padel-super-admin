@@ -982,22 +982,64 @@ const Booking = ({ className = "" }) => {
       .filter((id) => id)
       .join(",");
 
+    // For 90min, expand selectedCourts to include all underlying slots with real IDs
+    let expandedCourts = selectedCourts;
+    if (selectedDuration === 90 && slotData?.data) {
+      expandedCourts = [];
+      selectedCourts.forEach(court => {
+        const courtSlots = slotData.data.find(c => c._id === court._id)?.slots || [];
+        const sortedSlots = [...courtSlots].sort((a, b) => {
+          const parseHour = (timeStr) => {
+            const [hourStr, period] = timeStr.toLowerCase().split(" ");
+            let hour = parseInt(hourStr);
+            if (period === "pm" && hour !== 12) hour += 12;
+            if (period === "am" && hour === 12) hour = 0;
+            return hour;
+          };
+          return parseHour(a.time) - parseHour(b.time);
+        });
+        
+        const expandedTimes = [];
+        court.time.forEach(timeSlot => {
+          // Add the first slot (60min)
+          expandedTimes.push(timeSlot);
+          
+          // Find and add the next consecutive slot (30min)
+          const currentIndex = sortedSlots.findIndex(s => s._id === timeSlot._id);
+          if (currentIndex !== -1 && currentIndex + 1 < sortedSlots.length) {
+            const nextSlot = sortedSlots[currentIndex + 1];
+            expandedTimes.push({
+              _id: nextSlot._id,
+              time: nextSlot.time,
+              amount: Math.round(timeSlot.amount / 3)
+            });
+          }
+        });
+        
+        expandedCourts.push({
+          ...court,
+          time: expandedTimes
+        });
+      });
+    }
+
     const paymentStateData = {
       courtData: {
         day: selectedDate?.day,
         date: selectedDate?.fullDate,
         time: selectedBuisness,
         courtId: courtIds,
-        court: selectedCourts?.map((c) => ({ _id: c?._id || c?.id, ...c })),
+        court: expandedCourts?.map((c) => ({ _id: c?._id || c?.id, ...c })),
         slot: slotData?.data?.[0]?.slots,
       },
       clubData,
-      selectedCourts,
+      selectedCourts: expandedCourts,
       selectedDate,
       grandTotal,
       totalSlots: displayedSlotCount,
-      duration: selectedDuration,               // 30, 60, 90, 120
-      halfSelectedSlots: halfSelectedSlots,     // ← जरूर add करो
+      duration: selectedDuration,
+      halfSelectedSlots: halfSelectedSlots,
+      slotData
     };
 
     if (!user?.token) {

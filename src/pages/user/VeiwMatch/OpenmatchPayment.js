@@ -315,10 +315,14 @@ const OpenmatchPayment = () => {
                 paymentMethod: 'razorpay',
                 bookingType: "open Match",
                 bookingStatus: "upcoming",
-                slot: selectedCourts.flatMap(court => court?.time?.map(timeSlot => {
+                slot: selectedCourts.flatMap((court, courtIndex) => court?.time?.map((timeSlot, timeIndex) => {
                     const slotInfo = slotData?.data?.find(c => c._id === court?._id)?.slots?.find(s => s._id === timeSlot?._id);
                     let bookingTime = formatTime(timeSlot?.time);
-                    let slotDuration = selectedDuration === 90 ? 60 : selectedDuration || 60;
+                    
+                    // For 90min: first slot = 60min, second slot = 30min
+                    let slotDuration = selectedDuration === 90 
+                        ? (timeIndex % 2 === 0 ? 60 : 30) 
+                        : (selectedDuration === 90 ? 60 : selectedDuration || 60);
                     
                     // For 30min with half-slots, adjust bookingTime
                     if (selectedDuration === 30 && halfSelectedSlots?.size > 0) {
@@ -367,10 +371,14 @@ const OpenmatchPayment = () => {
                     handler: async function (response) {
                         try {
                         const formattedMatch = {
-                            slot: localSelectedCourts.flatMap(court => court?.time?.map(timeSlot => {
+                            slot: localSelectedCourts.flatMap((court, courtIndex) => court?.time?.map((timeSlot, timeIndex) => {
                                 const slotInfo = slotData?.data?.find(c => c._id === court?._id)?.slots?.find(s => s._id === timeSlot?._id);
                                 let bookingTime = formatTime(timeSlot?.time);
-                                let slotDuration = selectedDuration === 90 ? 60 : selectedDuration || 60;
+                                
+                                // For 90min: first slot = 60min, second slot = 30min
+                                let slotDuration = selectedDuration === 90 
+                                    ? (timeIndex % 2 === 0 ? 60 : 30) 
+                                    : (selectedDuration === 90 ? 60 : selectedDuration || 60);
 
                                 if (selectedDuration === 30 && halfSelectedSlots?.size > 0) {
                                     const rightKey = `${court?._id}-${timeSlot?._id}-${court?.date}-right`;

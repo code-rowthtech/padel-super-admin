@@ -79,7 +79,8 @@ const MatchPlayer = ({
     dynamicSteps,
     finalLevelStep,
     selectedDuration,
-    onBackToSlots, matchPlayer
+    onBackToSlots, matchPlayer,
+    slotData
 }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -306,24 +307,66 @@ const MatchPlayer = ({
 
         const latestPlayers = JSON.parse(localStorage.getItem("addedPlayers") || "{}");
 
+        // For 90min, expand selectedCourts to include all underlying slots with real IDs
+        let expandedCourts = selectedCourts;
+        if (selectedDuration === 90 && slotData?.data) {
+            expandedCourts = [];
+            selectedCourts.forEach(court => {
+                const courtSlots = slotData.data.find(c => c._id === court._id)?.slots || [];
+                const sortedSlots = [...courtSlots].sort((a, b) => {
+                    const parseHour = (timeStr) => {
+                        const [hourStr, period] = timeStr.toLowerCase().split(" ");
+                        let hour = parseInt(hourStr);
+                        if (period === "pm" && hour !== 12) hour += 12;
+                        if (period === "am" && hour === 12) hour = 0;
+                        return hour;
+                    };
+                    return parseHour(a.time) - parseHour(b.time);
+                });
+                
+                const expandedTimes = [];
+                court.time.forEach(timeSlot => {
+                    // Add the first slot (60min)
+                    expandedTimes.push(timeSlot);
+                    
+                    // Find and add the next consecutive slot (30min)
+                    const currentIndex = sortedSlots.findIndex(s => s._id === timeSlot._id);
+                    if (currentIndex !== -1 && currentIndex + 1 < sortedSlots.length) {
+                        const nextSlot = sortedSlots[currentIndex + 1];
+                        expandedTimes.push({
+                            _id: nextSlot._id,
+                            time: nextSlot.time,
+                            amount: Math.round(timeSlot.amount / 3)
+                        });
+                    }
+                });
+                
+                expandedCourts.push({
+                    ...court,
+                    time: expandedTimes
+                });
+            });
+        }
+
         navigate("/match-payment", {
             state: {
                 courtData: {
                     day: selectedDate.day,
                     date: selectedDate.fullDate,
-                    time: selectedCourts.flatMap((c) => c.time),
+                    time: expandedCourts.flatMap((c) => c.time),
                     courtId: courtIds,
-                    court: selectedCourts,
+                    court: expandedCourts,
                 },
-                selectedCourts,
+                selectedCourts: expandedCourts,
                 selectedDate,
-                totalSlots: selectedCourts.reduce((s, c) => s + c.time.length, 0),
+                totalSlots: expandedCourts.reduce((s, c) => s + c.time.length, 0),
                 finalSkillDetails,
                 selectedGender,
                 dynamicSteps,
                 finalLevelStep,
                 addedPlayers: latestPlayers,
                 selectedDuration: selectedDuration || 60,
+                slotData
             },
         });
     };

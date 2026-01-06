@@ -2314,6 +2314,7 @@ const CreateMatches = () => {
               slotError={slotError}
               userGender={userGender}
               selectedDuration={selectedDuration}
+              slotData={slotData}
               onBackToSlots={() => {
                 setMatchPlayer(false);
                 setCurrentStep(0);

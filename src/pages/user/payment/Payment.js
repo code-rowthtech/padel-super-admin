@@ -187,16 +187,19 @@ const Payment = ({ className = "" }) => {
         throw new Error("Club information missing.");
       }
 
-      const slotArray = localSelectedCourts.flatMap((court) => {
+      const slotArray = localSelectedCourts.flatMap((court, courtIndex) => {
         const courtId = court?._id;
         const dateKey = court?.date;
 
-        return court?.time?.map((timeSlot) => {
-          const slotTimeStr = timeSlot?.time; // e.g. "5:00 AM"
+        return court?.time?.map((timeSlot, timeIndex) => {
+          const slotTimeStr = timeSlot?.time;
           const slotHour = parseTimeToHour(slotTimeStr);
 
-          let bookingTime = slotTimeStr; // default
-          let slotDuration = duration === 90 ? 60 : duration || 60; // For 90min, send 60 as duration
+          let bookingTime = slotTimeStr;
+          // For 90min: first slot = 60min, second slot = 30min
+          let slotDuration = duration === 90 
+            ? (timeIndex % 2 === 0 ? 60 : 30) 
+            : (duration === 90 ? 60 : duration || 60);
 
           if (duration === 30) {
             const leftKey = `${courtId}-${timeSlot._id}-${dateKey}-left`;
@@ -205,10 +208,8 @@ const Payment = ({ className = "" }) => {
             const isRightHalf = halfSelectedSlots.has(rightKey);
 
             if (isLeftHalf && !isRightHalf) {
-              // Only left → start time
               bookingTime = slotTimeStr;
             } else if (isRightHalf && !isLeftHalf) {
-              // Only right → +30 minutes
               const nextHour = (slotHour + 0.5);
               const isPM = slotTimeStr.toLowerCase().includes("pm");
               const baseHour = slotHour % 12 || 12;
@@ -218,7 +219,6 @@ const Payment = ({ className = "" }) => {
               const period = (nextHour >= 12 && nextHour < 24) || nextHour >= 24 ? "PM" : "AM";
               bookingTime = `${displayHour}:${minutes} ${period}`;
             } else if (isLeftHalf && isRightHalf) {
-              // Both → full hour
               bookingTime = slotTimeStr;
             }
           } else if (duration === 90) {
@@ -228,21 +228,17 @@ const Payment = ({ className = "" }) => {
             const isRightHalf = halfSelectedSlots.has(rightKey);
 
             if (isLeftHalf) {
-              // Left half of second slot → same time
               bookingTime = slotTimeStr;
             } else if (isRightHalf) {
-              // Right half → +30 min
               const nextHour = (slotHour + 0.5);
               const displayHour = nextHour % 12 || 12;
               const period = nextHour >= 12 ? "PM" : "AM";
               bookingTime = `${displayHour}:30 ${period}`;
             } else {
-              // First slot (full)
               bookingTime = slotTimeStr;
             }
           }
 
-          // Calculate amount (existing logic)
           const isHalfAutoSlot = duration === 90 && halfSelectedSlots?.has?.(`${courtId}-${timeSlot._id}-${dateKey}`);
 
           const baseAmount = timeSlot?.amount || 300;
