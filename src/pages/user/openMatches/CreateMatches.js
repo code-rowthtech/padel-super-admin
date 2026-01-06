@@ -1010,15 +1010,12 @@ const CreateMatches = () => {
     const slotKey = `${courtId}-${slot._id}-${dateKey}`;
     const activeHalf = activeHalves.get(slotKey);
 
-    // Disable logic based on slot limits
     if (!isSlotSelected && !activeHalf) {
       if (selectedDuration === 30) {
-        // For 30min, check activeHalves count
         if (activeHalves.size >= MAX_SLOTS) {
           isDisabled = true;
         }
       } else {
-        // For other durations, check full slots count
         if (totalSlots >= MAX_SLOTS) {
           isDisabled = true;
         }
