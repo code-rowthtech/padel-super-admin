@@ -1,0 +1,1314 @@
+// src/pages/user/CreateMatches/OpenmatchPayment.jsx
+import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { createMatches } from "../../../redux/user/matches/thunk";
+import { ButtonLoading } from "../../../helpers/loading/Loaders";
+import { Avatar } from "@mui/material";
+import { getUserClub } from "../../../redux/user/club/thunk";
+import { createBooking } from "../../../redux/user/booking/thunk";
+import { getUserFromSession } from "../../../helpers/api/apiCore";
+import {
+    MdOutlineDeleteOutline,
+    MdKeyboardArrowDown,
+    MdKeyboardArrowUp,
+} from "react-icons/md";
+import {
+    getUserProfile,
+    loginUserNumber,
+    updateUser,
+} from "../../../redux/user/auth/authThunk";
+import { booking_logo_img } from "../../../assets/files";
+import config from "../../../config";
+
+const formatTime = (timeStr) => {
+    if (!timeStr) return "";
+    // If time already has minutes (e.g., "2:30 pm"), just uppercase AM/PM
+    if (timeStr.includes(":")) {
+        return timeStr.replace(" am", " AM").replace(" pm", " PM");
+    }
+    // If time doesn't have minutes (e.g., "2 pm"), add :00
+    return timeStr.replace(" am", ":00 AM").replace(" pm", ":00 PM");
+};
+
+// Helper function to format time display based on duration
+const formatTimeDisplay = (timeSlot, duration) => {
+    const timeStr = timeSlot?.time;
+    const formatted = formatTime(timeStr);
+    
+    // For 30min, show time range (e.g., "2:00 PM - 2:30 PM" or "2:30 PM - 3:00 PM")
+    if (duration === 30) {
+        const match = formatted.match(/(\d+):(\d+)\s*(AM|PM)/i);
+        if (match) {
+            let hour = parseInt(match[1]);
+            let minute = parseInt(match[2]);
+            const period = match[3].toUpperCase();
+            
+            // Convert to 24-hour format for calculation
+            let hour24 = hour;
+            if (period === "PM" && hour !== 12) hour24 += 12;
+            if (period === "AM" && hour === 12) hour24 = 0;
+            
+            // Add 30 minutes
+            let totalMinutes = hour24 * 60 + minute + 30;
+            let endHour24 = Math.floor(totalMinutes / 60) % 24;
+            let endMinute = totalMinutes % 60;
+            
+            // Convert back to 12-hour format
+            let endPeriod = endHour24 >= 12 ? "PM" : "AM";
+            let endHour = endHour24 % 12;
+            if (endHour === 0) endHour = 12;
+            
+            return `${formatted} - ${endHour}:${endMinute.toString().padStart(2, '0')} ${endPeriod}`;
+        }
+    }
+    
+    if (duration === 90) {
+        // For 90min, show start time to end time (e.g., "2:00 PM - 3:30 PM")
+        const match = formatted.match(/(\d+):(\d+)\s*(AM|PM)/i);
+        if (match) {
+            let hour = parseInt(match[1]);
+            const minute = parseInt(match[2]);
+            const period = match[3].toUpperCase();
+            
+            // Convert to 24-hour format for calculation
+            let hour24 = hour;
+            if (period === "PM" && hour !== 12) hour24 += 12;
+            if (period === "AM" && hour === 12) hour24 = 0;
+            
+            // Add 90 minutes
+            let totalMinutes = hour24 * 60 + minute + 90;
+            let endHour24 = Math.floor(totalMinutes / 60) % 24;
+            let endMinute = totalMinutes % 60;
+            
+            // Convert back to 12-hour format
+            let endPeriod = endHour24 >= 12 ? "PM" : "AM";
+            let endHour = endHour24 % 12;
+            if (endHour === 0) endHour = 12;
+            
+            return `${formatted} - ${endHour}:${endMinute.toString().padStart(2, '0')} ${endPeriod}`;
+        }
+    } else if (duration === 120) {
+        // For 120min, show start time to end time (e.g., "2:00 PM - 4:00 PM")
+        const match = formatted.match(/(\d+):(\d+)\s*(AM|PM)/i);
+        if (match) {
+            let hour = parseInt(match[1]);
+            const minute = parseInt(match[2]);
+            const period = match[3].toUpperCase();
+            
+            // Convert to 24-hour format for calculation
+            let hour24 = hour;
+            if (period === "PM" && hour !== 12) hour24 += 12;
+            if (period === "AM" && hour === 12) hour24 = 0;
+            
+            // Add 120 minutes
+            let totalMinutes = hour24 * 60 + minute + 120;
+            let endHour24 = Math.floor(totalMinutes / 60) % 24;
+            let endMinute = totalMinutes % 60;
+            
+            // Convert back to 12-hour format
+            let endPeriod = endHour24 >= 12 ? "PM" : "AM";
+            let endHour = endHour24 % 12;
+            if (endHour === 0) endHour = 12;
+            
+            return `${formatted} - ${endHour}:${endMinute.toString().padStart(2, '0')} ${endPeriod}`;
+        }
+    }
+    
+    return formatted;
+};
+
+// Button styling variables
+const width = 370;
+const height = 75;
+const circleRadius = height * 0.3;
+const curvedSectionStart = width * 0.76;
+const curvedSectionEnd = width * 0.996;
+const circleX =
+    curvedSectionStart + (curvedSectionEnd - curvedSectionStart) * 0.68 + 1;
+const circleY = height * 0.5;
+const arrowSize = circleRadius * 0.6;
+const arrowX = circleX;
+const arrowY = circleY;
+
+const buttonStyle = {
+    position: "relative",
+    width: `${width}px`,
+    height: `${height}px`,
+    border: "none",
+    background: "transparent",
+    cursor: "pointer",
+    padding: 0,
+    overflow: "visible",
+};
+
+const svgStyle = {
+    width: "100%",
+    height: "100%",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    zIndex: 1,
+};
+
+const contentStyle = {
+    position: "relative",
+    zIndex: 2,
+    color: "#001B76",
+    fontWeight: "600",
+    fontSize: "16px",
+    textAlign: "center",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    height: "100%",
+    paddingRight: `${circleRadius * 2}px`,
+    fontFamily: "Poppins",
+};
+
+const RAZORPAY_KEY = `${config.RAZORPAY_KEY}`;
+
+
+const OpenmatchPayment = () => {
+    const [error, setError] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
+    const dispatch = useDispatch();
+    const { state } = useLocation();
+    const navigate = useNavigate();
+    const User = getUserFromSession();
+    const userData = useSelector((state) => state?.userAuth?.user?.response);
+    const clubData = useSelector(
+        (state) => state?.userClub?.clubData?.data?.courts?.[0] || {}
+    );
+    const createId = useSelector((state) => state?.userMatches?.matchesData?.match?._id
+    );
+    const [userName, setUserName] = useState(User?.name || "");
+    const store = useSelector((state) => state?.userAuth);
+    const createMatchesLoading = useSelector((state) => state?.userMatches?.matchesLoading);
+    const bookingLoading = useSelector((state) => state?.userBooking?.bookingLoading);
+    const logo = clubData?.logo;
+
+    const updateProfile = JSON.parse(
+        localStorage.getItem("updateprofile") || "{}"
+    );
+    const [addedPlayers, setAddedPlayers] = useState(() => {
+        const saved = localStorage.getItem("addedPlayers");
+        if (saved) {
+            const players = JSON.parse(saved);
+            Object.keys(players).forEach(slot => {
+                if (slot !== 'gameType' && players[slot] && typeof players[slot] === 'object') {
+                    if (!players[slot]?._id) {
+                        players[slot]._id = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                    }
+                }
+            });
+            localStorage.setItem("addedPlayers", JSON.stringify(players));
+            return players;
+        }
+        return {};
+    });
+
+    useEffect(() => {
+        const sync = () => {
+            const saved = localStorage.getItem("addedPlayers");
+            setAddedPlayers(saved ? JSON.parse(saved) : {});
+        };
+        sync();
+        window.addEventListener("storage", sync);
+        return () => window.removeEventListener("storage", sync);
+    }, []);
+
+    useEffect(() => {
+        const script = document.createElement("script");
+        script.src = "https://checkout.razorpay.com/v1/checkout.js";
+        script.async = true;
+        document.body.appendChild(script);
+        return () => document.body.contains(script) && document.body.removeChild(script);
+    }, []);
+
+    const [name, setName] = useState(userName || User?.name || updateProfile?.fullName || store?.user?.response?.name || "");
+    const [phoneNumber, setPhoneNumber] = useState(
+        User?.phoneNumber
+            ? `+91 ${User.phoneNumber}`
+            : updateProfile?.phone
+                ? `+91 ${updateProfile.phone}`
+                : ""
+    );
+    const [email, setEmail] = useState(User?.email || updateProfile?.email || store?.user?.response?.email || "");
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    const {
+        slotData = {},
+        finalSkillDetails = [],
+        selectedDate = {},
+        selectedCourts = [],
+        selectedGender = [],
+        addedPlayers: stateAddedPlayers = {},
+        dynamicSteps,
+        finalLevelStep,
+        selectedDuration = 60,
+        halfSelectedSlots = new Set()
+    } = state || {};
+
+    const finalAddedPlayers =
+        Object.keys(stateAddedPlayers).length > 0
+            ? stateAddedPlayers
+            : addedPlayers;
+
+    const savedClubId = localStorage.getItem("register_club_id");
+    const owner_id = localStorage.getItem("owner_id");
+
+    const teamA = [User?._id, finalAddedPlayers.slot2?._id].filter(Boolean);
+    const teamB = [
+        finalAddedPlayers.slot3?._id,
+        finalAddedPlayers.slot4?._id,
+    ].filter(Boolean);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const result = await dispatch(getUserProfile()).unwrap();
+                setUserName(result?.response?.name || User?.name || "");
+                setEmail(result?.response?.email);
+            } catch (err) {
+                setUserName(User?.name || "");
+            }
+        };
+
+        fetchData();
+    }, [dispatch, User?.name]);
+
+    useEffect(() => {
+        dispatch(getUserClub({ search: "" }));
+    }, [dispatch]);
+
+    const handleBooking = async () => {
+        setError({});
+
+        // Validation
+        if (!name?.trim()) return setError({ name: "Name required" });
+
+        const cleanPhone = phoneNumber?.replace(/^\+91\s*/, "").trim();
+        if (!cleanPhone || cleanPhone.length !== 10 || !/^[6-9]\d{9}$/.test(cleanPhone))
+            return setError({ phoneNumber: "Valid 10-digit phone required" });
+
+        if (localTotalSlots === 0) return setError({ general: "Select at least one slot" });
+
+        setIsLoading(true);
+
+        try {
+            if (User?.phoneNumber) {
+                await dispatch(updateUser({ phoneNumber: cleanPhone, name, email, gender: selectedGender })).unwrap();
+            }
+            const answersArray = finalSkillDetails
+                ? Object.keys(finalSkillDetails)
+                    .sort((a, b) => a - b)
+                    .map(key => finalSkillDetails[key])
+                : [];
+
+            const baseBookingPayload = {
+                name,
+                phoneNumber: cleanPhone,
+                email,
+                register_club_id: savedClubId,
+                ownerId: owner_id,
+                paymentMethod: 'razorpay',
+                bookingType: "open Match",
+                bookingStatus: "upcoming",
+                slot: selectedCourts.flatMap((court, courtIndex) => court?.time?.map((timeSlot, timeIndex) => {
+                    const slotInfo = slotData?.data?.find(c => c._id === court?._id)?.slots?.find(s => s._id === timeSlot?._id);
+                    let bookingTime = formatTime(timeSlot?.time);
+                    
+                    // For 90min: first slot = 60min, second slot = 30min
+                    let slotDuration = selectedDuration === 90 
+                        ? (timeIndex % 2 === 0 ? 60 : 30) 
+                        : (selectedDuration === 90 ? 60 : selectedDuration || 60);
+                    
+                    // For 30min with half-slots, adjust bookingTime
+                    if (selectedDuration === 30 && halfSelectedSlots?.size > 0) {
+                        const rightKey = `${court?._id}-${timeSlot?._id}-${court?.date}-right`;
+                        if (halfSelectedSlots.has(rightKey)) {
+                            const baseTime = timeSlot?.time;
+                            if (baseTime.includes('am') || baseTime.includes('pm')) {
+                                const [time, period] = baseTime.split(' ');
+                                const [hour] = time.split(':');
+                                bookingTime = `${hour}:30 ${period.toUpperCase()}`;
+                            }
+                        }
+                    }
+                    
+                    return {
+                        slotId: timeSlot?._id,
+                        businessHours: slotInfo?.businessHours || [{ time: "06:00 AM - 11:00 PM", day: selectedDate?.day || court?.day }],
+                        slotTimes: [{ time: timeSlot?.time, amount: timeSlot?.amount || 1000 }],
+                        courtName: court?.courtName || "Court",
+                        courtId: court?._id,
+                        bookingDate: new Date(court?.date || selectedDate?.fullDate).toISOString(),
+                        duration: slotDuration,
+                        bookingTime: bookingTime,
+                        totalTime: selectedDuration || 60
+                    };
+                })),
+            };
+
+            const initialBookingResponse = await dispatch(createBooking({
+                ...baseBookingPayload,
+                initiatePayment: true
+            })).unwrap();
+
+            if (initialBookingResponse?.paymentDetails?.key || initialBookingResponse?.paymentDetails?.orderId) {
+                const options = {
+                    key: initialBookingResponse?.paymentDetails?.key || RAZORPAY_KEY,
+                    order_id: initialBookingResponse?.paymentDetails?.orderId,
+                    amount: localGrandTotal * 100,
+                    currency: "INR",
+                    name: clubData?.clubName || "Open Match",
+                    description: "Open Match Booking",
+                    image: logo || undefined,
+                    prefill: { name, email, contact: cleanPhone },
+                    theme: { color: "#001B76" },
+
+                    handler: async function (response) {
+                        try {
+                        const formattedMatch = {
+                            slot: localSelectedCourts.flatMap((court, courtIndex) => court?.time?.map((timeSlot, timeIndex) => {
+                                const slotInfo = slotData?.data?.find(c => c._id === court?._id)?.slots?.find(s => s._id === timeSlot?._id);
+                                let bookingTime = formatTime(timeSlot?.time);
+                                
+                                // For 90min: first slot = 60min, second slot = 30min
+                                let slotDuration = selectedDuration === 90 
+                                    ? (timeIndex % 2 === 0 ? 60 : 30) 
+                                    : (selectedDuration === 90 ? 60 : selectedDuration || 60);
+
+                                if (selectedDuration === 30 && halfSelectedSlots?.size > 0) {
+                                    const rightKey = `${court?._id}-${timeSlot?._id}-${court?.date}-right`;
+                                    if (halfSelectedSlots.has(rightKey)) {
+                                        const rightTime = timeSlot?.time.includes(':')
+                                            ? timeSlot?.time.replace(':00', ':30')
+                                            : timeSlot?.time.replace(' am', ':30 am').replace(' pm', ':30 pm');
+                                        bookingTime = formatTime(rightTime);
+                                    }
+                                }
+
+                                return {
+                                    slotId: timeSlot?._id,
+                                    businessHours: slotInfo?.businessHours || [{ time: "06:00 AM - 11:00 PM", day: selectedDate?.day || court?.day }],
+                                    slotTimes: [{ time: timeSlot?.time, amount: timeSlot?.amount || 1000 }],
+                                    courtName: court?.courtName,
+                                    courtId: court?._id,
+                                    bookingDate: new Date(court?.date || selectedDate?.fullDate).toISOString(),
+                                    duration: slotDuration,
+                                    bookingTime: bookingTime,
+                                    totalTime: selectedDuration || 60
+                                };
+                            })),
+                            clubId: savedClubId,
+                            gender: selectedGender === 'Male' ? 'Male Only' : selectedGender === 'Female' ? 'Female Only' : 'Mixed Double' || "Mixed Double",
+                            matchDate: new Date(selectedDate?.fullDate).toISOString().split("T")[0],
+                            ...(answersArray?.length > 0 && {
+                                skillLevel: answersArray[0] || "Open Match",
+                                skillDetails: answersArray?.slice(1)?.map((answer, i) => {
+                                    if (i === 0 && Array.isArray(answer)) return answer.join(", ");
+                                    return answer;
+                                })
+                            }),
+                            matchStatus: "open",
+                            matchTime: localSelectedCourts.flatMap(c => c?.time.map(t => t?.time)).join(","),
+                            teamA,
+                            teamB,
+                        };
+
+                        const matchResponse = await dispatch(createMatches(formattedMatch)).unwrap();
+                        const matchId = matchResponse?.match?._id;
+                        if (!matchId) throw new Error("Failed to create match");
+
+                        const finalBookingResponse = await dispatch(createBooking({
+                            ...baseBookingPayload,
+                            initiatePayment: false,
+                            openMatchId: matchId,
+                            razorpayOrderId: response?.razorpay_order_id,
+                            razorpayPaymentId: response?.razorpay_payment_id,
+                            razorpaySignature: response?.razorpay_signature
+                        })).unwrap();
+
+                        if (finalBookingResponse?.success || finalBookingResponse?.message?.includes("created")) {
+                            localStorage.removeItem("addedPlayers");
+                            window.dispatchEvent(new Event("playersUpdated"));
+                            navigate("/open-matches", {
+                                replace: true,
+                                state: { selectedDate }
+                            });
+                            dispatch(getUserProfile());
+                        } else {
+                            throw new Error("Booking confirmation failed");
+                        }
+                    } catch (err) {
+                        console.error("Post-payment error:", err);
+                        setError({ general: "Booking confirmation failed" });
+                    } finally {
+                        setIsLoading(false);
+                    }
+                },
+
+                modal: {
+                    ondismiss: () => {
+                        setIsLoading(false);
+                        // Don't clear slots on payment cancellation, just navigate back
+                        navigate("/create-matches", {
+                            state: {
+                                selectedDate,
+                                selectedCourts: localSelectedCourts,
+                                addedPlayers: finalAddedPlayers,
+                                finalSkillDetails,
+                                selectedGender
+                            }
+                        });
+                    }
+                }
+            };
+
+            const razorpay = new window.Razorpay(options);
+
+            razorpay.on("payment.failed", (response) => {
+                setIsLoading(false);
+                // Don't clear slots on payment failure, navigate back with slots preserved
+                navigate("/create-matches", {
+                    state: {
+                        selectedDate,
+                        selectedCourts: localSelectedCourts,
+                        addedPlayers: finalAddedPlayers,
+                        finalSkillDetails,
+                        selectedGender,
+                        paymentError: response.error?.description || "Payment failed. Please try again."
+                    }
+                });
+            });
+
+            razorpay.open();
+        } else {
+            throw new Error("Payment initialization failed");
+        }
+
+        } catch (err) {
+            setIsLoading(false);
+            navigate("/create-matches", {
+                state: {
+                    selectedDate,
+                    selectedCourts: localSelectedCourts,
+                    addedPlayers: finalAddedPlayers,
+                    finalSkillDetails,
+                    selectedGender,
+                    paymentError: err.message || "Something went wrong. Please try again."
+                }
+            });
+        }
+    };
+// Local state for mobile summary
+const [localSelectedCourts, setLocalSelectedCourts] = useState(selectedCourts || []);
+
+// Calculate display slots and totals based on duration
+const getDisplayData = () => {
+    if (selectedDuration === 30) {
+        // For 30min, show each half-slot separately
+        const displaySlots = [];
+        localSelectedCourts.forEach(court => {
+            court?.time?.forEach(timeSlot => {
+                displaySlots.push({
+                    ...court,
+                    time: [timeSlot]
+                });
+            });
+        });
+        return { displaySlots, totalSlots: displaySlots.length };
+    } else if (selectedDuration === 90) {
+        // For 90min, each selection is 1.5 hours (shown as one slot with time range)
+        const displaySlots = [];
+        localSelectedCourts.forEach(court => {
+            court?.time?.forEach(timeSlot => {
+                displaySlots.push({
+                    ...court,
+                    time: [timeSlot]
+                });
+            });
+        });
+        // For 90min, count actual selections (each is 1.5 hours)
+        return { displaySlots, totalSlots: displaySlots.length };
+    } else if (selectedDuration === 120) {
+        // For 120min, show each 2-hour block as one slot
+        const displaySlots = [];
+        localSelectedCourts.forEach(court => {
+            court?.time?.forEach(timeSlot => {
+                displaySlots.push({
+                    ...court,
+                    time: [timeSlot]
+                });
+            });
+        });
+        return { displaySlots, totalSlots: displaySlots.length };
+    } else {
+        // For 60min, show each slot
+        const displaySlots = [];
+        localSelectedCourts.forEach(court => {
+            court?.time?.forEach(timeSlot => {
+                displaySlots.push({
+                    ...court,
+                    time: [timeSlot]
+                });
+            });
+        });
+        return { displaySlots, totalSlots: displaySlots.length };
+    }
+};
+
+const { displaySlots, totalSlots } = getDisplayData();
+const localTotalSlots = totalSlots;
+const localGrandTotal = localSelectedCourts.reduce(
+    (sum, c) => sum + c?.time.reduce((s, t) => s + Number(t?.amount || 0), 0),
+    0
+);
+
+const handleDeleteSlot = (courtId, slotId) => {
+    setLocalSelectedCourts(prev => {
+        const updated = prev
+            ?.map((c) =>
+                c?._id === courtId
+                    ? { ...c, time: c?.time.filter((s) => s?._id !== slotId) }
+                    : c
+            )
+            .filter((c) => c?.time?.length > 0);
+
+        // If no slots remain, navigate back to create matches
+        if (updated?.length === 0) {
+            setTimeout(() => {
+                navigate("/create-matches", {
+                    state: { selectedDate },
+                });
+            }, 100);
+        }
+
+        return updated;
+    });
+};
+
+useEffect(() => {
+    if (Object.keys(error).length > 0) {
+        const t = setTimeout(() => setError({}), 4000);
+        return () => clearTimeout(t);
+    }
+}, [error]);
+
+useEffect(() => {
+    if (bookingLoading) {
+        setIsLoading(false);
+    }
+}, [bookingLoading]);
+
+return (
+    <div className="container mt-md-4 mt-0 mb-md-5 mb-0 d-flex gap-4 px-md-4 px-0 flex-wrap">
+        {/* Mobile Back Button */}
+        <div className="d-lg-none position-fixed" style={{ top: "20px", left: "20px", zIndex: 1001 }}>
+            <button
+                className="btn btn-light rounded-circle p-2"
+                onClick={() => navigate("/create-matches", { state: { selectedDate } })}
+                style={{ width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center" }}
+            >
+                <i className="bi bi-arrow-left" style={{ fontSize: "18px" }}></i>
+            </button>
+        </div>
+        <div className="row  mx-auto d-flex align-items-center justify-content-center">
+            {/* Left: Contact + Payment */}
+            <div
+                className="col-lg-5 col-12 py-md-3 pt-0 pb-3  rounded-3 mobile-payment-content px-0"
+                style={{
+                    paddingBottom: localSelectedCourts?.length > 0 ? "120px" : "20px",
+                }}
+            >
+                {/* Information Section */}
+                <div
+                    className="rounded-4 py-md-4 py-2 px-3 px-md-5 pb-5  mb-md-4"
+                    style={{
+                        // backgroundColor: "#F5F5F566",
+                        border:
+                            error?.name || error?.email || error?.phoneNumber
+                                ? "2px solid red"
+                                : "none",
+                    }}
+                >
+
+                    <div className="row d-flex justify-content-center align-tems-center">
+                        <h6 className="mb-md-3 mb-0 mt-0 mt-lg-0 custom-heading-use fw-semibold text-center text-md-start ps-1">
+                            Information
+                        </h6>
+                        <div className="col-12 col-md-12 mb-md-3 mb-2 p-md-1 py-0">
+                            <label
+                                className="form-label mb-0 ps-lg-0"
+                                style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
+                            >
+                                Name <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
+                            </label>
+                            <input
+                                type="text"
+                                value={name}
+                                style={{ boxShadow: "none" }}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    if (value === "" || /^[A-Za-z\s]*$/.test(value)) {
+                                        if (value?.length === 0 && value.trim() === "") {
+                                            setName("");
+                                            return;
+                                        }
+                                        const formattedValue = value
+                                            .trimStart()
+                                            .replace(/\s+/g, " ")
+                                            .toLowerCase()
+                                            .replace(/(^|\s)\w/g, (letter) => letter.toUpperCase());
+                                        setName(formattedValue);
+                                    }
+                                }}
+                                className="form-control p-2"
+                                placeholder="Enter your name"
+                                aria-label="Name"
+                            />
+                            {error?.name && (
+                                <div
+                                    className="text-danger position-absolute mt-3"
+                                    style={{ fontSize: "12px", marginTop: "4px" }}
+                                >
+                                    {error?.name}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="col-12 col-md-12 mb-md-3 mb-2 p-md-1 py-0">
+                            <label
+                                className="form-label mb-0 ps-lg-0"
+                                style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
+                            >
+                                Phone Number <span className="text-danger" style={{ fontSize: "16px", fontWeight: "300" }}>*</span>
+                            </label>
+                            <div className="input-group">
+                                <span
+                                    className="input-group-text border-0 p-2"
+                                    style={{ backgroundColor: "#F5F5F5" }}
+                                >
+                                    <img src="https://flagcdn.com/w40/in.png" alt="IN" width={20} />
+                                </span>
+                                <input
+                                    type="text"
+                                    maxLength={13}
+                                    value={phoneNumber}
+                                    style={{ boxShadow: "none" }}
+                                    disabled={User?.phoneNumber}
+                                    onChange={(e) => {
+                                        const inputValue = e.target.value.replace(/[^0-9]/g, "");
+                                        if (inputValue === "" || /^[6-9][0-9]{0,9}$/.test(inputValue)) {
+                                            const formattedValue = inputValue === "" ? "" : `+91 ${inputValue}`;
+                                            setPhoneNumber(formattedValue);
+                                        }
+                                    }}
+                                    className="form-control p-2"
+                                    placeholder="+91"
+                                />
+                            </div>
+                            {error?.phoneNumber && (
+                                <div
+                                    className="text-danger position-absolute"
+                                    style={{ fontSize: "12px", marginTop: "4px" }}
+                                >
+                                    {error?.phoneNumber}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="col-12 col-md-12 mb-md-3 mb-2 p-md-1 py-0">
+                            <label
+                                className="form-label mb-0 ps-lg-0"
+                                style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
+                            >
+                                Email
+                            </label>
+                            <input
+                                type="email"
+                                value={email}
+                                style={{ boxShadow: "none" }}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    if (value === "" || /^[A-Za-z0-9@.]*$/.test(value)) {
+                                        setEmail(value.replace(/\s+/g, ""));
+                                    }
+                                }}
+                                className="form-control p-2"
+                                placeholder="Enter your email"
+                            />
+                            {error?.email && (
+                                <div
+                                    className="text-danger position-absolute"
+                                    style={{ fontSize: "12px", marginTop: "4px" }}
+                                >
+                                    {error?.email}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Right: Summary */}
+
+            <div className="col-lg-5 col-12 ps-lg-4 ps-0 py-lg-4 mt-lg-0 mobile-payment-summary">
+                <div
+                    className="border w-100 px-0 py-4 border-0 mobile-payment-summary-container"
+                    style={{
+                        height: "62vh",
+                        borderRadius: "10px 30% 10px 10px",
+                        background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
+                    }}
+                >
+                    {/* Desktop Logo/Address Section */}
+                    <div className="d-flex mb-4 position-relative d-none d-lg-flex">
+                        <img src={booking_logo_img} className="booking-logo-img" alt="" />
+                        <div className="text-center ps-2 pe-0 mt-3" style={{ maxWidth: "200px" }}>
+                            <p className="mt-2 mb-1 text-white" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>
+                                {clubData?.clubName}
+                            </p>
+                            <p
+                                className="mt-2 mb-1 text-white"
+                                style={{
+                                    fontSize: "14px",
+                                    fontWeight: "500",
+                                    fontFamily: "Poppins",
+                                    lineHeight: "1.3",
+                                }}
+                            >
+                                {clubData?.address} <br /> {clubData?.zipCode}
+                            </p>
+                        </div>
+                        <div
+                            className="position-absolute"
+                            style={{ top: "11.5px", left: "17.8%" }}
+                        >
+                            {logo ? (
+                                <div
+                                    style={{
+                                        width: "120px",
+                                        height: "120px",
+                                        borderRadius: "50%",
+                                        overflow: "hidden",
+                                        backgroundColor: "#f9f9f9",
+                                        boxShadow: "0px 4px 11px #0000002e",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                    }}
+                                >
+                                    <img src={logo} alt="Club" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                </div>
+                            ) : (
+                                <div
+                                    className="rounded-circle d-flex align-items-center justify-content-center"
+                                    style={{
+                                        width: "120px",
+                                        height: "120px",
+                                        backgroundColor: "#374151",
+                                        border: "2px solid white",
+                                        fontSize: "24px",
+                                        fontWeight: "600",
+                                        color: "#fff",
+                                    }}
+                                >
+                                    {clubData?.clubName?.charAt(0).toUpperCase() || "Logo"}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Desktop Booking Summary */}
+                    <div className="d-none d-lg-block">
+                        <div className="d-flex border-top px-3 pt-2 justify-content-between align-items-center">
+                            <h6 className="p-2 mb-1 ps-0 text-white custom-heading-use">Booking Summary {localTotalSlots > 0 ? ` (${localTotalSlots} Slot selected)` : ''}</h6>
+                        </div>
+                        <div className="px-3">
+                            <style>{`
+                                     .slots-container::-webkit-scrollbar {
+                                       width: 8px;
+                                       border-radius : 3px;
+                                     }
+                                     .slots-container::-webkit-scrollbar-track {
+                                       background: #F5F5F5;
+                                       border-radius: 3px;
+                                     }
+                                     .slots-container::-webkit-scrollbar-thumb {
+                                       background:  #626262;
+                                       
+                                     }
+                                     .slots-container::-webkit-scrollbar-thumb:hover {
+                                       background: #626262;
+                                     }
+                                   `}</style>
+                            <div
+                                className="slots-container"
+                                style={{
+                                    maxHeight: localTotalSlots > 4 ? "200px" : "auto",
+                                    overflowY: localTotalSlots > 4 ? "auto" : "visible",
+                                    overflowX: "hidden",
+                                    paddingRight: "8px",
+                                }}
+                            >
+                                {displaySlots?.length > 0 ? (
+                                    displaySlots?.map((court, index) =>
+                                        court?.time?.map((timeSlot, timeIndex) => (
+                                            <div key={`${index}-${timeIndex}`} className="row mb-2">
+                                                <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
+                                                    <div className="d-flex text-white">
+                                                        <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "15px" }}>
+                                                            {court.date ? `${new Date(court.date).toLocaleString("en-US", { day: "2-digit" })}, ${new Date(court?.date).toLocaleString("en-US", { month: "short" })}` : ""}
+                                                        </span>
+                                                        <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "15px" }}>
+                                                            {formatTimeDisplay(timeSlot, selectedDuration)}
+                                                        </span>
+                                                        <span className="ps-2" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px" }}>{court?.courtName}</span>
+                                                    </div>
+                                                    <div className="text-white">
+                                                        ₹<span className="ps-0 pt-1" style={{ fontWeight: "600", fontFamily: "Poppins" }}>{timeSlot?.amount ? Number(timeSlot?.amount).toLocaleString("en-IN") : "N/A"}</span>
+                                                        <MdOutlineDeleteOutline className="mt-1 ms-1 mb-1 text-white" style={{ cursor: "pointer" }} size={15} onClick={() => handleDeleteSlot(court?._id, timeSlot?._id)} />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )
+                                ) : (
+                                    <div className="d-flex flex-column justify-content-center align-items-center text-white" style={{ height: "25vh" }}>
+                                        <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }}>No slot selected</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                    {/* Mobile Booking Summary - Fixed Bottom */}
+                    <div className="d-lg-none mobile-openmatch-payment-summary" style={{
+                        position: "fixed",
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        zIndex: 1000,
+                        background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
+                        borderRadius: "10px 10px 0 0",
+                        padding: "0px 15px",
+                    }}>
+                        {localSelectedCourts?.length > 0 && (
+                            <>
+                                {/* Arrow controls - First row */}
+                                {/* <div className="d-flex justify-content-center align-items-center py-2" style={{ borderBottom: isExpanded ? "1px solid rgba(255,255,255,0.2)" : "none" }}>
+                                        <div onClick={() => setIsExpanded(!isExpanded)} style={{ cursor: "pointer" }}>
+                                            {!isExpanded ? (
+                                                <MdKeyboardDoubleArrowUp size={25} style={{ color: "white" }} className="arrow-shake-infinite" />
+                                            ) : (
+                                                <MdKeyboardDoubleArrowDown size={25} style={{ color: "white" }} className="arrow-shake-infinite" />
+                                            )}
+                                        </div>
+                                    </div> */}
+
+                                {localSelectedCourts?.length > 0 && (
+                                    <div
+                                        className="small-curve-arrow d-lg-none"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setIsExpanded(!isExpanded);
+                                        }}
+                                    >
+                                        {!isExpanded ? (
+                                            <MdKeyboardArrowUp
+                                                size={25}
+                                                color="white"
+                                                className="arrow-shake-infinite"
+                                            />
+                                        ) : (
+                                            <MdKeyboardArrowDown
+                                                size={25}
+                                                color="white"
+                                                className="arrow-shake-infinite"
+                                            />
+                                        )}
+                                    </div>
+                                )}
+                                <style>{`
+                    .small-curve-arrow {
+                      position: absolute;
+                      top: -14px;
+                      left: 50%;
+                      transform: translateX(-50%);
+                      z-index: 5;
+                      background: #0b39d7;
+                      width: 49px;
+                      height: 27px;
+                      border-radius: 20px 20px 0 0;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      padding-top: 2px;
+                      cursor: pointer;
+                    }
+                  `}</style>
+
+                                {/* Expandable slots list */}
+                                <div
+                                    className={`mobile-expanded-slots ${isExpanded ? "expanded border-bottom" : " "
+                                        }`}
+                                    style={{
+                                        maxHeight: isExpanded
+                                            ? localTotalSlots > 2
+                                                ? "175px"
+                                                : "200px"
+                                            : "0px",
+                                        overflowY:
+                                            isExpanded && localTotalSlots > 2 ? "auto" : "hidden",
+                                        overflowX: "hidden",
+                                        paddingRight: "8px",
+                                        transition: "max-height 0.3s ease",
+                                        marginBottom: isExpanded ? "0px" : "0",
+                                    }}
+                                >
+                                    {isExpanded && (
+                                        <h6
+                                            className="mb-0 pb-1 text-white fw-semibold pt-2"
+                                            style={{ fontSize: "15px" }}
+                                        >
+                                            Order Summary :
+                                        </h6>
+                                    )}
+                                    <style>{`
+                      .mobile-expanded-slots::-webkit-scrollbar {
+                        width: 8px;
+                        border-radius: 3px;
+                      }
+                      .mobile-expanded-slots::-webkit-scrollbar-track {
+                        background: #f5f5f5;
+                        border-radius: 3px;
+                      }
+                      .mobile-expanded-slots::-webkit-scrollbar-thumb {
+                        background: #626262;
+                        border-radius: 3px;
+                      }
+                      .mobile-expanded-slots::-webkit-scrollbar-thumb:hover {
+                        background: #626262;
+                      }
+                      .mobile-expanded-slots {
+                        scrollbar-width: thin;
+                        scrollbar-color: #626262 #f5f5f5;
+                      }
+                    `}</style>
+
+                                    {isExpanded &&
+                                        displaySlots?.map((court, cIdx) =>
+                                            court?.time?.map((timeSlot, sIdx) => (
+                                                <div key={`${cIdx}-${sIdx}`} className="row mb-0">
+                                                    <div className="col-12 d-flex gap-1 mb-0 m-0 align-items-center justify-content-between">
+                                                        <div className="d-flex text-white">
+                                                            <span
+                                                                style={{
+                                                                    fontWeight: "600",
+                                                                    fontFamily: "Poppins",
+                                                                    fontSize: "11px",
+                                                                }}
+                                                            >
+                                                                {court?.date
+                                                                    ? `${new Date(court?.date).toLocaleString(
+                                                                        "en-US",
+                                                                        { day: "2-digit" }
+                                                                    )}, ${new Date(court?.date).toLocaleString(
+                                                                        "en-US",
+                                                                        { month: "short" }
+                                                                    )}`
+                                                                    : ""}
+                                                            </span>
+                                                            <span
+                                                                className="ps-1"
+                                                                style={{
+                                                                    fontWeight: "600",
+                                                                    fontFamily: "Poppins",
+                                                                    fontSize: "11px",
+                                                                }}
+                                                            >
+                                                                {formatTimeDisplay(timeSlot, selectedDuration)}
+                                                            </span>
+                                                            <span
+                                                                className="ps-1"
+                                                                style={{
+                                                                    fontWeight: "500",
+                                                                    fontFamily: "Poppins",
+                                                                    fontSize: "10px",
+                                                                }}
+                                                            >
+                                                                {court?.courtName}
+                                                            </span>
+                                                        </div>
+
+                                                        <div className="text-white">
+                                                            <span
+                                                                className="ps-1"
+                                                                style={{
+                                                                    fontWeight: "600",
+                                                                    fontFamily: "Poppins",
+                                                                    fontSize: "11px",
+                                                                }}
+                                                            >
+                                                                ₹ {timeSlot?.amount ? Number(timeSlot?.amount).toLocaleString("en-IN") : "N/A"}
+                                                            </span>
+                                                            <MdOutlineDeleteOutline
+                                                                className="ms-1 text-white"
+                                                                style={{
+                                                                    cursor: "pointer",
+                                                                    fontSize: "14px",
+                                                                }}
+                                                                onClick={() =>
+                                                                    handleDeleteSlot(court?._id, timeSlot?._id)
+                                                                }
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
+                                </div>
+
+                                {/* Total Section - Second row */}
+                                <div className={`py-0 pt-1 ${isExpanded ? 'border-top' : ''}`}>
+                                    <div className="d-flex justify-content-between align-items-center px-0">
+                                        <div>
+                                            <span className="text-white" style={{ fontSize: "14px", fontWeight: "500" }}>
+                                                Total to Pay
+                                            </span>
+                                            <span className="d-block text-white" style={{ fontSize: "12px" }}>
+                                                Total Slots: {localTotalSlots}
+                                            </span>
+                                        </div>
+
+                                        <span
+                                            className="text-white gap-0"
+                                            style={{ fontSize: "20px", fontWeight: "600" }}
+                                        >
+                                            ₹{Number(localGrandTotal || 0).toLocaleString("en-IN")}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Book Button */}
+                                <div className="d-flex justify-content-center align-items-center px-lg-3">
+                                    <button
+                                        style={{
+                                            ...buttonStyle,
+                                            opacity: localTotalSlots === 0 ? 0.5 : 1,
+                                            cursor:
+                                                localTotalSlots === 0 ? "not-allowed" : "pointer",
+                                            pointerEvents: localTotalSlots === 0 ? "none" : "auto",
+                                        }}
+                                        className=""
+                                        disabled={localTotalSlots === 0}
+                                        onClick={handleBooking}
+                                    >
+                                        <svg
+                                            style={svgStyle}
+                                            viewBox={`0 0 ${width} ${height}`}
+                                            preserveAspectRatio="none"
+                                        >
+                                            <defs>
+                                                <linearGradient
+                                                    id={`buttonGradient-${width}-${height}`}
+                                                    x1="0%"
+                                                    y1="0%"
+                                                    x2="100%"
+                                                    y2="0%"
+                                                >
+                                                    <stop offset="0%" stopColor="#fff" />
+                                                    <stop offset="50%" stopColor="#fff" />
+                                                    <stop offset="100%" stopColor="#fff" />
+                                                </linearGradient>
+                                            </defs>
+                                            <path
+                                                d={`M ${width * 0.76} ${height * 0.15} C ${width * 0.79
+                                                    } ${height * 0.15} ${width * 0.81} ${height * 0.2} ${width * 0.83
+                                                    } ${height * 0.3} C ${width * 0.83} ${height * 0.32
+                                                    } ${width * 0.84} ${height * 0.34} ${width * 0.84} ${height * 0.34
+                                                    } C ${width * 0.85} ${height * 0.34} ${width * 0.86
+                                                    } ${height * 0.32} ${width * 0.86} ${height * 0.3
+                                                    } C ${width * 0.88} ${height * 0.2} ${width * 0.9} ${height * 0.15
+                                                    } ${width * 0.92} ${height * 0.15} C ${width * 0.97
+                                                    } ${height * 0.15} ${width * 0.996} ${height * 0.3} ${width * 0.996
+                                                    } ${height * 0.5} C ${width * 0.996} ${height * 0.7
+                                                    } ${width * 0.97} ${height * 0.85} ${width * 0.92} ${height * 0.85
+                                                    } C ${width * 0.9} ${height * 0.85} ${width * 0.88} ${height * 0.8
+                                                    } ${width * 0.86} ${height * 0.7} C ${width * 0.86} ${height * 0.68
+                                                    } ${width * 0.85} ${height * 0.66} ${width * 0.84} ${height * 0.66
+                                                    } C ${width * 0.84} ${height * 0.66} ${width * 0.83
+                                                    } ${height * 0.68} ${width * 0.83} ${height * 0.7
+                                                    } C ${width * 0.81} ${height * 0.8} ${width * 0.79} ${height * 0.85
+                                                    } ${width * 0.76} ${height * 0.85} L ${width * 0.08
+                                                    } ${height * 0.85} C ${width * 0.04} ${height * 0.85
+                                                    } ${width * 0.004} ${height * 0.7} ${width * 0.004} ${height * 0.5
+                                                    } C ${width * 0.004} ${height * 0.3} ${width * 0.04
+                                                    } ${height * 0.15} ${width * 0.08} ${height * 0.15
+                                                    } L ${width * 0.76} ${height * 0.15} Z`}
+                                                fill={`url(#buttonGradient-${width}-${height})`}
+                                            />
+                                            <circle
+                                                cx={circleX}
+                                                cy={circleY}
+                                                r={circleRadius}
+                                                fill="#001B76"
+                                            />
+                                            <g
+                                                stroke="white"
+                                                strokeWidth={height * 0.03}
+                                                fill="none"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                className="book-now-arrow"
+                                                style={{
+                                                    transformOrigin: `${arrowX}px ${arrowY}px`,
+                                                    transition: "transform 0.3s ease"
+                                                }}
+                                            >
+                                                <path
+                                                    d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4
+                                                        } L ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4
+                                                        }`}
+                                                />
+                                                <path
+                                                    d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4
+                                                        } L ${arrowX - arrowSize * 0.1} ${arrowY - arrowSize * 0.4
+                                                        }`}
+                                                />
+                                                <path
+                                                    d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4
+                                                        } L ${arrowX + arrowSize * 0.4} ${arrowY + arrowSize * 0.1
+                                                        }`}
+                                                />
+                                            </g>
+                                        </svg>
+                                        <div style={contentStyle}>
+                                            {isLoading || createMatchesLoading || bookingLoading ? (
+                                                <ButtonLoading color={"#001B76"} />
+                                            ) : (
+                                                "Pay Now"
+                                            )}
+                                        </div>
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                    {/* Desktop Total Section */}
+                    {localTotalSlots > 0 && (
+                        <div className="border-top pt-2 px-3 mt-2 text-white d-flex justify-content-between align-items-center fw-bold mobile-total-section d-none d-lg-flex">
+                            <p
+                                className="d-flex flex-column mb-0"
+                                style={{ fontSize: "16px", fontWeight: "600" }}
+                            >
+                                Total to Pay{" "}
+
+                            </p>
+                            <p
+                                className="mb-0"
+                                style={{ fontSize: "25px", fontWeight: "600" }}
+                            >
+                                ₹{Number(localGrandTotal || 0).toLocaleString("en-IN")}
+                            </p>
+                        </div>
+                    )}
+
+                    {/* Desktop Book Button */}
+                    <div className="d-flex justify-content-center align-items-center d-none d-lg-flex">
+                        <button
+                            style={{ ...buttonStyle }}
+                            className=""
+                            onClick={handleBooking}
+                        >
+                            <svg
+                                style={svgStyle}
+                                viewBox={`0 0 ${width} ${height}`}
+                                preserveAspectRatio="none"
+                            >
+                                <defs>
+                                    <linearGradient
+                                        id={`buttonGradient-desktop-${width}-${height}`}
+                                        x1="0%"
+                                        y1="0%"
+                                        x2="100%"
+                                        y2="0%"
+                                    >
+                                        <stop offset="0%" stopColor="#fff" />
+                                        <stop offset="50%" stopColor="#fff" />
+                                        <stop offset="100%" stopColor="#fff" />
+                                    </linearGradient>
+                                </defs>
+                                <path
+                                    d={`M ${width * 0.76} ${height * 0.15} C ${width * 0.79} ${height * 0.15
+                                        } ${width * 0.81} ${height * 0.2} ${width * 0.83} ${height * 0.3
+                                        } C ${width * 0.83} ${height * 0.32} ${width * 0.84} ${height * 0.34
+                                        } ${width * 0.84} ${height * 0.34} C ${width * 0.85} ${height * 0.34
+                                        } ${width * 0.86} ${height * 0.32} ${width * 0.86} ${height * 0.3
+                                        } C ${width * 0.88} ${height * 0.2} ${width * 0.9} ${height * 0.15
+                                        } ${width * 0.92} ${height * 0.15} C ${width * 0.97} ${height * 0.15
+                                        } ${width * 0.996} ${height * 0.3} ${width * 0.996} ${height * 0.5
+                                        } C ${width * 0.996} ${height * 0.7} ${width * 0.97} ${height * 0.85
+                                        } ${width * 0.92} ${height * 0.85} C ${width * 0.9} ${height * 0.85
+                                        } ${width * 0.88} ${height * 0.8} ${width * 0.86} ${height * 0.7
+                                        } C ${width * 0.86} ${height * 0.68} ${width * 0.85} ${height * 0.66
+                                        } ${width * 0.84} ${height * 0.66} C ${width * 0.84} ${height * 0.66
+                                        } ${width * 0.83} ${height * 0.68} ${width * 0.83} ${height * 0.7
+                                        } C ${width * 0.81} ${height * 0.8} ${width * 0.79} ${height * 0.85
+                                        } ${width * 0.76} ${height * 0.85} L ${width * 0.08} ${height * 0.85
+                                        } C ${width * 0.04} ${height * 0.85} ${width * 0.004} ${height * 0.7
+                                        } ${width * 0.004} ${height * 0.5} C ${width * 0.004} ${height * 0.3
+                                        } ${width * 0.04} ${height * 0.15} ${width * 0.08} ${height * 0.15
+                                        } L ${width * 0.76} ${height * 0.15} Z`}
+                                    fill={`url(#buttonGradient-desktop-${width}-${height})`}
+                                />
+                                <circle
+                                    cx={circleX}
+                                    cy={circleY}
+                                    r={circleRadius}
+                                    fill="#001B76"
+                                />
+                                <g
+                                    stroke="white"
+                                    strokeWidth={height * 0.03}
+                                    fill="none"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    className="book-now-arrow"
+                                    style={{
+                                        transformOrigin: `${arrowX}px ${arrowY}px`,
+                                        transition: "transform 0.3s ease"
+                                    }}
+                                >
+                                    <path
+                                        d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4
+                                            } L ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4
+                                            }`}
+                                    />
+                                    <path
+                                        d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4
+                                            } L ${arrowX - arrowSize * 0.1} ${arrowY - arrowSize * 0.4
+                                            }`}
+                                    />
+                                    <path
+                                        d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4
+                                            } L ${arrowX + arrowSize * 0.4} ${arrowY + arrowSize * 0.1
+                                            }`}
+                                    />
+                                </g>
+                            </svg>
+                            <div style={contentStyle}>
+                                {isLoading || createMatchesLoading || bookingLoading ? <ButtonLoading color={"#001B76"} /> : "Pay Now"}
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+);
+};
+
+export default OpenmatchPayment;

@@ -1,0 +1,955 @@
+import React, { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { getUserFromSession } from "../../../helpers/api/apiCore";
+import { getUserClub } from "../../../redux/user/club/thunk";
+import { padal } from "../../../assets/files";
+import { Tooltip } from "react-tooltip";
+import { showError } from "../../../helpers/Toast";
+import NewPlayers from "../VeiwMatch/NewPlayers";
+import { getUserProfile } from "../../../redux/user/auth/authThunk";
+import { getPlayerLevel } from "../../../redux/user/notifiction/thunk";
+
+const width = 400
+const height = 75;
+const circleRadius = height * 0.3;
+const curvedSectionStart = width * 0.76;
+const curvedSectionEnd = width * 0.996;
+const circleX =
+    curvedSectionStart + (curvedSectionEnd - curvedSectionStart) * 0.68 + 1;
+const circleY = height * 0.5;
+const arrowSize = circleRadius * 0.6;
+const arrowX = circleX;
+const arrowY = circleY;
+
+const buttonStyle = {
+    position: "relative",
+    width: `${width}px`,
+    height: `${height}px`,
+    border: "none",
+    background: "transparent",
+    cursor: "pointer",
+    padding: 0,
+    overflow: "visible",
+};
+
+const svgStyle = {
+    width: "100%",
+    height: "100%",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    zIndex: 1,
+};
+
+const contentStyle = {
+    position: "relative",
+    zIndex: 2,
+    color: "white",
+    fontWeight: "600",
+    fontSize: "16px",
+    textAlign: "center",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    height: "100%",
+    paddingRight: `${circleRadius * 2}px`,
+    fontFamily: "Poppins",
+};
+
+const dayShortMap = {
+    Monday: "Mon",
+    Tuesday: "Tue",
+    Wednesday: "Wed",
+    Thursday: "Thu",
+    Friday: "Fri",
+    Saturday: "Sat",
+    Sunday: "Sun",
+};
+
+const MatchPlayer = ({
+    addedPlayers: parentAddedPlayers,
+    setAddedPlayers: setParentAddedPlayers,
+    selectedCourts,
+    selectedDate,
+    finalSkillDetails,
+    totalAmount, slotError,
+    userGender,
+    userSkillLevel, selectedAnswers,
+    dynamicSteps,
+    finalLevelStep,
+    selectedDuration,
+    onBackToSlots, matchPlayer,
+    slotData
+}) => {
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const User = getUserFromSession();
+    const [selectedGender, setSelectedGender] = useState('');
+    const [genderError, setGenderError] = useState('');
+    const [localPlayers, setLocalPlayers] = useState(parentAddedPlayers || {});
+    const updateName = JSON.parse(localStorage.getItem("updateprofile"));
+    const [defaultLevel, setDefaultLevel] = useState();
+    const [defaultSkillLevel, setDefaultSkillLevel] = useState("Open Match");
+    const [profileFetched, setProfileFetched] = useState(false);
+    const hasCalledProfile = useRef(false);
+    const [profileLoading, setProfileLoading] = useState(true);
+    useEffect(() => {
+        setLocalPlayers(parentAddedPlayers || {});
+    }, [parentAddedPlayers]);
+
+    const [userName, setUserName] = useState(User?.name || "");
+
+
+    useEffect(() => {
+        const fetchData = async () => {
+            if (hasCalledProfile.current) return;
+            hasCalledProfile.current = true;
+            try {
+                const result = await dispatch(getUserProfile()).unwrap();
+                const firstAnswer = result?.response?.level;
+                setDefaultSkillLevel(result?.response?.skillLevel || "");
+                setDefaultLevel(firstAnswer);
+                setUserName(result?.response?.name || User?.name || "");
+                setProfileFetched(true);
+            } catch (err) {
+                setUserName(User?.name || "");
+                setProfileFetched(true);
+            }
+        };
+
+        if (finalSkillDetails && Object.keys(finalSkillDetails).length > 0) {
+            const lastStepAnswer = finalSkillDetails[5] || finalSkillDetails[Object.keys(finalSkillDetails).length - 1];
+            if (lastStepAnswer && typeof lastStepAnswer === 'string') {
+                const skillCode = lastStepAnswer.split(' - ')[0];
+                setDefaultLevel(skillCode);
+            }
+        } else if (!hasCalledProfile.current) {
+            fetchData();
+        }
+    }, [dispatch, User?.name]);
+
+    useEffect(() => {
+        const syncFromStorage = () => {
+            const saved = localStorage.getItem("addedPlayers");
+            const parsed = saved ? JSON.parse(saved) : {};
+            setLocalPlayers(parsed);
+            setParentAddedPlayers(parsed);
+        };
+
+        syncFromStorage();
+        window.addEventListener("storage", syncFromStorage);
+
+        const handleCustomUpdate = () => syncFromStorage();
+        window.addEventListener("playersUpdated", handleCustomUpdate);
+
+        return () => {
+            window.removeEventListener("storage", syncFromStorage);
+            window.removeEventListener("playersUpdated", handleCustomUpdate);
+        };
+    }, [setParentAddedPlayers]);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const saved = localStorage.getItem("addedPlayers");
+            const parsed = saved ? JSON.parse(saved) : {};
+            if (JSON.stringify(parsed) !== JSON.stringify(localPlayers)) {
+                setLocalPlayers(parsed);
+                setParentAddedPlayers(parsed);
+            }
+        }, 500);
+
+        return () => clearInterval(interval);
+    }, [localPlayers, setParentAddedPlayers]);
+
+    const [showAddMeForm, setShowAddMeForm] = useState(false);
+    const [activeSlot, setActiveSlot] = useState(null);
+    const [showShareDropdown, setShowShareDropdown] = useState(false);
+
+    useEffect(() => {
+        dispatch(getUserClub({ search: "" }));
+    }, [dispatch]);
+
+    useEffect(() => {
+        const players = JSON.parse(localStorage.getItem("addedPlayers") || "{}");
+        const playerKeys = Object.keys(players).filter(k => k !== 'gameType');
+        if (players.gameType && typeof players.gameType === 'string' && playerKeys.length > 0) {
+            setSelectedGender(players.gameType);
+        } else {
+        }
+    }, []);
+
+    useEffect(() => {
+        const playerKeys = Object.keys(localPlayers).filter(k => k !== 'gameType');
+        if (selectedGender && typeof selectedGender === 'string' && playerKeys.length > 0) {
+            const current = JSON.parse(localStorage.getItem("addedPlayers") || "{}");
+            current.gameType = selectedGender;
+            localStorage.setItem("addedPlayers", JSON.stringify(current));
+        }
+    }, [selectedGender, localPlayers]);
+    const handleAddMeClick = (slot) => {
+        if (!selectedGender) {
+            showError("Please select game type");
+            return;
+        }
+        setShowAddMeForm((prev) => (prev && activeSlot === slot ? false : true));
+        setActiveSlot((prev) => (prev === slot ? null : slot));
+    };
+
+    const getEditPlayerData = (slot) => {
+        return localPlayers[slot] || null;
+    };
+
+    const formatMatchDate = (dateString) => {
+        if (!dateString) return { day: "Fri", formattedDate: "29 Aug" };
+        const date = new Date(dateString);
+        const day = date.toLocaleDateString("en-US", { weekday: "short" });
+        const formattedDate = `${date.toLocaleDateString("en-US", { day: "2-digit" })} ${date.toLocaleDateString("en-US", { month: "short" })}`;
+        return { day, formattedDate };
+    };
+
+    const calculateEndRegistrationTime = () => {
+        if (!selectedCourts?.length) return "Today at 10:00 PM";
+
+        const allTimes = selectedCourts.flatMap(c =>
+            c.time.map(s => s.time)
+        );
+
+        const timesInMinutes = allTimes.map(t => {
+            const [timePart, period] = t.split(" ");
+            const [h, m = "0"] = timePart.split(":");
+
+            let hour = parseInt(h);
+            let minute = parseInt(m);
+
+            if (period.toLowerCase() === "pm" && hour !== 12) hour += 12;
+            if (period.toLowerCase() === "am" && hour === 12) hour = 0;
+
+            return hour * 60 + minute;
+        });
+
+        const latestMinutes = Math.max(...timesInMinutes);
+
+        let endMinutes = latestMinutes - 10;
+        if (endMinutes < 0) endMinutes += 24 * 60;
+
+        const endHour24 = Math.floor(endMinutes / 60);
+        const endMin = endMinutes % 60;
+
+        const period = endHour24 >= 12 ? "PM" : "AM";
+        const displayHour = endHour24 % 12 === 0 ? 12 : endHour24 % 12;
+        const displayMinutes = String(endMin).padStart(2, "0");
+
+        return `Registration close at ${displayHour}:${displayMinutes} ${period}`;
+    };
+
+    const matchDate = selectedDate?.fullDate
+        ? formatMatchDate(selectedDate.fullDate)
+        : { day: "Fri", formattedDate: "29 Aug" };
+    const formatMatchTimes = (courts) => {
+        if (!courts || courts.length === 0) return "";
+        const times = courts.flatMap((c) => c.time.map((t) => t.time));
+
+        const formattedTimes = times.map(time => {
+            let hour, period;
+            if (/am|pm/i.test(time)) {
+                const match = time.match(/(\d+)\s*(am|pm)/i);
+                if (match) {
+                    hour = parseInt(match[1], 10);
+                    period = match[2].toUpperCase();
+                } else {
+                    return time;
+                }
+            } else {
+                const [hours, minutes] = time.split(":");
+                const hourNum = parseInt(hours, 10);
+                period = hourNum >= 12 ? "PM" : "AM";
+                hour = hourNum > 12 ? hourNum - 12 : hourNum === 0 ? 12 : hourNum;
+            }
+            return { hour, period };
+        }).sort((a, b) => {
+            const aValue = a.period === 'AM' ? a.hour : a.hour + 12;
+            const bValue = b.period === 'AM' ? b.hour : b.hour + 12;
+            return aValue - bValue;
+        });
+
+        if (formattedTimes.length === 0) return "";
+        if (formattedTimes.length === 1) return `${formattedTimes[0].hour}${formattedTimes[0].period}`;
+
+        return `${formattedTimes[0].hour}-${formattedTimes[formattedTimes.length - 1].hour}${formattedTimes[formattedTimes.length - 1].period}`;
+    };
+
+    const matchTime = selectedCourts.length
+        ? formatMatchTimes(selectedCourts)
+        : "";
+
+    const validateCourtTimeConsistency = () => {
+        const allTimes = selectedCourts.flatMap(court => court.time.map(t => t.time));
+        const uniqueTimes = [...new Set(allTimes)];
+        return allTimes.length === uniqueTimes.length;
+    };
+
+    const totalSlots = selectedCourts.reduce((sum, court) => sum + court.time?.length, 0);
+    const slotsPerCourt = selectedCourts.length > 0 ? selectedCourts[0]?.time?.length : 0;
+    const canBook = totalSlots >= 1 && slotsPerCourt >= 1 && slotsPerCourt <= 3 && matchTime.length > 0 && validateCourtTimeConsistency();
+
+    const displayUserSkillLevel = finalSkillDetails && Object.keys(finalSkillDetails).length > 0
+        ? finalSkillDetails[Object.keys(finalSkillDetails)[0]]
+        : "Intermediate";
+
+    const handleBookNow = () => {
+        if (!selectedGender || selectedGender === "") {
+            showError("Please select game type");
+            return;
+        }
+
+        const courtIds = selectedCourts.map((c) => c._id).join(",");
+
+        const latestPlayers = JSON.parse(localStorage.getItem("addedPlayers") || "{}");
+
+        // For 90min, expand selectedCourts to include all underlying slots with real IDs
+        let expandedCourts = selectedCourts;
+        if (selectedDuration === 90 && slotData?.data) {
+            expandedCourts = [];
+            selectedCourts.forEach(court => {
+                const courtSlots = slotData.data.find(c => c._id === court._id)?.slots || [];
+                const sortedSlots = [...courtSlots].sort((a, b) => {
+                    const parseHour = (timeStr) => {
+                        const [hourStr, period] = timeStr.toLowerCase().split(" ");
+                        let hour = parseInt(hourStr);
+                        if (period === "pm" && hour !== 12) hour += 12;
+                        if (period === "am" && hour === 12) hour = 0;
+                        return hour;
+                    };
+                    return parseHour(a.time) - parseHour(b.time);
+                });
+                
+                const expandedTimes = [];
+                court.time.forEach(timeSlot => {
+                    // Add the first slot (60min)
+                    expandedTimes.push(timeSlot);
+                    
+                    // Find and add the next consecutive slot (30min)
+                    const currentIndex = sortedSlots.findIndex(s => s._id === timeSlot._id);
+                    if (currentIndex !== -1 && currentIndex + 1 < sortedSlots.length) {
+                        const nextSlot = sortedSlots[currentIndex + 1];
+                        expandedTimes.push({
+                            _id: nextSlot._id,
+                            time: nextSlot.time,
+                            amount: Math.round(timeSlot.amount / 3)
+                        });
+                    }
+                });
+                
+                expandedCourts.push({
+                    ...court,
+                    time: expandedTimes
+                });
+            });
+        }
+
+        navigate("/match-payment", {
+            state: {
+                courtData: {
+                    day: selectedDate.day,
+                    date: selectedDate.fullDate,
+                    time: expandedCourts.flatMap((c) => c.time),
+                    courtId: courtIds,
+                    court: expandedCourts,
+                },
+                selectedCourts: expandedCourts,
+                selectedDate,
+                totalSlots: expandedCourts.reduce((s, c) => s + c.time.length, 0),
+                finalSkillDetails,
+                selectedGender,
+                dynamicSteps,
+                finalLevelStep,
+                addedPlayers: latestPlayers,
+                selectedDuration: selectedDuration || 60,
+                slotData
+            },
+        });
+    };
+
+
+    const onBack = () => {
+        if (window.innerWidth <= 768) {
+            if (matchPlayer && onBackToSlots) {
+                onBackToSlots();
+            } else {
+                window.history.back();
+            }
+        } else {
+            if (onBackToSlots) {
+                onBackToSlots();
+            } else {
+                navigate('/open-matches');
+            }
+        }
+    }
+
+    useEffect(() => {
+        if (genderError) {
+            const timer = setTimeout(() => setGenderError(""), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [genderError]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            setProfileLoading(true);
+
+            try {
+                const result = await dispatch(getUserProfile()).unwrap();
+                setUserName(result?.response?.name || User?.name || "");
+                const firstAnswer = result?.response?.skillLevel;
+                if (firstAnswer) {
+                    const response = await dispatch(getPlayerLevel(firstAnswer)).unwrap();
+
+                    const apiData = response?.data || [];
+
+                    if (!Array.isArray(apiData) || apiData.length === 0) {
+                        throw new Error("Empty API response");
+                    }
+                }
+            } catch (err) {
+            }
+
+            setProfileLoading(false);
+        };
+
+        fetchData();
+
+    }, [dispatch]);
+    return (
+        <>
+            <div className="py-md-3 pt-0 pb-3 rounded-3 px-md-4 px-2 bgchangemobile" style={{ backgroundColor: "#F5F5F566" }}>
+                <div className="d-flex justify-content-between align-items-center mb-md-3 mb-2">
+                    <div className="d-flex align-items-center ">
+                        {(window.innerWidth <= 768 || !matchPlayer) &&
+                            <button
+                                className="btn btn-light rounded-circle p-2 d-flex align-items-center justify-content-center"
+                                style={{ width: 36, height: 36 }}
+                                onClick={onBack}
+                            >
+                                <i className="bi bi-arrow-left" />
+                            </button>
+                        }
+                        <h5 className="mb-0 all-matches" style={{ color: "#374151" }}>
+                            Details
+                        </h5>
+                    </div>
+                    <div className="d-flex align-items-center gap-2 position-relative">
+                        <button
+                            className="btn btn-light rounded-circle p-2 border shadow-sm"
+                            style={{ width: 36, height: 36 }}
+                            onClick={() => setShowShareDropdown((p) => !p)}
+                            disabled
+                        >
+                            <i className="bi bi-share d-flex justify-content-center align-items-center"></i>
+                        </button>
+                        <button
+                            className="btn rounded-circle p-2 text-white"
+                            style={{ width: 36, height: 36, backgroundColor: "#1F41BB" }}
+                            disabled
+                        >
+                            <i className="bi bi-chat-left-text d-flex justify-content-center align-items-center"></i>
+                        </button>
+
+
+                    </div>
+                </div>
+
+                <div
+                    className="rounded-4 border row mx-auto pt-2 pb-0 mb-2"
+                    style={{ backgroundColor: "#CBD6FF1A" }}
+                >
+                    <div className="d-flex d-block justify-content-between align-items-start py-2 border-bottom px-md-4 px-2">
+                        <div className="d-flex align-items-center justify-content-md-between justify-content-start gap-2">
+                            <img src={padal} alt="padel" width={24} />
+                            <span className="ms-2 all-matches" style={{ color: "#374151" }}>
+                                PADEL
+                            </span>
+                        </div>
+                        <small
+                            className="text-muted d-none d-lg-block"
+                            style={{ fontWeight: 500 }}
+                        >
+                            {matchDate.day}, {matchDate.formattedDate} |{" "}
+                            {matchTime.slice(0, 20)}
+                            {matchTime.length > 20 ? "..." : ""}
+                        </small>
+                        <small
+                            className="text-muted d-lg-none add_font_mobile"
+                            style={{ fontWeight: 500 }}
+                        >
+                            {matchDate.day}, {matchDate.formattedDate}{" "}
+                            {matchTime.slice(0, 20)}
+                            {matchTime.length > 20 ? "..." : ""}
+                        </small>
+                    </div>
+
+                    <div className="col-12 ps-0 text-center d-flex">
+                        <div className="col-md-5 col-5 py-2">
+                            <p className="mb-1 add_font_mobile" style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>
+                                Game Type
+                            </p>
+                            <div className="d-flex justify-content-center">
+                                <select
+                                    className={`form-select add_font_mobile p-0 gap-0 form-select-sm shadow-none text-center pe-md-5 pe-4  ${selectedGender === '' ? 'pe-3 ps-0' : 'pe-5 ps-md-0 ps-3'} py-1`}
+                                    style={{
+                                        fontSize: "15px",
+                                        fontWeight: "500",
+                                        fontFamily: "Poppins",
+                                        color: (profileLoading || Object.keys(localPlayers).filter(k => k !== 'gameType').length > 0) ? "#9CA3AF" : (selectedGender === '' ? "#1F41BB" : "#000000"),
+                                        backgroundColor: selectedGender === '' ? "#EEF2FF" : "transparent",
+                                        border: selectedGender === '' ? "0px solid #1F41BB" : "none",
+                                        borderRadius: "4px",
+                                        width: "auto",
+                                        minWidth: "auto",
+                                        appearance: "none",
+                                        backgroundRepeat: "no-repeat",
+                                        backgroundPosition: "right 15px center",
+                                        backgroundSize: "15px",
+                                        paddingRight: "0px",
+                                        cursor: (profileLoading || Object.keys(localPlayers).filter(k => k !== 'gameType').length > 0) ? "not-allowed" : "pointer",
+                                    }}
+                                    value={selectedGender}
+                                    onChange={(e) => setSelectedGender(e.target.value)}
+                                    required
+                                    disabled={profileLoading || Object.keys(localPlayers).filter(k => k !== 'gameType').length > 0}
+                                >
+                                    <option className="add_font_mobile " value="">Select </option>
+                                    <option className="add_font_mobile" value="Male">Male Only</option>
+                                    <option className="add_font_mobile" value="Female">Female Only</option>
+                                    <option className="add_font_mobile" value="Mixed">Mixed Double</option>
+                                </select>
+                            </div>
+
+
+                        </div>
+
+                        <div className="col-4 border-start border-end py-2">
+                            <p className="mb-1 add_font_mobile" style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>
+                                Level
+                            </p>
+                            <p className="mb-0 add_font_mobile_bottom" style={{ fontSize: "15px", fontWeight: '500', fontFamily: "Poppins", color: "#000000" }}>
+                                {finalSkillDetails && Object.keys(finalSkillDetails).length > 0
+                                    ? finalSkillDetails?.[0]
+                                    : defaultSkillLevel || "Open Match"}
+                            </p>
+                        </div>
+
+                        <div className="col-md-3 col-3 py-2">
+                            <p className="mb-1 add_font_mobile" style={{ fontSize: "13px", fontWeight: '500', fontFamily: "Poppins", color: "#374151" }}>
+                                Your share
+                            </p>
+                            <p className="mb-0 add_font_mobile_bottom_extra fw-bold" style={{ fontSize: '20px', color: '#1F41BB' }}>
+                                ₹ {Math.round(totalAmount / 4).toLocaleString('en-IN')}
+                            </p>
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <div
+                    className="d-flex justify-content-between rounded-3 p-3 mb-2 py-2 border"
+                    style={{ backgroundColor: "#CBD6FF1A" }}
+                >
+                    <p
+                        className="text-muted mb-0 add_font_mobile_bottom"
+                        style={{ fontSize: "15px", fontWeight: 500 }}
+                    >
+                        Open Match
+                    </p>
+                </div>
+
+                <div className="p-md-3 p-2 rounded-3 mb-2" style={{ backgroundColor: "#CBD6FF1A", border: "1px solid #ddd6d6ff" }}>
+                    <h6 className="mb-2" style={{ fontSize: "18px", fontWeight: 600 }}>Players</h6>
+
+                    <div className="row mx-auto">
+                        <div className="col-6 d-flex flex-lg-row ps-0">
+                            {User && (
+                                <div className="d-flex flex-column align-items-center me-auto mb-3">
+                                    <div
+                                        className="rounded-circle border d-flex align-items-center justify-content-center"
+                                        style={{
+                                            width: 64,
+                                            height: 64,
+                                            backgroundColor: User.profilePic ? "transparent" : "#1F41BB",
+                                            overflow: "hidden",
+                                        }}
+                                    >
+                                        {User.profilePic || updateName?.profile ? (
+                                            <img src={User.profilePic || updateName?.profile} alt="you" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                        ) : (
+                                            <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>
+                                                {(() => {
+                                                    const name = userName || User?.name || "U";
+                                                    const parts = name.trim().split(/\s+/);
+                                                    return parts.length > 1 ? `${parts[0][0]}${parts[1][0]}`.toUpperCase() : parts[0][0].toUpperCase();
+                                                })()}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p
+                                        className="mb-0 mt-2 fw-semibold text-center"
+                                        style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
+                                        data-tooltip-id="you"
+                                        data-tooltip-content={userName || User?.name}
+                                    >
+                                        {(() => {
+                                            const displayName = userName || User?.name || 'User';
+                                            return displayName?.length > 12 ? `${displayName.substring(0, 12)}...` : displayName;
+                                        })()}
+                                    </p>
+                                    <Tooltip id="you" />
+                                    <span className="badge text-white" style={{ fontSize: "11px", backgroundColor: "#3DBE64" }}>
+                                        {finalSkillDetails && Object.keys(finalSkillDetails).length > 0
+                                            ? (finalSkillDetails[1] ? finalSkillDetails[1].split(' - ')?.[0] : (finalSkillDetails?.[0] || "A"))
+                                            : defaultLevel?.split(" - ")?.[0] || "A"}
+                                    </span>
+                                </div>
+                            )}
+
+                            {localPlayers.slot2 ? (
+                                <div className="d-flex flex-column align-items-center me-auto mb-3">
+                                    <div
+                                        className="rounded-circle border d-flex justify-content-center align-items-center"
+                                        style={{
+                                            width: 64,
+                                            height: 64,
+                                            backgroundColor: localPlayers.slot2.profilePic ? "transparent" : "#3DBE64",
+                                            overflow: "hidden",
+                                        }}
+                                    >
+                                        {localPlayers.slot2.profilePic ? (
+                                            <img src={localPlayers.slot2.profilePic} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                        ) : (
+                                            <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>
+                                                {(() => {
+                                                    const name = localPlayers?.slot2?.name || "U";
+                                                    const parts = name.trim().split(/\s+/);
+                                                    return parts.length > 1 ? `${parts[0][0]}${parts[1][0]}`.toUpperCase() : parts[0][0].toUpperCase();
+                                                })()}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="d-flex align-items-center gap-1">
+                                        <p
+                                            className="mb-0 mt-2 fw-semibold text-center"
+                                            style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
+                                            data-tooltip-id="you"
+                                            data-tooltip-content={localPlayers.slot2.name}
+                                        >
+                                            {localPlayers.slot2.name?.length > 12 ? `${localPlayers.slot2.name.substring(0, 12)}...` : localPlayers.slot2.name}
+                                        </p>
+                                        <i
+                                            className="bi bi-pencil-fill mt-2"
+                                            style={{ fontSize: "12px", color: "#1F41BB", cursor: "pointer" }}
+                                            onClick={() => handleAddMeClick("slot2")}
+                                        />
+                                    </div>
+                                    <Tooltip id="you" />
+                                    <span className="badge text-white" style={{ fontSize: "11px", backgroundColor: "#3DBE64" }}>
+                                        {localPlayers.slot2.level}
+                                    </span>
+                                </div>
+                            ) : (
+                                <div className="text-center me-auto" onClick={() => handleAddMeClick("slot2")} style={{ cursor: "pointer" }}>
+                                    <div
+                                        className="rounded-circle d-flex bg-white align-items-center justify-content-center"
+                                        style={{ width: 64, height: 64, border: "1px solid #3DBE64" }}
+                                    >
+                                        <span className="fs-3 pb-1" style={{ color: "#3DBE64" }}>+</span>
+                                    </div>
+                                    <p className="mb-0 mt-2 " style={{ color: "#3DBE64", fontSize: "10px", fontWeight: "500", fontFamily: "Poppins" }}>Add Me</p>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="col-6 d-flex flex-lg-row pe-0 border-start">
+                            {localPlayers.slot3 ? (
+                                <div className="d-flex flex-column align-items-center ms-auto mb-3">
+                                    <div
+                                        className="rounded-circle border d-flex justify-content-center align-items-center"
+                                        style={{
+                                            width: 64,
+                                            height: 64,
+                                            backgroundColor: localPlayers.slot3.profilePic ? "transparent" : "#1F41BB",
+                                            overflow: "hidden",
+                                        }}
+                                    >
+                                        {localPlayers.slot3.profilePic ? (
+                                            <img src={localPlayers.slot3.profilePic} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                        ) : (
+                                            <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>
+                                                {(() => {
+                                                    const name = localPlayers?.slot3?.name || "U";
+                                                    const parts = name.trim().split(/\s+/);
+                                                    return parts.length > 1 ? `${parts[0][0]}${parts[1][0]}`.toUpperCase() : parts[0][0].toUpperCase();
+                                                })()}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="d-flex align-items-center gap-1">
+                                        <p
+                                            className="mb-0 mt-2 fw-semibold text-center"
+                                            style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
+                                            data-tooltip-id="you"
+                                            data-tooltip-content={localPlayers.slot3.name}
+                                        >
+                                            {localPlayers.slot3.name?.length > 12 ? `${localPlayers.slot3.name.substring(0, 12)}...` : localPlayers.slot3.name}
+                                        </p>
+                                        <i
+                                            className="bi bi-pencil-fill mt-2"
+                                            style={{ fontSize: "12px", color: "#1F41BB", cursor: "pointer" }}
+                                            onClick={() => handleAddMeClick("slot3")}
+                                        />
+                                    </div>
+                                    <Tooltip id="you" />
+                                    <span className="badge text-white" style={{ fontSize: "11px", backgroundColor: "#1F41BB" }}>
+                                        {localPlayers.slot3.level}
+                                    </span>
+                                </div>
+                            ) : (
+                                <div className="text-center ms-auto" onClick={() => handleAddMeClick("slot3")} style={{ cursor: "pointer" }}>
+                                    <div
+                                        className="rounded-circle d-flex bg-white align-items-center justify-content-center"
+                                        style={{ width: 64, height: 64, border: "1px solid #1F41BB" }}
+                                    >
+                                        <span className="fs-3 pb-1" style={{ color: "#1F41BB" }}>+</span>
+                                    </div>
+                                    <p className="mb-0 mt-2 " style={{ color: "#1F41BB", fontSize: "10px", fontWeight: "500", fontFamily: "Poppins" }}>Add Me</p>
+                                </div>
+                            )}
+
+                            {localPlayers.slot4 ? (
+                                <div className="d-flex flex-column align-items-center ms-auto mb-3">
+                                    <div
+                                        className="rounded-circle border d-flex justify-content-center align-items-center"
+                                        style={{
+                                            width: 64,
+                                            height: 64,
+                                            backgroundColor: localPlayers.slot4.profilePic ? "transparent" : "#1F41BB",
+                                            overflow: "hidden",
+                                        }}
+                                    >
+                                        {localPlayers.slot4.profilePic ? (
+                                            <img src={localPlayers.slot4.profilePic} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                        ) : (
+                                            <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>
+                                                {(() => {
+                                                    const name = localPlayers?.slot4?.name || "U";
+                                                    const parts = name.trim().split(/\s+/);
+                                                    return parts.length > 1 ? `${parts[0][0]}${parts[1][0]}`.toUpperCase() : parts[0][0].toUpperCase();
+                                                })()}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="d-flex align-items-center gap-1">
+                                        <p
+                                            className="mb-0 mt-2 fw-semibold text-center"
+                                            style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}
+                                            data-tooltip-id="you"
+                                            data-tooltip-content={localPlayers.slot4.name}
+                                        >
+                                            {localPlayers.slot4.name?.length > 12 ? `${localPlayers.slot4.name.substring(0, 12)}...` : localPlayers.slot4.name}
+                                        </p>
+                                        <i
+                                            className="bi bi-pencil-fill mt-2"
+                                            style={{ fontSize: "12px", color: "#1F41BB", cursor: "pointer" }}
+                                            onClick={() => handleAddMeClick("slot4")}
+                                        />
+                                    </div>
+                                    <Tooltip id="you" />
+                                    <span className="badge text-white" style={{ fontSize: "11px", backgroundColor: "#1F41BB" }}>
+                                        {localPlayers.slot4.level}
+                                    </span>
+                                </div>
+                            ) : (
+                                <div className="text-center ms-auto" onClick={() => handleAddMeClick("slot4")} style={{ cursor: "pointer" }}>
+                                    <div
+                                        className="rounded-circle d-flex bg-white align-items-center justify-content-center"
+                                        style={{ width: 64, height: 64, border: "1px solid #1F41BB" }}
+                                    >
+                                        <span className="fs-3 pb-1" style={{ color: "#1F41BB" }}>+</span>
+                                    </div>
+                                    <p className="mb-0 mt-2 " style={{ color: "#1F41BB", fontSize: "10px", fontWeight: "500", fontFamily: "Poppins" }}>Add Me</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="d-flex justify-content-between mt-md-1 mt-0">
+                        <p className="mb-1" style={{ fontSize: "11px", fontWeight: "500", fontFamily: "Poppins", color: "#3DBE64" }}>Team A</p>
+                        <p className="mb-0" style={{ fontSize: "11px", fontWeight: "500", fontFamily: "Poppins", color: "#1F41BB" }}>Team B</p>
+                    </div>
+                </div>
+
+
+                <div className="d-flex justify-content-center align-items-center ">
+                    <button
+                        style={{
+                            ...buttonStyle,
+                            opacity: !canBook ? 0.5 : 1,
+                            cursor: !canBook ? "not-allowed" : "pointer",
+                            pointerEvents: !canBook ? "none" : "auto",
+                        }}
+                        disabled={!canBook}
+                        onClick={handleBookNow}
+                    >
+                        <svg
+                            style={svgStyle}
+                            viewBox={`0 0 ${width} ${height}`}
+                            preserveAspectRatio="none"
+                        >
+                            <defs>
+                                <linearGradient
+                                    id={`buttonGradient-${width}-${height}`}
+                                    x1="0%"
+                                    y1="0%"
+                                    x2="100%"
+                                    y2="0%"
+                                >
+                                    <stop offset="0%" stopColor="#1F41BB" />
+                                    <stop offset="50%" stopColor="#3B5BDB" />
+                                    <stop offset="100%" stopColor="#4F46E5" />
+                                </linearGradient>
+                            </defs>
+                            <path
+                                d={`M ${width * 0.76} ${height * 0.15} C ${width * 0.79
+                                    } ${height * 0.15} ${width * 0.81} ${height * 0.2} ${width * 0.83
+                                    } ${height * 0.3} C ${width * 0.83} ${height * 0.32} ${width * 0.84
+                                    } ${height * 0.34} ${width * 0.84} ${height * 0.34} C ${width * 0.85
+                                    } ${height * 0.34} ${width * 0.86} ${height * 0.32} ${width * 0.86
+                                    } ${height * 0.3} C ${width * 0.88} ${height * 0.2} ${width * 0.9
+                                    } ${height * 0.15} ${width * 0.92} ${height * 0.15} C ${width * 0.97
+                                    } ${height * 0.15} ${width * 0.996} ${height * 0.3} ${width * 0.996
+                                    } ${height * 0.5} C ${width * 0.996} ${height * 0.7} ${width * 0.97
+                                    } ${height * 0.85} ${width * 0.92} ${height * 0.85} C ${width * 0.9
+                                    } ${height * 0.85} ${width * 0.88} ${height * 0.8} ${width * 0.86
+                                    } ${height * 0.7} C ${width * 0.86} ${height * 0.68} ${width * 0.85
+                                    } ${height * 0.66} ${width * 0.84} ${height * 0.66} C ${width * 0.84
+                                    } ${height * 0.66} ${width * 0.83} ${height * 0.68} ${width * 0.83
+                                    } ${height * 0.7} C ${width * 0.81} ${height * 0.8} ${width * 0.79
+                                    } ${height * 0.85} ${width * 0.76} ${height * 0.85} L ${width * 0.08
+                                    } ${height * 0.85} C ${width * 0.04} ${height * 0.85} ${width * 0.004
+                                    } ${height * 0.7} ${width * 0.004} ${height * 0.5} C ${width * 0.004
+                                    } ${height * 0.3} ${width * 0.04} ${height * 0.15} ${width * 0.08
+                                    } ${height * 0.15} L ${width * 0.76} ${height * 0.15} Z`}
+                                fill={`url(#buttonGradient-${width}-${height})`}
+                            />
+                            <circle
+                                cx={circleX}
+                                cy={circleY}
+                                r={circleRadius}
+                                fill="white"
+                            />
+                            <g
+                                stroke="#1F41BB"
+                                strokeWidth={height * 0.03}
+                                fill="none"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="book-now-arrow"
+                                style={{
+                                    transformOrigin: `${arrowX}px ${arrowY}px`,
+                                    transition: "transform 0.3s ease"
+                                }}      
+                            >
+                                <path
+                                    d={`M ${arrowX - arrowSize * 0.3} ${arrowY + arrowSize * 0.4
+                                        } L ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4
+                                        }`}
+                                />
+                                <path
+                                    d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4
+                                        } L ${arrowX - arrowSize * 0.1} ${arrowY - arrowSize * 0.4
+                                        }`}
+                                />
+                                <path
+                                    d={`M ${arrowX + arrowSize * 0.4} ${arrowY - arrowSize * 0.4
+                                        } L ${arrowX + arrowSize * 0.4} ${arrowY + arrowSize * 0.1
+                                        }`}
+                                />
+                            </g>
+                        </svg>
+                        <div style={contentStyle}> Book Now</div>
+                    </button>
+                </div>
+                <div className="col-md-9 col-12 mx-auto">
+
+                    <h6
+                        className="mb-md-3 mb-2 mt-4 all-matches"
+                        style={{ fontSize: "18px", fontWeight: 600 }}
+                    >
+                        Information
+                    </h6>
+                    <div className="d-lg-flex justify-content-between">
+                        <div className="d-flex mb-md-4 mb-2 align-items-center gap-3 px-2 px-md-0">
+                            <i className="bi bi-layout-text-window-reverse fs-2 text-dark"></i>
+                            <div>
+                                <p className="mb-0" style={{ fontSize: "10px" }}>
+                                    Type of Court
+                                </p>
+                                <p
+                                    className="mb-0"
+                                    style={{ fontSize: "13px", color: "#374151" }}
+                                >
+                                    Doubles
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="d-flex mb-md-4 mb-2 align-items-center gap-3 px-2 px-md-0">
+                            <i className="bi bi-calendar-check fs-2 text-dark"></i>
+                            <div>
+                                <p className="mb-0" style={{ fontSize: "10px" }}>
+                                    End registration
+                                </p>
+                                <p
+                                    className="mb-0"
+                                    style={{ fontSize: "13px", color: "#374151" }}
+                                >
+                                    {calculateEndRegistrationTime()}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {slotError && (
+                        <div
+                            className="text-center mb-3 p-2 rounded"
+                            style={{
+                                backgroundColor: "#ffebee",
+                                color: "#c62828",
+                                border: "1px solid #ffcdd2",
+                                fontWeight: 500,
+                                fontSize: "14px",
+                            }}
+                        >
+                            {slotError}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <NewPlayers
+                showAddMeForm={showAddMeForm}
+                activeSlot={activeSlot}
+                setShowAddMeForm={setShowAddMeForm}
+                setActiveSlot={setActiveSlot}
+                setAddedPlayers={setParentAddedPlayers}
+                skillDetails={finalSkillDetails}
+                userSkillLevel={userSkillLevel || defaultSkillLevel}
+                defaultSkillLevel={defaultSkillLevel}
+                selectedGender={selectedGender}
+                profileLoading={profileLoading}
+                editPlayerData={getEditPlayerData(activeSlot)}
+            />
+        </>
+    );
+};
+
+export default MatchPlayer;
