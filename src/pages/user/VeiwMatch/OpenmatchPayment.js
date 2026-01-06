@@ -31,91 +31,22 @@ const formatTime = (timeStr) => {
     return timeStr.replace(" am", ":00 AM").replace(" pm", ":00 PM");
 };
 
-// Helper function to format time display based on duration
+// Helper function to format time display - shows actual selected time for 30min right-side selections
 const formatTimeDisplay = (timeSlot, duration) => {
     const timeStr = timeSlot?.time;
-    const formatted = formatTime(timeStr);
+    let displayTime = formatTime(timeStr);
     
-    // For 30min, show time range (e.g., "2:00 PM - 2:30 PM" or "2:30 PM - 3:00 PM")
-    if (duration === 30) {
-        const match = formatted.match(/(\d+):(\d+)\s*(AM|PM)/i);
-        if (match) {
-            let hour = parseInt(match[1]);
-            let minute = parseInt(match[2]);
-            const period = match[3].toUpperCase();
-            
-            // Convert to 24-hour format for calculation
-            let hour24 = hour;
-            if (period === "PM" && hour !== 12) hour24 += 12;
-            if (period === "AM" && hour === 12) hour24 = 0;
-            
-            // Add 30 minutes
-            let totalMinutes = hour24 * 60 + minute + 30;
-            let endHour24 = Math.floor(totalMinutes / 60) % 24;
-            let endMinute = totalMinutes % 60;
-            
-            // Convert back to 12-hour format
-            let endPeriod = endHour24 >= 12 ? "PM" : "AM";
-            let endHour = endHour24 % 12;
-            if (endHour === 0) endHour = 12;
-            
-            return `${formatted} - ${endHour}:${endMinute.toString().padStart(2, '0')} ${endPeriod}`;
+    // For 30min right-side selections, show :30 time
+    if (duration === 30 && timeSlot?.side === 'right') {
+        if (timeStr.includes(':00')) {
+            displayTime = timeStr.replace(':00', ':30');
+        } else if (!timeStr.includes(':')) {
+            displayTime = timeStr.replace(' am', ':30 am').replace(' pm', ':30 pm');
         }
+        displayTime = formatTime(displayTime);
     }
     
-    if (duration === 90) {
-        // For 90min, show start time to end time (e.g., "2:00 PM - 3:30 PM")
-        const match = formatted.match(/(\d+):(\d+)\s*(AM|PM)/i);
-        if (match) {
-            let hour = parseInt(match[1]);
-            const minute = parseInt(match[2]);
-            const period = match[3].toUpperCase();
-            
-            // Convert to 24-hour format for calculation
-            let hour24 = hour;
-            if (period === "PM" && hour !== 12) hour24 += 12;
-            if (period === "AM" && hour === 12) hour24 = 0;
-            
-            // Add 90 minutes
-            let totalMinutes = hour24 * 60 + minute + 90;
-            let endHour24 = Math.floor(totalMinutes / 60) % 24;
-            let endMinute = totalMinutes % 60;
-            
-            // Convert back to 12-hour format
-            let endPeriod = endHour24 >= 12 ? "PM" : "AM";
-            let endHour = endHour24 % 12;
-            if (endHour === 0) endHour = 12;
-            
-            return `${formatted} - ${endHour}:${endMinute.toString().padStart(2, '0')} ${endPeriod}`;
-        }
-    } else if (duration === 120) {
-        // For 120min, show start time to end time (e.g., "2:00 PM - 4:00 PM")
-        const match = formatted.match(/(\d+):(\d+)\s*(AM|PM)/i);
-        if (match) {
-            let hour = parseInt(match[1]);
-            const minute = parseInt(match[2]);
-            const period = match[3].toUpperCase();
-            
-            // Convert to 24-hour format for calculation
-            let hour24 = hour;
-            if (period === "PM" && hour !== 12) hour24 += 12;
-            if (period === "AM" && hour === 12) hour24 = 0;
-            
-            // Add 120 minutes
-            let totalMinutes = hour24 * 60 + minute + 120;
-            let endHour24 = Math.floor(totalMinutes / 60) % 24;
-            let endMinute = totalMinutes % 60;
-            
-            // Convert back to 12-hour format
-            let endPeriod = endHour24 >= 12 ? "PM" : "AM";
-            let endHour = endHour24 % 12;
-            if (endHour === 0) endHour = 12;
-            
-            return `${formatted} - ${endHour}:${endMinute.toString().padStart(2, '0')} ${endPeriod}`;
-        }
-    }
-    
-    return formatted;
+    return displayTime;
 };
 
 // Button styling variables
@@ -319,11 +250,6 @@ const OpenmatchPayment = () => {
                     const slotInfo = slotData?.data?.find(c => c._id === court?._id)?.slots?.find(s => s._id === timeSlot?._id);
                     let bookingTime = formatTime(timeSlot?.time);
                     
-                    // For 90min: first slot = 60min, second slot = 30min
-                    let slotDuration = selectedDuration === 90 
-                        ? (timeIndex % 2 === 0 ? 60 : 30) 
-                        : (selectedDuration === 90 ? 60 : selectedDuration || 60);
-                    
                     // For 30min with half-slots, adjust bookingTime
                     if (selectedDuration === 30 && halfSelectedSlots?.size > 0) {
                         const rightKey = `${court?._id}-${timeSlot?._id}-${court?.date}-right`;
@@ -344,7 +270,7 @@ const OpenmatchPayment = () => {
                         courtName: court?.courtName || "Court",
                         courtId: court?._id,
                         bookingDate: new Date(court?.date || selectedDate?.fullDate).toISOString(),
-                        duration: slotDuration,
+                        duration: selectedDuration || 60,
                         bookingTime: bookingTime,
                         totalTime: selectedDuration || 60
                     };
@@ -374,11 +300,6 @@ const OpenmatchPayment = () => {
                             slot: localSelectedCourts.flatMap((court, courtIndex) => court?.time?.map((timeSlot, timeIndex) => {
                                 const slotInfo = slotData?.data?.find(c => c._id === court?._id)?.slots?.find(s => s._id === timeSlot?._id);
                                 let bookingTime = formatTime(timeSlot?.time);
-                                
-                                // For 90min: first slot = 60min, second slot = 30min
-                                let slotDuration = selectedDuration === 90 
-                                    ? (timeIndex % 2 === 0 ? 60 : 30) 
-                                    : (selectedDuration === 90 ? 60 : selectedDuration || 60);
 
                                 if (selectedDuration === 30 && halfSelectedSlots?.size > 0) {
                                     const rightKey = `${court?._id}-${timeSlot?._id}-${court?.date}-right`;
@@ -397,7 +318,7 @@ const OpenmatchPayment = () => {
                                     courtName: court?.courtName,
                                     courtId: court?._id,
                                     bookingDate: new Date(court?.date || selectedDate?.fullDate).toISOString(),
-                                    duration: slotDuration,
+                                    duration: selectedDuration || 60,
                                     bookingTime: bookingTime,
                                     totalTime: selectedDuration || 60
                                 };
@@ -509,44 +430,35 @@ const [localSelectedCourts, setLocalSelectedCourts] = useState(selectedCourts ||
 // Calculate display slots and totals based on duration
 const getDisplayData = () => {
     if (selectedDuration === 30) {
-        // For 30min, show each half-slot separately
+        // For 30min, show each half-slot separately with correct time
         const displaySlots = [];
         localSelectedCourts.forEach(court => {
             court?.time?.forEach(timeSlot => {
+                // Check if this is a right-side selection from activeHalves
+                const slotKey = `${court._id}-${timeSlot._id}-${court.date}`;
+                const activeHalf = halfSelectedSlots?.has?.(`${court._id}-${timeSlot._id}-${court.date}-right`);
+                
+                let displayTimeSlot = { ...timeSlot };
+                if (activeHalf) {
+                    // This is a right-side selection, adjust the time
+                    let adjustedTime = timeSlot.time;
+                    if (adjustedTime.includes(':00')) {
+                        adjustedTime = adjustedTime.replace(':00', ':30');
+                    } else if (!adjustedTime.includes(':')) {
+                        adjustedTime = adjustedTime.replace(' am', ':30 am').replace(' pm', ':30 pm');
+                    }
+                    displayTimeSlot = { ...timeSlot, time: adjustedTime, side: 'right' };
+                }
+                
                 displaySlots.push({
                     ...court,
-                    time: [timeSlot]
-                });
-            });
-        });
-        return { displaySlots, totalSlots: displaySlots.length };
-    } else if (selectedDuration === 90) {
-        // For 90min, each selection is 1.5 hours (shown as one slot with time range)
-        const displaySlots = [];
-        localSelectedCourts.forEach(court => {
-            court?.time?.forEach(timeSlot => {
-                displaySlots.push({
-                    ...court,
-                    time: [timeSlot]
-                });
-            });
-        });
-        // For 90min, count actual selections (each is 1.5 hours)
-        return { displaySlots, totalSlots: displaySlots.length };
-    } else if (selectedDuration === 120) {
-        // For 120min, show each 2-hour block as one slot
-        const displaySlots = [];
-        localSelectedCourts.forEach(court => {
-            court?.time?.forEach(timeSlot => {
-                displaySlots.push({
-                    ...court,
-                    time: [timeSlot]
+                    time: [displayTimeSlot]
                 });
             });
         });
         return { displaySlots, totalSlots: displaySlots.length };
     } else {
-        // For 60min, show each slot
+        // For 60min, 90min, 120min - show each selected slot
         const displaySlots = [];
         localSelectedCourts.forEach(court => {
             court?.time?.forEach(timeSlot => {

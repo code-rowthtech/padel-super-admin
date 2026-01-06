@@ -21,8 +21,10 @@ const BookingSummary = ({
     displayedSlotCount,
     duration  // Add duration prop
 }) => {
-    // Helper function to format time with duration-based ranges
-    const formatTimeDisplay = (timeStr, duration) => {
+    console.log('BookingSummary selectedCourts:', selectedCourts);
+    console.log('BookingSummary duration:', duration);
+    // Helper function to format time - ONLY START TIME
+    const formatTimeDisplay = (timeStr, duration, timeSlot) => {
         if (!timeStr) return "";
         
         // First format the base time
@@ -45,37 +47,7 @@ const BookingSummary = ({
 
         let formattedHour = hourNum.toString().padStart(2, "0");
         minute = minute ? minute.padStart(2, "0") : "00";
-        const formatted = `${formattedHour}:${minute} ${period}`.trim();
-        
-        // For 30min, 90min, and 120min, show time ranges
-        if (duration === 30 || duration === 90 || duration === 120) {
-            const match = formatted.match(/(\d+):(\d+)\s*(AM|PM)/i);
-            if (match) {
-                let startHour = parseInt(match[1]);
-                let startMinute = parseInt(match[2]);
-                const startPeriod = match[3].toUpperCase();
-                
-                // Convert to 24-hour format
-                let hour24 = startHour;
-                if (startPeriod === "PM" && startHour !== 12) hour24 += 12;
-                if (startPeriod === "AM" && startHour === 12) hour24 = 0;
-                
-                // Add duration minutes
-                let totalMinutes = hour24 * 60 + startMinute + duration;
-                let endHour24 = Math.floor(totalMinutes / 60) % 24;
-                let endMinute = totalMinutes % 60;
-                
-                // Convert back to 12-hour format
-                let endPeriod = endHour24 >= 12 ? "PM" : "AM";
-                let endHour = endHour24 % 12;
-                if (endHour === 0) endHour = 12;
-                
-                return `${formatted} - ${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')} ${endPeriod}`;
-            }
-        }
-        
-        // For 60min, just return formatted time
-        return formatted;
+        return `${formattedHour}:${minute} ${period}`.trim();
     };
     return (
         <>
@@ -278,12 +250,13 @@ const BookingSummary = ({
                                     selectedCourts.forEach((court, courtIndex) => {
                                         let timeSlotsToShow = court?.time || [];
                                         
+                                        // For 90min, show all slots including auto-selected half slots
                                         if (duration === 90) {
-                                            timeSlotsToShow = timeSlotsToShow.filter(t => !t._id?.includes('-left') && !t._id?.includes('-right'));
-                                        }
-                                        
-                                        if (duration === 120) {
-                                            timeSlotsToShow = timeSlotsToShow.filter((_, idx) => idx % 2 === 0);
+                                            // Show all slots - both main selections and auto-selected half slots
+                                            timeSlotsToShow = court.time || [];
+                                        } else if (duration === 120) {
+                                            // For 120min, show all slots - both consecutive slots should be displayed
+                                            timeSlotsToShow = court.time || [];
                                         }
                                         
                                         timeSlotsToShow.forEach((timeSlot, timeIndex) => {
@@ -324,7 +297,7 @@ const BookingSummary = ({
                                                             fontSize: "14px",
                                                         }}
                                                     >
-                                                        {formatTimeDisplay(timeSlot?.time, duration)}
+                                                        {formatTimeDisplay(timeSlot?.time, duration, timeSlot)}
                                                     </span>
                                                     <span
                                                         className="ps-2"
@@ -349,13 +322,6 @@ const BookingSummary = ({
                                                         }}
                                                     >
                                                         {(() => {
-                                                            // For 120min, show combined amount of both slots
-                                                            if (duration === 120) {
-                                                                const currentIdx = court.time.findIndex(t => t._id === timeSlot._id);
-                                                                const nextSlot = court.time[currentIdx + 1];
-                                                                const totalAmount = Number(timeSlot?.amount || 0) + Number(nextSlot?.amount || 0);
-                                                                return totalAmount.toLocaleString("en-IN");
-                                                            }
                                                             return timeSlot?.amount ? Number(timeSlot?.amount).toLocaleString("en-IN") : "N/A";
                                                         })()}
                                                     </span>
@@ -368,7 +334,7 @@ const BookingSummary = ({
                                                             handleDeleteSlot(
                                                                 court._id,
                                                                 court.date,
-                                                                timeSlot._id
+                                                                timeSlot.originalId || timeSlot._id
                                                             );
                                                         }}
                                                     />
@@ -440,18 +406,19 @@ const BookingSummary = ({
                           `}</style>
 
                                 {isExpanded &&
-                                    selectedCourts.length > 0 &&
+                                    selectedCourts?.length > 0 &&
                                     (() => {
                                         let allSlots = [];
                                         selectedCourts.forEach((court, courtIndex) => {
                                             let timeSlotsToShow = court.time || [];
                                             
+                                            // For 90min, show all slots including auto-selected half slots
                                             if (duration === 90) {
-                                                timeSlotsToShow = timeSlotsToShow.filter(t => !t._id?.includes('-left') && !t._id?.includes('-right'));
-                                            }
-                                            
-                                            if (duration === 120) {
-                                                timeSlotsToShow = timeSlotsToShow.filter((_, idx) => idx % 2 === 0);
+                                                // Show all slots - both main selections and auto-selected half slots
+                                                timeSlotsToShow = court.time || [];
+                                            } else if (duration === 120) {
+                                                // For 120min, show all slots - both consecutive slots should be displayed
+                                                timeSlotsToShow = court.time || [];
                                             }
                                             
                                             timeSlotsToShow.forEach((timeSlot, timeIndex) => {
@@ -473,13 +440,13 @@ const BookingSummary = ({
                                                                 fontSize: "11px",
                                                             }}
                                                         >
-                                                            {court.date
-                                                                ? `${new Date(court.date).toLocaleString(
+                                                            {court?.date
+                                                                ? `${new Date(court?.date).toLocaleString(
                                                                     "en-US",
                                                                     {
                                                                         day: "2-digit",
                                                                     }
-                                                                )}, ${new Date(court.date).toLocaleString(
+                                                                )}, ${new Date(court?.date).toLocaleString(
                                                                     "en-US",
                                                                     {
                                                                         month: "short",
@@ -495,7 +462,7 @@ const BookingSummary = ({
                                                                 fontSize: "11px",
                                                             }}
                                                         >
-                                                            {formatTimeDisplay(timeSlot.time, duration)}
+                                                            {formatTimeDisplay(timeSlot?.time, duration, timeSlot)}
                                                         </span>
                                                         <span
                                                             className="ps-1"
@@ -518,13 +485,7 @@ const BookingSummary = ({
                                                             }}
                                                         >
                                                             ₹ {(() => {
-                                                                if (duration === 120) {
-                                                                    const currentIdx = court.time.findIndex(t => t._id === timeSlot._id);
-                                                                    const nextSlot = court.time[currentIdx + 1];
-                                                                    const totalAmount = Number(timeSlot?.amount || 0) + Number(nextSlot?.amount || 0);
-                                                                    return totalAmount;
-                                                                }
-                                                                return timeSlot.amount || "N/A";
+                                                            return timeSlot.amount || "N/A";
                                                             })()}
                                                         </span>
                                                         <MdOutlineDeleteOutline
@@ -538,7 +499,7 @@ const BookingSummary = ({
                                                                 handleDeleteSlot(
                                                                     court._id,
                                                                     court.date,
-                                                                    timeSlot._id
+                                                                    timeSlot.originalId || timeSlot._id
                                                                 );
                                                             }}
                                                         />

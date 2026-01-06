@@ -248,9 +248,37 @@ const MatchPlayer = ({
         : { day: "Fri", formattedDate: "29 Aug" };
     const formatMatchTimes = (courts) => {
         if (!courts || courts.length === 0) return "";
-        const times = courts.flatMap((c) => c.time.map((t) => t.time));
+        let allTimes = courts.flatMap((c) => c.time.map((t) => t.time));
 
-        const formattedTimes = times.map(time => {
+        // For 90min duration, add auto-selected consecutive slots
+        // For 90min, expand selectedCourts to include all underlying slots with real IDs
+        if (selectedDuration === 90 && slotData?.data) {
+            const additionalTimes = [];
+            courts.forEach(court => {
+                const courtSlots = slotData.data.find(c => c._id === court._id)?.slots || [];
+                const sortedSlots = [...courtSlots].sort((a, b) => {
+                    const parseHour = (timeStr) => {
+                        const [hourStr, period] = timeStr.toLowerCase().split(" ");
+                        let hour = parseInt(hourStr);
+                        if (period === "pm" && hour !== 12) hour += 12;
+                        if (period === "am" && hour === 12) hour = 0;
+                        return hour;
+                    };
+                    return parseHour(a.time) - parseHour(b.time);
+                });
+                
+                court.time.forEach(timeSlot => {
+                    const currentIndex = sortedSlots.findIndex(s => s._id === timeSlot._id);
+                    if (currentIndex !== -1 && currentIndex + 1 < sortedSlots.length) {
+                        const nextSlot = sortedSlots[currentIndex + 1];
+                        additionalTimes.push(nextSlot.time);
+                    }
+                });
+            });
+            allTimes = [...allTimes, ...additionalTimes];
+        }
+
+        const formattedTimes = allTimes.map(time => {
             let hour, period;
             if (/am|pm/i.test(time)) {
                 const match = time.match(/(\d+)\s*(am|pm)/i);
@@ -291,7 +319,16 @@ const MatchPlayer = ({
 
     const totalSlots = selectedCourts.reduce((sum, court) => sum + court.time?.length, 0);
     const slotsPerCourt = selectedCourts.length > 0 ? selectedCourts[0]?.time?.length : 0;
-    const canBook = totalSlots >= 1 && slotsPerCourt >= 1 && slotsPerCourt <= 3 && matchTime.length > 0 && validateCourtTimeConsistency();
+    
+    // For 90min duration, we need to account for auto-selected slots
+    const effectiveSlots = selectedDuration === 90 ? totalSlots * 1.5 : totalSlots;
+    
+    const canBook = totalSlots >= 1 && 
+                   matchTime.length > 0 && 
+                   validateCourtTimeConsistency() &&
+                   (selectedDuration === 90 ? 
+                     (totalSlots >= 1 && totalSlots <= 2) : // 90min: 1-2 selections create valid bookings
+                     (totalSlots >= 1 && totalSlots <= 3)); // Other durations: 1-3 slots total
 
     const displayUserSkillLevel = finalSkillDetails && Object.keys(finalSkillDetails).length > 0
         ? finalSkillDetails[Object.keys(finalSkillDetails)[0]]
@@ -304,11 +341,12 @@ const MatchPlayer = ({
         }
 
         const courtIds = selectedCourts.map((c) => c._id).join(",");
-
         const latestPlayers = JSON.parse(localStorage.getItem("addedPlayers") || "{}");
 
-        // For 90min, expand selectedCourts to include all underlying slots with real IDs
+        // Initialize expandedCourts
         let expandedCourts = selectedCourts;
+
+        // For 90min, expand selectedCourts to include all underlying slots with real IDs
         if (selectedDuration === 90 && slotData?.data) {
             expandedCourts = [];
             selectedCourts.forEach(court => {
@@ -336,7 +374,7 @@ const MatchPlayer = ({
                         expandedTimes.push({
                             _id: nextSlot._id,
                             time: nextSlot.time,
-                            amount: Math.round(timeSlot.amount / 3)
+                            amount: 2000 // 30min slot price
                         });
                     }
                 });
@@ -475,17 +513,17 @@ const MatchPlayer = ({
                             className="text-muted d-none d-lg-block"
                             style={{ fontWeight: 500 }}
                         >
-                            {matchDate.day}, {matchDate.formattedDate} |{" "}
-                            {matchTime.slice(0, 20)}
-                            {matchTime.length > 20 ? "..." : ""}
+                            {matchDate?.day}, {matchDate.formattedDate} |{" "}
+                            {matchTime?.slice(0, 20)}
+                            {matchTime?.length > 20 ? "..." : ""}
                         </small>
                         <small
                             className="text-muted d-lg-none add_font_mobile"
                             style={{ fontWeight: 500 }}
                         >
-                            {matchDate.day}, {matchDate.formattedDate}{" "}
-                            {matchTime.slice(0, 20)}
-                            {matchTime.length > 20 ? "..." : ""}
+                            {matchDate?.day}, {matchDate?.formattedDate}{" "}
+                            {matchTime?.slice(0, 20)}
+                            {matchTime?.length > 20 ? "..." : ""}
                         </small>
                     </div>
 

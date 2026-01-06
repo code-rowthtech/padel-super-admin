@@ -524,7 +524,7 @@ const BookingHistory = () => {
                                     {filterStatus?.map((booking, i) =>
                                         booking?.slot?.map((slotItem, index) => (
                                             <tr key={`${i}-${index}`} className="border-bottom">
-                                                <td className="table-data py-1 pt-2 ps-5 text-start" style={{ fontWeight: "570", fontSize: "16px", color: "#000000", width: "20%" }}>
+                                                <td className="table-data text-nowrap py-1 pt-2 ps-5 text-start" style={{ fontWeight: "570", fontSize: "16px", color: "#000000", width: "20%" }}>
                                                     {formatDate(booking?.bookingDate)} | {(() => {
                                                         const times = slotItem?.slotTimes?.map((slot) => {
                                                             const time = slot?.time;
