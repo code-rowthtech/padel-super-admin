@@ -43,7 +43,7 @@ const Payment = ({ className = "" }) => {
   const [localGrandTotal, setLocalGrandTotal] = useState(grandTotal || 0);
   const [localTotalSlots, setLocalTotalSlots] = useState(totalSlots || 0);
   const [isExpanded, setIsExpanded] = useState(false);
-
+  console.log('Payment localSelectedCourts:', localSelectedCourts);
   useEffect(() => {
     const newTotalSlots = localSelectedCourts.reduce((sum, c) => sum + c?.time?.length, 0);
     const newGrandTotal = localSelectedCourts.reduce(
@@ -85,6 +85,47 @@ const Payment = ({ className = "" }) => {
 
   const handleDeleteSlot = (e, courtId, date, timeId) => {
     e.stopPropagation();
+    
+    // For 90min duration, handle both first slot and auto-selected half slot removal
+    if (duration === 90) {
+      // Remove all slots for this court and date (both first slot and half slot)
+      setLocalSelectedCourts((prev) =>
+        prev.filter((c) => !(c?._id === courtId && c?.date === date))
+      );
+      return;
+    }
+
+    // For 120min duration, handle both consecutive slots removal
+    if (duration === 120) {
+      const court = localSelectedCourts.find(c => c._id === courtId && c.date === date);
+      if (court) {
+        const slotsToRemove = new Set([timeId]);
+        
+        // Find all slots that are part of the same 120min booking
+        court.time.forEach(slot => {
+          if (slot._id !== timeId) {
+            slotsToRemove.add(slot._id);
+          }
+        });
+        
+        // Remove all related slots
+        setLocalSelectedCourts((prev) =>
+          prev
+            ?.map((c) =>
+              c?._id === courtId && c?.date === date
+                ? { 
+                  ...c, 
+                  time: c?.time.filter((t) => !slotsToRemove.has(t._id))
+                }
+                : c
+            )
+            .filter((c) => c?.time?.length > 0)
+        );
+      }
+      return;
+    }
+    
+    // Regular slot deletion for other durations
     setLocalSelectedCourts((prev) =>
       prev
         ?.map((court) =>
@@ -121,9 +162,9 @@ const Payment = ({ className = "" }) => {
     if (typeof timeStr === "string") {
       const timeStrLower = timeStr.toLowerCase();
       if (timeStrLower.endsWith("am") || timeStrLower.endsWith("pm")) {
-        period = timeStrLower.slice(-2);
-        hour = timeStrLower.slice(0, -2).trim();
-      } else {
+        period = timeStrLower?.slice(-2);
+        hour = timeStrLower?.slice(0, -2).trim();
+      } else {  
         const timeParts = timeStrLower.split(" ");
         if (timeParts?.length > 1) {
           hour = timeParts[0];
@@ -187,15 +228,16 @@ const Payment = ({ className = "" }) => {
         throw new Error("Club information missing.");
       }
 
-      const slotArray = localSelectedCourts.flatMap((court) => {
+      const slotArray = localSelectedCourts.flatMap((court, courtIndex) => {
         const courtId = court?._id;
         const dateKey = court?.date;
 
-        return court?.time?.map((timeSlot) => {
-          const slotTimeStr = timeSlot?.time; // e.g. "5:00 AM"
+        return court?.time?.map((timeSlot, timeIndex) => {
+          const slotTimeStr = timeSlot?.time;
           const slotHour = parseTimeToHour(slotTimeStr);
 
-          let bookingTime = slotTimeStr; // default
+          let bookingTime = slotTimeStr;
+          let slotDuration = duration || 60;
 
           if (duration === 30) {
             const leftKey = `${courtId}-${timeSlot._id}-${dateKey}-left`;
@@ -203,72 +245,49 @@ const Payment = ({ className = "" }) => {
             const isLeftHalf = halfSelectedSlots.has(leftKey);
             const isRightHalf = halfSelectedSlots.has(rightKey);
 
-            if (isLeftHalf && !isRightHalf) {
-              // Only left → start time
-              bookingTime = slotTimeStr;
-            } else if (isRightHalf && !isLeftHalf) {
-              // Only right → +30 minutes
-              const nextHour = (slotHour + 0.5);
-              const isPM = slotTimeStr.toLowerCase().includes("pm");
-              const baseHour = slotHour % 12 || 12;
-              const newHour = Math.floor(nextHour);
-              const minutes = nextHour % 1 === 0.5 ? "30" : "00";
-              const displayHour = newHour % 12 || 12;
-              const period = (nextHour >= 12 && nextHour < 24) || nextHour >= 24 ? "PM" : "AM";
-              bookingTime = `${displayHour}:${minutes} ${period}`;
-            } else if (isLeftHalf && isRightHalf) {
-              // Both → full hour
-              bookingTime = slotTimeStr;
+            if (isRightHalf && !isLeftHalf) {
+              // Convert time like "4 pm" to "4:30 pm" or "6:00 AM" to "6:30 AM"
+              if (slotTimeStr.includes(':00')) {
+                bookingTime = slotTimeStr.replace(':00', ':30');
+              } else {
+                // Handle formats like "4 pm" -> "4:30 pm"
+                const timeMatch = slotTimeStr.match(/(\d+)\s*(am|pm)/i);
+                if (timeMatch) {
+                  bookingTime = `${timeMatch[1]}:30 ${timeMatch[2]}`;
+                }
+              }
             }
           } else if (duration === 90) {
-            const leftKey = `${courtId}-${timeSlot._id}-${dateKey}-left`;
-            const rightKey = `${courtId}-${timeSlot._id}-${dateKey}-right`;
-            const isLeftHalf = halfSelectedSlots.has(leftKey);
-            const isRightHalf = halfSelectedSlots.has(rightKey);
-
-            if (isLeftHalf) {
-              // Left half of second slot → same time
-              bookingTime = slotTimeStr;
-            } else if (isRightHalf) {
-              // Right half → +30 min
-              const nextHour = (slotHour + 0.5);
-              const displayHour = nextHour % 12 || 12;
-              const period = nextHour >= 12 ? "PM" : "AM";
-              bookingTime = `${displayHour}:30 ${period}`;
+            // For 90min, check if this is a half-selected slot (second slot)
+            if (timeSlot.side) {
+              slotDuration = 30; // Second slot is 30min
+              if (timeSlot.side === 'right') {
+                // Already has correct time from booking summary
+                bookingTime = timeSlot.time;
+              }
             } else {
-              // First slot (full)
-              bookingTime = slotTimeStr;
+              slotDuration = 60; // First slot is 60min
             }
-          }
-
-          // Calculate amount (existing logic)
-          const isHalfAutoSlot = duration === 90 && halfSelectedSlots?.has?.(`${courtId}-${timeSlot._id}-${dateKey}`);
-          let actualTotalTime = duration;
-          if (duration === 90) {
-            actualTotalTime = isHalfAutoSlot ? 30 : 60;
           }
 
           const baseAmount = timeSlot?.amount || 300;
-          const adjustedAmount = isHalfAutoSlot
-            ? Math.round(baseAmount * (30 / 90))
-            : baseAmount;
 
           return {
-            slotId: timeSlot?._id,
+            slotId: timeSlot?.originalId || timeSlot?._id,
             businessHours: courtData?.slot?.[0]?.businessHours?.map((t) => ({
               time: t?.time,
               day: t?.day,
             })) || [{ time: "06:00 AM - 11:00 PM", day: "Friday" }],
             slotTimes: [{
               time: timeSlot?.time,
-              amount: adjustedAmount,
+              amount: baseAmount,
             }],
             courtName: court?.courtName,
             courtId: court?._id,
             bookingDate: court?.date,
-            duration: duration,
-            totalTime: actualTotalTime,
-            bookingTime: bookingTime // ← यही नया field
+            duration: slotDuration,
+            totalTime: duration,
+            bookingTime: bookingTime
           };
         });
       });
@@ -372,7 +391,24 @@ const Payment = ({ className = "" }) => {
   };
 
   const formatTime = (timeStr) => {
-    return timeStr.replace(" am", ":00 am").replace(" pm", ":00 pm");
+    if (!timeStr) return "";
+    // If time already has minutes (e.g., "2:30 pm"), just uppercase AM/PM
+    if (timeStr.includes(":")) {
+      return timeStr.replace(" am", " AM").replace(" pm", " PM");
+    }
+    // If time doesn't have minutes (e.g., "2 pm"), add :00
+    return timeStr.replace(" am", ":00 AM").replace(" pm", ":00 PM");
+  };
+
+  // Helper function to format time - ONLY START TIME
+  const formatTimeDisplay = (timeStr, duration) => {
+    if (!timeStr) return "";
+    // If time already has minutes (e.g., "2:30 pm"), just uppercase AM/PM
+    if (timeStr.includes(":")) {
+      return timeStr.replace(" am", " AM").replace(" pm", " PM");
+    }
+    // If time doesn't have minutes (e.g., "2 pm"), add :00
+    return timeStr.replace(" am", ":00 AM").replace(" pm", ":00 PM");
   };
 
   const width = 370;
@@ -654,7 +690,7 @@ const Payment = ({ className = "" }) => {
             {/* Desktop Booking Summary Title */}
             <div className="d-flex border-top px-3 pt-2 justify-content-between align-items-center d-none d-lg-flex">
               <h6 className="p-2 mb-1 ps-0 text-white custom-heading-use">
-                Booking Summary{localTotalSlots > 0 ? ` (${localTotalSlots} Slot selected)` : ''}
+                Booking Summary ({localTotalSlots} Slot{localTotalSlots !== 1 ? 's' : ''} selected)
               </h6>
             </div>
 
@@ -672,44 +708,141 @@ const Payment = ({ className = "" }) => {
 
               <div className="d-none d-lg-block">
                 {localSelectedCourts?.length > 0 ? (
-                  localSelectedCourts?.map((court, idx) =>
-                    court?.time?.map((slot, i) => (
-                      <div key={`${idx}-${i}`} className="row mb-2">
-                        <div className="col-12 d-flex justify-content-between align-items-center text-white">
-                          <div className="d-flex">
-                            <span style={{ fontSize: "14px", fontWeight: "600" }}>
-                              {new Date(court.date).toLocaleDateString("en-US", {
-                                day: "2-digit",
-                                month: "short",
-                              })}
+                  (() => {
+                    let allSlots = [];
+                    localSelectedCourts.forEach((court, courtIndex) => {
+                      let timeSlotsToShow = court?.time || [];
+                      
+                      // For 90min, show all slots including auto-selected half slots
+                      if (duration === 90) {
+                        // Show all slots - both main selections and auto-selected half slots
+                        timeSlotsToShow = court.time || [];
+                      } else if (duration === 120) {
+                        // For 120min, show all slots - both consecutive slots should be displayed
+                        timeSlotsToShow = court.time || [];
+                      }
+                      
+                      timeSlotsToShow.forEach((timeSlot, timeIndex) => {
+                        allSlots.push({ court, timeSlot, courtIndex, timeIndex });
+                      });
+                    });
+                    
+                    return allSlots.map(({ court, timeSlot, courtIndex, timeIndex }) => (
+                      <div key={`${courtIndex}-${timeIndex}`} className="row mb-2">
+                        <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
+                          <div className="d-flex text-white">
+                            <span
+                              style={{
+                                fontWeight: "600",
+                                fontFamily: "Poppins",
+                                fontSize: "14px",
+                              }}
+                            >
+                              {court?.date
+                                ? `${new Date(court?.date).toLocaleString(
+                                    "en-US",
+                                    {
+                                      day: "2-digit",
+                                    }
+                                  )}, ${new Date(court?.date).toLocaleString(
+                                    "en-US",
+                                    {
+                                      month: "short",
+                                    }
+                                  )}`
+                                : ""}
                             </span>
-                            <span className="ps-1" style={{ fontSize: "14px", fontWeight: "600" }}>
-                              {formatTime(slot.time)}
+                            <span
+                              className="ps-1"
+                              style={{
+                                fontWeight: "600",
+                                fontFamily: "Poppins",
+                                fontSize: "14px",
+                              }}
+                            >
+                              {(() => {
+                                const timeStr = timeSlot?.time;
+                                if (!timeStr) return "";
+                                
+                                // Format time display - ONLY START TIME
+                                let cleaned = timeStr.toString().toLowerCase().trim();
+                                let hour, minute = "00", period = "";
+                                
+                                if (cleaned.includes("am") || cleaned.includes("pm")) {
+                                  period = cleaned.endsWith("am") ? "AM" : "PM";
+                                  cleaned = cleaned.replace(/am|pm/gi, "").trim();
+                                }
+
+                                if (cleaned.includes(":")) {
+                                  [hour, minute] = cleaned.split(":");
+                                } else {
+                                  hour = cleaned;
+                                }
+
+                                let hourNum = parseInt(hour);
+                                if (isNaN(hourNum)) return timeStr;
+
+                                let formattedHour = hourNum.toString().padStart(2, "0");
+                                minute = minute ? minute.padStart(2, "0") : "00";
+                                return `${formattedHour}:${minute} ${period}`.trim();
+                              })()}
                             </span>
-                            <span className="ps-2" style={{ fontSize: "14px", fontWeight: "500" }}>
-                              {court.courtName}
+                            <span
+                              className="ps-2"
+                              style={{
+                                fontWeight: "500",
+                                fontFamily: "Poppins",
+                                fontSize: "14px",
+                              }}
+                            >
+                              {court?.courtName}
                             </span>
                           </div>
-
-                          <div>
+                          <div className="text-white align-items-center">
                             ₹
-                            <span className="ps-0" style={{ fontWeight: "600", fontSize: "14px" }}>
-                              {slot?.amount ? Number(slot?.amount).toLocaleString("en-IN") : 0}
+                            <span
+                              className="ps-0"
+                              style={{
+                                fontWeight: "600",
+                                fontFamily: "Poppins",
+                                fontSize: "14px",
+                              }}
+                            >
+                              {timeSlot?.amount ? Number(timeSlot?.amount).toLocaleString("en-IN") : "N/A"}
                             </span>
                             <MdOutlineDeleteOutline
-                              className="ms-1 mt-1 mb-1"
+                              className="ms-1 mb-1 mt-1 text-white"
                               size={15}
                               style={{ cursor: "pointer" }}
-                              onClick={(e) => handleDeleteSlot(e, court._id, court.date, slot._id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteSlot(
+                                  e,
+                                  court._id,
+                                  court.date,
+                                  timeSlot.originalId || timeSlot._id
+                                );
+                              }}
                             />
                           </div>
                         </div>
                       </div>
-                    ))
-                  )
+                    ));
+                  })()
                 ) : (
-                  <div className="text-center text-white" style={{ height: "25vh" }}>
-                    <p>No slot selected</p>
+                  <div
+                    className="d-flex flex-column justify-content-center align-items-center text-white"
+                    style={{ height: "25vh" }}
+                  >
+                    <p
+                      style={{
+                        fontSize: "14px",
+                        fontFamily: "Poppins",
+                        fontWeight: "500",
+                      }}
+                    >
+                      No slot selected
+                    </p>
                   </div>
                 )}
               </div>
@@ -736,37 +869,133 @@ const Payment = ({ className = "" }) => {
                                 width: 6px;} `}
                   </style>
 
-                  {isExpanded && localSelectedCourts?.map((court, cIdx) =>
-                    court.time.map((slot, sIdx) => (
-                      <div key={`${cIdx}-${sIdx}`} className="row mb-1 text-white">
-                        <div className="col-12 d-flex justify-content-between align-items-center">
-                          <div className="d-flex">
-                            <span style={{ fontSize: "11px", fontWeight: "600" }}>
-                              {new Date(court.date).toLocaleDateString("en-US", {
-                                day: "2-digit",
-                                month: "short",
-                              })}
-                            </span>
-                            <span className="ps-1" style={{ fontSize: "11px", fontWeight: "600" }}>
-                              {formatTime(slot.time)}
-                            </span>
-                            <span className="ps-1" style={{ fontSize: "10px", fontWeight: "500" }}>
-                              {court.courtName}
-                            </span>
-                          </div>
+                  {isExpanded && localSelectedCourts?.length > 0 &&
+                    (() => {
+                      let allSlots = [];
+                      localSelectedCourts.forEach((court, courtIndex) => {
+                        let timeSlotsToShow = court.time || [];
+                        
+                        // For 90min, show all slots including auto-selected half slots
+                        if (duration === 90) {
+                          // Show all slots - both main selections and auto-selected half slots
+                          timeSlotsToShow = court.time || [];
+                        } else if (duration === 120) {
+                          // For 120min, show all slots - both consecutive slots should be displayed
+                          timeSlotsToShow = court.time || [];
+                        }
+                        
+                        timeSlotsToShow.forEach((timeSlot, timeIndex) => {
+                          allSlots.push({ court, timeSlot, courtIndex, timeIndex });
+                        });
+                      });
+                      
+                      return allSlots.map(({ court, timeSlot, courtIndex, timeIndex }) => (
+                        <div
+                          key={`${courtIndex}-${timeIndex}`}
+                          className="row mb-0"
+                        >
+                          <div className="col-12 d-flex gap-1 mb-0 m-0 align-items-center justify-content-between">
+                            <div className="d-flex text-white">
+                              <span
+                                style={{
+                                  fontWeight: "600",
+                                  fontFamily: "Poppins",
+                                  fontSize: "11px",
+                                }}
+                              >
+                                {court?.date
+                                  ? `${new Date(court?.date).toLocaleString(
+                                      "en-US",
+                                      {
+                                        day: "2-digit",
+                                      }
+                                    )}, ${new Date(court?.date).toLocaleString(
+                                      "en-US",
+                                      {
+                                        month: "short",
+                                      }
+                                    )}`
+                                  : ""}
+                              </span>
+                              <span
+                                className="ps-1"
+                                style={{
+                                  fontWeight: "600",
+                                  fontFamily: "Poppins",
+                                  fontSize: "11px",
+                                }}
+                              >
+                                {(() => {
+                                  const timeStr = timeSlot?.time;
+                                  if (!timeStr) return "";
+                                  
+                                  // Format time display - ONLY START TIME
+                                  let cleaned = timeStr.toString().toLowerCase().trim();
+                                  let hour, minute = "00", period = "";
+                                  
+                                  if (cleaned.includes("am") || cleaned.includes("pm")) {
+                                    period = cleaned.endsWith("am") ? "AM" : "PM";
+                                    cleaned = cleaned.replace(/am|pm/gi, "").trim();
+                                  }
 
-                          <div className="d-flex align-items-center">
-                            <span style={{ fontSize: "11px", fontWeight: "600" }}>₹ {slot.amount}</span>
-                            <MdOutlineDeleteOutline
-                              className="ms-1"
-                              style={{ fontSize: "14px", cursor: "pointer" }}
-                              onClick={(e) => handleDeleteSlot(e, court._id, court.date, slot._id)}
-                            />
+                                  if (cleaned.includes(":")) {
+                                    [hour, minute] = cleaned.split(":");
+                                  } else {
+                                    hour = cleaned;
+                                  }
+
+                                  let hourNum = parseInt(hour);
+                                  if (isNaN(hourNum)) return timeStr;
+
+                                  let formattedHour = hourNum.toString().padStart(2, "0");
+                                  minute = minute ? minute.padStart(2, "0") : "00";
+                                  return `${formattedHour}:${minute} ${period}`.trim();
+                                })()}
+                              </span>
+                              <span
+                                className="ps-1"
+                                style={{
+                                  fontWeight: "500",
+                                  fontFamily: "Poppins",
+                                  fontSize: "10px",
+                                }}
+                              >
+                                {court.courtName}
+                              </span>
+                            </div>
+                            <div className="text-white">
+                              <span
+                                className="ps-1"
+                                style={{
+                                  fontWeight: "600",
+                                  fontFamily: "Poppins",
+                                  fontSize: "11px",
+                                }}
+                              >
+                                ₹ {timeSlot.amount || "N/A"}
+                              </span>
+                              <MdOutlineDeleteOutline
+                                className="ms-1 text-white"
+                                style={{
+                                  cursor: "pointer",
+                                  fontSize: "14px",
+                                }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteSlot(
+                                    e,
+                                    court._id,
+                                    court.date,
+                                    timeSlot.originalId || timeSlot._id
+                                  );
+                                }}
+                              />
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))
-                  )}
+                      ));
+                    })()
+                  }}
                 </div>
               </div>
             </div>

@@ -55,6 +55,33 @@ console.log({slotPriceLoading});
     });
 
     const [selectedPeriodByDay, setSelectedPeriodByDay] = useState({});
+    const [updateAllLoading, setUpdateAllLoading] = useState(false);
+    const [updatedInputs, setUpdatedInputs] = useState(new Set()); // Track which inputs were updated
+    
+    // Check if update all button should be enabled
+    const canUpdateAll = () => {
+        const filledInputs = [];
+        const unupdatedInputs = [];
+        
+        days.forEach(day => {
+            periods.forEach(period => {
+                const inputKey = `${day}-${period.value}`;
+                if (prices[day]?.[period.value]?.trim()) {
+                    filledInputs.push(inputKey);
+                    if (!updatedInputs.has(inputKey)) {
+                        unupdatedInputs.push(inputKey);
+                    }
+                }
+            });
+        });
+        
+        return filledInputs.length >= 2 && unupdatedInputs.length >= 2;
+    };
+    // Clear updated inputs when duration changes
+    useEffect(() => {
+        setUpdatedInputs(new Set());
+    }, [selectedDuration]);
+    
     useEffect(() => {
         if (slotPrice.length === 0) return;
 
@@ -115,6 +142,14 @@ console.log({slotPriceLoading});
             ...prev,
             [day]: period
         }));
+        
+        // Remove this input from updatedInputs when value changes
+        const inputKey = `${day}-${period}`;
+        setUpdatedInputs(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(inputKey);
+            return newSet;
+        });
     };
 
     // Helper: Full create payload बनाओ (entered prices के साथ)
@@ -141,7 +176,77 @@ console.log({slotPriceLoading});
         return payload;
     };
 
-    // Apply to All — दोनों modes में दिखेगा, create mode में create API call
+    // Update all filled inputs with their current prices
+    const updateAllPrices = async () => {
+        setUpdateAllLoading(true);
+        
+        if (isCreateMode) {
+            // Create mode: send full payload
+            const payload = generateCreatePayload();
+            
+            if (payload.length === 0) {
+                setUpdateAllLoading(false);
+                return showError("No prices to update");
+            }
+            
+            try {
+                await dispatch(createSlotPrice(payload)).unwrap();
+            } catch (err) {
+                showError("Failed to create prices");
+            }
+        } else {
+            // Update mode: send only id and price for existing entries
+            const updates = [];
+            
+            days.forEach(day => {
+                periods.forEach(period => {
+                    const currentPrice = prices[day][period.value];
+                    const price = parseInt(currentPrice, 10);
+                    
+                    if (price > 0) {
+                        // Find existing entry in slotPrice
+                        const existingEntry = slotPrice.find(entry => 
+                            entry.day === day && 
+                            entry.duration === selectedDuration && 
+                            entry.timePeriod === period.value
+                        );
+                        
+                        if (existingEntry) {
+                            updates.push({
+                                id: existingEntry._id,
+                                price: price
+                            });
+                        }
+                    }
+                });
+            });
+            
+            if (updates.length === 0) {
+                setUpdateAllLoading(false);
+                return showError("No prices to update");
+            }
+            
+            try {
+                await dispatch(updateSlotPrice({ updates })).unwrap();
+                dispatch(getUserSlotPrice({ register_club_id: registerId, day: "", duration: selectedDuration }));
+            } catch (err) {
+                showError("Failed to update prices");
+            }
+        }
+        
+        // Mark all filled inputs as updated
+        const filledInputKeys = [];
+        days.forEach(day => {
+            periods.forEach(period => {
+                if (prices[day]?.[period.value]?.trim()) {
+                    filledInputKeys.push(`${day}-${period.value}`);
+                }
+            });
+        });
+        setUpdatedInputs(new Set(filledInputKeys));
+        
+        setUpdateAllLoading(false);
+    };
     const applyAllPrice = async () => {
         if (!allPrice.trim()) {
             showError("Please enter a price");
@@ -223,6 +328,10 @@ console.log({slotPriceLoading});
             setRowLoading(prev => ({ ...prev, [dayName]: false }));
             return showError("Invalid price");
         }
+
+        // Mark this input as updated
+        const inputKey = `${dayName}-${periodValue}`;
+        setUpdatedInputs(prev => new Set([...prev, inputKey]));
 
         if (isCreateMode) {
             // Create mode: send all currently entered prices
@@ -433,7 +542,55 @@ console.log({slotPriceLoading});
                                 </tr>
                             ))
                         ) : (
-                            days?.map(day => (
+                            days?.map(day => {
+                                const isRowLoading = rowLoading[day] && !applyAllLoading;
+                                
+                                if (isRowLoading) {
+                                    return (
+                                        <tr key={day}>
+                                            <td style={{
+                                                padding: '12px 10px',
+                                                borderBottom: '1px solid #dee2e6',
+                                            }}>
+                                                <div className="shimmer" style={{
+                                                    height: '20px',
+                                                    width: '100px',
+                                                    borderRadius: '4px'
+                                                }} />
+                                            </td>
+                                            {periods.map(() => (
+                                                <td key={Math.random()} style={{
+                                                    padding: '10px',
+                                                    textAlign: 'center',
+                                                    borderBottom: '1px solid #dee2e6',
+                                                }}>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'center' }}>
+                                                        <div className="shimmer" style={{
+                                                            height: '12px',
+                                                            width: '140px',
+                                                            borderRadius: '4px'
+                                                        }} />
+                                                        <div className="shimmer" style={{
+                                                            height: '36px',
+                                                            width: '120px',
+                                                            borderRadius: '4px'
+                                                        }} />
+                                                    </div>
+                                                </td>
+                                            ))}
+                                            <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
+                                                <div className="shimmer" style={{
+                                                    height: '32px',
+                                                    width: '80px',
+                                                    borderRadius: '6px',
+                                                    margin: '0 auto'
+                                                }} />
+                                            </td>
+                                        </tr>
+                                    );
+                                }
+                                
+                                return (
                                 <tr key={day}>
                                     <td style={{
                                         padding: '12px 10px',
@@ -485,10 +642,24 @@ console.log({slotPriceLoading});
                                         </Button>
                                     </td>
                                 </tr>
-                            ))
+                                );
+                            })
                         )}
                     </tbody>
                 </table>
+
+                {/* Update All Button - Bottom Right */}
+                <div className="d-flex justify-content-end pt-3">
+                    <Button
+                        variant="success"
+                        size="sm"
+                        disabled={!canUpdateAll() || updateAllLoading || applyAllLoading}
+                        onClick={updateAllPrices}
+                        style={{ minWidth: '100px' }}
+                    >
+                        {updateAllLoading ? <ButtonLoading color="white" /> : 'Update All'}
+                    </Button>
+                </div>
 
                 {onFinalSuccess && (
                     <div className="d-flex justify-content-end gap-3 pt-3">

@@ -17,14 +17,22 @@ const BookingSummary = ({
     errorMessage,
     buttonConfig,
     className,
-    handleBookNow, displayedSlotCount
+    handleBookNow,
+    displayedSlotCount,
+    duration  // Add duration prop
 }) => {
-    const formatTime = (timeStr) => {
+    console.log('BookingSummary selectedCourts:', selectedCourts);
+    console.log('BookingSummary duration:', duration);
+    // Helper function to format time - ONLY START TIME
+    const formatTimeDisplay = (timeStr, duration, timeSlot) => {
         if (!timeStr) return "";
+        
+        // First format the base time
         let cleaned = timeStr.toString().toLowerCase().trim();
         let hour, minute = "00", period = "";
+        
         if (cleaned.includes("am") || cleaned.includes("pm")) {
-            period = cleaned.endsWith("am") ? "am" : "pm";
+            period = cleaned.endsWith("am") ? "AM" : "PM";
             cleaned = cleaned.replace(/am|pm/gi, "").trim();
         }
 
@@ -39,7 +47,6 @@ const BookingSummary = ({
 
         let formattedHour = hourNum.toString().padStart(2, "0");
         minute = minute ? minute.padStart(2, "0") : "00";
-
         return `${formattedHour}:${minute} ${period}`.trim();
     };
     return (
@@ -238,9 +245,27 @@ const BookingSummary = ({
                             style={{ height: "18vh" }}
                         >
                             {selectedCourts?.length > 0 ? (
-                                selectedCourts?.map((court, index) =>
-                                    court?.time?.map((timeSlot, timeIndex) => (
-                                        <div key={`${index}-${timeIndex}`} className="row mb-2">
+                                (() => {
+                                    let allSlots = [];
+                                    selectedCourts.forEach((court, courtIndex) => {
+                                        let timeSlotsToShow = court?.time || [];
+                                        
+                                        // For 90min, show all slots including auto-selected half slots
+                                        if (duration === 90) {
+                                            // Show all slots - both main selections and auto-selected half slots
+                                            timeSlotsToShow = court.time || [];
+                                        } else if (duration === 120) {
+                                            // For 120min, show all slots - both consecutive slots should be displayed
+                                            timeSlotsToShow = court.time || [];
+                                        }
+                                        
+                                        timeSlotsToShow.forEach((timeSlot, timeIndex) => {
+                                            allSlots.push({ court, timeSlot, courtIndex, timeIndex });
+                                        });
+                                    });
+                                    
+                                    return allSlots.map(({ court, timeSlot, courtIndex, timeIndex }) => (
+                                        <div key={`${courtIndex}-${timeIndex}`} className="row mb-2">
                                             <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
                                                 <div className="d-flex text-white">
                                                     <span
@@ -272,7 +297,7 @@ const BookingSummary = ({
                                                             fontSize: "14px",
                                                         }}
                                                     >
-                                                        {formatTime(timeSlot?.time)}
+                                                        {formatTimeDisplay(timeSlot?.time, duration, timeSlot)}
                                                     </span>
                                                     <span
                                                         className="ps-2"
@@ -296,7 +321,9 @@ const BookingSummary = ({
 
                                                         }}
                                                     >
-                                                        {timeSlot?.amount ? Number(timeSlot?.amount).toLocaleString("en-IN") : "N/A"}
+                                                        {(() => {
+                                                            return timeSlot?.amount ? Number(timeSlot?.amount).toLocaleString("en-IN") : "N/A";
+                                                        })()}
                                                     </span>
                                                     <MdOutlineDeleteOutline
                                                         className="ms-1 mb-1 mt-1 text-white"
@@ -307,15 +334,15 @@ const BookingSummary = ({
                                                             handleDeleteSlot(
                                                                 court._id,
                                                                 court.date,
-                                                                timeSlot._id
+                                                                timeSlot.originalId || timeSlot._id
                                                             );
                                                         }}
                                                     />
                                                 </div>
                                             </div>
                                         </div>
-                                    ))
-                                )
+                                    ));
+                                })()
                             ) : (
                                 <div
                                     className="d-flex flex-column justify-content-center align-items-center text-white"
@@ -379,11 +406,29 @@ const BookingSummary = ({
                           `}</style>
 
                                 {isExpanded &&
-                                    selectedCourts.length > 0 &&
-                                    selectedCourts.map((court, index) =>
-                                        court.time.map((timeSlot, timeIndex) => (
+                                    selectedCourts?.length > 0 &&
+                                    (() => {
+                                        let allSlots = [];
+                                        selectedCourts.forEach((court, courtIndex) => {
+                                            let timeSlotsToShow = court.time || [];
+                                            
+                                            // For 90min, show all slots including auto-selected half slots
+                                            if (duration === 90) {
+                                                // Show all slots - both main selections and auto-selected half slots
+                                                timeSlotsToShow = court.time || [];
+                                            } else if (duration === 120) {
+                                                // For 120min, show all slots - both consecutive slots should be displayed
+                                                timeSlotsToShow = court.time || [];
+                                            }
+                                            
+                                            timeSlotsToShow.forEach((timeSlot, timeIndex) => {
+                                                allSlots.push({ court, timeSlot, courtIndex, timeIndex });
+                                            });
+                                        });
+                                        
+                                        return allSlots.map(({ court, timeSlot, courtIndex, timeIndex }) => (
                                             <div
-                                                key={`${index}-${timeIndex}`}
+                                                key={`${courtIndex}-${timeIndex}`}
                                                 className="row mb-0"
                                             >
                                                 <div className="col-12 d-flex gap-1 mb-0 m-0 align-items-center justify-content-between">
@@ -395,13 +440,13 @@ const BookingSummary = ({
                                                                 fontSize: "11px",
                                                             }}
                                                         >
-                                                            {court.date
-                                                                ? `${new Date(court.date).toLocaleString(
+                                                            {court?.date
+                                                                ? `${new Date(court?.date).toLocaleString(
                                                                     "en-US",
                                                                     {
                                                                         day: "2-digit",
                                                                     }
-                                                                )}, ${new Date(court.date).toLocaleString(
+                                                                )}, ${new Date(court?.date).toLocaleString(
                                                                     "en-US",
                                                                     {
                                                                         month: "short",
@@ -417,7 +462,7 @@ const BookingSummary = ({
                                                                 fontSize: "11px",
                                                             }}
                                                         >
-                                                            {formatTime(timeSlot.time)}
+                                                            {formatTimeDisplay(timeSlot?.time, duration, timeSlot)}
                                                         </span>
                                                         <span
                                                             className="ps-1"
@@ -439,7 +484,9 @@ const BookingSummary = ({
                                                                 fontSize: "11px",
                                                             }}
                                                         >
-                                                            ₹ {timeSlot.amount || "N/A"}
+                                                            ₹ {(() => {
+                                                            return timeSlot.amount || "N/A";
+                                                            })()}
                                                         </span>
                                                         <MdOutlineDeleteOutline
                                                             className="ms-1 text-white"
@@ -452,15 +499,15 @@ const BookingSummary = ({
                                                                 handleDeleteSlot(
                                                                     court._id,
                                                                     court.date,
-                                                                    timeSlot._id
+                                                                    timeSlot.originalId || timeSlot._id
                                                                 );
                                                             }}
                                                         />
                                                     </div>
                                                 </div>
                                             </div>
-                                        ))
-                                    )}
+                                        ));
+                                    })()}
                             </div>
                         </div>
                     </div>
