@@ -1,5 +1,5 @@
-import React from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import React, { useEffect } from "react";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { isOwnerAuthenticated } from "../helpers/api/apiCore";
 
 /**
@@ -7,7 +7,21 @@ import { isOwnerAuthenticated } from "../helpers/api/apiCore";
  */
 const PrivateRoute = ({ children }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const authenticated = isOwnerAuthenticated();
+
+  // Block URL changes for unauthenticated admin users
+  useEffect(() => {
+    if (!authenticated && location.pathname.startsWith("/admin")) {
+      const allowedPaths = ["/admin/login", "/admin/sign-up", "/admin/forgot-password", "/admin/reset-password", "/admin/verify-otp"];
+      
+      if (!allowedPaths.includes(location.pathname)) {
+        // Prevent URL change by navigating back to login
+        navigate("/admin/login", { replace: true });
+        return;
+      }
+    }
+  }, [location.pathname, authenticated, navigate]);
 
   if (!authenticated) {
     if (location.pathname.startsWith("/admin")) {

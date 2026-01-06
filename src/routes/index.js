@@ -3,6 +3,7 @@ import { Navigate, useRoutes } from "react-router-dom";
 import DefaultLayout from "../helpers/layout/DefaultLayout";
 import Root from "./Root";
 import PrivateRoute from "./PrivateRoute";
+import AdminRouteGuard from "./AdminRouteGuard";
 import { DataLoading, Loading } from "../helpers/loading/Loaders";
 import NoInternet from "../helpers/network/NoInternet";
 import AdminLayout from "../helpers/layout/AdminLayout";
@@ -159,7 +160,11 @@ const AllRoutes = () => {
 
     {
       path: "/admin",
-      element: <DefaultLayout />,
+      element: (
+        <AdminRouteGuard>
+          <DefaultLayout />
+        </AdminRouteGuard>
+      ),
       children: [
         {
           path: "login",

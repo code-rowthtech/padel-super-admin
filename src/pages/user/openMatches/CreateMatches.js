@@ -588,10 +588,10 @@ const CreateMatches = () => {
           setSlotError("Slot already occupied");
           return;
         }
-        // For right click: first slot gets right half, second slot gets left half
+        // For right click: first slot gets FULL (never half), second slot gets left half
         setActiveHalves(prev => {
           const newMap = new Map(prev);
-          newMap.set(slotKey, "right");
+          newMap.set(slotKey, "full");  // ✅ FIXED: First slot ALWAYS full
           newMap.set(nextKey, "left");
           return newMap;
         });
@@ -858,7 +858,7 @@ const CreateMatches = () => {
 
 
   const handleNext = async () => {
-    if (selectedCourts.length === 0) {
+    if (selectedCourts?.length === 0) {
       setSlotError("Select a slot to enable booking");
       return;
     }
@@ -868,21 +868,21 @@ const CreateMatches = () => {
       return;
     }
 
-    if (currentStep === dynamicSteps.length - 1 && !isFinalLevelStepLoaded) {
+    if (currentStep === dynamicSteps?.length - 1 && !isFinalLevelStepLoaded) {
       const firstAnswer = selectedAnswers[0];
 
       try {
         const response = await dispatch(getPlayerLevel(firstAnswer)).unwrap();
         const apiData = response?.data || [];
 
-        if (!Array.isArray(apiData) || apiData.length === 0) {
+        if (!Array.isArray(apiData) || apiData?.length === 0) {
           throw new Error("Empty API response");
         }
 
         const newLastStep = {
-          _id: apiData[0]._id || "dynamic-final-step",
+          _id: apiData[0]?._id || "dynamic-final-step",
           question: apiData[0]?.question || "Which Padel Player Are You?",
-          options: apiData.map(opt => ({
+          options: apiData?.map(opt => ({
             _id: opt.code,
             value: `${opt.code} - ${opt.question}`
           })),
@@ -902,7 +902,7 @@ const CreateMatches = () => {
       }
     }
 
-    if (currentStep < dynamicSteps.length - 1) {
+    if (currentStep < dynamicSteps?.length - 1) {
       setCurrentStep(currentStep + 1);
       setSlotError("");
       return;
@@ -1086,7 +1086,7 @@ const CreateMatches = () => {
     if (!isSlotSelected && !activeHalf) {
       if (selectedDuration === 30) {
         // For 30min: disable when 6 half slots are selected
-        if (activeHalves.size >= MAX_SLOTS) {
+        if (activeHalves.size > MAX_SLOTS) {
           isDisabled = true;
         }
       } else if (selectedDuration === 60) {
@@ -1182,14 +1182,12 @@ const CreateMatches = () => {
 
     // Click handler
     const handleClick = (e) => {
-
-     
       if (isDisabled) return;
 
       const rect = e.currentTarget.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const clickSide = x < rect.width / 2 ? "left" : "right";
-       console.log("clickSide:", clickSide);
+      console.log("clickSide:", clickSide);
 
       // Block clicks on booked halves
       if ((clickSide === "left" && isLeftBooked) || (clickSide === "right" && isRightBooked)) {
@@ -1201,19 +1199,83 @@ const CreateMatches = () => {
         return;
       }
 
-      // For 90min, allow clicking on slots with activeHalf (for continuous bookings)
-      if (selectedDuration === 90 && !isSlotSelected && !activeHalf && totalSlots >= MAX_SLOTS) {
-        return;
-      }
-
-      // For 90min, allow clicking to unselect or select
+      // For 90min, implement the required behavior
       if (selectedDuration === 90) {
+        const currentCourtTimes = selectedTimes[courtId] || [];
+        const isSlotSelected = currentCourtTimes.some(t => t._id === slot._id);
+        
+        // If this is the first slot, allow any click to unselect
+        if (isSlotSelected) {
+          toggleTime(slot, courtId, dateKey, clickSide);
+          return;
+        }
+        
+        // If this is the second slot (auto-selected as left half)
+        if (activeHalf === "left") {
+          // Rule 1: Block right-side clicks on auto-selected left half
+          if (clickSide === "right") {
+            return; // Block the click
+          }
+          
+          // Rule 2: Left-side click resets the entire chain
+          if (clickSide === "left") {
+            // Find the first slot in the chain and unselect both
+            const slotDataCourt = slotData?.data?.find(c => c?._id === courtId);
+            const sortedSlots = getSortedSlots(slotDataCourt);
+            const currentIndex = sortedSlots.findIndex(s => s._id === slot._id);
+            const prevSlot = sortedSlots[currentIndex - 1];
+            
+            if (prevSlot && currentCourtTimes.some(t => t._id === prevSlot._id)) {
+              // Clear both slots from the chain
+              const filteredTimes = currentCourtTimes.filter(t => 
+                t._id !== slot._id && t._id !== prevSlot._id
+              );
+              
+              // Clear activeHalves for both slots
+              setActiveHalves(prev => {
+                const newMap = new Map(prev);
+                const slotKey = `${courtId}-${slot._id}-${dateKey}`;
+                const prevKey = `${courtId}-${prevSlot._id}-${dateKey}`;
+                newMap.delete(slotKey);
+                newMap.delete(prevKey);
+                return newMap;
+              });
+              
+              setSelectedTimes(prev => {
+                const updated = { ...prev };
+                if (filteredTimes.length > 0) {
+                  updated[courtId] = filteredTimes;
+                } else {
+                  delete updated[courtId];
+                }
+                return updated;
+              });
+              
+              setSelectedBuisness(prev => prev.filter(t => 
+                t._id !== slot._id && t._id !== prevSlot._id
+              ));
+              
+              setSelectedCourts(prev =>
+                prev
+                  .map(c =>
+                    c._id === courtId
+                      ? { ...c, time: c.time.filter(t => t._id !== slot._id && t._id !== prevSlot._id) }
+                      : c
+                  )
+                  .filter(c => c.time.length > 0)
+              );
+              return;
+            }
+          }
+        }
+        
+        // For other 90min cases, allow normal behavior
         toggleTime(slot, courtId, dateKey, clickSide);
         return;
       }
 
-      // For 30min and 90min, pass clickSide
-      if (selectedDuration === 30 || selectedDuration === 90) {
+      // For 30min and other durations, pass clickSide
+      if (selectedDuration === 30) {
         toggleTime(slot, courtId, dateKey, clickSide);
         return;
       }

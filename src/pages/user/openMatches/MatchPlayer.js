@@ -80,7 +80,8 @@ const MatchPlayer = ({
     finalLevelStep,
     selectedDuration,
     onBackToSlots, matchPlayer,
-    slotData
+    slotData,
+    activeHalves
 }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -404,7 +405,8 @@ const MatchPlayer = ({
                 finalLevelStep,
                 addedPlayers: latestPlayers,
                 selectedDuration: selectedDuration || 60,
-                slotData
+                slotData,
+                activeHalves
             },
         });
     };

@@ -323,7 +323,7 @@ const Booking = ({ className = "" }) => {
         else if (slotHour >= 12) period = "afternoon";
         slotAmount = slotPrice.find(p => p.day === selectedDate?.day && p.duration === 60 && p.timePeriod === period)?.price || 2500;
       } else {
-        slotAmount = t.amount || getPriceForSlot(t.time);
+        slotAmount = t?.amount || getPriceForSlot(t.time);
       }
       
       return {
@@ -335,10 +335,10 @@ const Booking = ({ className = "" }) => {
 
     setSelectedBuisness(prev => {
       const filtered = prev.filter(t => !(t.date === dateKey && allTimes.some(st => 
-        st._id === t._id || 
-        st.originalId === t.originalId || 
-        t._id === st.originalId ||
-        (st._id && st._id.includes('-') && st._id.split('-')[0] === t._id)
+        st?._id === t?._id || 
+        st?.originalId === t?.originalId || 
+        t?._id === st?.originalId ||
+        (st?._id && st._id.includes('-') && st._id.split('-')[0] === t?._id)
       )));
       return [...filtered, ...newBusiness];
     });
@@ -2035,7 +2035,7 @@ const Booking = ({ className = "" }) => {
 
                                       // For 30min and 90min, pass clickSide
                                       if (selectedDuration === 30 || selectedDuration === 90) {
-                                        // For 90min, allow switching between left/right on second slot
+                                        // For 90min, implement the required behavior
                                         if (selectedDuration === 90) {
                                           const currentCourtTimes = selectedTimes[courtId]?.[dateKey] || [];
                                           const isFirstSlotSelected = currentCourtTimes.some(t => t._id === slot._id);
@@ -2046,7 +2046,48 @@ const Booking = ({ className = "" }) => {
                                             return;
                                           }
 
-                                          // If this is the second slot (half-selected), allow switching sides
+                                          // If this is the second slot (auto-selected as left half)
+                                          if (leftHalf && !rightHalf) {
+                                            // Rule 1: Block right-side clicks on auto-selected left half
+                                            if (clickSide === "right") {
+                                              return; // Block the click
+                                            }
+                                            
+                                            // Rule 2: Left-side click resets the entire chain
+                                            if (clickSide === "left") {
+                                              // Find the first slot in the chain and unselect both
+                                              const sortedSlots = getSortedSlots(slotData?.data?.find(c => c?._id === courtId));
+                                              const currentIndex = sortedSlots.findIndex(s => s._id === slot._id);
+                                              const prevSlot = sortedSlots[currentIndex - 1];
+                                              
+                                              if (prevSlot && currentCourtTimes.some(t => t._id === prevSlot._id)) {
+                                                // Clear both slots from the chain
+                                                const filteredTimes = currentCourtTimes.filter(t => 
+                                                  t._id !== slot._id && t._id !== prevSlot._id
+                                                );
+                                                
+                                                // Clear half selections
+                                                setHalfSelectedSlots(prev => {
+                                                  const newSet = new Set(prev);
+                                                  newSet.delete(`${courtId}-${slot._id}-${dateKey}-left`);
+                                                  newSet.delete(`${courtId}-${slot._id}-${dateKey}-right`);
+                                                  return newSet;
+                                                });
+                                                
+                                                setSelectedTimes(prev => ({
+                                                  ...prev,
+                                                  [courtId]: {
+                                                    ...prev[courtId],
+                                                    [dateKey]: filteredTimes.length > 0 ? filteredTimes : undefined,
+                                                  },
+                                                }));
+                                                updateSelectedBusinessAndCourts(filteredTimes, courtId, dateKey);
+                                                return;
+                                              }
+                                            }
+                                          }
+
+                                          // For other cases, allow normal switching
                                           if (leftHalf || rightHalf) {
                                             toggleTime(slot, courtId, dateKey, clickSide);
                                             return;
