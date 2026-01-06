@@ -1,0 +1,9 @@
+services:
+  padel_haus_frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.padel_haus
+    container_name: padel_haus_frontend_container
+    ports:
+      - "3000:80"
+    restart: always
