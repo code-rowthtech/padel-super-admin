@@ -50,7 +50,8 @@ const RegisterClub = () => {
     if (savedStep) {
       return parseInt(savedStep, 10);
     }
-    return registerID ? 3 : 1;
+    // Always start from step 1 for new registrations
+    return 1;
   });
 
   const [updateImage, setUpdateImage] = useState(false);
@@ -88,8 +89,20 @@ const RegisterClub = () => {
     });
   };
 
-  const goNext = () => setStep((s) => s + 1);
-  const goBack = () => setStep((s) => s - 1);
+  const goNext = () => {
+    console.log('goNext called, current step:', step);
+    setStep((s) => {
+      console.log('Moving from step', s, 'to step', s + 1);
+      return s + 1;
+    });
+  };
+  const goBack = () => {
+    console.log('goBack called, current step:', step);
+    setStep((s) => {
+      console.log('Moving from step', s, 'to step', s - 1);
+      return s - 1;
+    });
+  };
 
   const registerId = useSelector((s) => s?.club?.clubData?.data?._id);
   console.log({registerId});
@@ -98,6 +111,7 @@ const RegisterClub = () => {
   }, [registerId]);
 
   const renderStep = () => {
+    console.log('Rendering step:', step);
     switch (step) {
       case 1:
         return (

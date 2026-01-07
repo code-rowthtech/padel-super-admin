@@ -40,8 +40,7 @@ const AdminRouteGuard = ({ children }) => {
         "/admin/forgot-password",
         "/admin/reset-password",
         "/admin/verify-otp",
-        "/admin/register",
-        "/admin/register-club"
+        "/admin/register"
       ];
 
       // Set dashboard context when accessing dashboard

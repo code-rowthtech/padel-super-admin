@@ -16,6 +16,14 @@ import { useNavigate } from 'react-router-dom';
 import { getOwnerFromSession } from '../../../helpers/api/apiCore';
 
 const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => {
+    console.log('=== PriceSlotUpdate component mounted/rendered ===');
+    console.log('Props:', { onHide: !!onHide, setUpdateImage: !!setUpdateImage, onBack: !!onBack, onFinalSuccess: !!onFinalSuccess });
+    console.log('isCreateMode (has onBack prop):', !!onBack);
+    if (onBack) {
+        console.log('PriceSlotUpdate: Running in CREATE MODE (registration flow)');
+    } else {
+        console.log('PriceSlotUpdate: Running in UPDATE MODE (dashboard access)');
+    }
     const [selectedDuration, setSelectedDuration] = useState(60);
     const [allPrice, setAllPrice] = useState('');
     const [rowLoading, setRowLoading] = useState({});
@@ -249,6 +257,7 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
         setUpdateAllLoading(false);
     };
     const applyAllPrice = async () => {
+        console.log('applyAllPrice called');
         if (!allPrice.trim()) {
             showError("Please enter a price");
             return;
@@ -289,7 +298,9 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
             console.log("Create Mode - Apply All Payload:", payload);
 
             try {
-                await dispatch(createSlotPrice(payload)).unwrap();
+                const result = await dispatch(createSlotPrice(payload)).unwrap();
+                console.log('applyAllPrice API result:', result);
+                // DO NOT navigate here - only navigate when user clicks Finish
             } catch (err) {
                 showError("Failed to create prices");
             }
@@ -316,6 +327,7 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
 
     // Single Row Update — works in both modes
     const handleRowUpdate = async (dayName) => {
+        console.log('handleRowUpdate called for day:', dayName);
         setRowLoading(prev => ({ ...prev, [dayName]: true }));
 
         const periodValue = selectedPeriodByDay[dayName];
@@ -346,7 +358,9 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
             console.log("Create Mode - Row Update Payload:", payload);
 
             try {
-                await dispatch(createSlotPrice(payload)).unwrap();
+                const result = await dispatch(createSlotPrice(payload)).unwrap();
+                console.log('handleRowUpdate API result:', result);
+                // DO NOT navigate here - only navigate when user clicks Finish
             } catch (err) {
                 showError("Failed to create prices");
             }
@@ -382,11 +396,29 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
     };
 
     const handleFinish = async () => {
+        console.log('handleFinish called - user clicked Finish button');
         setFinishLoading(true);
 
         if (isCreateMode) {
+            // Check if prices already exist in slotPrice data
+            const existingPrices = slotPrice.filter(entry => entry.duration === selectedDuration);
+            
+            if (existingPrices.length > 0) {
+                // Prices already exist, just navigate to dashboard
+                console.log('PriceSlotUpdate: Prices already exist, navigating to dashboard');
+                onFinalSuccess?.();
+                navigate("/admin/dashboard");
+                sessionStorage.removeItem("registerId");
+                localStorage.removeItem("clubFormData");
+                localStorage.removeItem("owner_signup_id");
+                dispatch(resetClub());
+                setFinishLoading(false);
+                return;
+            }
+
+            // No existing prices, create them
             const payload = days.flatMap(day =>
-                periods.map(period => {
+                periods?.map(period => {
                     const currentPrice = prices[day]?.[period.value];
                     const price = parseInt(currentPrice, 10) || 0;
                     return {
@@ -404,8 +436,9 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                 const res = await dispatch(createSlotPrice(payload)).unwrap();
                 console.log(res,'priceupdateres');
                 
-                if (res?.success === true) {
-                    setFinishLoading(false);
+                // Only navigate to dashboard when user explicitly clicks Finish button
+                if (res?.success === true || res?.data || res?.status === 200) {
+                    console.log('PriceSlotUpdate: Finish successful, navigating to dashboard');
                     onFinalSuccess?.();
                     navigate("/admin/dashboard");
                     sessionStorage.removeItem("registerId");
@@ -413,9 +446,9 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                     localStorage.removeItem("owner_signup_id");
                     dispatch(resetClub());
                 } else {
-                    // showError(res?.message || "Failed to create prices");
-                    setFinishLoading(false);
+                    showError(res?.message || "Failed to create prices");
                 }
+                setFinishLoading(false);
             } catch (err) {
                 showError("Failed to create prices");
                 setFinishLoading(false);
@@ -695,9 +728,9 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                     </Button>
                 </div>
 
-                {onFinalSuccess && (
+                {isCreateMode && (
                     <div className="d-flex justify-content-end gap-3 pt-3">
-                        <Button variant="secondary" onClick={() => { onBack(); setUpdateImage(true); }}>
+                        <Button variant="secondary" onClick={() => { onBack(); setUpdateImage?.(true); }}>
                             Back
                         </Button>
                         <Button variant="success" onClick={handleFinish} disabled={finishLoading}>
