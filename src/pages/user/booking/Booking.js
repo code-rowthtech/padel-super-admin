@@ -117,10 +117,11 @@ const Booking = ({ className = "" }) => {
   const scrollRef = useRef(null);
   const dispatch = useDispatch();
   const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0]) || [];
+  const clubLoading = useSelector((state) => state?.userClub?.clubLoading);
   const { slotData } = useSelector((state) => state?.userSlot);
   const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
+  const slotPriceLoading = useSelector((state) => state?.userSlot?.slotPriceLoading);
   const slotPrice = useSelector((state) => state?.userSlot?.slotPriceData?.data || []);
-  console.log({ slotPrice });
   const [errorMessage, setErrorMessage] = useState("");
   const [errorShow, setErrorShow] = useState(false);
   const logo = clubData?.logo;
@@ -166,10 +167,10 @@ const Booking = ({ className = "" }) => {
 
   // Add this function inside Booking component
   const getPriceForSlot = useCallback((slotTime, day = selectedDate?.day, forDisplay = false) => {
-    if (!slotPrice || !Array.isArray(slotPrice) || slotPrice.length === 0) return 2500;
+    if (!slotPrice || !Array.isArray(slotPrice) || slotPrice.length === 0) return null;
 
     const slotHour = parseTimeToHour(slotTime);
-    if (slotHour === null) return 2500;
+    if (slotHour === null) return null;
 
     let period = "morning";
     if (slotHour >= 17) period = "evening";
@@ -177,15 +178,15 @@ const Booking = ({ className = "" }) => {
 
     // For 90min: show 60min price in slots, but total (60+30) for booking
     if (selectedDuration === 90) {
-      const price60 = slotPrice.find(p => p.day === day && p.duration === 60 && p.timePeriod === period)?.price || 2500;
-      if (forDisplay) return price60; // Show only 60min price in slot buttons
-      const price30 = slotPrice.find(p => p.day === day && p.duration === 30 && p.timePeriod === period)?.price || 2000;
-      return price60 + price30; // Use total for booking amount
+      const price60 = slotPrice.find(p => p.day === day && p.duration === 60 && p.timePeriod === period)?.price;
+      if (forDisplay) return price60 || null; // Show only 60min price in slot buttons
+      const price30 = slotPrice.find(p => p.day === day && p.duration === 30 && p.timePeriod === period)?.price;
+      return (price60 && price30) ? price60 + price30 : null; // Use total for booking amount
     }
 
     // For 120min: use 60min price
     if (selectedDuration === 120) {
-      return slotPrice.find(p => p.day === day && p.duration === 60 && p.timePeriod === period)?.price || 2500;
+      return slotPrice.find(p => p.day === day && p.duration === 60 && p.timePeriod === period)?.price || null;
     }
 
     const entry = slotPrice.find(p =>
@@ -194,7 +195,7 @@ const Booking = ({ className = "" }) => {
       p.timePeriod === period
     );
 
-    return entry?.price || (selectedDuration === 60 ? 2500 : 2000);
+    return entry?.price || null;
   }, [slotPrice, selectedDuration, selectedDate?.day]);
 
   // Get 30min price note for 90min duration
@@ -295,7 +296,7 @@ const Booking = ({ className = "" }) => {
               if (slotHour >= 17) period = "evening";
               else if (slotHour >= 12) period = "afternoon";
               
-              const price30 = slotPrice.find(p => p.day === selectedDate?.day && p.duration === 30 && p.timePeriod === period)?.price || 2000;
+              const price30 = slotPrice.find(p => p.day === selectedDate?.day && p.duration === 30 && p.timePeriod === period)?.price || '';
               
               const modifiedSlot = {
                 ...nextSlot,
@@ -1804,13 +1805,12 @@ const Booking = ({ className = "" }) => {
                     showUnavailable ||
                     (slot?.availabilityStatus === "available" &&
                       slot?.status !== "booked" &&
-                      !isPastTime(slot?.time) &&
-                      slot?.amount > 0);
+                      !isPastTime(slot?.time));
 
-                  // Filter by selected duration
-                  const durationMatch = slot?.duration === selectedDuration;
+                  // Filter by selected duration and check if price exists
+                  const hasPrice = getPriceForSlot(slot.time, selectedDate?.day, true) !== null;
 
-                  return basicFilter && durationMatch;
+                  return basicFilter && hasPrice;
                 });
                 return filteredSlots?.length > 0;
               })
@@ -1818,15 +1818,20 @@ const Booking = ({ className = "" }) => {
                 : "border-0"
                 }`}
             >
-              {slotData?.data?.length > 0 ? (
-                slotLoading ? (
+              {(slotLoading || clubLoading || slotPriceLoading) && !slotData?.data?.length ? (
+                <DataLoading height={"36vh"} />
+              ) : slotData?.data?.length > 0 ? (
+                (slotLoading || clubLoading || slotPriceLoading) ? (
                   <DataLoading height={"36vh"} />
                 ) : (
                   <>
                     <div className=" p-0   ">
                       {slotData?.data?.length > 0 &&
                         slotData?.data?.some(
-                          (court) => court?.slots?.length > 0
+                          (court) => court?.slots?.some((slot) => {
+                            const hasPrice = getPriceForSlot(slot.time, selectedDate?.day, true) !== null;
+                            return hasPrice;
+                          })
                         ) && (
                           <div className="row mb-md-2 mb-0">
                             <div className="col-3 d-md-block d-none">
@@ -1879,7 +1884,9 @@ const Booking = ({ className = "" }) => {
                               !isPastTime(slot?.time);
 
                             const tabKey = duration[activeTab]?.key;
-                            return basicFilter && filterSlotsByTab(slot, tabKey);
+                            const hasPrice = getPriceForSlot(slot.time, selectedDate?.day, true) !== null;
+                            
+                            return basicFilter && filterSlotsByTab(slot, tabKey) && hasPrice;
                           });
 
                           if (filteredSlots?.length === 0) return null;
@@ -1940,6 +1947,11 @@ const Booking = ({ className = "" }) => {
                                     const isHalfBooked = isLeftBooked || isRightBooked;
 
                                     const price = getPriceForSlot(slot.time, selectedDate?.day, true);
+                                    
+                                    // Hide slot if no price data
+                                    if (price === null) {
+                                      return null;
+                                    }
 
                                     if ((selectedDuration === 60 || selectedDuration === 120) && isHalfBooked) {
                                       return null;
@@ -2210,35 +2222,38 @@ const Booking = ({ className = "" }) => {
                     </div>
 
                     {slotData?.data.every((court) => {
-                      const hasAvailableSlots = court?.slots?.some((slot) => {
+                      const hasAvailableSlotsWithPrice = court?.slots?.some((slot) => {
                         const basicFilter =
                           showUnavailable ||
                           (slot?.availabilityStatus === "available" &&
                             slot?.status !== "booked" &&
                             !isPastTime(slot?.time));
 
+                        const hasPrice = getPriceForSlot(slot.time, selectedDate?.day, true) !== null;
                         const tabKey = duration[activeTab]?.key;
-                        return basicFilter && filterSlotsByTab(slot, tabKey);
+                        return basicFilter && filterSlotsByTab(slot, tabKey) && hasPrice;
                       });
-                      return !hasAvailableSlots;
+                      return !hasAvailableSlotsWithPrice;
                     }) && (
                         <div
                           className="d-flex justify-content-center align-items-center text-center h-100 py-5 mt-5 text-danger label_font"
                           style={{ fontFamily: "Poppins", fontWeight: "500" }}
                         >
-                          No slots are available for this date and time.
-                          Please choose another date
+                          No slots are available for this duration.
+                          Please select a different duration
                         </div>
                       )}
                   </>
                 )
               ) : (
-                <div
-                  className="text-center py-4 text-danger"
-                  style={{ fontFamily: "Poppins", fontWeight: "500" }}
-                >
-                  No courts available
-                </div>
+                !slotLoading && !clubLoading && !slotPriceLoading && (
+                  <div
+                    className="text-center py-4 text-danger"
+                    style={{ fontFamily: "Poppins", fontWeight: "500" }}
+                  >
+                    No courts available
+                  </div>
+                )
               )}
             </div>
 
