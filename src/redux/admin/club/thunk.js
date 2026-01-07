@@ -117,7 +117,7 @@ export const createSlotPrice = createAsyncThunk(
     try {
       const res = await ownerApi.post(Url.CREATE_SLOT_PRICE, data);
       if (res?.status === 201 || res?.data?.success === true) {
-        showSuccess(res?.data?.message);
+        // showSuccess(res?.data?.message);
         return res?.data;
       } else {
         showError(res?.data?.message || "Failed to create slot");
