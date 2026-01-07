@@ -1,14 +1,12 @@
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import AdminTopbar from "../../pages/admin/header/AdminTopbar";
 import AdminSidebar from "../../pages/admin/sidebar/AdminSidebar";
-import { getOwnerFromSession } from "../../helpers/api/apiCore";
 
 const AdminLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const { pathname } = useLocation();
-    const navigate = useNavigate();
 
     const getPageName = (path) => {
         const pageMap = {
@@ -52,44 +50,6 @@ const AdminLayout = () => {
             sessionStorage.removeItem('manual-booking-slots');
         }
     }, [pathname]);
-
-    // Block browser back navigation for authenticated admin users
-    useEffect(() => {
-        const owner = getOwnerFromSession();
-        if (!owner) return;
-
-        const blockedPaths = [
-            '/admin/login',
-            '/admin/sign-up', 
-            '/admin/register',
-            '/admin/register-club',
-            '/admin/forgot-password',
-            '/admin/reset-password',
-            '/admin/verify-otp'
-        ];
-
-        const blockBackNavigation = (e) => {
-            e.preventDefault();
-            const targetPath = window.location.pathname;
-            
-            // If trying to go back to blocked paths, redirect to dashboard
-            if (blockedPaths.some(path => targetPath.includes(path))) {
-                navigate('/admin/dashboard', { replace: true });
-            } else {
-                // Allow navigation within admin pages
-                navigate('/admin/dashboard', { replace: true });
-            }
-        };
-
-        window.addEventListener('popstate', blockBackNavigation);
-        
-        // Push current state to prevent back navigation
-        window.history.pushState(null, '', window.location.pathname);
-
-        return () => {
-            window.removeEventListener('popstate', blockBackNavigation);
-        };
-    }, [navigate, pathname]);
 
     return (
         <>
