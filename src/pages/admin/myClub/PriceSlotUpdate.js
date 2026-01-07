@@ -20,6 +20,7 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
     const [allPrice, setAllPrice] = useState('');
     const [rowLoading, setRowLoading] = useState({});
     const [applyAllLoading, setApplyAllLoading] = useState(false);
+    const [finishLoading, setFinishLoading] = useState(false);
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const owner = getOwnerFromSession();
@@ -31,7 +32,7 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
     console.log({ slotPrice });
     // CREATE MODE जब onBack है → पहली बार prices create कर रहे हैं
     const isCreateMode = !!onBack;
-console.log({slotPriceLoading});
+    console.log({ slotPriceLoading });
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
     const periods = [
@@ -57,12 +58,12 @@ console.log({slotPriceLoading});
     const [selectedPeriodByDay, setSelectedPeriodByDay] = useState({});
     const [updateAllLoading, setUpdateAllLoading] = useState(false);
     const [updatedInputs, setUpdatedInputs] = useState(new Set()); // Track which inputs were updated
-    
+
     // Check if update all button should be enabled
     const canUpdateAll = () => {
         const filledInputs = [];
         const unupdatedInputs = [];
-        
+
         days.forEach(day => {
             periods.forEach(period => {
                 const inputKey = `${day}-${period.value}`;
@@ -74,14 +75,14 @@ console.log({slotPriceLoading});
                 }
             });
         });
-        
+
         return filledInputs.length >= 2 && unupdatedInputs.length >= 2;
     };
     // Clear updated inputs when duration changes
     useEffect(() => {
         setUpdatedInputs(new Set());
     }, [selectedDuration]);
-    
+
     useEffect(() => {
         if (slotPrice.length === 0) return;
 
@@ -142,7 +143,7 @@ console.log({slotPriceLoading});
             ...prev,
             [day]: period
         }));
-        
+
         // Remove this input from updatedInputs when value changes
         const inputKey = `${day}-${period}`;
         setUpdatedInputs(prev => {
@@ -179,16 +180,16 @@ console.log({slotPriceLoading});
     // Update all filled inputs with their current prices
     const updateAllPrices = async () => {
         setUpdateAllLoading(true);
-        
+
         if (isCreateMode) {
             // Create mode: send full payload
             const payload = generateCreatePayload();
-            
+
             if (payload.length === 0) {
                 setUpdateAllLoading(false);
                 return showError("No prices to update");
             }
-            
+
             try {
                 await dispatch(createSlotPrice(payload)).unwrap();
             } catch (err) {
@@ -197,20 +198,20 @@ console.log({slotPriceLoading});
         } else {
             // Update mode: send only id and price for existing entries
             const updates = [];
-            
+
             days.forEach(day => {
                 periods.forEach(period => {
                     const currentPrice = prices[day][period.value];
                     const price = parseInt(currentPrice, 10);
-                    
+
                     if (price > 0) {
                         // Find existing entry in slotPrice
-                        const existingEntry = slotPrice.find(entry => 
-                            entry.day === day && 
-                            entry.duration === selectedDuration && 
+                        const existingEntry = slotPrice.find(entry =>
+                            entry.day === day &&
+                            entry.duration === selectedDuration &&
                             entry.timePeriod === period.value
                         );
-                        
+
                         if (existingEntry) {
                             updates.push({
                                 id: existingEntry._id,
@@ -220,12 +221,12 @@ console.log({slotPriceLoading});
                     }
                 });
             });
-            
+
             if (updates.length === 0) {
                 setUpdateAllLoading(false);
                 return showError("No prices to update");
             }
-            
+
             try {
                 await dispatch(updateSlotPrice({ updates })).unwrap();
                 dispatch(getUserSlotPrice({ register_club_id: registerId, day: "", duration: selectedDuration }));
@@ -233,7 +234,7 @@ console.log({slotPriceLoading});
                 showError("Failed to update prices");
             }
         }
-        
+
         // Mark all filled inputs as updated
         const filledInputKeys = [];
         days.forEach(day => {
@@ -244,7 +245,7 @@ console.log({slotPriceLoading});
             });
         });
         setUpdatedInputs(new Set(filledInputKeys));
-        
+
         setUpdateAllLoading(false);
     };
     const applyAllPrice = async () => {
@@ -380,13 +381,46 @@ console.log({slotPriceLoading});
         setRowLoading(prev => ({ ...prev, [dayName]: false }));
     };
 
-    const handleFinish = () => {
-        onFinalSuccess?.();
-        navigate("/admin/dashboard");
-        sessionStorage.removeItem("registerId");
-        localStorage.removeItem("clubFormData");
-        localStorage.removeItem("owner_signup_id");
-        dispatch(resetClub());
+    const handleFinish = async () => {
+        setFinishLoading(true);
+
+        if (isCreateMode) {
+            const payload = days.flatMap(day =>
+                periods.map(period => {
+                    const currentPrice = prices[day]?.[period.value];
+                    const price = parseInt(currentPrice, 10) || 0;
+                    return {
+                        duration: selectedDuration,
+                        day: day,
+                        price: price,
+                        slotTime: period.slotTime,
+                        timePeriod: period.value,
+                        register_club_id: registerId
+                    };
+                })
+            );
+
+            try {
+                const res = await dispatch(createSlotPrice(payload)).unwrap();
+                console.log(res,'priceupdateres');
+                
+                if (res?.success === true) {
+                    setFinishLoading(false);
+                    onFinalSuccess?.();
+                    navigate("/admin/dashboard");
+                    sessionStorage.removeItem("registerId");
+                    localStorage.removeItem("clubFormData");
+                    localStorage.removeItem("owner_signup_id");
+                    dispatch(resetClub());
+                } else {
+                    // showError(res?.message || "Failed to create prices");
+                    setFinishLoading(false);
+                }
+            } catch (err) {
+                showError("Failed to create prices");
+                setFinishLoading(false);
+            }
+        } 
     };
 
     return (
@@ -544,7 +578,7 @@ console.log({slotPriceLoading});
                         ) : (
                             days?.map(day => {
                                 const isRowLoading = rowLoading[day] && !applyAllLoading;
-                                
+
                                 if (isRowLoading) {
                                     return (
                                         <tr key={day}>
@@ -589,59 +623,59 @@ console.log({slotPriceLoading});
                                         </tr>
                                     );
                                 }
-                                
+
                                 return (
-                                <tr key={day}>
-                                    <td style={{
-                                        padding: '12px 10px',
-                                        fontWeight: '600',
-                                        color: '#374151',
-                                        borderBottom: '1px solid #dee2e6',
-                                    }}>
-                                        {day}
-                                    </td>
-                                    {periods.map(period => (
-                                        <td key={period.value} style={{
-                                            padding: '10px',
-                                            textAlign: 'center',
+                                    <tr key={day}>
+                                        <td style={{
+                                            padding: '12px 10px',
+                                            fontWeight: '600',
+                                            color: '#374151',
                                             borderBottom: '1px solid #dee2e6',
                                         }}>
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'center' }}>
-                                                <div style={{ fontSize: '11px', fontWeight: '600', color: '#495057' }}>
-                                                    {periodRanges[period.value]}
-                                                </div>
-                                                <input
-                                                    type="text"
-                                                    value={prices[day]?.[period.value] || ''}
-                                                    onChange={(e) => handlePriceChange(day, period.value, e.target.value)}
-                                                    style={{
-                                                        border: '1px solid #ced4da',
-                                                        borderRadius: '4px',
-                                                        padding: '4px 8px',
-                                                        textAlign: 'center',
-                                                        fontSize: '13px',
-                                                        fontWeight: 'bold',
-                                                        color: prices[day]?.[period.value] ? '#28a745' : '#6c757d',
-                                                        width: '120px',
-                                                        outline: 'none',
-                                                    }}
-                                                    placeholder="Price"
-                                                    disabled={rowLoading[day] || applyAllLoading}
-                                                />
-                                            </div>
+                                            {day}
                                         </td>
-                                    ))}
-                                    <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
-                                        <Button
-                                            size="sm"
-                                            variant="success"
-                                            disabled={rowLoading[day] || applyAllLoading}
-                                            onClick={() => handleRowUpdate(day)}
-                                        >
-                                            {rowLoading[day] ? <ButtonLoading color="white" /> : 'Update'}
-                                        </Button>
-                                    </td>
-                                </tr>
+                                        {periods.map(period => (
+                                            <td key={period.value} style={{
+                                                padding: '10px',
+                                                textAlign: 'center',
+                                                borderBottom: '1px solid #dee2e6',
+                                            }}>
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'center' }}>
+                                                    <div style={{ fontSize: '11px', fontWeight: '600', color: '#495057' }}>
+                                                        {periodRanges[period.value]}
+                                                    </div>
+                                                    <input
+                                                        type="text"
+                                                        value={prices[day]?.[period.value] || ''}
+                                                        onChange={(e) => handlePriceChange(day, period.value, e.target.value)}
+                                                        style={{
+                                                            border: '1px solid #ced4da',
+                                                            borderRadius: '4px',
+                                                            padding: '4px 8px',
+                                                            textAlign: 'center',
+                                                            fontSize: '13px',
+                                                            fontWeight: 'bold',
+                                                            color: prices[day]?.[period.value] ? '#28a745' : '#6c757d',
+                                                            width: '120px',
+                                                            outline: 'none',
+                                                        }}
+                                                        placeholder="Price"
+                                                        disabled={rowLoading[day] || applyAllLoading}
+                                                    />
+                                                </div>
+                                            </td>
+                                        ))}
+                                        <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
+                                            <Button
+                                                size="sm"
+                                                variant="success"
+                                                disabled={rowLoading[day] || applyAllLoading}
+                                                onClick={() => handleRowUpdate(day)}
+                                            >
+                                                {rowLoading[day] ? <ButtonLoading color="white" /> : 'Update'}
+                                            </Button>
+                                        </td>
+                                    </tr>
                                 );
                             })
                         )}
@@ -666,8 +700,8 @@ console.log({slotPriceLoading});
                         <Button variant="secondary" onClick={() => { onBack(); setUpdateImage(true); }}>
                             Back
                         </Button>
-                        <Button variant="success" onClick={handleFinish}>
-                            Finish
+                        <Button variant="success" onClick={handleFinish} disabled={finishLoading}>
+                            {finishLoading ? <ButtonLoading color="white" /> : 'Finish'}
                         </Button>
                     </div>
                 )}

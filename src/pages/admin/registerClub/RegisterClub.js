@@ -29,13 +29,13 @@ const defaultFormData = {
   images: [], // <-- **File[]** (only while wizard is open)
   previewUrls: [], // <-- URLs that survive page reload / update
   businessHours: {
-    Monday: { start: "06:00 AM", end: "11:00 PM" },
-    Tuesday: { start: "06:00 AM", end: "11:00 PM" },
-    Wednesday: { start: "06:00 AM", end: "11:00 PM" },
-    Thursday: { start: "06:00 AM", end: "11:00 PM" },
-    Friday: { start: "06:00 AM", end: "11:00 PM" },
-    Saturday: { start: "06:00 AM", end: "11:00 PM" },
-    Sunday: { start: "06:00 AM", end: "11:00 PM" },
+    Monday: { start: "05:00 AM", end: "11:00 PM" },
+    Tuesday: { start: "05:00 AM", end: "11:00 PM" },
+    Wednesday: { start: "05:00 AM", end: "11:00 PM" },
+    Thursday: { start: "05:00 AM", end: "11:00 PM" },
+    Friday: { start: "05:00 AM", end: "11:00 PM" },
+    Saturday: { start: "05:00 AM", end: "11:00 PM" },
+    Sunday: { start: "05:00 AM", end: "11:00 PM" },
   },
   termsAccepted: false,
 };
@@ -92,6 +92,7 @@ const RegisterClub = () => {
   const goBack = () => setStep((s) => s - 1);
 
   const registerId = useSelector((s) => s?.club?.clubData?.data?._id);
+  console.log({registerId});
   useEffect(() => {
     if (registerId) sessionStorage.setItem("registerId", registerId);
   }, [registerId]);
