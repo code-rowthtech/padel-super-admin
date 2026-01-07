@@ -230,10 +230,10 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                 });
             });
 
-            if (updates.length === 0) {
-                setUpdateAllLoading(false);
-                return showError("No prices to update");
-            }
+            // if (updates.length === 0) {
+            //     setUpdateAllLoading(false);
+            //     return showError("No prices to update");
+            // }
 
             try {
                 await dispatch(updateSlotPrice({ updates })).unwrap();
@@ -327,24 +327,7 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
 
     // Single Row Update — works in both modes
     const handleRowUpdate = async (dayName) => {
-        console.log('handleRowUpdate called for day:', dayName);
         setRowLoading(prev => ({ ...prev, [dayName]: true }));
-
-        const periodValue = selectedPeriodByDay[dayName];
-        if (!periodValue) {
-            setRowLoading(prev => ({ ...prev, [dayName]: false }));
-            return showError("Please select a period");
-        }
-
-        const amount = parseInt(prices[dayName][periodValue], 10);
-        if (!amount || amount <= 0) {
-            setRowLoading(prev => ({ ...prev, [dayName]: false }));
-            return showError("Invalid price");
-        }
-
-        // Mark this input as updated
-        const inputKey = `${dayName}-${periodValue}`;
-        setUpdatedInputs(prev => new Set([...prev, inputKey]));
 
         if (isCreateMode) {
             // Create mode: send all currently entered prices
@@ -365,28 +348,49 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                 showError("Failed to create prices");
             }
         } else {
-            // Update mode: single period update
-            const matchingEntries = slotPrice.filter(entry =>
-                entry.day === dayName &&
-                entry.duration === selectedDuration &&
-                entry.timePeriod === periodValue
-            );
+            // Update mode: update ALL filled periods for this day
+            const updates = [];
 
-            if (matchingEntries.length === 0) {
-                setRowLoading(prev => ({ ...prev, [dayName]: false }));
-                return showError("No slots found");
-            }
+            periods.forEach(period => {
+                const currentPrice = prices[dayName][period.value];
+                const price = parseInt(currentPrice, 10);
 
-            const updates = matchingEntries.map(entry => ({
-                id: entry._id,
-                price: amount
-            }));
+                if (price > 0) {
+                    // Find existing entry in slotPrice
+                    const existingEntry = slotPrice.find(entry =>
+                        entry.day === dayName &&
+                        entry.duration === selectedDuration &&
+                        entry.timePeriod === period.value
+                    );
+
+                    if (existingEntry) {
+                        updates.push({
+                            id: existingEntry._id,
+                            price: price
+                        });
+                    }
+                }
+            });
+
+            // if (updates.length === 0) {
+            //     setRowLoading(prev => ({ ...prev, [dayName]: false }));
+            //     return showError("No prices to update for this day");
+            // }
 
             const payload = { updates };
+            console.log('Update Mode - Row Update Payload:', payload);
 
             try {
                 await dispatch(updateSlotPrice(payload)).unwrap();
                 dispatch(getUserSlotPrice({ register_club_id: registerId, day: "", duration: selectedDuration }));
+                
+                // Mark all updated inputs for this day
+                periods.forEach(period => {
+                    if (prices[dayName][period.value]) {
+                        const inputKey = `${dayName}-${period.value}`;
+                        setUpdatedInputs(prev => new Set([...prev, inputKey]));
+                    }
+                });
             } catch (err) {
                 showError("Update failed");
             }
@@ -416,13 +420,32 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                 return;
             }
 
-            // No existing prices, create them
-            const payload = days.flatMap(day =>
+            // Create payloads for both 30min and 60min durations
+            const payloads = [];
+            
+            // 30min duration payload
+            const payload30 = days.flatMap(day =>
                 periods?.map(period => {
                     const currentPrice = prices[day]?.[period.value];
                     const price = parseInt(currentPrice, 10) || 0;
                     return {
-                        duration: selectedDuration,
+                        duration: 30,
+                        day: day,
+                        price: price,
+                        slotTime: period.slotTime,
+                        timePeriod: period.value,
+                        register_club_id: registerId
+                    };
+                })
+            );
+            
+            // 60min duration payload
+            const payload60 = days.flatMap(day =>
+                periods?.map(period => {
+                    const currentPrice = prices[day]?.[period.value];
+                    const price = parseInt(currentPrice, 10) || 0;
+                    return {
+                        duration: 60,
                         day: day,
                         price: price,
                         slotTime: period.slotTime,
@@ -433,11 +456,15 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
             );
 
             try {
-                const res = await dispatch(createSlotPrice(payload)).unwrap();
-                console.log(res,'priceupdateres');
+                // Send both payloads
+                const res30 = await dispatch(createSlotPrice(payload30)).unwrap();
+                const res60 = await dispatch(createSlotPrice(payload60)).unwrap();
                 
-                // Only navigate to dashboard when user explicitly clicks Finish button
-                if (res?.success === true || res?.data || res?.status === 200) {
+                console.log('30min payload result:', res30);
+                console.log('60min payload result:', res60);
+                
+                if ((res30?.success === true || res30?.data || res30?.status === 200) &&
+                    (res60?.success === true || res60?.data || res60?.status === 200)) {
                     console.log('PriceSlotUpdate: Finish successful, navigating to dashboard');
                     onFinalSuccess?.();
                     navigate("/admin/dashboard");
@@ -446,7 +473,7 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                     localStorage.removeItem("owner_signup_id");
                     dispatch(resetClub());
                 } else {
-                    showError(res?.message || "Failed to create prices");
+                    showError("Failed to create prices");
                 }
                 setFinishLoading(false);
             } catch (err) {

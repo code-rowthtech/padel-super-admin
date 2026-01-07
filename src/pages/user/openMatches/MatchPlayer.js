@@ -81,6 +81,7 @@ const MatchPlayer = ({
     selectedDuration,
     onBackToSlots, matchPlayer,
     slotData,
+    halfSelectedSlots,
     activeHalves
 }) => {
     const dispatch = useDispatch();
@@ -406,6 +407,7 @@ const MatchPlayer = ({
                 addedPlayers: latestPlayers,
                 selectedDuration: selectedDuration || 60,
                 slotData,
+                halfSelectedSlots,
                 activeHalves
             },
         });

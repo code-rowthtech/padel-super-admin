@@ -239,6 +239,17 @@ const CreateMatches = () => {
     setActiveHalves(new Map()); // Clear activeHalves on duration change
   }, [selectedDuration]);
 
+  // Sync halfSelectedSlots with activeHalves
+  useEffect(() => {
+    const newHalfSelectedSlots = new Set();
+    activeHalves.forEach((side, key) => {
+      if (side === 'right') {
+        newHalfSelectedSlots.add(key);
+      }
+    });
+    setHalfSelectedSlots(newHalfSelectedSlots);
+  }, [activeHalves]);
+
   const handleClickOutside = (e) => {
     if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
       setIsOpen(false);
@@ -2545,6 +2556,8 @@ const CreateMatches = () => {
               userGender={userGender}
               selectedDuration={selectedDuration}
               slotData={slotData}
+              halfSelectedSlots={halfSelectedSlots}
+              activeHalves={activeHalves}
               onBackToSlots={() => {
                 setMatchPlayer(false);
                 setCurrentStep(0);
