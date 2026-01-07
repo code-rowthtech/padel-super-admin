@@ -31,47 +31,74 @@ const formatTime = (timeStr) => {
     return timeStr.replace(" am", ":00 AM").replace(" pm", ":00 PM");
 };
 
-// Helper function to format time display - shows actual selected time for 30min right-side selections
-const formatTimeDisplay = (timeSlot, duration) => {
-    if (!timeSlot?.time) return "";
+// Helper function to format time display - shows the time as-is since displaySlots already have correct times
+const formatTimeDisplay = (timeStr, duration, timeSlot, halfSelectedSlots, activeHalves, courtId, date) => {
+    if (!timeStr) return "";
+    
+    // For 30min duration, check if this is a right-side selection
+    if (duration === 30 && halfSelectedSlots && activeHalves && courtId && date && timeSlot?._id) {
+        const slotKey = `${courtId}-${timeSlot._id}-${date}`;
+        const activeHalf = activeHalves.get(slotKey);
+        
+        if (activeHalf === 'right') {
+            // This is a right-side selection, add 30 minutes to the base time
+            let cleaned = timeStr.toString().toLowerCase().trim();
+            let hour, minute = "00", period = "";
+            
+            if (cleaned.includes("am") || cleaned.includes("pm")) {
+                period = cleaned.endsWith("am") ? "AM" : "PM";
+                cleaned = cleaned.replace(/am|pm/gi, "").trim();
+            }
 
-    let cleaned = timeSlot.time.toLowerCase().trim();
+            if (cleaned.includes(":")) {
+                [hour, minute] = cleaned.split(":");
+            } else {
+                hour = cleaned;
+                minute = "00";
+            }
 
-    // Extract AM / PM
-    let period = cleaned.includes("pm") ? "PM" : "AM";
-    cleaned = cleaned.replace(/am|pm/gi, "").trim();
+            let hourNum = parseInt(hour);
+            let minuteNum = parseInt(minute) + 30;
+            
+            // Handle minute overflow
+            if (minuteNum >= 60) {
+                minuteNum -= 60;
+                hourNum += 1;
+                
+                // Handle 12-hour format overflow
+                if (hourNum > 12) {
+                    hourNum = 1;
+                    period = period === "AM" ? "PM" : "AM";
+                }
+            }
 
-    // Extract hour & minute
-    let hour = 0;
-    let minute = 0;
-
-    if (cleaned.includes(":")) {
-        const parts = cleaned.split(":");
-        hour = parseInt(parts[0], 10);
-        minute = parseInt(parts[1], 10);
-    } else {
-        hour = parseInt(cleaned, 10);
-    }
-
-    if (isNaN(hour)) return timeSlot.time;
-
-    // ✅ ADD 30 MINUTES IF HALF SLOT
-    if (duration === 30) {
-        minute += 30;
-        if (minute >= 60) {
-            minute = minute - 60;
-            hour += 1;
+            let formattedHour = hourNum.toString().padStart(2, "0");
+            let formattedMinute = minuteNum.toString().padStart(2, "0");
+            return `${formattedHour}:${formattedMinute} ${period}`.trim();
         }
     }
+    
+    // Default formatting for left-side or non-30min slots
+    let cleaned = timeStr.toString().toLowerCase().trim();
+    let hour, minute = "00", period = "";
+    
+    if (cleaned.includes("am") || cleaned.includes("pm")) {
+        period = cleaned.endsWith("am") ? "AM" : "PM";
+        cleaned = cleaned.replace(/am|pm/gi, "").trim();
+    }
 
-    // Handle 12-hour overflow
-    if (hour > 12) hour -= 12;
-    if (hour === 0) hour = 12;
+    if (cleaned.includes(":")) {
+        [hour, minute] = cleaned.split(":");
+    } else {
+        hour = cleaned;
+    }
 
-    const formattedHour = hour.toString().padStart(2, "0");
-    const formattedMinute = minute.toString().padStart(2, "0");
+    let hourNum = parseInt(hour);
+    if (isNaN(hourNum)) return timeStr;
 
-    return `${formattedHour}:${formattedMinute} ${period}`;
+    let formattedHour = hourNum.toString().padStart(2, "0");
+    minute = minute ? minute.padStart(2, "0") : "00";
+    return `${formattedHour}:${minute} ${period}`.trim();
 };
 
 
@@ -207,6 +234,7 @@ const OpenmatchPayment = () => {
         halfSelectedSlots = new Set(),
         activeHalves = new Map()
     } = state || {};
+    console.log(halfSelectedSlots,selectedCourts,'halfSelectedSlots');
 
     const finalAddedPlayers =
         Object.keys(stateAddedPlayers).length > 0
@@ -458,55 +486,16 @@ const OpenmatchPayment = () => {
 
     // Calculate display slots and totals based on duration
     const getDisplayData = () => {
-        if (selectedDuration === 30) {
-            // For 30min, show each half-slot separately with correct time
-            const displaySlots = [];
-            localSelectedCourts.forEach(court => {
-                court?.time?.forEach(timeSlot => {
-                    // Check if this is a right-side selection from activeHalves
-                    const slotKey = `${court._id}-${timeSlot._id}-${court.date}`;
-                    const activeHalf = activeHalves?.get?.(slotKey);
-
-                    let displayTimeSlot = { ...timeSlot };
-                    if (activeHalf === 'right') {
-                        // This is a right-side selection, adjust the time to show :30
-                        let adjustedTime = timeSlot.time;
-
-                        // Handle different time formats
-                        if (adjustedTime.includes(':00')) {
-                            // "6:00 PM" -> "6:30 PM"
-                            adjustedTime = adjustedTime.replace(':00', ':30');
-                        } else if (adjustedTime.match(/^\d+\s*(am|pm)$/i)) {
-                            // "6 pm" -> "6:30 pm"
-                            adjustedTime = adjustedTime.replace(/(\d+)(\s*)(am|pm)/i, '$1:30$2$3');
-                        } else if (adjustedTime.match(/^\d+:\d+\s*(am|pm)$/i)) {
-                            // Already has minutes, keep as is
-                            // This handles cases like "6:15 pm" which shouldn't be changed
-                        }
-
-                        displayTimeSlot = { ...timeSlot, time: adjustedTime };
-                    }
-
-                    displaySlots.push({
-                        ...court,
-                        time: [displayTimeSlot]
-                    });
+        const displaySlots = [];
+        localSelectedCourts.forEach(court => {
+            court?.time?.forEach(timeSlot => {
+                displaySlots.push({
+                    ...court,
+                    time: [timeSlot]
                 });
             });
-            return { displaySlots, totalSlots: displaySlots.length };
-        } else {
-            // For 60min, 90min, 120min - show each selected slot
-            const displaySlots = [];
-            localSelectedCourts.forEach(court => {
-                court?.time?.forEach(timeSlot => {
-                    displaySlots.push({
-                        ...court,
-                        time: [timeSlot]
-                    });
-                });
-            });
-            return { displaySlots, totalSlots: displaySlots.length };
-        }
+        });
+        return { displaySlots, totalSlots: displaySlots.length };
     };
 
     const { displaySlots, totalSlots } = getDisplayData();
@@ -813,7 +802,7 @@ const OpenmatchPayment = () => {
                                                                 {court.date ? `${new Date(court.date).toLocaleString("en-US", { day: "2-digit" })}, ${new Date(court?.date).toLocaleString("en-US", { month: "short" })}` : ""}
                                                             </span>
                                                             <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "15px" }}>
-                                                                {formatTimeDisplay(timeSlot, selectedDuration)}
+                                                                {formatTimeDisplay(timeSlot.time, selectedDuration, timeSlot, halfSelectedSlots, activeHalves, court._id, court.date)}
                                                             </span>
                                                             <span className="ps-2" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px" }}>{court?.courtName}</span>
                                                         </div>
@@ -978,7 +967,7 @@ const OpenmatchPayment = () => {
                                                                         fontSize: "11px",
                                                                     }}
                                                                 >
-                                                                    {formatTimeDisplay(timeSlot, selectedDuration)}
+                                                                    {formatTimeDisplay(timeSlot.time, selectedDuration, timeSlot, halfSelectedSlots, activeHalves, court._id, court.date)}
                                                                 </span>
                                                                 <span
                                                                     className="ps-1"
