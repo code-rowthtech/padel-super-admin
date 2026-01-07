@@ -253,7 +253,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
   const [hasChanged, setHasChanged] = useState(false);
 
   const convertAmPmTo24Hour = (timeStr) => {
-    if (!timeStr) return "06:00";
+    if (!timeStr) return "05:00";
     const [time, modifier] = timeStr.split(" ");
     let [hours, minutes] = time.split(":");
     hours = parseInt(hours, 10);
@@ -263,7 +263,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
   };
 
   const convert24HourToAmPm = (timeStr) => {
-    if (!timeStr) return "6:00 AM";
+    if (!timeStr) return "5:00 AM";
     let [hours, minutes] = timeStr.split(":");
     hours = parseInt(hours, 10);
     const modifier = hours >= 12 ? "PM" : "AM";
@@ -324,7 +324,7 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
       <>
         {days.map((day) => {
           const dayHours = formData.businessHours[day] || {
-            start: "06:00 AM",
+            start: "05:00 AM",
             end: "11:00 PM",
           };
           const startTime24 = convertAmPmTo24Hour(dayHours.start);
@@ -373,8 +373,8 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
                     }}
                     className="py-0 "
                   >
-                    {Array.from({ length: 13 }, (_, i) => {
-                      const h = i + 6;
+                    {Array.from({ length: 14 }, (_, i) => {
+                      const h = i + 5;
                       const t = `${h.toString().padStart(2, "0")}:00`;
                       return (
                         <option key={t} value={t}>
