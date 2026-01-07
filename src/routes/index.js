@@ -42,6 +42,7 @@ const Payments = React.lazy(() => import("../pages/admin/payments/Payments"));
 const Packages = React.lazy(() => import("../pages/admin/packages/Packages"));
 const PackageDetails = React.lazy(() => import("../pages/admin/packages/PackageDetails"));
 const MyClub = React.lazy(() => import("../pages/admin/myClub/ClubUpdateForm"));
+const PriceSlotUpdate = React.lazy(() => import("../pages/admin/myClub/PriceSlotUpdate"));
 const Americano = React.lazy(() => import("../pages/admin/americano/Americano"));
 const SubOwner = React.lazy(() => import("../pages/admin/subOwner/SubOwner"));
 const CourtAvailability = React.lazy(() => import("../pages/admin/court/CourtAvailability"));
@@ -265,6 +266,10 @@ const AllRoutes = () => {
             {
               path: "my-club",
               element: LoadComponent(MyClub),
+            },
+            {
+              path: "price-slot-update",
+              element: LoadComponent(PriceSlotUpdate),
             },
             {
               path: "americano",

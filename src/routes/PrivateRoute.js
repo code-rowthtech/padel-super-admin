@@ -24,12 +24,16 @@ const PrivateRoute = ({ children }) => {
       }
     }
 
-    // Block access to registration pages if club already exists
+    // Block access to registration pages if club already exists AND registration is complete
     if (authenticated && owner) {
       const registerId = ownerClubData?.[0]?._id || sessionStorage.getItem("registerId");
       const registrationPaths = ["/admin/register", "/admin/register-club"];
       
-      if (registerId && registrationPaths.some(path => location.pathname.includes(path))) {
+      // Only redirect if club registration is complete (no step in localStorage)
+      const currentStep = localStorage.getItem("clubRegistrationStep");
+      const isRegistrationComplete = !currentStep || parseInt(currentStep, 10) > 3;
+      
+      if (registerId && registrationPaths.some(path => location.pathname.includes(path)) && isRegistrationComplete) {
         navigate("/admin/dashboard", { replace: true });
         return;
       }
