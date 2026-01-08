@@ -85,6 +85,7 @@ const MatchPlayer = ({
     activeHalves
 }) => {
     const dispatch = useDispatch();
+    console.log({totalAmount});
     const navigate = useNavigate();
     const User = getUserFromSession();
     const [selectedGender, setSelectedGender] = useState('');
@@ -320,17 +321,48 @@ const MatchPlayer = ({
     };
 
     const totalSlots = selectedCourts.reduce((sum, court) => sum + court.time?.length, 0);
-    const slotsPerCourt = selectedCourts.length > 0 ? selectedCourts[0]?.time?.length : 0;
     
-    // For 90min duration, we need to account for auto-selected slots
-    const effectiveSlots = selectedDuration === 90 ? totalSlots * 1.5 : totalSlots;
+    // Calculate effective slots considering half-slot selections
+    const calculateEffectiveSlots = () => {
+        if (!halfSelectedSlots || halfSelectedSlots.size === 0) {
+            return totalSlots; // All full slots
+        }
+        
+        let effectiveCount = 0;
+        const processedSlots = new Set();
+        
+        selectedCourts.forEach(court => {
+            court.time.forEach(timeSlot => {
+                const slotKey = `${court._id}-${timeSlot._id}-${court.date || selectedDate?.fullDate}`;
+                if (processedSlots.has(slotKey)) return;
+                processedSlots.add(slotKey);
+                
+                const leftKey = `${slotKey}-left`;
+                const rightKey = `${slotKey}-right`;
+                const hasLeft = halfSelectedSlots.has(leftKey);
+                const hasRight = halfSelectedSlots.has(rightKey);
+                
+                if (hasLeft && hasRight) {
+                    effectiveCount += 1; // Both halves = 1 full slot
+                } else if (hasLeft || hasRight) {
+                    effectiveCount += 0.5; // One half = 0.5 slot
+                } else {
+                    effectiveCount += 1; // Full slot
+                }
+            });
+        });
+        
+        return effectiveCount;
+    };
+    
+    const effectiveSlots = calculateEffectiveSlots();
     
     const canBook = totalSlots >= 1 && 
                    matchTime.length > 0 && 
                    validateCourtTimeConsistency() &&
                    (selectedDuration === 90 ? 
-                     (totalSlots >= 1 && totalSlots <= 2) : // 90min: 1-2 selections create valid bookings
-                     (totalSlots >= 1 && totalSlots <= 3)); // Other durations: 1-3 slots total
+                     (effectiveSlots >= 1 && effectiveSlots <= 2) : // 90min: 1-2 effective slots
+                     (effectiveSlots >= 1 && effectiveSlots <= 3)); // Other durations: 1-3 effective slots
 
     const displayUserSkillLevel = finalSkillDetails && Object.keys(finalSkillDetails).length > 0
         ? finalSkillDetails[Object.keys(finalSkillDetails)[0]]

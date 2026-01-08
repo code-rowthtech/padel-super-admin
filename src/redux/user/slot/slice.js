@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getMatchesSlot, getMathcesSlot, getUnavailableSlot, getUserSlot, getUserSlotBooking, getUserSlotPrice } from "./thunk";
+import { getMatchesSlot, getMathcesSlot, getUnavailableSlot, getUserHalfSlotPrice, getUserSlot, getUserSlotBooking, getUserSlotPrice } from "./thunk";
 
 const initialState = {
     slotLoading: false,
@@ -39,7 +39,7 @@ const slotSlice = createSlice({
                 state.slotPriceError = action.payload;
             })
 
-             .addCase(getUserSlotPrice.pending, (state, action) => {
+            .addCase(getUserSlotPrice.pending, (state, action) => {
                 state.slotPriceLoading = true;
                 state.slotPriceError = null;
             })
@@ -53,7 +53,22 @@ const slotSlice = createSlice({
                 state.slotError = action.payload;
             })
 
-            .addCase(getUserSlotBooking.pending, (state,action) => {
+
+            .addCase(getUserHalfSlotPrice.pending, (state, action) => {
+                state.slotPriceLoading = true;
+                state.slotPriceError = null;
+            })
+            .addCase(getUserHalfSlotPrice.fulfilled, (state, action) => {
+
+                state.slotPriceLoading = false;
+                state.slotPriceData = action.payload;
+            })
+            .addCase(getUserHalfSlotPrice.rejected, (state, action) => {
+                state.slotPriceLoading = false;
+                state.slotError = action.payload;
+            })
+
+            .addCase(getUserSlotBooking.pending, (state, action) => {
                 state.slotLoading = action?.meta?.arg?.socket ? false : true;
                 state.slotError = null;
             })
