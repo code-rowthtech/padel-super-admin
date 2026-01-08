@@ -3,6 +3,210 @@ import { MdKeyboardArrowUp, MdKeyboardArrowDown, MdOutlineDeleteOutline } from '
 import { Button } from 'react-bootstrap';
 import { booking_logo_img } from '../../../assets/files';
 
+// Helper function to parse time to minutes for comparison
+const parseTimeToMinutes = (timeStr) => {
+    if (!timeStr) return null;
+    
+    let cleaned = timeStr.toString().toLowerCase().trim();
+    let hour, minute = 0, period = "";
+    
+    if (cleaned.includes("am") || cleaned.includes("pm")) {
+        period = cleaned.endsWith("am") ? "am" : "pm";
+        cleaned = cleaned.replace(/am|pm/gi, "").trim();
+    }
+    
+    if (cleaned.includes(":")) {
+        const parts = cleaned.split(":");
+        hour = parseInt(parts[0]);
+        minute = parseInt(parts[1]) || 0;
+    } else {
+        hour = parseInt(cleaned);
+    }
+    
+    if (isNaN(hour)) return null;
+    
+    // Convert to 24-hour format
+    if (period === "pm" && hour !== 12) hour += 12;
+    if (period === "am" && hour === 12) hour = 0;
+    
+    return hour * 60 + minute;
+};
+
+// Function to group consecutive slots based on FULL slot logic
+const groupConsecutiveSlots = (selectedCourts, halfSelectedSlots) => {
+    const groupedResults = [];
+    
+    selectedCourts.forEach(court => {
+        if (!court.time || court.time.length === 0) return;
+        
+        // Sort slots by time
+        const sortedSlots = [...court.time].sort((a, b) => {
+            const timeA = parseTimeToMinutes(a.time);
+            const timeB = parseTimeToMinutes(b.time);
+            return timeA - timeB;
+        });
+        
+        const dateKey = court.date;
+        const courtId = court._id;
+        
+        const groups = [];
+        let currentGroup = [];
+        
+        for (let i = 0; i < sortedSlots.length; i++) {
+            const slot = sortedSlots[i];
+            const leftKey = `${courtId}-${slot._id}-${dateKey}-left`;
+            const rightKey = `${courtId}-${slot._id}-${dateKey}-right`;
+            
+            const leftSelected = halfSelectedSlots?.has(leftKey);
+            const rightSelected = halfSelectedSlots?.has(rightKey);
+            
+            // Check if this is a FULL slot
+            const isFullSlot = (leftSelected && rightSelected) || (!leftSelected && !rightSelected);
+            const isLeftOnly = leftSelected && !rightSelected;
+            const isRightOnly = !leftSelected && rightSelected;
+            
+            if (currentGroup.length === 0) {
+                // First slot - always start new group
+                currentGroup = [slot];
+            } else {
+                const lastSlot = currentGroup[currentGroup.length - 1];
+                const lastTime = parseTimeToMinutes(lastSlot.time);
+                const currentTime = parseTimeToMinutes(slot.time);
+                const timeDiff = currentTime - lastTime;
+                
+                // Check if slots are consecutive (60 minutes apart)
+                if (timeDiff === 60) {
+                    // Get last slot's selection type
+                    const lastLeftKey = `${courtId}-${lastSlot._id}-${dateKey}-left`;
+                    const lastRightKey = `${courtId}-${lastSlot._id}-${dateKey}-right`;
+                    const lastLeftSelected = halfSelectedSlots?.has(lastLeftKey);
+                    const lastRightSelected = halfSelectedSlots?.has(lastRightKey);
+                    const lastIsFullSlot = (lastLeftSelected && lastRightSelected) || (!lastLeftSelected && !lastRightSelected);
+                    
+                    // Grouping rules:
+                    // 1. FULL + LEFT = Group
+                    // 2. FULL + FULL = Group  
+                    // 3. FULL + RIGHT = Separate
+                    // 4. LEFT + anything = Separate
+                    // 5. RIGHT + anything = Separate
+                    
+                    const canGroup = lastIsFullSlot && (isFullSlot || isLeftOnly);
+                    
+                    if (canGroup) {
+                        // Add to current group
+                        currentGroup.push(slot);
+                    } else {
+                        // Start new group
+                        groups.push([...currentGroup]);
+                        currentGroup = [slot];
+                    }
+                } else {
+                    // Not consecutive - start new group
+                    groups.push([...currentGroup]);
+                    currentGroup = [slot];
+                }
+            }
+        }
+        
+        // Add remaining group if exists
+        if (currentGroup.length > 0) {
+            groups.push(currentGroup);
+        }
+        
+        // Create grouped results
+        groups.forEach(group => {
+            if (group.length === 1) {
+                // Single slot
+                const slot = group[0];
+                const displayTime = getSlotDisplayTime(slot, court, halfSelectedSlots);
+                
+                groupedResults.push({
+                    court,
+                    slots: group,
+                    isGroup: false,
+                    displayTime,
+                    totalAmount: Number(slot.amount || 0)
+                });
+            } else {
+                // Multiple consecutive slots - create time range
+                const startTime = group[0].time;
+                const endTime = calculateCorrectEndTime(group, court, halfSelectedSlots);
+                const totalAmount = group.reduce((sum, slot) => sum + Number(slot.amount || 0), 0);
+                
+                groupedResults.push({
+                    court,
+                    slots: group,
+                    isGroup: true,
+                    displayTime: `${formatTimeForRange(startTime)} – ${formatTimeForRange(endTime)}`,
+                    totalAmount
+                });
+            }
+        });
+    });
+    
+    return groupedResults;
+};
+
+// Helper to get display time for single slot (handles half-slots)
+const getSlotDisplayTime = (slot, court, halfSelectedSlots) => {
+    const dateKey = court.date;
+    const courtId = court._id;
+    const leftKey = `${courtId}-${slot._id}-${dateKey}-left`;
+    const rightKey = `${courtId}-${slot._id}-${dateKey}-right`;
+    
+    const leftSelected = halfSelectedSlots?.has(leftKey);
+    const rightSelected = halfSelectedSlots?.has(rightKey);
+    
+    if (leftSelected && rightSelected) {
+        // Full slot selected
+        return formatTimeForRange(slot.time);
+    } else if (leftSelected) {
+        // Only left half selected
+        return formatTimeForRange(slot.time);
+    } else if (rightSelected) {
+        // Only right half selected  
+        return formatTimeForRange(slot.time.replace(':00', ':30'));
+    }
+    
+    // Default full slot
+    return formatTimeForRange(slot.time);
+};
+
+// Helper to calculate correct end time for grouped slots
+const calculateCorrectEndTime = (group, court, halfSelectedSlots) => {
+    const lastSlot = group[group.length - 1];
+    
+    // For grouped slots, end time should be the start time of the last slot
+    // This gives us ranges like 7PM-8PM instead of 7PM-9PM
+    return formatTimeForRange(lastSlot.time);
+};
+
+// Helper to format time for range display
+const formatTimeForRange = (timeStr) => {
+    if (!timeStr) return "";
+    
+    let cleaned = timeStr.toString().toLowerCase().trim();
+    let hour, minute = "00", period = "";
+    
+    if (cleaned.includes("am") || cleaned.includes("pm")) {
+        period = cleaned.endsWith("am") ? "AM" : "PM";
+        cleaned = cleaned.replace(/am|pm/gi, "").trim();
+    }
+    
+    if (cleaned.includes(":")) {
+        [hour, minute] = cleaned.split(":");
+    } else {
+        hour = cleaned;
+    }
+    
+    let hourNum = parseInt(hour);
+    if (isNaN(hourNum)) return timeStr;
+    
+    let formattedHour = hourNum.toString().padStart(2, "0");
+    minute = minute ? minute.padStart(2, "0") : "00";
+    return `${formattedHour}:${minute} ${period}`.trim();
+};
+
 const BookingSummary = ({
     totalSlots,
     isExpanded,
@@ -19,36 +223,12 @@ const BookingSummary = ({
     className,
     handleBookNow,
     displayedSlotCount,
-    duration  // Add duration prop
+    duration,  // Add duration prop
+    halfSelectedSlots  // Add halfSelectedSlots prop
 }) => {
     console.log('BookingSummary selectedCourts:', selectedCourts);
     console.log('BookingSummary duration:', duration);
-    // Helper function to format time - ONLY START TIME
-    const formatTimeDisplay = (timeStr, duration, timeSlot) => {
-        if (!timeStr) return "";
-        
-        // First format the base time
-        let cleaned = timeStr.toString().toLowerCase().trim();
-        let hour, minute = "00", period = "";
-        
-        if (cleaned.includes("am") || cleaned.includes("pm")) {
-            period = cleaned.endsWith("am") ? "AM" : "PM";
-            cleaned = cleaned.replace(/am|pm/gi, "").trim();
-        }
 
-        if (cleaned.includes(":")) {
-            [hour, minute] = cleaned.split(":");
-        } else {
-            hour = cleaned;
-        }
-
-        let hourNum = parseInt(hour);
-        if (isNaN(hourNum)) return timeStr;
-
-        let formattedHour = hourNum.toString().padStart(2, "0");
-        minute = minute ? minute.padStart(2, "0") : "00";
-        return `${formattedHour}:${minute} ${period}`.trim();
-    };
     return (
         <>
             <div
@@ -246,26 +426,10 @@ const BookingSummary = ({
                         >
                             {selectedCourts?.length > 0 ? (
                                 (() => {
-                                    let allSlots = [];
-                                    selectedCourts.forEach((court, courtIndex) => {
-                                        let timeSlotsToShow = court?.time || [];
-                                        
-                                        // For 90min, show all slots including auto-selected half slots
-                                        if (duration === 90) {
-                                            // Show all slots - both main selections and auto-selected half slots
-                                            timeSlotsToShow = court.time || [];
-                                        } else if (duration === 120) {
-                                            // For 120min, show all slots - both consecutive slots should be displayed
-                                            timeSlotsToShow = court.time || [];
-                                        }
-                                        
-                                        timeSlotsToShow.forEach((timeSlot, timeIndex) => {
-                                            allSlots.push({ court, timeSlot, courtIndex, timeIndex });
-                                        });
-                                    });
+                                    const groupedSlots = groupConsecutiveSlots(selectedCourts, halfSelectedSlots);
                                     
-                                    return allSlots.map(({ court, timeSlot, courtIndex, timeIndex }) => (
-                                        <div key={`${courtIndex}-${timeIndex}`} className="row mb-2">
+                                    return groupedSlots?.map((group, index) => (
+                                        <div key={`group-${index}`} className="row mb-2">
                                             <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
                                                 <div className="d-flex text-white">
                                                     <span
@@ -275,13 +439,13 @@ const BookingSummary = ({
                                                             fontSize: "14px",
                                                         }}
                                                     >
-                                                        {court?.date
-                                                            ? `${new Date(court?.date).toLocaleString(
+                                                        {group.court?.date
+                                                            ? `${new Date(group.court.date).toLocaleString(
                                                                 "en-US",
                                                                 {
                                                                     day: "2-digit",
                                                                 }
-                                                            )}, ${new Date(court?.date).toLocaleString(
+                                                            )}, ${new Date(group.court.date).toLocaleString(
                                                                 "en-US",
                                                                 {
                                                                     month: "short",
@@ -297,7 +461,7 @@ const BookingSummary = ({
                                                             fontSize: "14px",
                                                         }}
                                                     >
-                                                        {formatTimeDisplay(timeSlot?.time, duration, timeSlot)}
+                                                        {group.displayTime}
                                                     </span>
                                                     <span
                                                         className="ps-2"
@@ -307,7 +471,7 @@ const BookingSummary = ({
                                                             fontSize: "14px",
                                                         }}
                                                     >
-                                                        {court?.courtName}
+                                                        {group.court?.courtName}
                                                     </span>
                                                 </div>
                                                 <div className="text-white align-items-center">
@@ -318,12 +482,9 @@ const BookingSummary = ({
                                                             fontWeight: "600",
                                                             fontFamily: "Poppins",
                                                             fontSize: "14px",
-
                                                         }}
                                                     >
-                                                        {(() => {
-                                                            return timeSlot?.amount ? Number(timeSlot?.amount).toLocaleString("en-IN") : "N/A";
-                                                        })()}
+                                                        {Number(group.totalAmount).toLocaleString("en-IN")}
                                                     </span>
                                                     <MdOutlineDeleteOutline
                                                         className="ms-1 mb-1 mt-1 text-white"
@@ -331,11 +492,14 @@ const BookingSummary = ({
                                                         style={{ cursor: "pointer" }}
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            handleDeleteSlot(
-                                                                court._id,
-                                                                court.date,
-                                                                timeSlot.originalId || timeSlot._id
-                                                            );
+                                                            // Delete all slots in the group
+                                                            group.slots.forEach(slot => {
+                                                                handleDeleteSlot(
+                                                                    group.court._id,
+                                                                    group.court.date,
+                                                                    slot.originalId || slot._id
+                                                                );
+                                                            });
                                                         }}
                                                     />
                                                 </div>
@@ -408,27 +572,11 @@ const BookingSummary = ({
                                 {isExpanded &&
                                     selectedCourts?.length > 0 &&
                                     (() => {
-                                        let allSlots = [];
-                                        selectedCourts.forEach((court, courtIndex) => {
-                                            let timeSlotsToShow = court.time || [];
-                                            
-                                            // For 90min, show all slots including auto-selected half slots
-                                            if (duration === 90) {
-                                                // Show all slots - both main selections and auto-selected half slots
-                                                timeSlotsToShow = court.time || [];
-                                            } else if (duration === 120) {
-                                                // For 120min, show all slots - both consecutive slots should be displayed
-                                                timeSlotsToShow = court.time || [];
-                                            }
-                                            
-                                            timeSlotsToShow.forEach((timeSlot, timeIndex) => {
-                                                allSlots.push({ court, timeSlot, courtIndex, timeIndex });
-                                            });
-                                        });
+                                        const groupedSlots = groupConsecutiveSlots(selectedCourts, halfSelectedSlots);
                                         
-                                        return allSlots.map(({ court, timeSlot, courtIndex, timeIndex }) => (
+                                        return groupedSlots.map((group, index) => (
                                             <div
-                                                key={`${courtIndex}-${timeIndex}`}
+                                                key={`mobile-group-${index}`}
                                                 className="row mb-0"
                                             >
                                                 <div className="col-12 d-flex gap-1 mb-0 m-0 align-items-center justify-content-between">
@@ -440,13 +588,13 @@ const BookingSummary = ({
                                                                 fontSize: "11px",
                                                             }}
                                                         >
-                                                            {court?.date
-                                                                ? `${new Date(court?.date).toLocaleString(
+                                                            {group.court?.date
+                                                                ? `${new Date(group.court.date).toLocaleString(
                                                                     "en-US",
                                                                     {
                                                                         day: "2-digit",
                                                                     }
-                                                                )}, ${new Date(court?.date).toLocaleString(
+                                                                )}, ${new Date(group.court.date).toLocaleString(
                                                                     "en-US",
                                                                     {
                                                                         month: "short",
@@ -462,7 +610,7 @@ const BookingSummary = ({
                                                                 fontSize: "11px",
                                                             }}
                                                         >
-                                                            {formatTimeDisplay(timeSlot?.time, duration, timeSlot)}
+                                                            {group.displayTime}
                                                         </span>
                                                         <span
                                                             className="ps-1"
@@ -472,7 +620,7 @@ const BookingSummary = ({
                                                                 fontSize: "10px",
                                                             }}
                                                         >
-                                                            {court.courtName}
+                                                            {group.court.courtName}
                                                         </span>
                                                     </div>
                                                     <div className="text-white">
@@ -484,9 +632,7 @@ const BookingSummary = ({
                                                                 fontSize: "11px",
                                                             }}
                                                         >
-                                                            ₹ {(() => {
-                                                            return timeSlot.amount || "N/A";
-                                                            })()}
+                                                            ₹ {Number(group.totalAmount).toLocaleString("en-IN")}
                                                         </span>
                                                         <MdOutlineDeleteOutline
                                                             className="ms-1 text-white"
@@ -496,11 +642,14 @@ const BookingSummary = ({
                                                             }}
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
-                                                                handleDeleteSlot(
-                                                                    court._id,
-                                                                    court.date,
-                                                                    timeSlot.originalId || timeSlot._id
-                                                                );
+                                                                // Delete all slots in the group
+                                                                group.slots.forEach(slot => {
+                                                                    handleDeleteSlot(
+                                                                        group.court._id,
+                                                                        group.court.date,
+                                                                        slot.originalId || slot._id
+                                                                    );
+                                                                });
                                                             }}
                                                         />
                                                     </div>

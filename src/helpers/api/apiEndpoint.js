@@ -9,6 +9,7 @@ export const GET_CLUB_API = "/api/club/getAllRegisteredCourts";
 export const GET_SLOT_API = "/api/slot/getAllActiveCourts";
 export const GET_SLOT_BOOKING_API = "/api/slot/getAllActiveCourtsForSlotWise";
 export const GET_SLOT_PRICES = "/api/price/prices";
+export const GET_SLOT_HALF_PRICES = "/api/price/getPrioritizedPrices";
 export const GET_MATCHES_SLOT_API = "/api/slot/getAvailableSlot";
 export const CREATE_BOOKING_API = "/api/booking/manualBookingByOwner";
 export const GET_BOOKING_API = "/api/booking/getUserBookings";

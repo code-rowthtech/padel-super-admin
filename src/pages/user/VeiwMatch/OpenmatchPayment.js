@@ -21,6 +21,210 @@ import {
 import { booking_logo_img } from "../../../assets/files";
 import config from "../../../config";
 
+// Helper function to parse time to minutes for comparison
+const parseTimeToMinutes = (timeStr) => {
+    if (!timeStr) return null;
+    
+    let cleaned = timeStr.toString().toLowerCase().trim();
+    let hour, minute = 0, period = "";
+    
+    if (cleaned.includes("am") || cleaned.includes("pm")) {
+        period = cleaned.endsWith("am") ? "am" : "pm";
+        cleaned = cleaned.replace(/am|pm/gi, "").trim();
+    }
+    
+    if (cleaned.includes(":")) {
+        const parts = cleaned.split(":");
+        hour = parseInt(parts[0]);
+        minute = parseInt(parts[1]) || 0;
+    } else {
+        hour = parseInt(cleaned);
+    }
+    
+    if (isNaN(hour)) return null;
+    
+    // Convert to 24-hour format
+    if (period === "pm" && hour !== 12) hour += 12;
+    if (period === "am" && hour === 12) hour = 0;
+    
+    return hour * 60 + minute;
+};
+
+// Function to group consecutive slots based on FULL slot logic
+const groupConsecutiveSlots = (selectedCourts, halfSelectedSlots) => {
+    const groupedResults = [];
+    
+    selectedCourts.forEach(court => {
+        if (!court.time || court.time.length === 0) return;
+        
+        // Sort slots by time
+        const sortedSlots = [...court.time].sort((a, b) => {
+            const timeA = parseTimeToMinutes(a.time);
+            const timeB = parseTimeToMinutes(b.time);
+            return timeA - timeB;
+        });
+        
+        const dateKey = court.date;
+        const courtId = court._id;
+        
+        const groups = [];
+        let currentGroup = [];
+        
+        for (let i = 0; i < sortedSlots.length; i++) {
+            const slot = sortedSlots[i];
+            const leftKey = `${courtId}-${slot._id}-${dateKey}-left`;
+            const rightKey = `${courtId}-${slot._id}-${dateKey}-right`;
+            
+            const leftSelected = halfSelectedSlots?.has(leftKey);
+            const rightSelected = halfSelectedSlots?.has(rightKey);
+            
+            // Check if this is a FULL slot
+            const isFullSlot = (leftSelected && rightSelected) || (!leftSelected && !rightSelected);
+            const isLeftOnly = leftSelected && !rightSelected;
+            const isRightOnly = !leftSelected && rightSelected;
+            
+            if (currentGroup.length === 0) {
+                // First slot - always start new group
+                currentGroup = [slot];
+            } else {
+                const lastSlot = currentGroup[currentGroup.length - 1];
+                const lastTime = parseTimeToMinutes(lastSlot.time);
+                const currentTime = parseTimeToMinutes(slot.time);
+                const timeDiff = currentTime - lastTime;
+                
+                // Check if slots are consecutive (60 minutes apart)
+                if (timeDiff === 60) {
+                    // Get last slot's selection type
+                    const lastLeftKey = `${courtId}-${lastSlot._id}-${dateKey}-left`;
+                    const lastRightKey = `${courtId}-${lastSlot._id}-${dateKey}-right`;
+                    const lastLeftSelected = halfSelectedSlots?.has(lastLeftKey);
+                    const lastRightSelected = halfSelectedSlots?.has(lastRightKey);
+                    const lastIsFullSlot = (lastLeftSelected && lastRightSelected) || (!lastLeftSelected && !lastRightSelected);
+                    
+                    // Grouping rules:
+                    // 1. FULL + LEFT = Group
+                    // 2. FULL + FULL = Group  
+                    // 3. FULL + RIGHT = Separate
+                    // 4. LEFT + anything = Separate
+                    // 5. RIGHT + anything = Separate
+                    
+                    const canGroup = lastIsFullSlot && (isFullSlot || isLeftOnly);
+                    
+                    if (canGroup) {
+                        // Add to current group
+                        currentGroup.push(slot);
+                    } else {
+                        // Start new group
+                        groups.push([...currentGroup]);
+                        currentGroup = [slot];
+                    }
+                } else {
+                    // Not consecutive - start new group
+                    groups.push([...currentGroup]);
+                    currentGroup = [slot];
+                }
+            }
+        }
+        
+        // Add remaining group if exists
+        if (currentGroup.length > 0) {
+            groups.push(currentGroup);
+        }
+        
+        // Create grouped results
+        groups.forEach(group => {
+            if (group.length === 1) {
+                // Single slot
+                const slot = group[0];
+                const displayTime = getSlotDisplayTime(slot, court, halfSelectedSlots);
+                
+                groupedResults.push({
+                    court,
+                    slots: group,
+                    isGroup: false,
+                    displayTime,
+                    totalAmount: Number(slot.amount || 0)
+                });
+            } else {
+                // Multiple consecutive slots - create time range
+                const startTime = group[0].time;
+                const endTime = calculateCorrectEndTime(group, court, halfSelectedSlots);
+                const totalAmount = group.reduce((sum, slot) => sum + Number(slot.amount || 0), 0);
+                
+                groupedResults.push({
+                    court,
+                    slots: group,
+                    isGroup: true,
+                    displayTime: `${formatTimeForRange(startTime)} – ${formatTimeForRange(endTime)}`,
+                    totalAmount
+                });
+            }
+        });
+    });
+    
+    return groupedResults;
+};
+
+// Helper to get display time for single slot (handles half-slots)
+const getSlotDisplayTime = (slot, court, halfSelectedSlots) => {
+    const dateKey = court.date;
+    const courtId = court._id;
+    const leftKey = `${courtId}-${slot._id}-${dateKey}-left`;
+    const rightKey = `${courtId}-${slot._id}-${dateKey}-right`;
+    
+    const leftSelected = halfSelectedSlots?.has(leftKey);
+    const rightSelected = halfSelectedSlots?.has(rightKey);
+    
+    if (leftSelected && rightSelected) {
+        // Full slot selected
+        return formatTimeForRange(slot.time);
+    } else if (leftSelected) {
+        // Only left half selected
+        return formatTimeForRange(slot.time);
+    } else if (rightSelected) {
+        // Only right half selected  
+        return formatTimeForRange(slot.time.replace(':00', ':30'));
+    }
+    
+    // Default full slot
+    return formatTimeForRange(slot.time);
+};
+
+// Helper to calculate correct end time for grouped slots
+const calculateCorrectEndTime = (group, court, halfSelectedSlots) => {
+    const lastSlot = group[group.length - 1];
+    
+    // For grouped slots, end time should be the start time of the last slot
+    // This gives us ranges like 7PM-8PM instead of 7PM-9PM
+    return formatTimeForRange(lastSlot.time);
+};
+
+// Helper to format time for range display
+const formatTimeForRange = (timeStr) => {
+    if (!timeStr) return "";
+    
+    let cleaned = timeStr.toString().toLowerCase().trim();
+    let hour, minute = "00", period = "";
+    
+    if (cleaned.includes("am") || cleaned.includes("pm")) {
+        period = cleaned.endsWith("am") ? "AM" : "PM";
+        cleaned = cleaned.replace(/am|pm/gi, "").trim();
+    }
+    
+    if (cleaned.includes(":")) {
+        [hour, minute] = cleaned.split(":");
+    } else {
+        hour = cleaned;
+    }
+    
+    let hourNum = parseInt(hour);
+    if (isNaN(hourNum)) return timeStr;
+    
+    let formattedHour = hourNum.toString().padStart(2, "0");
+    minute = minute ? minute.padStart(2, "0") : "00";
+    return `${formattedHour}:${minute} ${period}`.trim();
+};
+
 const formatTime = (timeStr) => {
     if (!timeStr) return "";
     // If time already has minutes (e.g., "2:30 pm"), just uppercase AM/PM
@@ -292,180 +496,119 @@ const OpenmatchPayment = () => {
                     .map(key => finalSkillDetails[key])
                 : [];
 
-            const baseBookingPayload = {
-                name,
-                phoneNumber: cleanPhone,
-                email,
-                register_club_id: savedClubId,
-                ownerId: owner_id,
-                paymentMethod: 'razorpay',
-                bookingType: "open Match",
-                bookingStatus: "upcoming",
-                slot: selectedCourts.flatMap((court, courtIndex) => court?.time?.map((timeSlot, timeIndex) => {
-                    const slotInfo = slotData?.data?.find(c => c._id === court?._id)?.slots?.find(s => s._id === timeSlot?._id);
-                    let bookingTime = formatTime(timeSlot?.time);
+            // Razorpay payment first
+            const options = {
+                key: RAZORPAY_KEY,
+                amount: localGrandTotal * 100,
+                currency: "INR",
+                name: clubData?.clubName || "Open Match",
+                description: "Open Match Booking",
+                image: logo || undefined,
+                prefill: { name, email, contact: cleanPhone },
+                theme: { color: "#001B76" },
 
-                    // For 30min with activeHalves, adjust bookingTime for right-side selections
-                    if (selectedDuration === 30 && activeHalves?.size > 0) {
-                        const slotKey = `${court?._id}-${timeSlot?._id}-${court?.date}`;
-                        const activeHalf = activeHalves.get(slotKey);
-                        if (activeHalf === 'right') {
-                            const baseTime = timeSlot?.time;
-                            if (baseTime.includes('am') || baseTime.includes('pm')) {
-                                const [time, period] = baseTime.split(' ');
-                                const [hour] = time.split(':');
-                                bookingTime = `${hour}:30 ${period.toUpperCase()}`;
-                            }
+                handler: async function (response) {
+                    try {
+                        const formattedMatch = {
+                            slot: localSelectedCourts.flatMap((court, courtIndex) => court?.time?.map((timeSlot, timeIndex) => {
+                                const slotInfo = slotData?.data?.find(c => c._id === court?._id)?.slots?.find(s => s._id === timeSlot?._id);
+                                let bookingTime = formatTime(timeSlot?.time);
+
+                                if (selectedDuration === 30 && activeHalves?.size > 0) {
+                                    const slotKey = `${court?._id}-${timeSlot?._id}-${court?.date}`;
+                                    const activeHalf = activeHalves.get(slotKey);
+                                    if (activeHalf === 'right') {
+                                        const rightTime = timeSlot?.time.includes(':')
+                                            ? timeSlot?.time.replace(':00', ':30')
+                                            : timeSlot?.time.replace(' am', ':30 am').replace(' pm', ':30 pm');
+                                        bookingTime = formatTime(rightTime);
+                                    }
+                                }
+
+                                return {
+                                    slotId: timeSlot?._id,
+                                    businessHours: slotInfo?.businessHours || [{ time: "06:00 AM - 11:00 PM", day: selectedDate?.day || court?.day }],
+                                    slotTimes: [{ time: timeSlot?.time, amount: timeSlot?.amount || 1000 }],
+                                    courtName: court?.courtName,
+                                    courtId: court?._id,
+                                    bookingDate: new Date(court?.date || selectedDate?.fullDate).toISOString(),
+                                    duration: selectedDuration || 60,
+                                    bookingTime: bookingTime,
+                                    totalTime: selectedDuration || 60
+                                };
+                            })),
+                            clubId: savedClubId,
+                            gender: selectedGender === 'Male' ? 'Male Only' : selectedGender === 'Female' ? 'Female Only' : 'Mixed Double' || "Mixed Double",
+                            matchDate: new Date(selectedDate?.fullDate).toISOString().split("T")[0],
+                            ...(answersArray?.length > 0 && {
+                                skillLevel: answersArray[0] || "Open Match",
+                                skillDetails: answersArray?.slice(1)?.map((answer, i) => {
+                                    if (i === 0 && Array.isArray(answer)) return answer.join(", ");
+                                    return answer;
+                                })
+                            }),
+                            matchStatus: "open",
+                            matchTime: localSelectedCourts.flatMap(c => c?.time.map(t => t?.time)).join(","),
+                            teamA,
+                            teamB,
+                            razorpayPaymentId: response?.razorpay_payment_id,
+                            razorpayOrderId: response?.razorpay_order_id,
+                            razorpaySignature: response?.razorpay_signature
+                        };
+
+                        const matchResponse = await dispatch(createMatches(formattedMatch)).unwrap();
+                        if (matchResponse?.match?._id) {
+                            localStorage.removeItem("addedPlayers");
+                            window.dispatchEvent(new Event("playersUpdated"));
+                            navigate("/open-matches", {
+                                replace: true,
+                                state: { selectedDate }
+                            });
+                            dispatch(getUserProfile());
+                        } else {
+                            throw new Error("Failed to create match");
                         }
+                    } catch (err) {
+                        console.error("Post-payment error:", err);
+                        setError({ general: "Match creation failed" });
+                    } finally {
+                        setIsLoading(false);
                     }
+                },
 
-                    return {
-                        slotId: timeSlot?._id,
-                        businessHours: slotInfo?.businessHours || [{ time: "06:00 AM - 11:00 PM", day: selectedDate?.day || court?.day }],
-                        slotTimes: [{ time: timeSlot?.time, amount: timeSlot?.amount || 1000 }],
-                        courtName: court?.courtName || "Court",
-                        courtId: court?._id,
-                        bookingDate: new Date(court?.date || selectedDate?.fullDate).toISOString(),
-                        duration: selectedDuration || 60,
-                        bookingTime: bookingTime,
-                        totalTime: selectedDuration || 60
-                    };
-                })),
+                modal: {
+                    ondismiss: () => {
+                        setIsLoading(false);
+                        navigate("/create-matches", {
+                            state: {
+                                selectedDate,
+                                selectedCourts: localSelectedCourts,
+                                addedPlayers: finalAddedPlayers,
+                                finalSkillDetails,
+                                selectedGender
+                            }
+                        });
+                    }
+                }
             };
 
-            const initialBookingResponse = await dispatch(createBooking({
-                ...baseBookingPayload,
-                initiatePayment: true
-            })).unwrap();
+            const razorpay = new window.Razorpay(options);
 
-            if (initialBookingResponse?.paymentDetails?.key || initialBookingResponse?.paymentDetails?.orderId) {
-                const options = {
-                    key: initialBookingResponse?.paymentDetails?.key || RAZORPAY_KEY,
-                    order_id: initialBookingResponse?.paymentDetails?.orderId,
-                    amount: localGrandTotal * 100,
-                    currency: "INR",
-                    name: clubData?.clubName || "Open Match",
-                    description: "Open Match Booking",
-                    image: logo || undefined,
-                    prefill: { name, email, contact: cleanPhone },
-                    theme: { color: "#001B76" },
-
-                    handler: async function (response) {
-                        try {
-                            const formattedMatch = {
-                                slot: localSelectedCourts.flatMap((court, courtIndex) => court?.time?.map((timeSlot, timeIndex) => {
-                                    const slotInfo = slotData?.data?.find(c => c._id === court?._id)?.slots?.find(s => s._id === timeSlot?._id);
-                                    let bookingTime = formatTime(timeSlot?.time);
-
-                                    if (selectedDuration === 30 && activeHalves?.size > 0) {
-                                        const slotKey = `${court?._id}-${timeSlot?._id}-${court?.date}`;
-                                        const activeHalf = activeHalves.get(slotKey);
-                                        if (activeHalf === 'right') {
-                                            const rightTime = timeSlot?.time.includes(':')
-                                                ? timeSlot?.time.replace(':00', ':30')
-                                                : timeSlot?.time.replace(' am', ':30 am').replace(' pm', ':30 pm');
-                                            bookingTime = formatTime(rightTime);
-                                        }
-                                    }
-
-                                    return {
-                                        slotId: timeSlot?._id,
-                                        businessHours: slotInfo?.businessHours || [{ time: "06:00 AM - 11:00 PM", day: selectedDate?.day || court?.day }],
-                                        slotTimes: [{ time: timeSlot?.time, amount: timeSlot?.amount || 1000 }],
-                                        courtName: court?.courtName,
-                                        courtId: court?._id,
-                                        bookingDate: new Date(court?.date || selectedDate?.fullDate).toISOString(),
-                                        duration: selectedDuration || 60,
-                                        bookingTime: bookingTime,
-                                        totalTime: selectedDuration || 60
-                                    };
-                                })),
-                                clubId: savedClubId,
-                                gender: selectedGender === 'Male' ? 'Male Only' : selectedGender === 'Female' ? 'Female Only' : 'Mixed Double' || "Mixed Double",
-                                matchDate: new Date(selectedDate?.fullDate).toISOString().split("T")[0],
-                                ...(answersArray?.length > 0 && {
-                                    skillLevel: answersArray[0] || "Open Match",
-                                    skillDetails: answersArray?.slice(1)?.map((answer, i) => {
-                                        if (i === 0 && Array.isArray(answer)) return answer.join(", ");
-                                        return answer;
-                                    })
-                                }),
-                                matchStatus: "open",
-                                matchTime: localSelectedCourts.flatMap(c => c?.time.map(t => t?.time)).join(","),
-                                teamA,
-                                teamB,
-                            };
-
-                            const matchResponse = await dispatch(createMatches(formattedMatch)).unwrap();
-                            const matchId = matchResponse?.match?._id;
-                            if (!matchId) throw new Error("Failed to create match");
-
-                            const finalBookingResponse = await dispatch(createBooking({
-                                ...baseBookingPayload,
-                                initiatePayment: false,
-                                openMatchId: matchId,
-                                razorpayOrderId: response?.razorpay_order_id,
-                                razorpayPaymentId: response?.razorpay_payment_id,
-                                razorpaySignature: response?.razorpay_signature
-                            })).unwrap();
-
-                            if (finalBookingResponse?.success || finalBookingResponse?.message?.includes("created")) {
-                                localStorage.removeItem("addedPlayers");
-                                window.dispatchEvent(new Event("playersUpdated"));
-                                navigate("/open-matches", {
-                                    replace: true,
-                                    state: { selectedDate }
-                                });
-                                dispatch(getUserProfile());
-                            } else {
-                                throw new Error("Booking confirmation failed");
-                            }
-                        } catch (err) {
-                            console.error("Post-payment error:", err);
-                            setError({ general: "Booking confirmation failed" });
-                        } finally {
-                            setIsLoading(false);
-                        }
-                    },
-
-                    modal: {
-                        ondismiss: () => {
-                            setIsLoading(false);
-                            // Don't clear slots on payment cancellation, just navigate back
-                            navigate("/create-matches", {
-                                state: {
-                                    selectedDate,
-                                    selectedCourts: localSelectedCourts,
-                                    addedPlayers: finalAddedPlayers,
-                                    finalSkillDetails,
-                                    selectedGender
-                                }
-                            });
-                        }
+            razorpay.on("payment.failed", (response) => {
+                setIsLoading(false);
+                navigate("/create-matches", {
+                    state: {
+                        selectedDate,
+                        selectedCourts: localSelectedCourts,
+                        addedPlayers: finalAddedPlayers,
+                        finalSkillDetails,
+                        selectedGender,
+                        paymentError: response.error?.description || "Payment failed. Please try again."
                     }
-                };
-
-                const razorpay = new window.Razorpay(options);
-
-                razorpay.on("payment.failed", (response) => {
-                    setIsLoading(false);
-                    // Don't clear slots on payment failure, navigate back with slots preserved
-                    navigate("/create-matches", {
-                        state: {
-                            selectedDate,
-                            selectedCourts: localSelectedCourts,
-                            addedPlayers: finalAddedPlayers,
-                            finalSkillDetails,
-                            selectedGender,
-                            paymentError: response.error?.description || "Payment failed. Please try again."
-                        }
-                    });
                 });
+            });
 
-                razorpay.open();
-            } else {
-                throw new Error("Payment initialization failed");
-            }
+            razorpay.open();
 
         } catch (err) {
             setIsLoading(false);
@@ -500,10 +643,18 @@ const OpenmatchPayment = () => {
 
     const { displaySlots, totalSlots } = getDisplayData();
     const localTotalSlots = totalSlots;
-    const localGrandTotal = localSelectedCourts.reduce(
-        (sum, c) => sum + c?.time.reduce((s, t) => s + Number(t?.amount || 0), 0),
-        0
-    );
+    // Calculate total amount considering half-slot selections (same as CreateMatches.js)
+    const calculateTotalAmount = () => {
+        return localSelectedCourts.reduce((sum, court) => {
+            const courtTotal = court.time.reduce((courtSum, timeSlot) => {
+                // Simply use the stored amount - it's already correct based on selection
+                return courtSum + Number(timeSlot.amount || 0);
+            }, 0);
+            return sum + courtTotal;
+        }, 0);
+    };
+    
+    const localGrandTotal = calculateTotalAmount();
 
     const handleDeleteSlot = (courtId, slotId) => {
         setLocalSelectedCourts(prev => {
@@ -792,28 +943,44 @@ const OpenmatchPayment = () => {
                                         paddingRight: "8px",
                                     }}
                                 >
-                                    {displaySlots?.length > 0 ? (
-                                        displaySlots?.map((court, index) =>
-                                            court?.time?.map((timeSlot, timeIndex) => (
-                                                <div key={`${index}-${timeIndex}`} className="row mb-2">
+                                    {localSelectedCourts?.length > 0 ? (
+                                        (() => {
+                                            const groupedSlots = groupConsecutiveSlots(localSelectedCourts, halfSelectedSlots);
+                                            
+                                            return groupedSlots?.map((group, index) => (
+                                                <div key={`group-${index}`} className="row mb-2">
                                                     <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
                                                         <div className="d-flex text-white">
                                                             <span style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "15px" }}>
-                                                                {court.date ? `${new Date(court.date).toLocaleString("en-US", { day: "2-digit" })}, ${new Date(court?.date).toLocaleString("en-US", { month: "short" })}` : ""}
+                                                                {group.court?.date ? `${new Date(group.court.date).toLocaleString("en-US", { day: "2-digit" })}, ${new Date(group.court.date).toLocaleString("en-US", { month: "short" })}` : ""}
                                                             </span>
                                                             <span className="ps-1" style={{ fontWeight: "600", fontFamily: "Poppins", fontSize: "15px" }}>
-                                                                {formatTimeDisplay(timeSlot.time, selectedDuration, timeSlot, halfSelectedSlots, activeHalves, court._id, court.date)}
+                                                                {group.displayTime}
                                                             </span>
-                                                            <span className="ps-2" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px" }}>{court?.courtName}</span>
+                                                            <span className="ps-2" style={{ fontWeight: "500", fontFamily: "Poppins", fontSize: "15px" }}>
+                                                                {group.court?.courtName}
+                                                            </span>
                                                         </div>
                                                         <div className="text-white">
-                                                            ₹<span className="ps-0 pt-1" style={{ fontWeight: "600", fontFamily: "Poppins" }}>{timeSlot?.amount ? Number(timeSlot?.amount).toLocaleString("en-IN") : "N/A"}</span>
-                                                            <MdOutlineDeleteOutline className="mt-1 ms-1 mb-1 text-white" style={{ cursor: "pointer" }} size={15} onClick={() => handleDeleteSlot(court?._id, timeSlot?._id)} />
+                                                            ₹<span className="ps-0 pt-1" style={{ fontWeight: "600", fontFamily: "Poppins" }}>
+                                                                {Number(group.totalAmount).toLocaleString("en-IN")}
+                                                            </span>
+                                                            <MdOutlineDeleteOutline 
+                                                                className="mt-1 ms-1 mb-1 text-white" 
+                                                                style={{ cursor: "pointer" }} 
+                                                                size={15} 
+                                                                onClick={() => {
+                                                                    // Delete all slots in the group
+                                                                    group.slots.forEach(slot => {
+                                                                        handleDeleteSlot(group.court._id, slot._id);
+                                                                    });
+                                                                }} 
+                                                            />
                                                         </div>
                                                     </div>
                                                 </div>
-                                            ))
-                                        )
+                                            ));
+                                        })()
                                     ) : (
                                         <div className="d-flex flex-column justify-content-center align-items-center text-white" style={{ height: "25vh" }}>
                                             <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }}>No slot selected</p>
@@ -1127,7 +1294,7 @@ const OpenmatchPayment = () => {
                                                 {isLoading || createMatchesLoading || bookingLoading ? (
                                                     <ButtonLoading color={"#001B76"} />
                                                 ) : (
-                                                    "Pay Now"
+                                                "Pay Now"
                                                 )}
                                             </div>
                                         </button>
