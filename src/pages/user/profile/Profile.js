@@ -195,9 +195,12 @@ const Profile = () => {
 
     if (Object.keys(changedFields).length > 0) {
       dispatch(updateUser(payload))
-        .then(() => {
-          dispatch(getUserProfile());
-          showSuccess('Update Successfully')
+        .then((res) => {
+          if (res?.payload?.status === '200') {
+            showSuccess('Update Successfully')
+            dispatch(getUserProfile());
+
+          }
         })
         .catch((err) => {
         });
