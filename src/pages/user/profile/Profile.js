@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { FaCamera, FaUserCircle } from "react-icons/fa";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { useNavigate } from "react-router-dom";
@@ -169,43 +169,32 @@ const Profile = () => {
 
     const payload = new FormData();
 
-    const changedFields = {};
-    Object.keys(formData).forEach((key) => {
-      if (formData[key] !== initialState[key]) {
-        changedFields[key] = formData[key];
-      }
-    });
-
-    if (changedFields.fullName) payload.append("name", changedFields.fullName);
-    if (changedFields.email) payload.append("email", changedFields.email);
-    if (changedFields.phone) payload.append("phoneNumber", changedFields.phone);
-    if (changedFields.dob) payload.append("dob", changedFields.dob);
-    if (changedFields.gender) payload.append("gender", changedFields.gender);
-    if (
-      changedFields.profileImage &&
-      changedFields.profileImage.startsWith("data:image")
-    ) {
-      const blob = dataURLtoBlob(changedFields.profileImage);
+    // Always append current form data to payload
+    payload.append("name", formData.fullName);
+    payload.append("email", formData.email);
+    payload.append("phoneNumber", formData.phone);
+    if (formData.dob) payload.append("dob", formData.dob);
+    if (formData.gender) payload.append("gender", formData.gender);
+    if (formData.location) payload.append("city", formData.location);
+    
+    if (formData.profileImage && formData.profileImage.startsWith("data:image")) {
+      const blob = dataURLtoBlob(formData.profileImage);
       payload.append("profilePic", blob, "profile.jpg");
     }
 
-    if (changedFields.location) {
-      payload.append("city", changedFields.location);
-    }
-
-    if (Object.keys(changedFields).length > 0) {
-      dispatch(updateUser(payload))
-        .then((res) => {
-          if (res?.payload?.status === '200') {
-            showSuccess('Update Successfully')
-            dispatch(getUserProfile());
-
-          }
-        })
-        .catch((err) => {
-        });
-    } else {
-    }
+    // Always call update API when button is clicked
+    dispatch(updateUser(payload))
+      .then((res) => {
+        if (res?.payload?.status === '200') {
+          showSuccess('Profile updated successfully!');
+          dispatch(getUserProfile());
+          // Update initial state to current form data
+          setInitialState(formData);
+        }
+      })
+      .catch((err) => {
+        showError('Failed to update profile');
+      });
   };
 
   const handleCancel = () => {
