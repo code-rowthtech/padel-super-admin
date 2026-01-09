@@ -254,7 +254,6 @@ const MatchPlayer = ({
         let allTimes = courts.flatMap((c) => c.time.map((t) => t.time));
 
         // For 90min duration, add auto-selected consecutive slots
-        // For 90min, expand selectedCourts to include all underlying slots with real IDs
         if (selectedDuration === 90 && slotData?.data) {
             const additionalTimes = [];
             courts.forEach(court => {
@@ -281,38 +280,137 @@ const MatchPlayer = ({
             allTimes = [...allTimes, ...additionalTimes];
         }
 
-        const formattedTimes = allTimes.map(time => {
-            let hour, period;
-            if (/am|pm/i.test(time)) {
-                const match = time.match(/(\d+)\s*(am|pm)/i);
-                if (match) {
-                    hour = parseInt(match[1], 10);
-                    period = match[2].toUpperCase();
-                } else {
-                    return time;
-                }
-            } else {
-                const [hours, minutes] = time.split(":");
-                const hourNum = parseInt(hours, 10);
-                period = hourNum >= 12 ? "PM" : "AM";
-                hour = hourNum > 12 ? hourNum - 12 : hourNum === 0 ? 12 : hourNum;
+        if (allTimes.length === 0) return "";
+
+        // Parse and sort times
+        const parsedTimes = allTimes.map(time => {
+            const match = time.match(/(\d+)(?::(\d+))?\s*(am|pm)/i);
+            if (match) {
+                let hour = parseInt(match[1], 10);
+                const minute = match[2] ? parseInt(match[2], 10) : 0;
+                const period = match[3].toLowerCase();
+                
+                if (period === 'pm' && hour !== 12) hour += 12;
+                if (period === 'am' && hour === 12) hour = 0;
+                
+                return {
+                    hour,
+                    minute,
+                    totalMinutes: hour * 60 + minute,
+                    original: time
+                };
             }
-            return { hour, period };
-        }).sort((a, b) => {
-            const aValue = a.period === 'AM' ? a.hour : a.hour + 12;
-            const bValue = b.period === 'AM' ? b.hour : b.hour + 12;
-            return aValue - bValue;
-        });
+            return null;
+        }).filter(Boolean).sort((a, b) => a.totalMinutes - b.totalMinutes);
 
-        if (formattedTimes.length === 0) return "";
-        if (formattedTimes.length === 1) return `${formattedTimes[0].hour}${formattedTimes[0].period}`;
+        if (parsedTimes.length === 0) return "";
+        if (parsedTimes.length === 1) {
+            const time = parsedTimes[0];
+            const displayHour = time.hour > 12 ? time.hour - 12 : time.hour === 0 ? 12 : time.hour;
+            const period = time.hour >= 12 ? 'PM' : 'AM';
+            return time.minute === 30 ? `${displayHour}:30${period}` : `${displayHour}${period}`;
+        }
 
-        return `${formattedTimes[0].hour}-${formattedTimes[formattedTimes.length - 1].hour}${formattedTimes[formattedTimes.length - 1].period}`;
+        // Format range
+        const startTime = parsedTimes[0];
+        const endTime = parsedTimes[parsedTimes.length - 1];
+        
+        const formatTime = (time) => {
+            const displayHour = time.hour > 12 ? time.hour - 12 : time.hour === 0 ? 12 : time.hour;
+            const period = time.hour >= 12 ? 'PM' : 'AM';
+            return time.minute === 30 ? `${displayHour}:30${period}` : `${displayHour}${period}`;
+        };
+
+        return `${formatTime(startTime)} - ${formatTime(endTime)}`;
     };
 
-    const matchTime = selectedCourts.length
-        ? formatMatchTimes(selectedCourts)
-        : "";
+    // Generate match time considering half-slot selections
+    const generateMatchTimeFromSelections = () => {
+        if (!selectedCourts?.length && !halfSelectedSlots?.size) return "";
+        
+        const allSelectedTimes = [];
+        
+        // Process half-slot selections
+        if (halfSelectedSlots?.size > 0) {
+            halfSelectedSlots.forEach(key => {
+                const [courtId, slotId, dateKey, side] = key.split('-');
+                const court = slotData?.data?.find(c => c._id === courtId);
+                const slot = court?.slots?.find(s => s._id === slotId);
+                
+                if (slot) {
+                    const match = slot.time.match(/(\d+)(?::(\d+))?\s*(am|pm)/i);
+                    if (match) {
+                        let hour = parseInt(match[1], 10);
+                        const baseMinute = match[2] ? parseInt(match[2], 10) : 0;
+                        const period = match[3].toLowerCase();
+                        
+                        if (period === 'pm' && hour !== 12) hour += 12;
+                        if (period === 'am' && hour === 12) hour = 0;
+                        
+                        const minute = side === 'right' ? baseMinute + 30 : baseMinute;
+                        allSelectedTimes.push({
+                            hour,
+                            minute,
+                            totalMinutes: hour * 60 + minute
+                        });
+                    }
+                }
+            });
+        }
+        
+        // Process full slot selections (only if no half slots for same time)
+        selectedCourts.forEach(court => {
+            court.time.forEach(timeSlot => {
+                const leftKey = `${court._id}-${timeSlot._id}-${court.date || selectedDate?.fullDate}-left`;
+                const rightKey = `${court._id}-${timeSlot._id}-${court.date || selectedDate?.fullDate}-right`;
+                
+                // Only add full slot if no half selections exist for this slot
+                if (!halfSelectedSlots.has(leftKey) && !halfSelectedSlots.has(rightKey)) {
+                    const match = timeSlot.time.match(/(\d+)(?::(\d+))?\s*(am|pm)/i);
+                    if (match) {
+                        let hour = parseInt(match[1], 10);
+                        const minute = match[2] ? parseInt(match[2], 10) : 0;
+                        const period = match[3].toLowerCase();
+                        
+                        if (period === 'pm' && hour !== 12) hour += 12;
+                        if (period === 'am' && hour === 12) hour = 0;
+                        
+                        allSelectedTimes.push({
+                            hour,
+                            minute,
+                            totalMinutes: hour * 60 + minute
+                        });
+                    }
+                }
+            });
+        });
+        
+        if (allSelectedTimes.length === 0) return "";
+        
+        // Sort by total minutes
+        allSelectedTimes.sort((a, b) => a.totalMinutes - b.totalMinutes);
+        
+        if (allSelectedTimes.length === 1) {
+            const time = allSelectedTimes[0];
+            const displayHour = time.hour > 12 ? time.hour - 12 : time.hour === 0 ? 12 : time.hour;
+            const period = time.hour >= 12 ? 'PM' : 'AM';
+            return time.minute > 0 ? `${displayHour}:${time.minute.toString().padStart(2, '0')}${period}` : `${displayHour}${period}`;
+        }
+        
+        // Format range
+        const startTime = allSelectedTimes[0];
+        const endTime = allSelectedTimes[allSelectedTimes.length - 1];
+        
+        const formatTime = (time) => {
+            const displayHour = time.hour > 12 ? time.hour - 12 : time.hour === 0 ? 12 : time.hour;
+            const period = time.hour >= 12 ? 'PM' : 'AM';
+            return time.minute > 0 ? `${displayHour}:${time.minute.toString().padStart(2, '0')}${period}` : `${displayHour}${period}`;
+        };
+        
+        return `${formatTime(startTime)} - ${formatTime(endTime)}`;
+    };
+
+    const matchTime = generateMatchTimeFromSelections();
 
     const validateCourtTimeConsistency = () => {
         const allTimes = selectedCourts.flatMap(court => court.time.map(t => t.time));
@@ -357,12 +455,9 @@ const MatchPlayer = ({
     
     const effectiveSlots = calculateEffectiveSlots();
     
-    const canBook = totalSlots >= 1 && 
-                   matchTime.length > 0 && 
-                   validateCourtTimeConsistency() &&
-                   (selectedDuration === 90 ? 
-                     (effectiveSlots >= 1 && effectiveSlots <= 2) : // 90min: 1-2 effective slots
-                     (effectiveSlots >= 1 && effectiveSlots <= 3)); // Other durations: 1-3 effective slots
+    const canBook = (totalSlots >= 1 || halfSelectedSlots?.size > 0) && 
+                   (matchTime.length > 0 || halfSelectedSlots?.size > 0) && 
+                   validateCourtTimeConsistency();
 
     const displayUserSkillLevel = finalSkillDetails && Object.keys(finalSkillDetails).length > 0
         ? finalSkillDetails[Object.keys(finalSkillDetails)[0]]
@@ -619,7 +714,7 @@ const MatchPlayer = ({
                                 Your share
                             </p>
                             <p className="mb-0 add_font_mobile_bottom_extra fw-bold" style={{ fontSize: '20px', color: '#1F41BB' }}>
-                                ₹ {Math.round(totalAmount / 4).toLocaleString('en-IN')}
+                                ₹ {Math.round((totalAmount || 0) / 4).toLocaleString('en-IN')}
                             </p>
                         </div>
 

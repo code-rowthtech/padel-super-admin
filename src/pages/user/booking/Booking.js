@@ -414,9 +414,22 @@ const Booking = ({ className = "" }) => {
     const leftKey = `${courtId}-${slot._id}-${dateKey}-left`;
     const rightKey = `${courtId}-${slot._id}-${dateKey}-right`;
 
+    // Check if we've reached the maximum slot limit
+    const currentTotalSlots = Object.values(selectedTimes).reduce((total, courtDates) => {
+      return total + Object.values(courtDates).reduce((dateTotal, timeSlots) => {
+        return dateTotal + timeSlots?.length;
+      }, 0);
+    }, 0);
+
     // Full slot (no half support)
     if (!slot.has30MinPrice) {
       const isSelected = currentCourtTimes.some(t => t._id === slot._id);
+      
+      // If not selected and we're at max limit, prevent selection
+      if (!isSelected && currentTotalSlots >= MAX_SLOTS) {
+        return;
+      }
+      
       const price = getPriceForSlot(slot.time, selectedDate?.day, false) || 0;
 
       const newTimes = isSelected
@@ -448,6 +461,11 @@ const Booking = ({ className = "" }) => {
     const targetKey = isLeft ? leftKey : rightKey;
     const wasSelected = halfSelectedSlots.has(targetKey);
 
+    // If not selected and we're at max limit, prevent selection
+    if (!wasSelected && currentTotalSlots >= MAX_SLOTS) {
+      return;
+    }
+
     // Toggle the clicked half
     setHalfSelectedSlots(prev => {
       const s = new Set(prev);
@@ -463,21 +481,22 @@ const Booking = ({ className = "" }) => {
     const otherTimes = currentCourtTimes.filter(t => t._id !== slot._id);
     let newTimes = [...otherTimes];
 
-    const leftSelected = halfSelectedSlots.has(leftKey) || (!wasSelected && isLeft);
-    const rightSelected = halfSelectedSlots.has(rightKey) || (!wasSelected && !isLeft);
+    // Check if there are any remaining half selections after this toggle
+    const willHaveLeft = wasSelected && isLeft ? false : halfSelectedSlots.has(leftKey) || (!wasSelected && isLeft);
+    const willHaveRight = wasSelected && !isLeft ? false : halfSelectedSlots.has(rightKey) || (!wasSelected && !isLeft);
 
-    if (leftSelected || rightSelected) {
-      const displayTime = rightSelected && !leftSelected
+    if (willHaveLeft || willHaveRight) {
+      const displayTime = willHaveRight && !willHaveLeft
         ? slot.time.replace(":00", ":30").replace(/\s*(am|pm)/i, ":30 $1")
         : slot.time;
 
       const halfPrice = getPriceForSlot(slot.time, selectedDate?.day, true) || 0;
-      const totalPrice = leftSelected && rightSelected ? halfPrice * 2 : halfPrice;
+      const totalPrice = willHaveLeft && willHaveRight ? halfPrice * 2 : halfPrice;
 
       newTimes.push({
         ...slot,
         time: displayTime,
-        side: leftSelected && rightSelected ? "both" : clickSide,
+        side: willHaveLeft && willHaveRight ? "both" : (willHaveLeft ? "left" : "right"),
         amount: totalPrice,
       });
     }
@@ -682,7 +701,7 @@ const Booking = ({ className = "" }) => {
     } else {
       // Regular slot deletion - clear half selections for this slot
       clearHalfSelections(timeId);
-      
+
       setSelectedTimes((prev) => {
         if (!prev[courtId] || !prev[courtId][date]) return prev;
 
@@ -825,13 +844,13 @@ const Booking = ({ className = "" }) => {
 
     switch (selectedDuration) {
       case 30:
-        return Number((totalSlots * 0.5).toFixed(1)); // 1 slot = 0.5 hours
+        return Number((totalSlots * 0.5).toFixed(1));
       case 60:
-        return totalSlots;                            // 1 slot = 1 hour
+        return totalSlots;
       case 90:
-        return Number((totalSlots * 1.5).toFixed(1)); // 1 slot = 1.5 hours
+        return Number((totalSlots * 1.5).toFixed(1));
       case 120:
-        return totalSlots;                            // 2 slots = 2 hours (but counted as pair)
+        return totalSlots;
       default:
         return totalSlots;
     }
@@ -863,17 +882,16 @@ const Booking = ({ className = "" }) => {
     setSelectedBuisness([]);
     setSelectedCourts([]);
     setHalfSelectedSlots(new Set());
-    setActiveHalves(new Map()); // Clear 30min selections
+    setActiveHalves(new Map()); 
     setIsExpanded(false);
   }, [selectedDuration]);
 
-  // Update booking summary whenever halfSelectedSlots changes (for 30min and 90min)
   useEffect(() => {
     if (selectedDuration === 30 || selectedDuration === 90) {
       Object.keys(selectedTimes).forEach(courtId => {
         Object.keys(selectedTimes[courtId] || {}).forEach(dateKey => {
           const times = selectedTimes[courtId][dateKey] || [];
-          if (times.length > 0) {
+          if (times?.length > 0) {
             updateSelectedBusinessAndCourts(times, courtId, dateKey);
           }
         });
@@ -1562,11 +1580,14 @@ const Booking = ({ className = "" }) => {
             <div
               className={`mb-md-0 mb-3 overflow-slot border-0 rounded-3 ${slotData?.data?.some((court) => {
                 const filteredSlots = court?.slots?.filter((slot) => {
+                  const isBookedFor30Min = slot?.status === "booked" && slot?.duration === 30 && slot?.bookingTime;
+                  const isBookedFor60Min = slot?.status === "booked" && slot?.duration === 60;
+
                   const basicFilter =
                     showUnavailable ||
                     (slot?.availabilityStatus === "available" &&
-                      slot?.status !== "booked" &&
-                      !isPastTime(slot?.time));
+                      !isBookedFor60Min &&
+                      !isPastTime(slot?.time)) || isBookedFor30Min;
 
                   // Filter by selected duration and check if price exists
                   const hasPrice = getPriceForSlot(slot.time, selectedDate?.day, true) !== null;
@@ -1590,11 +1611,14 @@ const Booking = ({ className = "" }) => {
                       {slotData?.data?.length > 0 &&
                         slotData?.data?.some(
                           (court) => court?.slots?.some((slot) => {
+                            const isBookedFor30Min = slot?.status === "booked" && slot?.duration === 30 && slot?.bookingTime;
+                            const isBookedFor60Min = slot?.status === "booked" && slot?.duration === 60;
+
                             const basicFilter = showUnavailable
                               ? true
-                              : slot?.availabilityStatus === "available" &&
-                              slot?.status !== "booked" &&
-                              !isPastTime(slot?.time);
+                              : (slot?.availabilityStatus === "available" &&
+                                !isBookedFor60Min &&
+                                !isPastTime(slot?.time)) || isBookedFor30Min;
                             const hasPrice = getPriceForSlot(slot.time, selectedDate?.day, true) !== null;
                             return basicFilter && hasPrice;
                           })
@@ -1633,17 +1657,22 @@ const Booking = ({ className = "" }) => {
                         {console.log(slotData, 'slotData')}
                         {slotData?.data?.map((court, courtIndex) => {
                           const filteredSlots = court?.slots?.filter((slot) => {
+                            // Check if slot is booked for 30 minutes - these should still show
+                            const isBookedFor30Min = slot?.status === "booked" && slot?.duration === 30 && slot?.bookingTime;
+                            // Check if slot is booked for 60 minutes - these should NOT show in available
+                            const isBookedFor60Min = slot?.status === "booked" && slot?.duration === 60;
+
                             const basicFilter = showUnavailable
                               ? true
-                              : slot?.availabilityStatus === "available" &&
-                              slot?.status !== "booked" &&
-                              !isPastTime(slot?.time);
+                              : (slot?.availabilityStatus === "available" &&
+                                !isBookedFor60Min &&
+                                !isPastTime(slot?.time)) || isBookedFor30Min; // Include 30min booked slots, exclude 60min booked slots
 
                             const hasPrice = getPriceForSlot(slot.time, selectedDate?.day, true) !== null;
 
                             return basicFilter && hasPrice;
                           });
-                            console.log({filteredSlots});
+                          console.log({ filteredSlots });
 
                           if (filteredSlots?.length === 0) return null;
 
@@ -1692,14 +1721,32 @@ const Booking = ({ className = "" }) => {
                                     // Slot-specific flag from backend
                                     const hasThirtyMinPrice = slot?.has30MinPrice === true;
 
-                                    // Determine if slot is disabled
-                                    const isSlotDisabled =
-                                      slot?.status === "booked" ||
-                                      slot?.availabilityStatus !== "available" ||
-                                      isPastTime(slot?.time);
+                                    // Check if slot is selected first
+                                    const currentCourtTimes = selectedTimes[courtId]?.[dateKey] || [];
+                                    const isSlotSelected = currentCourtTimes.some(t => t._id === slot._id);
 
-                                    // Hide if disabled and showUnavailable is off
-                                    if (isSlotDisabled && !showUnavailable) {
+                                    // Determine if slot is disabled
+                                    const currentTotalSlots = Object.values(selectedTimes).reduce((total, courtDates) => {
+                                      return total + Object.values(courtDates).reduce((dateTotal, timeSlots) => {
+                                        return dateTotal + timeSlots?.length;
+                                      }, 0);
+                                    }, 0);
+                                    
+                                    const isSlotDisabled =
+                                      (slot?.status === "booked" && slot?.duration === 60) ||
+                                      slot?.availabilityStatus !== "available" ||
+                                      isPastTime(slot?.time) ||
+                                      (currentTotalSlots >= MAX_SLOTS && !isSlotSelected && !leftHalf && !rightHalf);
+
+                                    // Hide only if slot is naturally unavailable and showUnavailable is off
+                                    // Don't hide slots that are disabled due to 15-slot limit
+                                    const shouldHideSlot = !showUnavailable && (
+                                      (slot?.status === "booked" && slot?.duration === 60) ||
+                                      slot?.availabilityStatus !== "available" ||
+                                      isPastTime(slot?.time)
+                                    );
+                                    
+                                    if (shouldHideSlot) {
                                       return null;
                                     }
 
@@ -1707,13 +1754,15 @@ const Booking = ({ className = "" }) => {
                                     const isLeftBooked = bookingTime && (/:(00|0)\s*(AM|PM)?$/i.test(bookingTime) || /^\d{1,2}\s*(am|pm)$/i.test(bookingTime));
                                     const isRightBooked = bookingTime && /:30\s*(AM|PM)?$/i.test(bookingTime);
 
+                                    // Check if slot is already booked for 30 minutes
+                                    const isSlotBookedFor30Min = slot?.duration === 30 && bookingTime;
+                                    const shouldDisableLeftClick = isSlotBookedFor30Min && isLeftBooked; // 8:00 booked, disable left
+                                    const shouldDisableRightClick = isSlotBookedFor30Min && isRightBooked; // 8:30 booked, disable right
+
                                     const price = getPriceForSlot(slot.time, selectedDate?.day, hasThirtyMinPrice);
                                     if (price === null) {
                                       return null;
-                                    }
-
-                                    const currentCourtTimes = selectedTimes[courtId]?.[dateKey] || [];
-                                    const isSlotSelected = currentCourtTimes.some(t => t._id === slot._id);
+                                    };
 
                                     // Background: selected if full selected OR any half selected
                                     const getBackground = () => {
@@ -1727,6 +1776,19 @@ const Booking = ({ className = "" }) => {
                                       if (leftHalf && rightHalf) {
                                         return "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"; // Full blue when both selected
                                       }
+
+                                      // Handle booked slots with grey background for disabled side
+                                      if (isSlotBookedFor30Min) {
+                                        if (shouldDisableLeftClick) {
+                                          // Left side is booked (8:00), show grey on left, blue/white on right based on selection
+                                          return rightHalf ? "linear-gradient(to right, #9ca3af 50%, #0034E4 50%)" : "linear-gradient(to right, #9ca3af 50%, #FFFFFF 50%)";
+                                        }
+                                        if (shouldDisableRightClick) {
+                                          // Right side is booked (8:30), show blue/white on left based on selection, grey on right
+                                          return leftHalf ? "linear-gradient(to right, #0034E4 50%, #9ca3af 50%)" : "linear-gradient(to right, #FFFFFF 50%, #9ca3af 50%)";
+                                        }
+                                      }
+
                                       if (leftHalf) {
                                         return "linear-gradient(to right, #0034E4 50%, #FFFFFF 50%)"; // Left blue, right white
                                       }
@@ -1748,6 +1810,13 @@ const Booking = ({ className = "" }) => {
                                       if (slot?.has30MinPrice) {
                                         const rect = e.currentTarget.getBoundingClientRect();
                                         const clickSide = (e.clientX - rect.left) < rect.width / 2 ? "left" : "right";
+
+                                        // Check if this side is disabled due to existing booking
+                                        if ((clickSide === "left" && shouldDisableLeftClick) ||
+                                          (clickSide === "right" && shouldDisableRightClick)) {
+                                          return; // Don't allow click on disabled side
+                                        }
+
                                         toggleTime(slot, courtId, dateKey, clickSide);
                                       } else {
                                         toggleTime(slot, courtId, dateKey);
@@ -1856,21 +1925,21 @@ const Booking = ({ className = "" }) => {
                       });
                       return !hasAvailableSlotsWithPrice;
                     }) && (
-                      <div
-                        className="text-center py-4"
-                        style={{ fontFamily: "Poppins", fontWeight: "500" }}
-                      >
-                        {selectedDate?.fullDate === new Date().toISOString().split("T")[0] ? (
-                          <div className="text-danger">
-                            No slots available for this date. Please select another date
-                          </div>
-                        ) : (
-                          <div className="text-muted">
-                            No available slots for this date
-                          </div>
-                        )}
-                      </div>
-                    )}
+                        <div
+                          className="text-center py-4"
+                          style={{ fontFamily: "Poppins", fontWeight: "500" }}
+                        >
+                          {selectedDate?.fullDate === new Date().toISOString().split("T")[0] ? (
+                            <div className="text-danger">
+                              No slots available for this date. Please select another date
+                            </div>
+                          ) : (
+                            <div className="text-muted">
+                              No available slots for this date
+                            </div>
+                          )}
+                        </div>
+                      )}
                   </>
                 )
               ) : (

@@ -182,8 +182,41 @@ const getSlotDisplayTime = (slot, court, halfSelectedSlots) => {
         // Only left half selected
         return formatTimeForRange(slot.time);
     } else if (rightSelected) {
-        // Only right half selected  
-        return formatTimeForRange(slot.time.replace(':00', ':30'));
+        // Only right half selected - add 30 minutes to the base time
+        let timeStr = slot.time;
+        let cleaned = timeStr.toString().toLowerCase().trim();
+        let hour, minute = "00", period = "";
+        
+        if (cleaned.includes("am") || cleaned.includes("pm")) {
+            period = cleaned.endsWith("am") ? "AM" : "PM";
+            cleaned = cleaned.replace(/am|pm/gi, "").trim();
+        }
+
+        if (cleaned.includes(":")) {
+            [hour, minute] = cleaned.split(":");
+        } else {
+            hour = cleaned;
+            minute = "00";
+        }
+
+        let hourNum = parseInt(hour);
+        let minuteNum = parseInt(minute) + 30;
+        
+        // Handle minute overflow
+        if (minuteNum >= 60) {
+            minuteNum -= 60;
+            hourNum += 1;
+            
+            // Handle 12-hour format overflow
+            if (hourNum > 12) {
+                hourNum = 1;
+                period = period === "AM" ? "PM" : "AM";
+            }
+        }
+
+        let formattedHour = hourNum.toString().padStart(2, "0");
+        let formattedMinute = minuteNum.toString().padStart(2, "0");
+        return `${formattedHour}:${formattedMinute} ${period}`.trim();
     }
     
     // Default full slot
@@ -496,132 +529,222 @@ const OpenmatchPayment = () => {
                     .map(key => finalSkillDetails[key])
                 : [];
 
-            // Razorpay payment first
-            const options = {
-                key: RAZORPAY_KEY,
-                amount: localGrandTotal * 100,
-                currency: "INR",
-                name: clubData?.clubName || "Open Match",
-                description: "Open Match Booking",
-                image: logo || undefined,
-                prefill: { name, email, contact: cleanPhone },
-                theme: { color: "#001B76" },
+            const formattedMatch = {
+                slot: localSelectedCourts.flatMap((court, courtIndex) => court?.time?.map((timeSlot, timeIndex) => {
+                    const slotInfo = slotData?.data?.find(c => c._id === court?._id)?.slots?.find(s => s._id === timeSlot?._id);
+                    let bookingTime = formatTime(timeSlot?.time);
+                    let slotTime = timeSlot?.time;
 
-                handler: async function (response) {
-                    try {
-                        const formattedMatch = {
-                            slot: localSelectedCourts.flatMap((court, courtIndex) => court?.time?.map((timeSlot, timeIndex) => {
-                                const slotInfo = slotData?.data?.find(c => c._id === court?._id)?.slots?.find(s => s._id === timeSlot?._id);
-                                let bookingTime = formatTime(timeSlot?.time);
-
-                                if (selectedDuration === 30 && activeHalves?.size > 0) {
-                                    const slotKey = `${court?._id}-${timeSlot?._id}-${court?.date}`;
-                                    const activeHalf = activeHalves.get(slotKey);
-                                    if (activeHalf === 'right') {
-                                        const rightTime = timeSlot?.time.includes(':')
-                                            ? timeSlot?.time.replace(':00', ':30')
-                                            : timeSlot?.time.replace(' am', ':30 am').replace(' pm', ':30 pm');
-                                        bookingTime = formatTime(rightTime);
+                    // Check if this is a half-slot selection
+                    const dateKey = court?.date;
+                    const courtId = court?._id;
+                    const leftKey = `${courtId}-${timeSlot?._id}-${dateKey}-left`;
+                    const rightKey = `${courtId}-${timeSlot?._id}-${dateKey}-right`;
+                    
+                    const leftSelected = halfSelectedSlots?.has(leftKey);
+                    const rightSelected = halfSelectedSlots?.has(rightKey);
+                    
+                    // Debug logging
+                    console.log(`Slot ${timeSlot?.time}: leftSelected=${leftSelected}, rightSelected=${rightSelected}`);
+                    
+                    // Determine if this is a half-slot selection
+                    // Only consider it a half-slot if exactly one half is selected
+                    const isHalfSlot = (leftSelected && !rightSelected) || (rightSelected && !leftSelected);
+                    
+                    console.log(`Slot ${timeSlot?.time}: isHalfSlot=${isHalfSlot}, duration will be ${isHalfSlot ? 30 : 60}`);
+                    
+                    if (rightSelected && !leftSelected) {
+                        // For right half, we need to add 30 minutes to the original time
+                        // First, let's use the timeSlot time which should be correct
+                        const originalTime = timeSlot?.time;
+                        
+                        // Simple approach: if it's already formatted correctly, use it
+                        if (originalTime.includes(':30')) {
+                            slotTime = originalTime;
+                            bookingTime = formatTime(originalTime);
+                        } else {
+                            // Parse the original time and add 30 minutes
+                            const timeMatch = originalTime.match(/(\d+)(?::(\d+))?\s*(am|pm)/i);
+                            if (timeMatch) {
+                                let hour = parseInt(timeMatch[1]);
+                                let minute = parseInt(timeMatch[2] || '0') + 30;
+                                const period = timeMatch[3];
+                                
+                                // Handle minute overflow
+                                if (minute >= 60) {
+                                    minute -= 60;
+                                    hour += 1;
+                                    
+                                    // Handle 12-hour format overflow
+                                    if (hour > 12) {
+                                        hour = 1;
                                     }
                                 }
-
-                                return {
-                                    slotId: timeSlot?._id,
-                                    businessHours: slotInfo?.businessHours || [{ time: "06:00 AM - 11:00 PM", day: selectedDate?.day || court?.day }],
-                                    slotTimes: [{ time: timeSlot?.time, amount: timeSlot?.amount || 1000 }],
-                                    courtName: court?.courtName,
-                                    courtId: court?._id,
-                                    bookingDate: new Date(court?.date || selectedDate?.fullDate).toISOString(),
-                                    duration: selectedDuration || 60,
-                                    bookingTime: bookingTime,
-                                    totalTime: selectedDuration || 60
-                                };
-                            })),
-                            clubId: savedClubId,
-                            gender: selectedGender === 'Male' ? 'Male Only' : selectedGender === 'Female' ? 'Female Only' : 'Mixed Double' || "Mixed Double",
-                            matchDate: new Date(selectedDate?.fullDate).toISOString().split("T")[0],
-                            ...(answersArray?.length > 0 && {
-                                skillLevel: answersArray[0] || "Open Match",
-                                skillDetails: answersArray?.slice(1)?.map((answer, i) => {
-                                    if (i === 0 && Array.isArray(answer)) return answer.join(", ");
-                                    return answer;
-                                })
-                            }),
-                            matchStatus: "open",
-                            matchTime: localSelectedCourts.flatMap(c => c?.time.map(t => t?.time)).join(","),
-                            teamA,
-                            teamB,
-                            razorpayPaymentId: response?.razorpay_payment_id,
-                            razorpayOrderId: response?.razorpay_order_id,
-                            razorpaySignature: response?.razorpay_signature
-                        };
-
-                        const matchResponse = await dispatch(createMatches(formattedMatch)).unwrap();
-                        if (matchResponse?.match?._id) {
-                            localStorage.removeItem("addedPlayers");
-                            window.dispatchEvent(new Event("playersUpdated"));
-                            navigate("/open-matches", {
-                                replace: true,
-                                state: { selectedDate }
-                            });
-                            dispatch(getUserProfile());
-                        } else {
-                            throw new Error("Failed to create match");
-                        }
-                    } catch (err) {
-                        console.error("Post-payment error:", err);
-                        setError({ general: "Match creation failed" });
-                    } finally {
-                        setIsLoading(false);
-                    }
-                },
-
-                modal: {
-                    ondismiss: () => {
-                        setIsLoading(false);
-                        navigate("/create-matches", {
-                            state: {
-                                selectedDate,
-                                selectedCourts: localSelectedCourts,
-                                addedPlayers: finalAddedPlayers,
-                                finalSkillDetails,
-                                selectedGender
+                                
+                                const rightTime = minute === 0 
+                                    ? `${hour} ${period}`
+                                    : `${hour}:${minute.toString().padStart(2, '0')} ${period}`;
+                                slotTime = rightTime;
+                                bookingTime = formatTime(rightTime);
+                            } else {
+                                // Fallback: use the original value
+                                slotTime = originalTime;
+                                bookingTime = formatTime(originalTime);
                             }
-                        });
+                        }
                     }
-                }
+
+                    return {
+                        slotId: timeSlot?._id,
+                        businessHours: slotInfo?.businessHours || [{ time: "06:00 AM - 11:00 PM", day: selectedDate?.day || court?.day }],
+                        slotTimes: [{ time: slotTime, amount: timeSlot?.amount || 1000 }],
+                        courtName: court?.courtName,
+                        courtId: court?._id,
+                        bookingDate: new Date(court?.date || selectedDate?.fullDate).toISOString(),
+                        duration: isHalfSlot ? 30 : 60,
+                        bookingTime: bookingTime,
+                        totalTime: isHalfSlot ? 30 : 60
+                    };
+                })),
+                clubId: savedClubId,
+                gender: selectedGender === 'Male' ? 'Male Only' : selectedGender === 'Female' ? 'Female Only' : 'Mixed Double' || "Mixed Double",
+                matchDate: new Date(selectedDate?.fullDate).toISOString().split("T")[0],
+                ...(answersArray?.length > 0 && {
+                    skillLevel: answersArray[0] || "Open Match",
+                    skillDetails: answersArray?.slice(1)?.map((answer, i) => {
+                        if (i === 0 && Array.isArray(answer)) return answer.join(", ");
+                        return answer;
+                    })
+                }),
+                matchStatus: "open",
+                matchTime: localSelectedCourts.flatMap(court => 
+                    court?.time?.map(timeSlot => {
+                        // Apply same half-slot logic for matchTime
+                        const dateKey = court?.date;
+                        const courtId = court?._id;
+                        const leftKey = `${courtId}-${timeSlot?._id}-${dateKey}-left`;
+                        const rightKey = `${courtId}-${timeSlot?._id}-${dateKey}-right`;
+                        
+                        const leftSelected = halfSelectedSlots?.has(leftKey);
+                        const rightSelected = halfSelectedSlots?.has(rightKey);
+                        
+                        if (rightSelected && !leftSelected) {
+                            // For right half, we need to add 30 minutes to the original time
+                            const originalTime = timeSlot?.time;
+                            
+                            // Simple approach: if it's already formatted correctly, use it
+                            if (originalTime.includes(':30')) {
+                                return originalTime;
+                            } else {
+                                // Parse the original time and add 30 minutes
+                                const timeMatch = originalTime.match(/(\d+)(?::(\d+))?\s*(am|pm)/i);
+                                if (timeMatch) {
+                                    let hour = parseInt(timeMatch[1]);
+                                    let minute = parseInt(timeMatch[2] || '0') + 30;
+                                    const period = timeMatch[3];
+                                    
+                                    // Handle minute overflow
+                                    if (minute >= 60) {
+                                        minute -= 60;
+                                        hour += 1;
+                                        
+                                        // Handle 12-hour format overflow
+                                        if (hour > 12) {
+                                            hour = 1;
+                                        }
+                                    }
+                                    
+                                    return minute === 0 
+                                        ? `${hour} ${period}`
+                                        : `${hour}:${minute.toString().padStart(2, '0')} ${period}`;
+                                } else {
+                                    // Fallback: use the original value
+                                    return originalTime;
+                                }
+                            }
+                        }
+                        
+                        return timeSlot?.time;
+                    })
+                ).join(","),
+                teamA,
+                teamB,
+                initiatePayment: true,
+                bookingStatus:'upcoming',
+                paymentMethod: 'Online Payment'
             };
 
-            const razorpay = new window.Razorpay(options);
+            // First API call to initiate payment
+            const initialResponse = await dispatch(createMatches(formattedMatch)).unwrap();
+            
+            if (initialResponse?.requiresPayment && initialResponse?.paymentDetails) {
+                // Setup Razorpay with payment details from API
+                const options = {
+                    key: initialResponse.paymentDetails.key || RAZORPAY_KEY,
+                    order_id: initialResponse.paymentDetails.orderId,
+                    amount: initialResponse.paymentDetails.amount * 100,
+                    currency: initialResponse.paymentDetails.currency || "INR",
+                    name: clubData?.clubName || "Open Match",
+                    description: "Open Match Booking",
+                    image: logo || undefined,
+                    prefill: { name, email, contact: cleanPhone },
+                    theme: { color: "#001B76" },
 
-            razorpay.on("payment.failed", (response) => {
-                setIsLoading(false);
-                navigate("/create-matches", {
-                    state: {
-                        selectedDate,
-                        selectedCourts: localSelectedCourts,
-                        addedPlayers: finalAddedPlayers,
-                        finalSkillDetails,
-                        selectedGender,
-                        paymentError: response.error?.description || "Payment failed. Please try again."
+                    handler: async function (response) {
+                        console.log({response});
+                        try {
+                            // Second API call after successful payment
+                            const finalMatchData = {
+                                ...formattedMatch,
+                                initiatePayment: false,
+                                razorpayPaymentId: response.razorpay_payment_id,
+                                razorpayOrderId: response.razorpay_order_id,
+                                razorpaySignature: response.razorpay_signature,
+                                paymentMethod: response.method || 'Razorpay'
+                            };
+
+                            const matchResponse = await dispatch(createMatches(finalMatchData)).unwrap();
+                            if (matchResponse?.match?._id) {
+                                localStorage.removeItem("addedPlayers");
+                                window.dispatchEvent(new Event("playersUpdated"));
+                                navigate("/open-matches", {
+                                    replace: true,
+                                    state: { selectedDate }
+                                });
+                                dispatch(getUserProfile());
+                            } else {
+                                throw new Error("Failed to create match");
+                            }
+                        } catch (err) {
+                            console.error("Post-payment error:", err);
+                            setError({ general: "Match creation failed" });
+                        } finally {
+                            setIsLoading(false);
+                        }
+                    },
+
+                    modal: {
+                        ondismiss: () => {
+                            setIsLoading(false);
+                            setError({ general: "Payment cancelled" });
+                        }
                     }
-                });
-            });
+                };
 
-            razorpay.open();
+                const razorpay = new window.Razorpay(options);
+                razorpay.on("payment.failed", (response) => {
+                    setIsLoading(false);
+                    setError({ general: response.error?.description || "Payment failed" });
+                });
+                razorpay.open();
+            } else {
+                throw new Error("Payment initialization failed");
+            }
 
         } catch (err) {
+            console.error("Match creation error:", err);
+            setError({ general: err.message || "Match creation failed" });
             setIsLoading(false);
-            navigate("/create-matches", {
-                state: {
-                    selectedDate,
-                    selectedCourts: localSelectedCourts,
-                    addedPlayers: finalAddedPlayers,
-                    finalSkillDetails,
-                    selectedGender,
-                    paymentError: err.message || "Something went wrong. Please try again."
-                }
-            });
         }
     };
     // Local state for mobile summary
@@ -854,7 +977,7 @@ const OpenmatchPayment = () => {
                         }}
                     >
                         {/* Desktop Logo/Address Section */}
-                        <div className="d-flex mb-4 position-relative d-none d-lg-flex">
+                        <div className="d-flex mb-4 position-relative d-none d-md-flex">
                             <img src={booking_logo_img} className="booking-logo-img" alt="" />
                             <div className="text-center ps-2 pe-0 mt-3" style={{ maxWidth: "200px" }}>
                                 <p className="mt-2 mb-1 text-white" style={{ fontSize: "20px", fontWeight: "600", fontFamily: "Poppins" }}>
@@ -912,8 +1035,8 @@ const OpenmatchPayment = () => {
                         </div>
 
                         {/* Desktop Booking Summary */}
-                        <div className="d-none d-lg-block">
-                            <div className="d-flex border-top px-3 pt-2 justify-content-between align-items-center">
+                        <div className="d-none d-md-block">
+                            <div className="d-flex border-top px-3 pt-2 justify-content-between align-items-center d-none d-md-flex">
                                 <h6 className="p-2 mb-1 ps-0 text-white custom-heading-use">Booking Summary {localTotalSlots > 0 ? ` (${localTotalSlots} Slot selected)` : ''}</h6>
                             </div>
                             <div className="px-3">
@@ -937,8 +1060,8 @@ const OpenmatchPayment = () => {
                                 <div
                                     className="slots-container"
                                     style={{
-                                        maxHeight: localTotalSlots > 4 ? "200px" : "auto",
-                                        overflowY: localTotalSlots > 4 ? "auto" : "visible",
+                                        maxHeight: "250px",
+                                        overflowY: "auto",
                                         overflowX: "hidden",
                                         paddingRight: "8px",
                                     }}
@@ -982,7 +1105,7 @@ const OpenmatchPayment = () => {
                                             ));
                                         })()
                                     ) : (
-                                        <div className="d-flex flex-column justify-content-center align-items-center text-white" style={{ height: "25vh" }}>
+                                        <div className="d-flex flex-column justify-content-center align-items-center text-white" style={{ height: "22vh" }}>
                                             <p style={{ fontSize: "14px", fontFamily: "Poppins", fontWeight: "500" }}>No slot selected</p>
                                         </div>
                                     )}
@@ -1304,7 +1427,7 @@ const OpenmatchPayment = () => {
                         </div>
                         {/* Desktop Total Section */}
                         {localTotalSlots > 0 && (
-                            <div className="border-top pt-2 px-3 mt-2 text-white d-flex justify-content-between align-items-center fw-bold mobile-total-section d-none d-lg-flex">
+                            <div className="border-top pt-2 px-3 mt-2 text-white d-flex justify-content-between align-items-center fw-bold mobile-total-section d-none d-md-flex">
                                 <p
                                     className="d-flex flex-column mb-0"
                                     style={{ fontSize: "16px", fontWeight: "600" }}
@@ -1322,7 +1445,7 @@ const OpenmatchPayment = () => {
                         )}
 
                         {/* Desktop Book Button */}
-                        <div className="d-flex justify-content-center align-items-center d-none d-lg-flex">
+                        <div className="d-flex justify-content-center  align-items-center d-none d-md-flex">
                             <button
                                 style={{ ...buttonStyle }}
                                 className=""

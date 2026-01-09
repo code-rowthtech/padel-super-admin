@@ -239,7 +239,8 @@ const BookingSummary = ({
                 <div
                     className="border w-100 px-0 pt-1 pb-0 border-0 mobile-summary-container small-curve-wrapper"
                     style={{
-                        height: "68vh",
+                        height: "75vh",
+                        maxHeight: "600px",
                         borderRadius: "10px 30% 10px 10px",
                         background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
                         position: "relative",
@@ -247,7 +248,7 @@ const BookingSummary = ({
                 >
                     {totalSlots > 0 && (
                         <div
-                            className="small-curve-arrow d-lg-none"
+                            className="small-curve-arrow d-md-none"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 setIsExpanded(!isExpanded);
@@ -288,7 +289,7 @@ const BookingSummary = ({
                       }
                     `}</style>
 
-                    <div className="d-flex mb-3 mt-2 position-relative d-none d-lg-flex">
+                    <div className="d-flex mb-3 mt-2 position-relative d-none d-md-flex">
                         <img
                             src={booking_logo_img}
                             className="booking-logo-img"
@@ -372,9 +373,9 @@ const BookingSummary = ({
                         </div>
                     </div>
 
-                    <div className="d-flex border-top px-3 pt-2 justify-content-between align-items-center d-none d-lg-flex">
+                    <div className="d-flex border-top px-3 pt-2 justify-content-between align-items-center d-none d-md-flex">
                         <h6 className="p-2 mb-1 ps-0 text-white custom-heading-use">
-                            Booking Summary ({displayedSlotCount} Slot{displayedSlotCount !== 1 ? 's' : ''} selected)
+                            Booking Summary ({displayedSlotCount || 0} Slot{displayedSlotCount !== 1 ? 's' : ''} selected)
                         </h6>
                         {displayedSlotCount >= 10 && (
                             <Button
@@ -396,7 +397,7 @@ const BookingSummary = ({
                     <div
                         className="px-3"
                         style={{
-                            maxHeight: "250px",
+                            maxHeight: "130px",
                             overflowY: "auto",
                             overflowX: "hidden",
                             paddingRight: "16px",
@@ -421,10 +422,15 @@ const BookingSummary = ({
 
                         {/* Desktop Slots */}
                         <div
-                            className="div d-none d-lg-block"
-                            style={{ height: "18vh" }}
+                            className="div d-none d-md-block"
+                            style={{ 
+                                maxHeight: "250px",
+                                overflowY: "auto",
+                                overflowX: "hidden",
+                                paddingRight: "8px"
+                            }}
                         >
-                            {selectedCourts?.length > 0 ? (
+                            {selectedCourts?.length > 0 && selectedCourts.some(court => court.time && court.time.length > 0) ? (
                                 (() => {
                                     const groupedSlots = groupConsecutiveSlots(selectedCourts, halfSelectedSlots);
                                     
@@ -525,7 +531,7 @@ const BookingSummary = ({
                             )}
                         </div>
 
-                        <div className="div d-lg-none px-0 mobile-slots-container">
+                        <div className="div d-md-none px-0 mobile-slots-container">
                             <div
                                 className={`mobile-expanded-slots ${isExpanded ? "expanded border-bottom" : " "
                                     }`}
@@ -571,6 +577,7 @@ const BookingSummary = ({
 
                                 {isExpanded &&
                                     selectedCourts?.length > 0 &&
+                                    selectedCourts.some(court => court.time && court.time.length > 0) &&
                                     (() => {
                                         const groupedSlots = groupConsecutiveSlots(selectedCourts, halfSelectedSlots);
                                         
@@ -663,7 +670,7 @@ const BookingSummary = ({
 
                     {totalSlots > 0 && (
                         <>
-                            <div className="d-lg-none py-0 pt-1">
+                            <div className="d-md-none py-0 pt-1">
                                 <div className="d-flex justify-content-between align-items-center px-3">
                                     <div className="d-flex flex-column">
                                         <span className="text-white" style={{ fontSize: "14px", fontWeight: "500" }}>
@@ -681,7 +688,7 @@ const BookingSummary = ({
                                 </div>
                             </div>
 
-                            <div className="border-top pt-2 px-3 mt-2 text-white d-flex justify-content-between align-items-center fw-bold d-none d-lg-flex">
+                            <div className="border-top pt-2 px-3 mt-2 text-white d-flex justify-content-between align-items-center fw-bold d-none d-md-flex">
                                 <p className="d-flex flex-column mb-0" style={{ fontSize: "16px", fontWeight: "600" }}>
                                     Total to Pay
                                 </p>
