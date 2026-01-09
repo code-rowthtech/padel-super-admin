@@ -1,8 +1,8 @@
+import React, { useEffect, useRef, useState } from 'react';
 import { logo } from '../../../assets/files';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { Dropdown, OverlayTrigger, Tooltip, Offcanvas } from 'react-bootstrap';
 import { FaChevronDown, FaChevronUp, FaHeadphones, FaRegUserCircle, FaBars, FaBell, FaTimes } from 'react-icons/fa';
-import { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../../../redux/user/auth/authSlice';
 import { IoTennisballOutline } from 'react-icons/io5';
