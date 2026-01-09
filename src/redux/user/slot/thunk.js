@@ -87,7 +87,7 @@ export const getUserSlotPrice = createAsyncThunk(
 
 export const getUserHalfSlotPrice = createAsyncThunk(
   "club/getUserHalfSlotPrice",
-  async ({ register_club_id, day, duration}, { rejectWithValue }) => {
+  async ({ register_club_id, day}, { rejectWithValue }) => {
     try {
       if (!register_club_id ) {
         throw new Error("Missing required parameters: register_club_id, day, or duration");
@@ -96,7 +96,6 @@ export const getUserHalfSlotPrice = createAsyncThunk(
       const queryParams = new URLSearchParams({
         register_club_id,
         day,
-        duration,
       });
 
       const response = await userApi.get(`${Url.GET_SLOT_HALF_PRICES}?${queryParams.toString()}`);

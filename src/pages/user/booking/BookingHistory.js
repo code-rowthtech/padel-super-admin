@@ -525,13 +525,31 @@ const BookingHistory = () => {
                                         booking?.slot?.map((slotItem, index) => (
                                             <tr key={`${i}-${index}`} className="border-bottom">
                                                 <td className="table-data text-nowrap py-1 pt-2 ps-5 text-start" style={{ fontWeight: "570", fontSize: "16px", color: "#000000", width: "20%" }}>
-                                                    {formatDate(booking?.bookingDate)} | {(() => {
+                                                    {(() => {
                                                         const times = slotItem?.slotTimes?.map((slot) => {
                                                             const time = slot?.time;
                                                             return time ? formatTime(time) : "";
                                                         })?.filter(Boolean) || [];
-                                                        const displayed = times?.slice(0, 5)?.join(", ");
-                                                        return times?.length > 5 ? `${displayed} ...` : displayed;
+                                                        const fullText = `${formatDate(booking?.bookingDate)} | ${times?.join(", ")}`;
+                                                        const isMobile = window.innerWidth <= 768;
+                                                        const maxSlots = isMobile ? 3 : 5;
+                                                        const displayed = times?.slice(0, maxSlots)?.join(", ");
+                                                        const displayText = `${formatDate(booking?.bookingDate)} | ${times?.length > maxSlots ? `${displayed} ...` : displayed}`;
+                                                        
+                                                        return times?.length > maxSlots ? (
+                                                            <OverlayTrigger
+                                                                placement="top"
+                                                                overlay={
+                                                                    <Tooltip id={`datetime-tooltip-${booking?._id || 'unknown'}-${index}`}>
+                                                                        {fullText}
+                                                                    </Tooltip>
+                                                                }
+                                                            >
+                                                                <span>{displayText}</span>
+                                                            </OverlayTrigger>
+                                                        ) : (
+                                                            <span>{displayText}</span>
+                                                        );
                                                     })()}
                                                 </td>
                                                 <td className="table-data pt-2 py-1" >

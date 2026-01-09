@@ -443,21 +443,49 @@ const Payment = ({ className = "" }) => {
           let bookingTime = slotTimeStr;
           let slotDuration = duration || 60;
 
-          if (duration === 30) {
-            const leftKey = `${courtId}-${timeSlot._id}-${dateKey}-left`;
-            const rightKey = `${courtId}-${timeSlot._id}-${dateKey}-right`;
-            const isLeftHalf = halfSelectedSlots.has(leftKey);
-            const isRightHalf = halfSelectedSlots.has(rightKey);
+          // Check for half-slot selections regardless of duration
+          const leftKey = `${courtId}-${timeSlot._id}-${dateKey}-left`;
+          const rightKey = `${courtId}-${timeSlot._id}-${dateKey}-right`;
+          const isLeftHalf = halfSelectedSlots?.has(leftKey);
+          const isRightHalf = halfSelectedSlots?.has(rightKey);
 
+          // If only one half is selected, set duration to 30
+          if ((isLeftHalf && !isRightHalf) || (isRightHalf && !isLeftHalf)) {
+            slotDuration = 30;
+            
             if (isRightHalf && !isLeftHalf) {
-              // Convert time like "4 pm" to "4:30 pm" or "6:00 AM" to "6:30 AM"
-              if (slotTimeStr.includes(':00')) {
-                bookingTime = slotTimeStr.replace(':00', ':30');
+              // For right half, we need to add 30 minutes to the original time
+              // First, let's use the slotTimes time which should be correct
+              const originalTime = timeSlot?.time || slotTimeStr;
+              
+              // Simple approach: if it's already formatted correctly in slotTimes, use it
+              if (originalTime.includes(':30')) {
+                bookingTime = originalTime.replace(' am', ' AM').replace(' pm', ' PM');
               } else {
-                // Handle formats like "4 pm" -> "4:30 pm"
-                const timeMatch = slotTimeStr.match(/(\d+)\s*(am|pm)/i);
+                // Parse the original time and add 30 minutes
+                const timeMatch = originalTime.match(/(\d+)(?::(\d+))?\s*(am|pm)/i);
                 if (timeMatch) {
-                  bookingTime = `${timeMatch[1]}:30 ${timeMatch[2]}`;
+                  let hour = parseInt(timeMatch[1]);
+                  let minute = parseInt(timeMatch[2] || '0') + 30;
+                  const period = timeMatch[3];
+                  
+                  // Handle minute overflow
+                  if (minute >= 60) {
+                    minute -= 60;
+                    hour += 1;
+                    
+                    // Handle 12-hour format overflow
+                    if (hour > 12) {
+                      hour = 1;
+                    }
+                  }
+                  
+                  bookingTime = minute === 0 
+                    ? `${hour}:00 ${period.toUpperCase()}`
+                    : `${hour}:${minute.toString().padStart(2, '0')} ${period.toUpperCase()}`;
+                } else {
+                  // Fallback: use the slotTimes value if parsing fails
+                  bookingTime = originalTime.replace(' am', ' AM').replace(' pm', ' PM');
                 }
               }
             }
@@ -490,7 +518,7 @@ const Payment = ({ className = "" }) => {
             courtId: court?._id,
             bookingDate: court?.date,
             duration: slotDuration,
-            totalTime: duration,
+            totalTime: slotDuration,
             bookingTime: bookingTime
           };
         });
@@ -784,7 +812,7 @@ const Payment = ({ className = "" }) => {
           <div
             className="border w-100 px-0 pt-1 pb-3 border-0 mobile-summary-container small-curve-wrapper d-flex flex-column"
             style={{
-              height: "62vh",
+              height: "75vh",
               borderRadius: "10px 30% 10px 10px",
               background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
               position: "relative",
@@ -793,7 +821,7 @@ const Payment = ({ className = "" }) => {
             {/* mobile small curve arrow */}
             {localTotalSlots > 0 && (
               <div
-                className="small-curve-arrow d-lg-none"
+                className="small-curve-arrow d-sm-none"
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsExpanded(!isExpanded);
@@ -835,7 +863,7 @@ const Payment = ({ className = "" }) => {
   `}</style>
 
             {/* Desktop Logo & Address */}
-            <div className="d-flex my-4 position-relative d-none d-lg-flex">
+            <div className="d-flex my-4 position-relative d-none d-sm-flex">
               <img src={booking_logo_img} className="booking-logo-img" alt="" />
 
               <div className="text-center ps-2 pe-0 mt-3" style={{ maxWidth: "200px" }}>
@@ -892,14 +920,14 @@ const Payment = ({ className = "" }) => {
             </div>
 
             {/* Desktop Booking Summary Title */}
-            <div className="d-flex border-top px-3 pt-2 justify-content-between align-items-center d-none d-lg-flex">
+            <div className="d-flex border-top px-3 pt-2 justify-content-between align-items-center d-none d-sm-flex">
               <h6 className="p-2 mb-1 ps-0 text-white custom-heading-use">
                 Booking Summary ({localTotalSlots} Slot{localTotalSlots !== 1 ? 's' : ''} selected)
               </h6>
             </div>
 
             {/* Desktop Slots Scroll */}
-            <div className="px-3" style={{ maxHeight: "200px", overflowY: "auto", overflowX: "hidden", paddingRight: "16px" }}>
+            <div className="px-3" style={{ maxHeight: "250px", overflowY: "auto", overflowX: "hidden", paddingRight: "16px" }}>
               <style>{`
       div::-webkit-scrollbar {
         width: 8px;
@@ -910,7 +938,7 @@ const Payment = ({ className = "" }) => {
       }
     `}</style>
 
-              <div className="d-none d-lg-block">
+              <div className="d-none d-sm-block">
                 {localSelectedCourts?.length > 0 ? (
                   (() => {
                     const groupedSlots = groupConsecutiveSlots(localSelectedCourts, halfSelectedSlots);
@@ -1014,7 +1042,7 @@ const Payment = ({ className = "" }) => {
               </div>
 
               {/* MOBILE Slots */}
-              <div className="d-lg-none px-0 mobile-slots-container">
+              <div className="d-sm-none px-0 mobile-slots-container">
                 <div
                   className={`mobile-expanded-slots ${isExpanded ? "expanded border-bottom" : ""}`}
                   style={{
@@ -1158,7 +1186,7 @@ const Payment = ({ className = "" }) => {
             )} */}
             {localTotalSlots > 0 && (
               <>
-                <div className="d-lg-none py-0 pt-1">
+                <div className="d-sm-none py-0 pt-1">
                   <div
                     className="d-flex justify-content-between align-items-center px-3"
                     onClick={(e) => {
@@ -1205,7 +1233,7 @@ const Payment = ({ className = "" }) => {
                   </div>
                 </div>
 
-                <div className="border-top pt-2 px-3 mt-2 text-white d-flex justify-content-between align-items-center fw-bold mobile-total-section d-none d-lg-flex">
+                <div className="border-top pt-2 px-3 mt-2 text-white d-flex justify-content-between align-items-center fw-bold mobile-total-section d-none d-sm-flex">
                   <p
                     className="d-flex flex-column mb-0"
                     style={{ fontSize: "16px", fontWeight: "600" }}

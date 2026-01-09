@@ -393,27 +393,54 @@ const CreateMatches = () => {
         return newSet;
       });
 
-      // Calculate amount based on final selection state
-      let amount;
-      const willHaveLeft = clickSide === "left" || leftHalf;
-      const willHaveRight = clickSide === "right" || rightHalf;
+      // Check if there are any remaining half selections after this toggle
+      const wasSelected = (clickSide === "left" && leftHalf) || (clickSide === "right" && rightHalf);
+      const willHaveLeft = clickSide === "left" ? !leftHalf : halfSelectedSlots.has(leftKey);
+      const willHaveRight = clickSide === "right" ? !rightHalf : halfSelectedSlots.has(rightKey);
       
-      if (willHaveLeft && willHaveRight) {
-        // Both halves will be selected = full price
-        amount = getPriceForSlot(time.time, selectedDate?.day, false);
+      if (willHaveLeft || willHaveRight) {
+        // Calculate amount based on final selection state
+        let amount;
+        if (willHaveLeft && willHaveRight) {
+          // Both halves will be selected = full price
+          amount = getPriceForSlot(time.time, selectedDate?.day, false);
+        } else {
+          // Only one half will be selected = half price
+          amount = getPriceForSlot(time.time, selectedDate?.day, true);
+        }
+
+        const newTimeEntry = {
+          _id: time._id,
+          time: time.time,
+          amount: amount,
+        };
+
+        const newTimes = [...currentCourtTimes.filter(t => t._id !== time._id), newTimeEntry];
+        updateSelectedBusinessAndCourts(newTimes, courtId, [newTimeEntry]);
       } else {
-        // Only one half will be selected = half price
-        amount = getPriceForSlot(time.time, selectedDate?.day, true);
+        // No halves selected, remove completely
+        const newTimes = currentCourtTimes.filter(t => t._id !== time._id);
+        setSelectedTimes(prev => {
+          const updated = { ...prev };
+          if (newTimes.length > 0) {
+            updated[courtId] = newTimes;
+          } else {
+            delete updated[courtId];
+          }
+          return updated;
+        });
+
+        setSelectedBuisness(prev => prev.filter(t => t._id !== time._id));
+        setSelectedCourts(prev =>
+          prev
+            .map(c =>
+              c._id === courtId
+                ? { ...c, time: c.time.filter(t => t._id !== time._id) }
+                : c
+            )
+            .filter(c => c.time.length > 0)
+        );
       }
-
-      const newTimeEntry = {
-        _id: time._id,
-        time: time.time,
-        amount: amount,
-      };
-
-      const newTimes = [...currentCourtTimes.filter(t => t._id !== time._id), newTimeEntry];
-      updateSelectedBusinessAndCourts(newTimes, courtId, [newTimeEntry]);
       setSlotError("");
       return;
     }
@@ -677,7 +704,8 @@ const CreateMatches = () => {
 
 
   const handleNext = async () => {
-    if (selectedCourts?.length === 0) {
+    // Check if any slots are selected (full slots or half slots)
+    if (selectedCourts?.length === 0 && halfSelectedSlots?.size === 0) {
       setSlotError("Select a slot to enable booking");
       return;
     }
@@ -866,7 +894,36 @@ const CreateMatches = () => {
       return null;
     }
 
-    let isDisabled = slot?.status === "booked" || slot?.availabilityStatus !== "available" || isPastTime(slot?.time);
+    let isDisabled = slot?.availabilityStatus !== "available" || isPastTime(slot?.time);
+    
+    // Check if slot is booked for 60 minutes - treat as partial booking
+    const isBookedFor60Min = slot?.status === "booked" && slot?.duration === 60;
+    const bookingTime = slot?.bookingTime?.trim();
+    
+    // For 60-minute bookings, determine which side should be disabled
+    let shouldDisableLeftClick = false;
+    let shouldDisableRightClick = false;
+    
+    if (isBookedFor60Min && bookingTime) {
+      // If booked at 3:30 PM, disable right side of 3 PM slot
+      const isRightBooked = /:30\s*(AM|PM)?$/i.test(bookingTime);
+      const isLeftBooked = (/:(00|0)\s*(AM|PM)?$/i.test(bookingTime) || /^\d{1,2}\s*(am|pm)$/i.test(bookingTime));
+      
+      if (isRightBooked) {
+        shouldDisableRightClick = true;
+      } else if (isLeftBooked) {
+        shouldDisableLeftClick = true;
+      }
+    }
+    
+    // Check if slot is already booked for 30 minutes
+    const isSlotBookedFor30Min = slot?.duration === 30 && bookingTime;
+    if (isSlotBookedFor30Min) {
+      const isLeftBooked = bookingTime && (/:(00|0)\s*(AM|PM)?$/i.test(bookingTime) || /^\d{1,2}\s*(am|pm)$/i.test(bookingTime));
+      const isRightBooked = bookingTime && /:30\s*(AM|PM)?$/i.test(bookingTime);
+      shouldDisableLeftClick = isLeftBooked;
+      shouldDisableRightClick = isRightBooked;
+    }
 
     // Background logic
     const getBackground = () => {
@@ -880,6 +937,19 @@ const CreateMatches = () => {
       if (leftHalf && rightHalf) {
         return "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"; // Full blue when both selected
       }
+      
+      // Handle booked slots with grey background for disabled side
+      if (isSlotBookedFor30Min || isBookedFor60Min) {
+        if (shouldDisableLeftClick) {
+          // Left side is booked (8:00), show grey on left, blue/white on right based on selection
+          return rightHalf ? "linear-gradient(to right, #9ca3af 50%, #0034E4 50%)" : "linear-gradient(to right, #9ca3af 50%, #FFFFFF 50%)";
+        }
+        if (shouldDisableRightClick) {
+          // Right side is booked (8:30), show blue/white on left based on selection, grey on right
+          return leftHalf ? "linear-gradient(to right, #0034E4 50%, #9ca3af 50%)" : "linear-gradient(to right, #FFFFFF 50%, #9ca3af 50%)";
+        }
+      }
+      
       if (leftHalf) {
         return "linear-gradient(to right, #0034E4 50%, #FFFFFF 50%)"; // Left blue, right white
       }
@@ -896,6 +966,13 @@ const CreateMatches = () => {
       if (hasThirtyMinPrice) {
         const rect = e.currentTarget.getBoundingClientRect();
         const clickSide = (e.clientX - rect.left) < rect.width / 2 ? "left" : "right";
+        
+        // Check if this side is disabled due to existing booking
+        if ((clickSide === "left" && shouldDisableLeftClick) || 
+            (clickSide === "right" && shouldDisableRightClick)) {
+          return; // Don't allow click on disabled side
+        }
+        
         toggleTime(slot, courtId, dateKey, clickSide);
       } else {
         toggleTime(slot, courtId, dateKey);
@@ -1011,7 +1088,7 @@ const CreateMatches = () => {
               style={{
                 backgroundColor: isSelected ? "#eef2ff" : "#fff",
                 borderColor: isSelected ? "#4f46e5" : "#e5e7eb",
-                cursor: selectedCourts.length === 0 ? "not-allowed" : "pointer",
+                cursor: (selectedCourts?.length === 0 && halfSelectedSlots?.size === 0) ? "not-allowed" : "pointer",
                 gap: "12px",
                 height: "50px",
                 transition: "all 0.2s ease",
@@ -1310,10 +1387,13 @@ const CreateMatches = () => {
                     <div className="p-0">
                       {slotData?.data?.some((court) =>
                         court?.slots?.some((slot) => {
+                          const isBookedFor30Min = slot?.status === "booked" && slot?.duration === 30 && slot?.bookingTime;
+                          const isBookedFor60Min = slot?.status === "booked" && slot?.duration === 60;
+                          
                           const basicFilter = showUnavailable ||
                             (slot?.availabilityStatus === "available" &&
-                              slot?.status !== "booked" &&
-                              !isPastTime(slot?.time));
+                              !isBookedFor60Min &&
+                              !isPastTime(slot?.time)) || isBookedFor30Min;
                           
                           const hasPrice = getPriceForSlot(slot.time, selectedDate?.day, true) !== null;
                           
@@ -1386,11 +1466,14 @@ const CreateMatches = () => {
                         `}</style>
                         {slotData?.data?.map((court, courtIndex) => {
                           const filteredSlots = court?.slots?.filter((slot) => {
+                            // Check if slot is booked for 30 minutes or 60 minutes - these should still show
+                            const isBookedFor30Min = slot?.status === "booked" && slot?.duration === 30 && slot?.bookingTime;
+                            const isBookedFor60Min = slot?.status === "booked" && slot?.duration === 60 && slot?.bookingTime;
+                            
                             const basicFilter = showUnavailable
                               ? true
-                              : slot?.availabilityStatus === "available" &&
-                              slot?.status !== "booked" &&
-                              !isPastTime(slot?.time);
+                              : (slot?.availabilityStatus === "available" &&
+                                !isPastTime(slot?.time)) || isBookedFor30Min || isBookedFor60Min; // Include both 30min and 60min booked slots
                             
                             // Check if price exists
                             const hasPrice = getPriceForSlot(slot.time, selectedDate?.day, slot?.has30MinPrice === true) !== null;
@@ -1441,10 +1524,13 @@ const CreateMatches = () => {
                       </div>
                       {slotData?.data?.some((court) =>
                         court?.slots?.some((slot) => {
+                          const isBookedFor30Min = slot?.status === "booked" && slot?.duration === 30 && slot?.bookingTime;
+                          const isBookedFor60Min = slot?.status === "booked" && slot?.duration === 60;
+                          
                           const basicFilter = showUnavailable ||
                             (slot?.availabilityStatus === "available" &&
-                              slot?.status !== "booked" &&
-                              !isPastTime(slot?.time));
+                              !isBookedFor60Min &&
+                              !isPastTime(slot?.time)) || isBookedFor30Min;
                           
                           const hasPrice = getPriceForSlot(slot.time, selectedDate?.day, true) !== null;
                           
@@ -1460,7 +1546,7 @@ const CreateMatches = () => {
                                 fontWeight: "600",
                                 fontSize: "13px",
                               }}
-                              disabled={selectedCourts?.length === 0}
+                              disabled={(selectedCourts?.length === 0 && halfSelectedSlots?.size === 0)}
                               onClick={() => {
                                 if (existsOpenMatchData) {
                                   setMatchPlayer(true);
@@ -1479,10 +1565,13 @@ const CreateMatches = () => {
                       (court) =>
                         !court?.slots?.some(
                           (slot) => {
+                            const isBookedFor30Min = slot?.status === "booked" && slot?.duration === 30 && slot?.bookingTime;
+                            const isBookedFor60Min = slot?.status === "booked" && slot?.duration === 60;
+                            
                             const basicFilter = showUnavailable ||
                               (slot?.availabilityStatus === "available" &&
-                                slot?.status !== "booked" &&
-                                !isPastTime(slot?.time));
+                                !isBookedFor60Min &&
+                                !isPastTime(slot?.time)) || isBookedFor30Min;
                             
                             const hasPrice = getPriceForSlot(slot.time, selectedDate?.day, slot?.has30MinPrice === true) !== null;
                             
@@ -1778,7 +1867,7 @@ const CreateMatches = () => {
                               style={{
                                 backgroundColor: isSelected ? "#eef2ff" : "#fff",
                                 borderColor: isSelected ? "#4f46e5" : "#e5e7eb",
-                                cursor: selectedCourts?.length === 0 ? "not-allowed" : "pointer",
+                                cursor: (selectedCourts?.length === 0 && halfSelectedSlots?.size === 0) ? "not-allowed" : "pointer",
                                 gap: "12px",
                                 transition: "all 0.2s ease",
                               }}
@@ -1839,7 +1928,7 @@ const CreateMatches = () => {
                       border: "none",
                     }}
                     className="rounded-pill px-4 mb-0 py-1 ms-auto"
-                    disabled={selectedCourts?.length === 0 || !isCurrentStepValid()}
+                    disabled={(selectedCourts?.length === 0 && halfSelectedSlots?.size === 0) || !isCurrentStepValid()}
                     onClick={handleNext}
                   >
                     {getPlayerLevelsLoading === true ? (
@@ -1903,8 +1992,8 @@ const CreateMatches = () => {
 
                   <div
                     style={{
-                      opacity: selectedCourts?.length === 0 ? 0.5 : 1,
-                      pointerEvents: selectedCourts?.length === 0 ? "none" : "auto",
+                      opacity: (selectedCourts?.length === 0 && halfSelectedSlots?.size === 0) ? 0.5 : 1,
+                      pointerEvents: (selectedCourts?.length === 0 && halfSelectedSlots?.size === 0) ? "none" : "auto",
                     }}
                   >
                     {renderCurrentQuestion()}
@@ -1931,7 +2020,7 @@ const CreateMatches = () => {
                       border: "none",
                     }}
                     className="rounded-pill px-4 py-2 pt-1 d-flex align-items-center justify-content-center"
-                    disabled={selectedCourts?.length === 0 || !isCurrentStepValid()}
+                    disabled={(selectedCourts?.length === 0 && halfSelectedSlots?.size === 0) || !isCurrentStepValid()}
                     onClick={handleNext}
                   >
                     {getPlayerLevelsLoading === true ? (

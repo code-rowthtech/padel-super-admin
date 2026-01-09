@@ -4,7 +4,7 @@ import { padal } from "../../../assets/files";
 import { useDispatch, useSelector } from "react-redux";
 import { getMatchesView, removePlayers } from "../../../redux/user/matches/thunk";
 import { DataLoading, ButtonLoading } from "../../../helpers/loading/Loaders";
-import {  Modal, Box, Button } from "@mui/material";
+import { Modal, Box, Button } from "@mui/material";
 import { Tooltip } from 'react-tooltip';
 import { Offcanvas } from "react-bootstrap";
 import UpdatePlayers from "./UpdatePlayers";
@@ -331,36 +331,45 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, isFromBookingH
         if (!slots || slots.length === 0) return "";
         const times = slots.flatMap((slot) => slot.slotTimes.map((slotTime) => slotTime.time));
 
-        const formattedTimes = times.map(time => {
-            if (!time || typeof time !== 'string') return { hour: 0, period: 'AM' };
-            let hour, period;
-            if (/am|pm/i.test(time)) {
-                const match = time.match(/(\d+)\s*(am|pm)/i);
-                if (match) {
-                    hour = parseInt(match[1], 10);
-                    period = match[2].toUpperCase();
-                } else {
-                    return { hour: 0, period: 'AM' };
-                }
-            } else {
-                const timeParts = time.split(":");
-                if (timeParts.length < 2) return { hour: 0, period: 'AM' };
-                const [hours, minutes] = timeParts;
-                const hourNum = parseInt(hours, 10) || 0;
-                period = hourNum >= 12 ? "PM" : "AM";
-                hour = hourNum > 12 ? hourNum - 12 : hourNum === 0 ? 12 : hourNum;
+        const parsedTimes = times.map(time => {
+            if (!time || typeof time !== 'string') return null;
+            const match = time.match(/(\d+)(?::(\d+))?\s*(am|pm)/i);
+            if (match) {
+                let hour = parseInt(match[1], 10);
+                const minute = match[2] ? parseInt(match[2], 10) : 0;
+                const period = match[3].toLowerCase();
+
+                if (period === 'pm' && hour !== 12) hour += 12;
+                if (period === 'am' && hour === 12) hour = 0;
+
+                return {
+                    hour,
+                    minute,
+                    totalMinutes: hour * 60 + minute,
+                    original: time
+                };
             }
-            return { hour, period };
-        }).sort((a, b) => {
-            const aValue = a.period === 'AM' ? a.hour : a.hour + 12;
-            const bValue = b.period === 'AM' ? b.hour : b.hour + 12;
-            return aValue - bValue;
-        });
+            return null;
+        }).filter(Boolean).sort((a, b) => a.totalMinutes - b.totalMinutes);
 
-        if (formattedTimes.length === 0) return "";
-        if (formattedTimes.length === 1) return `${formattedTimes[0].hour}${formattedTimes[0].period}`;
+        if (parsedTimes.length === 0) return "";
+        if (parsedTimes.length === 1) {
+            const time = parsedTimes[0];
+            const displayHour = time.hour > 12 ? time.hour - 12 : time.hour === 0 ? 12 : time.hour;
+            const period = time.hour >= 12 ? 'PM' : 'AM';
+            return time.minute > 0 ? `${displayHour}:${time.minute.toString().padStart(2, '0')}${period}` : `${displayHour}${period}`;
+        }
 
-        return `${formattedTimes[0].hour}-${formattedTimes[formattedTimes.length - 1].hour}${formattedTimes[formattedTimes.length - 1].period}`;
+        const startTime = parsedTimes[0];
+        const endTime = parsedTimes[parsedTimes.length - 1];
+
+        const formatTime = (time) => {
+            const displayHour = time.hour > 12 ? time.hour - 12 : time.hour === 0 ? 12 : time.hour;
+            const period = time.hour >= 12 ? 'PM' : 'AM';
+            return time.minute > 0 ? `${displayHour}:${time.minute.toString().padStart(2, '0')}${period}` : `${displayHour}${period}`;
+        };
+
+        return `${formatTime(startTime)} - ${formatTime(endTime)}`;
     };
 
     const matchDate = matchesData?.data?.matchDate
@@ -610,7 +619,7 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, isFromBookingH
                                 {matchDate?.day}, {matchDate?.formattedDate} | {matchTime}
                             </small>
                             <small className="text-muted d-lg-none add_font_mobile" style={{ fontWeight: 500 }}>
-                                {matchDate?.day}, {matchDate?.formattedDate} {matchTime}
+                                {matchDate?.day}, {matchDate?.formattedDate} | {matchTime}
                             </small>
                         </div>
                         <div className="row text-center border-top">
@@ -862,7 +871,7 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, isFromBookingH
                                         </p>
                                     </div>
                                 )}
-                                {console.log(matchesData?.data,selectedPlayer,'matchesData?.data')}
+                                {console.log(matchesData?.data, selectedPlayer, 'matchesData?.data')}
 
                                 {(selectedPlayer?.skillLevel || matchesData?.data?.skillLevel) && (
                                     <div className="mb-2 d-flex gap-2 align-items-center    ">
@@ -895,7 +904,7 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, isFromBookingH
                 show={showRequestModal}
                 onHide={() => setShowRequestModal(false)}
                 placement={windowWidth >= 992 ? "end" : "bottom"}
-                backdrop={true}  
+                backdrop={true}
                 keyboard={true}
                 enforceFocus={false}
                 style={{

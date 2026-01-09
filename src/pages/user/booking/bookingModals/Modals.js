@@ -26,6 +26,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, currentPage, s
     const date = new Date(dateValue);
     return isValid(date) ? format(date, formatString) : fallback;
   };
+  console.log({tableData  });
   const dispatch = useDispatch()
   const handleClose = () => {
     onHide();
@@ -92,7 +93,7 @@ export const BookingHistoryCancelModal = ({ tableData, activeTab, currentPage, s
               ? "Booking Details"
               : tableData?.booking?.bookingStatus === "in-progress"
                 ? "Cancellation Request"
-                : ""}
+                : "Booking Details"}
           </h4>
 
           <i
