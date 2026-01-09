@@ -1,3 +1,4 @@
+import React from "react";
 import { Card, Row, Col, Badge } from "react-bootstrap";
 
 const SlotsByDayView = ({ PricingData, onSlotClick }) => {

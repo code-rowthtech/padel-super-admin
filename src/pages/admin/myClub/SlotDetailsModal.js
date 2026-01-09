@@ -1,3 +1,4 @@
+import React from "react";
 import { Modal, Table, Badge } from "react-bootstrap";
 
 const SlotDetailsModal = ({ show, onHide, slotData, day }) => {
