@@ -133,7 +133,7 @@ export const updateUser = createAsyncThunk(
     try {
       const res = await userApi.put(Url.UPDATE_USER, data);
         // showSuccess(res?.data?.message);
-      // return res?.data;
+      return res?.data;
     } catch (error) {
       showError(error?.message || error);
       return rejectWithValue(error)

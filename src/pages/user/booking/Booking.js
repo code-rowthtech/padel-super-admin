@@ -1717,15 +1717,12 @@ const Booking = ({ className = "" }) => {
                                     const rightKey = `${courtId}-${slot?._id}-${dateKey}-right`;
                                     const leftHalf = halfSelectedSlots.has(leftKey);
                                     const rightHalf = halfSelectedSlots.has(rightKey);
-
-                                    // Slot-specific flag from backend
                                     const hasThirtyMinPrice = slot?.has30MinPrice === true;
-
-                                    // Check if slot is selected first
+                                    
+                                    // ✅ PEHLE declare karo, phir use karo
                                     const currentCourtTimes = selectedTimes[courtId]?.[dateKey] || [];
                                     const isSlotSelected = currentCourtTimes.some(t => t._id === slot._id);
-
-                                    // Determine if slot is disabled
+                                    
                                     const currentTotalSlots = Object.values(selectedTimes).reduce((total, courtDates) => {
                                       return total + Object.values(courtDates).reduce((dateTotal, timeSlots) => {
                                         return dateTotal + timeSlots?.length;
