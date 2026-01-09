@@ -1,3 +1,4 @@
+import React from "react";
 import { FaArrowLeft, FaShareAlt } from "react-icons/fa";
 import { IoChatboxEllipsesOutline } from "react-icons/io5";
 import { useNavigate, useParams } from "react-router-dom";
