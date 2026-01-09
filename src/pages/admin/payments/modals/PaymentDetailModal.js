@@ -1,3 +1,4 @@
+import React from "react";
 import { Modal } from "react-bootstrap";
 import { modalSuccess } from "../../../../assets/files";
 import { formatDate, formatSlotTime } from "../../../../helpers/Formatting";

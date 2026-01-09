@@ -24,6 +24,11 @@ import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 import Pricing from "./Pricing";
 import PriceSlotUpdate from "./PriceSlotUpdate";
 
+// Ensure React is available globally for third-party libraries
+if (typeof window !== 'undefined' && !window.React) {
+  window.React = React;
+}
+
 const mdParser = new MarkdownIt();
 mdParser.use(markdownItIns);
 
@@ -332,7 +337,7 @@ const AddImageTile = ({ onFiles, hidden }) => {
   );
 };
 
-const Input = React.memo(
+const Input = memo(
   ({
     label,
     field,

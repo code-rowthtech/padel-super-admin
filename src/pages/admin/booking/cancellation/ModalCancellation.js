@@ -1,3 +1,4 @@
+import React from "react";
 import { useEffect, useState } from "react";
 import { Modal, Button, Row, Col, Form } from "react-bootstrap";
 import { formatDate, formatSlotTime } from "../../../../helpers/Formatting";

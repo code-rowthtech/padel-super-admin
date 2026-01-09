@@ -1,6 +1,8 @@
 # Build stage
 FROM node:20-alpine AS build
 WORKDIR /app
+# Clear any existing caches
+RUN rm -rf node_modules package-lock.json build .cache
 COPY package*.json ./
 RUN apk add --no-cache python3 make g++ \
     && npm install --legacy-peer-deps \
@@ -10,6 +12,8 @@ COPY . .
 ENV SKIP_PREFLIGHT_CHECK=true
 ENV NODE_ENV=production
 ENV GENERATE_SOURCEMAP=false
+# Remove any existing build directory and caches before building
+RUN rm -rf build node_modules/.cache .cache .eslintcache
 RUN npm run build
 
 # Production stage

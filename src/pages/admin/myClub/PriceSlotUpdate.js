@@ -20,6 +20,8 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
     const [rowLoading, setRowLoading] = useState({});
     const [applyAllLoading, setApplyAllLoading] = useState(false);
     const [finishLoading, setFinishLoading] = useState(false);
+    const [allPriceError, setAllPriceError] = useState('');
+    const [priceErrors, setPriceErrors] = useState({});
     const [enable30Min, setEnable30Min] = useState(false);
 
     const navigate = useNavigate();
@@ -115,10 +117,26 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
 
     const handlePriceChange = (day, period, value) => {
         const numeric = value.replace(/[^0-9]/g, '');
+        const key = `${day}-${period}`;
+
         setPrices(prev => ({
             ...prev,
             [day]: { ...prev[day], [period]: numeric }
         }));
+
+        // Validate and set error
+        if (numeric && (parseInt(numeric) < 500 || parseInt(numeric) > 4000)) {
+            setPriceErrors(prev => ({
+                ...prev,
+                [key]: 'Price must be between 500 and 4000'
+            }));
+        } else {
+            setPriceErrors(prev => {
+                const newErrors = { ...prev };
+                delete newErrors[key];
+                return newErrors;
+            });
+        }
     };
 
     // Always create both 60 and 30 (30 with 0 or half based on checkbox)
@@ -247,8 +265,8 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
         }
 
         const numericPrice = parseInt(allPrice.replace(/[^0-9]/g, ''), 10);
-        if (numericPrice <= 0) {
-            showError("Invalid price");
+        if (numericPrice < 500 || numericPrice > 4000) {
+            showError("Price must be between 500 and 4000");
             return;
         }
 
@@ -278,7 +296,8 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                         updateMultiple: true,
                         register_club_id: registerId,
                         duration: 60,
-                        price: numericPrice
+                        price: numericPrice,
+                        thirtyDuration: enable30Min
                     };
                     await dispatch(updateSlotBulkPrice(payload60)).unwrap();
 
@@ -345,7 +364,8 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                     updateMultiple: true,
                     register_club_id: registerId,
                     duration: 60,
-                    price: numericPrice
+                    price: numericPrice,
+                    thirtyDuration: enable30Min
                 };
                 await dispatch(updateSlotBulkPrice(payload60)).unwrap();
 
@@ -410,7 +430,7 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                 }
             });
 
-            if (updates.length > 0) {
+            if (updates?.length > 0) {
                 try {
                     await dispatch(updateSlotPrice({ updates })).unwrap();
                     dispatch(getUserSlotPrice({ register_club_id: registerId, day: "", duration: 60 }));
@@ -444,7 +464,7 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                             entry.timePeriod === period.value
                         );
                         if (existing60) {
-                            updates60.push({ id: existing60._id, price: price60 });
+                            updates60.push({ id: existing60?._id, price: price60 });
                         }
 
                         // Update 30min: half if enabled, else 0
@@ -461,12 +481,12 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                 });
 
                 // Always update both (since they were created earlier with 0 or half)
-                if (updates60.length > 0) {
+                if (updates60?.length > 0) {
                     await dispatch(updateSlotPrice({ updates: updates60 })).unwrap();
                     console.log('Updated 60min prices:', updates60);
                 }
 
-                if (updates30.length > 0) {
+                if (updates30?.length > 0) {
                     await dispatch(updateSlotPrice({ updates: updates30 })).unwrap();
                     console.log('Updated 30min prices:', updates30);
                 }
@@ -511,21 +531,47 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                 </h6>
 
                 <div className="d-flex align-items-center gap-3">
-                    <input
-                        type="text"
-                        placeholder="Enter price for all"
-                        value={allPrice}
-                        onChange={(e) => setAllPrice(e.target.value.replace(/[^0-9]/g, ''))}
-                        className="form-control py-1"
-                        style={{
-                            boxShadow: "none",
-                            width: '140px',
-                            padding: '8px 5px',
-                            borderRadius: '6px',
-                            textAlign: 'center'
-                        }}
-                        disabled={applyAllLoading}
-                    />
+                    <div className="position-relative">
+                        <input
+                            type="text"
+                            placeholder="Enter price for all"
+                            value={allPrice}
+                            onChange={(e) => {
+                                const value = e.target.value.replace(/[^0-9]/g, '');
+                                setAllPrice(value);
+
+                                // Validate and set error
+                                if (value && (parseInt(value) < 500 || parseInt(value) > 4000)) {
+                                    setAllPriceError('Price must be between 500 and 4000');
+                                } else {
+                                    setAllPriceError('');
+                                }
+                            }}
+                            className="form-control py-1"
+                            style={{
+                                boxShadow: "none",
+                                width: '140px',
+                                padding: '8px 5px',
+                                borderRadius: '6px',
+                                textAlign: 'center',
+                                borderColor: allPriceError ? '#dc3545' : '#ced4da'
+                            }}
+                            disabled={applyAllLoading}
+                        />
+                        {allPriceError && (
+                            <div style={{
+                                position: 'absolute',
+                                top: '100%',
+                                left: '0',
+                                fontSize: '11px',
+                                color: '#dc3545',
+                                whiteSpace: 'nowrap',
+                                marginTop: '2px'
+                            }}>
+                                {allPriceError}
+                            </div>
+                        )}
+                    </div>
 
                     <Button
                         variant="success"
@@ -618,8 +664,31 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                             days?.map(day => {
                                 const isRowLoading = rowLoading[day] && !applyAllLoading;
 
+                                if (isRowLoading) {
+                                    return (
+                                        <tr key={day}>
+                                            <td style={{ padding: '12px 10px', borderBottom: '1px solid #dee2e6' }}>
+                                                <div className="shimmer" style={{ height: '20px', width: '100px', borderRadius: '4px' }} />
+                                            </td>
+                                            {periods.map(() => (
+                                                <td key={Math.random()} style={{ padding: '10px', textAlign: 'center', borderBottom: '1px solid #dee2e6' }}>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'center' }}>
+                                                        <div className="shimmer" style={{ height: '12px', width: '140px', borderRadius: '4px' }} />
+                                                        <div className="shimmer" style={{ height: '36px', width: '120px', borderRadius: '4px' }} />
+                                                    </div>
+                                                </td>
+                                            ))}
+                                            <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
+                                                <div className="shimmer" style={{ height: '32px', width: '80px', borderRadius: '6px', margin: '0 auto' }} />
+                                            </td>
+                                        </tr>
+                                    );
+                                }
+
                                 return (
-                                    <tr key={day}>
+                                    <tr key={day} style={{
+                                        marginBottom: priceErrors[`${day}-${periods?.value}`] ? '20px' : '0',
+                                    }}>
                                         <td style={{
                                             padding: '12px 10px',
                                             fontWeight: '600',
@@ -628,13 +697,14 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                                         }}>
                                             {day}
                                         </td>
-                                        {periods.map(period => (
+                                        {periods?.map(period => (
                                             <td key={period.value} style={{
                                                 padding: '10px',
+                                                paddingBottom: priceErrors[`${day}-${period.value}`] ? '25px' : '10px',
                                                 textAlign: 'center',
                                                 borderBottom: '1px solid #dee2e6',
                                             }}>
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'center' }}>
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'center', position: 'relative' }}>
                                                     <div style={{ fontSize: '11px', fontWeight: '600', color: '#495057' }}>
                                                         {periodRanges[period.value]}
                                                     </div>
@@ -643,7 +713,7 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                                                         value={prices[day]?.[period.value] || ''}
                                                         onChange={(e) => handlePriceChange(day, period.value, e.target.value)}
                                                         style={{
-                                                            border: '1px solid #ced4da',
+                                                            border: `1px solid ${priceErrors[`${day}-${period.value}`] ? '#dc3545' : '#ced4da'}`,
                                                             borderRadius: '4px',
                                                             padding: '4px 8px',
                                                             textAlign: 'center',
@@ -656,6 +726,18 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                                                         placeholder="Price"
                                                         disabled={rowLoading[day] || applyAllLoading}
                                                     />
+                                                    {priceErrors[`${day}-${period.value}`] && (
+                                                        <div style={{
+                                                            position: 'absolute',
+                                                            top: '100%',
+                                                            fontSize: '10px',
+                                                            color: '#dc3545',
+                                                            whiteSpace: 'nowrap',
+                                                            marginTop: '2px',
+                                                        }}>
+                                                            {priceErrors[`${day}-${period.value}`]}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </td>
                                         ))}

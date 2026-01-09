@@ -8,8 +8,12 @@ import store from './redux/store';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min';
 import "react-datepicker/dist/react-datepicker.css";
-
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
+
+// Ensure React is available globally for code-split chunks and third-party libraries
+if (typeof window !== 'undefined') {
+  window.React = React;
+}
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

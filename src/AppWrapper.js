@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { getUserFromSession } from "./helpers/api/apiCore";
 import { Alert, Toast, ToastContainer, Button, Collapse } from "react-bootstrap";
 import { useNavigate, useLocation } from "react-router-dom";
