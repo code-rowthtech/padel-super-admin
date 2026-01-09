@@ -15,7 +15,7 @@ const SlotDetailsModal = ({ show, onHide, slotData, day }) => {
         <Modal.Title>
           {day} - Slot Details
         </Modal.Title>
-      </Modal.Header>
+      </Modal.Header>   
       <Modal.Body>
         {businessHours && (
           <div className="mb-3">
