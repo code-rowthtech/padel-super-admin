@@ -162,24 +162,22 @@ const VerifyOTP = () => {
       localStorage.removeItem("otpTimestamp");
       localStorage.removeItem("timerExpired");
       
+      // Request location permission immediately after successful login, before navigation
+      const isLocationDetected = localStorage.getItem('locationDetected');
+      if (!isLocationDetected) {
+        requestLocationPermission();
+      }
+      
       dispatch(getUserProfile()).then(() => {
-        // Request location permission immediately after successful login
-        const isLocationDetected = localStorage.getItem('locationDetected');
-        if (!isLocationDetected) {
-          // Small delay to ensure navigation completes, then request location
-          setTimeout(() => {
-            requestLocationPermission();
-          }, 500);
+        if (redirectTo && paymentState) {
+          navigate(redirectTo, { state: paymentState });
+        } else if (redirectTo) {
+          navigate(redirectTo);
+        } else {
+          navigate("/home");
         }
       });
       
-      if (redirectTo && paymentState) {
-        navigate(redirectTo, { state: paymentState });
-      } else if (redirectTo) {
-        navigate(redirectTo);
-      } else {
-        navigate("/home");
-      }
       dispatch(resetAuth());
     }
   }, [user?.status, navigate, dispatch, redirectTo, paymentState]);
@@ -264,7 +262,7 @@ const VerifyOTP = () => {
                 <strong>+91*****{phone?.slice(5)}</strong>
               </div>
 
-              {timer > 0 &&
+              {/* {timer > 0 &&
                 (otpData?.response || localStorage.getItem("otp")) && (
                   <Alert
                     variant="info"
@@ -274,7 +272,7 @@ const VerifyOTP = () => {
                     Your OTP is:{" "}
                     {otpData?.response || localStorage.getItem("otp")}
                   </Alert>
-                )}
+                )} */}
 
               <div
                 className="mb-3"

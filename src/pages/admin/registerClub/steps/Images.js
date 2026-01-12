@@ -508,12 +508,11 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
 
     const apiFormData = new FormData();
     apiFormData.append("clubName", formData.courtName || "");
-    apiFormData.append(
-      "courtType",
-      `${formData.courtTypes.indoor ? "Indoor" : ""}${
-        formData.courtTypes.indoor && formData.courtTypes.outdoor ? "/" : ""
-      }${formData.courtTypes.outdoor ? "Outdoor" : ""}`
-    );
+    // Send courtType as array
+    const courtTypes = [];
+    if (formData.courtTypes.indoor) courtTypes.push("Indoor");
+    if (formData.courtTypes.outdoor) courtTypes.push("Outdoor");
+    apiFormData.append("courtType", JSON.stringify(courtTypes));
     apiFormData.append("ownerId", ownerId);
     apiFormData.append("logo", formData.logo);
     apiFormData.append("courtCount", formData.courtCount || "");

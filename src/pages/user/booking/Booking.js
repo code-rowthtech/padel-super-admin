@@ -12,7 +12,7 @@ import {
   twoball,
   bannerimg,
 } from "../../../assets/files";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { DataLoading } from "../../../helpers/loading/Loaders";
 import { format } from "date-fns";
@@ -114,6 +114,7 @@ const Booking = ({ className = "" }) => {
   const [showUnavailable, setShowUnavailable] = useState(false);
   const wrapperRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const scrollRef = useRef(null);
   const dispatch = useDispatch();
   const clubData = useSelector((state) => state?.userClub?.clubData?.data?.courts[0]) || [];
@@ -912,8 +913,20 @@ const Booking = ({ className = "" }) => {
     dispatch(getUserClub({ search: "" }));
     fetchSlots();
     document.addEventListener("mousedown", handleClickOutside);
+    
+    // Clear slots if coming from payment error
+    if (location.state?.clearSlots) {
+      setSelectedTimes({});
+      setSelectedBuisness([]);
+      setSelectedCourts([]);
+      setHalfSelectedSlots(new Set());
+      setActiveHalves(new Map());
+      // Clear the state to prevent clearing on subsequent renders
+      window.history.replaceState({}, document.title);
+    }
+    
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [selectedDate, fetchSlots]);
+  }, [selectedDate, fetchSlots, location.state]);
 
   useEffect(() => {
     if (!user?._id || !clubId) return;
