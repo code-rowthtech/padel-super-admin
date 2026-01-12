@@ -1,6 +1,6 @@
 import React from "react";
 import { useEffect, useState } from "react";
-import { Modal, Button, Row, Col, Form } from "react-bootstrap";
+import { Modal, Button, Row, Col, Form, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { formatDate, formatSlotTime } from "../../../../helpers/Formatting";
 import { ButtonLoading } from "../../../../helpers/loading/Loaders";
 
@@ -113,6 +113,7 @@ export const BookingCancellationModal = ({
           >
             {formatDate(bookingDetails?.bookingDate)}
           </p>
+          {/* same here  */}
           <p
             className="fw-bold mb-1"
             style={{
@@ -122,7 +123,29 @@ export const BookingCancellationModal = ({
             }}
           >
             {bookingDetails?.slot?.[0]?.businessHours?.[0]?.day || ""}{" "}
-            {formatSlotTime(bookingDetails?.slot?.[0]?.slotTimes?.[0]?.time)}
+            {(() => {
+              const times = bookingDetails?.slot?.[0]?.slotTimes?.map((time) =>
+                time?.time ? formatSlotTime(time.time) : null
+              ).filter(Boolean) || [];
+
+              if (times?.length === 0) return "";
+              if (times?.length === 1) return times[0];
+
+              const startTime = times[0];
+              const endTime = times[times?.length - 1];
+              const timeRange = `${startTime} - ${endTime}`;
+
+              return times?.length > 3 ? (
+                <OverlayTrigger
+                  placement="top"
+                  overlay={<Tooltip>{times.join(", ")}</Tooltip>}
+                >
+                  <span>{timeRange}</span>
+                </OverlayTrigger>
+              ) : (
+                <span>{timeRange}</span>
+              );
+            })()}
           </p>
         </div>
       </div>
@@ -159,9 +182,9 @@ export const BookingCancellationModal = ({
         >
           {bookingDetails?.paymentMethod
             ? bookingDetails?.paymentMethod
-                ?.charAt(0)
-                .toUpperCase()
-                .concat(bookingDetails?.paymentMethod?.slice(1))
+              ?.charAt(0)
+              .toUpperCase()
+              .concat(bookingDetails?.paymentMethod?.slice(1))
             : "N/A"}{" "}
         </h2>
       </div>
@@ -448,7 +471,29 @@ export const BookingRefundModal = ({
               }}
             >
               {bookingDetails?.slot?.[0]?.businessHours?.[0]?.day || ""}{" "}
-              {formatSlotTime(bookingDetails?.slot?.[0]?.slotTimes?.[0]?.time)}
+              {(() => {
+                const times = bookingDetails?.slot?.[0]?.slotTimes?.map((time) =>
+                  time?.time ? formatSlotTime(time.time) : null
+                ).filter(Boolean) || [];
+
+                if (times?.length === 0) return "";
+                if (times?.length === 1) return times[0];
+
+                const startTime = times[0];
+                const endTime = times[times?.length - 1];
+                const timeRange = `${startTime} - ${endTime}`;
+
+                return times?.length > 3 ? (
+                  <OverlayTrigger
+                    placement="top"
+                    overlay={<Tooltip>{times.join(", ")}</Tooltip>}
+                  >
+                    <span>{timeRange}</span>
+                  </OverlayTrigger>
+                ) : (
+                  <span>{timeRange}</span>
+                );
+              })()}
             </p>
           </div>
         </div>
@@ -487,9 +532,9 @@ export const BookingRefundModal = ({
               >
                 {bookingDetails?.paymentMethod
                   ? bookingDetails?.paymentMethod
-                      ?.charAt(0)
-                      ?.toUpperCase()
-                      ?.concat(bookingDetails?.paymentMethod?.slice(1))
+                    ?.charAt(0)
+                    ?.toUpperCase()
+                    ?.concat(bookingDetails?.paymentMethod?.slice(1))
                   : "N/A"}
               </h2>
             </div>
@@ -593,18 +638,16 @@ export const BookingRefundModal = ({
             placeholder="Enter details about how the payment will be processed refund (e.g., UPI, Bank Transfer, Cash, etc.)"
             value={reason}
             onChange={handleReasonChange}
-            className={`rounded-3 textarea-palceholder ${
-              error ? "is-invalid" : ""
-            }`}
+            className={`rounded-3 textarea-palceholder ${error ? "is-invalid" : ""
+              }`}
             style={{
               boxShadow: "none",
               resize: "none",
             }}
           />
           <small
-            className={`position-absolute bottom-0 end-0 me-2 mb-1 ${
-              remaining <= 0 ? "text-danger" : "text-muted"
-            }`}
+            className={`position-absolute bottom-0 end-0 me-2 mb-1 ${remaining <= 0 ? "text-danger" : "text-muted"
+              }`}
             style={{ fontSize: "0.75rem" }}
           >
             {remaining}/250
@@ -799,9 +842,29 @@ export const CancelRequestModal = ({
               >
                 <strong>
                   {bookingDetails?.slot?.[0]?.businessHours?.[0]?.day || ""}{" "}
-                  {formatSlotTime(
-                    bookingDetails?.slot?.[0]?.slotTimes?.[0]?.time
-                  )}
+                  {(() => {
+                    const times = bookingDetails?.slot?.[0]?.slotTimes?.map((time) =>
+                      time?.time ? formatSlotTime(time.time) : null
+                    ).filter(Boolean) || [];
+
+                    if (times?.length === 0) return "";
+                    if (times?.length === 1) return times[0];
+
+                    const startTime = times[0];
+                    const endTime = times[times?.length - 1];
+                    const timeRange = `${startTime} - ${endTime}`;
+
+                    return times?.length > 3 ? (
+                      <OverlayTrigger
+                        placement="top"
+                        overlay={<Tooltip>{times.join(", ")}</Tooltip>}
+                      >
+                        <span>{timeRange}</span>
+                      </OverlayTrigger>
+                    ) : (
+                      <span>{timeRange}</span>
+                    );
+                  })()}
                 </strong>
               </p>
             </div>
@@ -826,9 +889,9 @@ export const CancelRequestModal = ({
                 <p className="mb-0">
                   {bookingDetails?.paymentMethod
                     ? bookingDetails?.paymentMethod
-                        ?.charAt(0)
-                        .toUpperCase()
-                        .concat(bookingDetails?.paymentMethod?.slice(1))
+                      ?.charAt(0)
+                      .toUpperCase()
+                      .concat(bookingDetails?.paymentMethod?.slice(1))
                     : "N/A"}
                 </p>
               </div>
@@ -859,7 +922,7 @@ export const CancelRequestModal = ({
             value={
               bookingDetails?.cancellationReason
                 ? bookingDetails.cancellationReason.charAt(0).toUpperCase() +
-                  bookingDetails.cancellationReason.slice(1)
+                bookingDetails.cancellationReason.slice(1)
                 : ""
             }
             disabled
@@ -880,9 +943,8 @@ export const CancelRequestModal = ({
             maxLength={maxLength}
           />
           <small
-            className={`position-absolute bottom-0 end-0 me-2 mb-1 ${
-              remaining < 0 ? "text-danger" : "text-muted"
-            }`}
+            className={`position-absolute bottom-0 end-0 me-2 mb-1 ${remaining < 0 ? "text-danger" : "text-muted"
+              }`}
             style={{ fontSize: "0.75rem" }}
           >
             {remaining}/250
@@ -982,9 +1044,29 @@ export const SuccessRequestModal = ({ show, handleClose, bookingDetails }) => {
               <p>
                 <strong>
                   {bookingDetails?.slot?.[0]?.businessHours?.[0]?.day || ""}{" "}
-                  {formatSlotTime(
-                    bookingDetails?.slot?.[0]?.slotTimes?.[0]?.time
-                  )}
+                  {(() => {
+                    const times = bookingDetails?.slot?.[0]?.slotTimes?.map((time) =>
+                      time?.time ? formatSlotTime(time.time) : null
+                    ).filter(Boolean) || [];
+
+                    if (times?.length === 0) return "";
+                    if (times?.length === 1) return times[0];
+
+                    const startTime = times[0];
+                    const endTime = times[times?.length - 1];
+                    const timeRange = `${startTime} - ${endTime}`;
+
+                    return times?.length > 3 ? (
+                      <OverlayTrigger
+                        placement="top"
+                        overlay={<Tooltip>{times.join(", ")}</Tooltip>}
+                      >
+                        <span>{timeRange}</span>
+                      </OverlayTrigger>
+                    ) : (
+                      <span>{timeRange}</span>
+                    );
+                  })()}
                 </strong>{" "}
               </p>
             </div>
@@ -999,9 +1081,9 @@ export const SuccessRequestModal = ({ show, handleClose, bookingDetails }) => {
               <p className="  mb-0">
                 {bookingDetails?.paymentMethod
                   ? bookingDetails?.paymentMethod
-                      ?.charAt(0)
-                      .toUpperCase()
-                      .concat(bookingDetails?.paymentMethod?.slice(1))
+                    ?.charAt(0)
+                    .toUpperCase()
+                    .concat(bookingDetails?.paymentMethod?.slice(1))
                   : "N/A"}
               </p>
             </div>

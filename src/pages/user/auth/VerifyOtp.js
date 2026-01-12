@@ -16,6 +16,7 @@ import {
   loginUserNumber,
   sendOtp,
   verifyOtp,
+  updateUser,
 } from "../../../redux/user/auth/authThunk";
 import { useLocation, useNavigate } from "react-router-dom";
 import { resetAuth } from "../../../redux/user/auth/authSlice";
@@ -94,13 +95,84 @@ const VerifyOTP = () => {
     }
   }, [otpData?.response, timer]);
 
+  // Location permission request function
+  const requestLocationPermission = async () => {
+    if (!navigator.geolocation) {
+      showError('Geolocation is not supported by this browser');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        
+        try {
+          const response = await fetch(
+            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+          );
+          const data = await response.json();
+          const city = data?.city || data?.locality || data?.principalSubdivision || 'Unknown';
+          
+          const payload = new FormData();
+          payload.append('city', city);
+          
+          dispatch(updateUser(payload))
+            .then((res) => {
+              if (res?.payload?.status === '200') {
+                showSuccess(`Location updated to ${city}`);
+                localStorage.setItem('locationDetected', 'true');
+              }
+            })
+            .catch(() => {
+              showError('Failed to update location');
+            });
+        } catch (error) {
+          showError('Failed to detect location');
+        }
+      },
+      (error) => {
+        localStorage.setItem('locationDetected', 'declined');
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            showInfo('Location access denied. You can enable it later in settings.');
+            break;
+          case error.POSITION_UNAVAILABLE:
+            showError('Location information is unavailable');
+            break;
+          case error.TIMEOUT:
+            showError('Location request timed out');
+            break;
+          default:
+            showError('An unknown error occurred while retrieving location');
+            break;
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
+  };
+
   useEffect(() => {
     if (user?.status === "200") {
       localStorage.removeItem("otp");
       localStorage.removeItem("otpTimer");
       localStorage.removeItem("otpTimestamp");
       localStorage.removeItem("timerExpired");
-      dispatch(getUserProfile());
+      
+      dispatch(getUserProfile()).then(() => {
+        // Request location permission immediately after successful login
+        const isLocationDetected = localStorage.getItem('locationDetected');
+        if (!isLocationDetected) {
+          // Small delay to ensure navigation completes, then request location
+          setTimeout(() => {
+            requestLocationPermission();
+          }, 500);
+        }
+      });
+      
       if (redirectTo && paymentState) {
         navigate(redirectTo, { state: paymentState });
       } else if (redirectTo) {

@@ -530,13 +530,16 @@ const BookingHistory = () => {
                                                             const time = slot?.time;
                                                             return time ? formatTime(time) : "";
                                                         })?.filter(Boolean) || [];
-                                                        const fullText = `${formatDate(booking?.bookingDate)} | ${times?.join(", ")}`;
-                                                        const isMobile = window.innerWidth <= 768;
-                                                        const maxSlots = isMobile ? 3 : 5;
-                                                        const displayed = times?.slice(0, maxSlots)?.join(", ");
-                                                        const displayText = `${formatDate(booking?.bookingDate)} | ${times?.length > maxSlots ? `${displayed} ...` : displayed}`;
                                                         
-                                                        return times?.length > maxSlots ? (
+                                                        if (times.length === 0) return `${formatDate(booking?.bookingDate)} | -`;
+                                                        
+                                                        const startTime = times[0];
+                                                        const endTime = times[times.length - 1];
+                                                        const displayTime = times.length > 1 ? `${startTime} - ${endTime}` : startTime;
+                                                        const fullText = `${formatDate(booking?.bookingDate)} | ${times.join(", ")}`;
+                                                        const displayText = `${formatDate(booking?.bookingDate)} | ${displayTime}`;
+                                                        
+                                                        return times.length > 3 ? (
                                                             <OverlayTrigger
                                                                 placement="top"
                                                                 overlay={

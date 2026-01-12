@@ -361,8 +361,20 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
                 fontFamily: "Poppins",
               }}
             >
-              {bookingDetails?.slot?.[0]?.businessHours?.[0]?.day || ""}{" "}
-              {formatSlotTime(bookingDetails?.slot?.[0]?.slotTimes?.[0]?.time)}
+              {(() => {
+                const times = bookingDetails?.slot?.[0]?.slotTimes?.map((slot) =>
+                  formatSlotTime(slot?.time)
+                )?.filter(Boolean) || [];
+                
+                if (times.length === 0) return "-";
+                
+                const startTime = times[0];
+                const endTime = times[times.length - 1];
+                const displayTime = times.length > 1 ? `${startTime} - ${endTime}` : startTime;
+                const day = bookingDetails?.slot?.[0]?.businessHours?.[0]?.day || "";
+                
+                return `${day} ${displayTime}`;
+              })()}
             </p>
           </div>
           <hr
@@ -790,9 +802,17 @@ export const BookingCancelModal = ({
                 className="fw-bold mb-1"
                 style={{ fontSize: "14px", fontFamily: "Poppins" }}
               >
-                {formatSlotTime(
-                  bookingDetails?.slot?.[0]?.slotTimes?.[0]?.time
-                ) || "-"}
+                {(() => {
+                  const times = bookingDetails?.slot?.[0]?.slotTimes?.map((slot) =>
+                    formatSlotTime(slot?.time)
+                  )?.filter(Boolean) || [];
+                  
+                  if (times.length === 0) return "-";
+                  
+                  const startTime = times[0];
+                  const endTime = times[times.length - 1];
+                  return times.length > 1 ? `${startTime} - ${endTime}` : startTime;
+                })()}
               </p>
             </div>
           </div>
