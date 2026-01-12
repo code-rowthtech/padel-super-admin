@@ -46,7 +46,7 @@ const Profile = () => {
       User?.phoneNumber ||
       "",
     dob: formatDateForInput(user?.response?.dob) || "",
-    location: user?.response?.city || User?.city || "Chandigarh",
+    location: user?.response?.city || User?.city || "",
     gender: user?.response?.gender || User?.gender || "",
     profileImage:
       user?.response?.profilePic ||
@@ -67,7 +67,7 @@ const Profile = () => {
           phone:
             result.payload.response?.phoneNumber || User?.phoneNumber || "",
           dob: formatDateForInput(result.payload.response?.dob) || "",
-          location: result.payload.response?.city || User?.city || "Chandigarh",
+          location: result.payload.response?.city || User?.city || "",
           gender: result.payload.response?.gender || User?.gender || "",
           profileImage:
             result.payload.response?.profilePic || User?.profilePic || "",

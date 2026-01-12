@@ -20,6 +20,7 @@ const Payment = ({ className = "" }) => {
   const user = getUserFromSession();
   const store = useSelector((state) => state?.userAuth);
   const bookingStatus = useSelector((state) => state?.userBooking);
+  console.log({bookingStatus});
   const userLoading = useSelector((state) => state?.userAuth);
   const logo = clubData?.logo;
   const updateName = JSON.parse(localStorage.getItem("updateprofile"));
@@ -37,6 +38,8 @@ const Payment = ({ className = "" }) => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [modal, setModal] = useState(false);
+  const [errorModal, setErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const dispatch = useDispatch();
   const [localSelectedCourts, setLocalSelectedCourts] = useState(selectedCourts || []);
@@ -583,6 +586,7 @@ const Payment = ({ className = "" }) => {
                 razorpayPaymentId: response.razorpay_payment_id,
                 razorpaySignature: response.razorpay_signature
               })).unwrap();
+              console.log({finalBookingResponse});
 
               if (finalBookingResponse?.success || finalBookingResponse?.message?.includes("created")) {
                 setLocalSelectedCourts([]);
@@ -593,7 +597,16 @@ const Payment = ({ className = "" }) => {
               }
             } catch (err) {
               console.error(err);
-              setErrors((prev) => ({ ...prev, general: "Booking confirmation failed" }));
+              const errorMsg = err?.response?.data?.message || err?.message || "Booking confirmation failed";
+              
+              if (errorMsg.toLowerCase().includes("slot already booked") || 
+                  err?.message?.toLowerCase().includes("slot already booked") ||
+                  (typeof err === 'string' && err.toLowerCase().includes("slot already booked"))) {
+                setErrorMessage(errorMsg);
+                setErrorModal(true);
+              } else {
+                setErrors((prev) => ({ ...prev, general: errorMsg }));
+              }
             } finally {
               setIsLoading(false);
             }
@@ -627,7 +640,15 @@ const Payment = ({ className = "" }) => {
       const errorMessage = err?.response?.data?.message ||
         err?.message ||
         "Payment failed. Please try again.";
-      setErrors((prev) => ({ ...prev, general: errorMessage }));
+      
+      if (errorMessage.toLowerCase().includes("slot already booked") || 
+          err?.message?.toLowerCase().includes("slot already booked") ||
+          (typeof err === 'string' && err.toLowerCase().includes("slot already booked"))) {
+        setErrorMessage(errorMessage);
+        setErrorModal(true);
+      } else {
+        setErrors((prev) => ({ ...prev, general: errorMessage }));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -1385,6 +1406,30 @@ const Payment = ({ className = "" }) => {
           <Link to="/booking-history" replace className="nav-link" style={{ color: "#001B76", fontWeight: "600", fontFamily: "Poppins", fontSize: "14px" }}>
             View Booking Details
           </Link>
+        </div>
+      </Modal>
+
+      {/* Error Modal for Slot Already Booked */}
+      <Modal show={errorModal} centered>
+        <div className="p-4 pt-0 text-center">
+          <div className="text-danger mb-3" style={{ fontSize: "48px" }}>⚠️</div>
+          <h4 className="tabel-title text-danger" style={{ fontFamily: "Poppins" }}>Slot Already Booked!</h4>
+          <p className="text-dark" style={{ fontFamily: "Poppins", fontSize: "14px", fontWeight: "400" }}>
+            {errorMessage || "The selected slot has already been booked by another user."}
+          </p>
+          <p className="text-dark" style={{ fontFamily: "Poppins", fontSize: "14px", fontWeight: "400" }}>
+            This slot has been booked by someone else, please check another slot.
+          </p>
+          <Button
+            onClick={() => {
+              setErrorModal(false);
+              navigate("/booking", { replace: true, state: { clearSlots: true } });
+            }}
+            className="w-75 rounded-pill border-0 text-white py-lg-3 mt-lg-4 mb-lg-4"
+            style={{ background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)", boxShadow: "none", fontSize: "14px", fontFamily: "Poppins", fontWeight: "600" }}
+          >
+            Back to Booking
+          </Button>
         </div>
       </Modal>
 

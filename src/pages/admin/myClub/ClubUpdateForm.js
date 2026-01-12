@@ -66,12 +66,16 @@ const getInitialFormState = (club = {}) => ({
   facebookLink: club?.facebookLink || "",
   xlink: club?.xlink || "",
   courtTypes: {
-    indoor: ["indoor", "indoor/outdoor"].includes(
-      club?.courtType?.trim?.().toLowerCase?.() || ""
-    ),
-    outdoor: ["outdoor", "indoor/outdoor"].includes(
-      club?.courtType?.trim?.().toLowerCase?.() || ""
-    ),
+    indoor: Array.isArray(club?.courtType) 
+      ? club.courtType.includes("Indoor")
+      : ["indoor", "indoor/outdoor"].includes(
+          club?.courtType?.trim?.().toLowerCase?.() || ""
+        ),
+    outdoor: Array.isArray(club?.courtType)
+      ? club.courtType.includes("Outdoor")
+      : ["outdoor", "indoor/outdoor"].includes(
+          club?.courtType?.trim?.().toLowerCase?.() || ""
+        ),
   },
   features: FEATURES.reduce(
     (acc, f) => ({
@@ -729,11 +733,11 @@ const ClubUpdateForm = () => {
     const fd = new FormData();
     fd.append("_id", clubDetails?._id);
     fd.append("clubName", formData.courtName);
-    fd.append(
-      "courtType",
-      `${formData.courtTypes.indoor ? "Indoor" : ""}${formData.courtTypes.indoor && formData.courtTypes.outdoor ? "/" : ""
-      }${formData.courtTypes.outdoor ? "Outdoor" : ""}`
-    );
+    // Send courtType as array
+    const courtTypes = [];
+    if (formData.courtTypes.indoor) courtTypes.push("Indoor");
+    if (formData.courtTypes.outdoor) courtTypes.push("Outdoor");
+    fd.append("courtType", JSON.stringify(courtTypes));
     fd.append("courtCount", formData.courtCount);
     fd.append("city", formData.city);
     fd.append("state", formData.state);
