@@ -842,6 +842,15 @@ const Booking = ({ className = "" }) => {
   const displayedSlotCount = useMemo(() => {
     if (totalSlots === 0) return 0;
 
+    // Count half-selected slots
+    const halfSlotCount = halfSelectedSlots.size;
+    
+    // If we have half-selected slots, calculate based on them
+    if (halfSlotCount > 0) {
+      return Number((halfSlotCount * 0.5).toFixed(1));
+    }
+
+    // Otherwise use regular slot count based on duration
     switch (selectedDuration) {
       case 30:
         return Number((totalSlots * 0.5).toFixed(1));
@@ -854,7 +863,7 @@ const Booking = ({ className = "" }) => {
       default:
         return totalSlots;
     }
-  }, [totalSlots, selectedDuration]);
+  }, [totalSlots, selectedDuration, halfSelectedSlots]);
 
   const clubId = useMemo(() => localStorage.getItem("register_club_id"), []);
 
@@ -1481,7 +1490,7 @@ const Booking = ({ className = "" }) => {
                       formatDate(new Date(selectedDate?.fullDate)) ===
                       d?.fullDate;
 
-                    // Calculate slot count for this specific date
+                    // Calculate slot count for this specific date with half-slot consideration
                     const slotCount = Object.values(selectedTimes).reduce(
                       (acc, courtDates) => {
                         const dateSlots = courtDates[d?.fullDate] || [];
@@ -1489,6 +1498,15 @@ const Booking = ({ className = "" }) => {
                       },
                       0
                     );
+
+                    // Calculate half-slot count for this date
+                    const halfSlotCount = Array.from(halfSelectedSlots).filter(key => 
+                      key.includes(`-${d?.fullDate}-`)
+                    ).length;
+
+                    // Calculate effective slot count (0.5 for each half-slot)
+                    const effectiveSlotCount = halfSlotCount > 0 ? halfSlotCount * 0.5 : slotCount;
+                    const displayCount = effectiveSlotCount % 1 === 0 ? effectiveSlotCount : effectiveSlotCount.toFixed(1);
 
                     return (
                       <button
@@ -1538,7 +1556,7 @@ const Booking = ({ className = "" }) => {
                             {dayShortMap[d?.day]}
                           </div>
                         </div>
-                        {slotCount > 0 && (
+                        {effectiveSlotCount > 0 && (
                           <span
                             className="position-absolute badge rounded-pill"
                             style={{
@@ -1554,7 +1572,7 @@ const Booking = ({ className = "" }) => {
                               backgroundColor: "#22c55e",
                             }}
                           >
-                            {slotCount}
+                            {displayCount}
                           </span>
                         )}
                       </button>
