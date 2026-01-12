@@ -70,7 +70,7 @@ const Cancellation = () => {
   const bookingDetails = getBookingDetailsData?.booking || {};
   const totalItems = getBookingData?.totalItems || 0;
   const sendDate = startDate && endDate;
-
+  console.log({ bookings });
   const [counts, setCounts] = useState({
     request: 0,
     cancelled: 0,
@@ -124,8 +124,21 @@ const Cancellation = () => {
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
-  const renderSlotTimes = (slotTimes) =>
-    slotTimes?.length ? slotTimes.map((slot) => slot.time).join(", ") : "-";
+  const renderSlotTimes = (slot) => {
+    console.log(slot, 'slotslotslot');
+    if (!slot || !Array.isArray(slot)) return "-";
+
+    // Get all slot times from all slots
+    const allSlotTimes = slot.reduce((acc, slotItem) => {
+      if (slotItem?.slotTimes && Array.isArray(slotItem.slotTimes)) {
+        const times = slotItem?.slotTimes?.map(timeSlot => timeSlot?.time).filter(Boolean);
+        acc.push(...times);
+      }
+      return acc;
+    }, []);
+
+    return allSlotTimes?.length ? allSlotTimes.join(", ") : "-";
+  };
   return (
     <Container fluid className="px-0">
       <Row className="mb-md-3 mb-2">
@@ -297,7 +310,7 @@ const Cancellation = () => {
                           >
                             {item?.userId?.name
                               ? item.userId.name.charAt(0).toUpperCase() +
-                                item.userId.name.slice(1)
+                              item.userId.name.slice(1)
                               : "N/A"}
                           </td>
                           <td className="d-none d-md-table-cell small">
@@ -309,11 +322,33 @@ const Cancellation = () => {
                               <span className="fw-medium small">
                                 {formatDate(item?.bookingDate)}
                               </span>
-                              <span className="text-muted small ms-2">
-                                {formatTime(
-                                  renderSlotTimes(item?.slot?.[0]?.slotTimes)
-                                )}
-                              </span>
+                              {(() => {
+                                const times = item?.slot?.[0]?.slotTimes?.map((time) =>
+                                  formatTime(time?.time)
+                                ) || [];
+                                
+                                if (times.length === 0) return "-";
+                                
+                                const startTime = times[0];
+                                const endTime = times[times.length - 1];
+                                const displayTime = times.length > 1 ? `${startTime} - ${endTime}` : startTime;
+                                const allTimes = times.join(", ");
+
+                                return times.length > 3 ? (
+                                  <OverlayTrigger
+                                    placement="top"
+                                    overlay={<Tooltip>{allTimes}</Tooltip>}
+                                  >
+                                    <span className="text-muted small ms-2">
+                                      {displayTime}
+                                    </span>
+                                  </OverlayTrigger>
+                                ) : (
+                                  <span className="text-muted small ms-2">
+                                    {displayTime}
+                                  </span>
+                                );
+                              })()}
                             </div>
                           </td>
                           <td
@@ -354,7 +389,7 @@ const Cancellation = () => {
                           <span className="mobile-card-value">
                             {item?.userId?.name
                               ? item.userId.name.charAt(0).toUpperCase() +
-                                item.userId.name.slice(1)
+                              item.userId.name.slice(1)
                               : "N/A"}
                           </span>
                         </div>
@@ -374,9 +409,33 @@ const Cancellation = () => {
                         <div className="mobile-card-item">
                           <span className="mobile-card-label">Time:</span>
                           <span className="mobile-card-value">
-                            {formatTime(
-                              renderSlotTimes(item?.slot?.[0]?.slotTimes)
-                            )}
+                            {(() => {
+                              const times = item?.slot?.[0]?.slotTimes?.map((time) =>
+                                formatTime(time?.time)
+                              ) || [];
+                              
+                              if (times?.length === 0) return "-";
+                              
+                              const startTime = times[0];
+                              const endTime = times[times?.length - 1];
+                              const displayTime = times?.length > 1 ? `${startTime} - ${endTime}` : startTime;
+                              const allTimes = times.join(", ");
+
+                              return times?.length > 3 ? (
+                                <OverlayTrigger
+                                  placement="top"
+                                  overlay={<Tooltip>{allTimes}</Tooltip>}
+                                >
+                                  <span className="text-muted small ms-2">
+                                    {displayTime}
+                                  </span>
+                                </OverlayTrigger>
+                              ) : (
+                                <span className="text-muted small ms-2">
+                                  {displayTime}
+                                </span>
+                              );
+                            })()}
                           </span>
                         </div>
                         <div className="mobile-card-item">

@@ -124,14 +124,12 @@ const Home = () => {
         const { latitude, longitude } = position.coords;
         
         try {
-          // Reverse geocoding to get city name
           const response = await fetch(
             `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
           );
           const data = await response.json();
           const city = data?.city || data?.locality || data?.principalSubdivision || 'Unknown';
           
-          // Update user profile with detected location
           const payload = new FormData();
           payload.append('city', city);
           
@@ -175,19 +173,16 @@ const Home = () => {
     );
   }, [dispatch]);
 
-  // Check if user needs location detection
+  // Check if user needs location detection - only show manual option
   useEffect(() => {
     const isLocationDetected = localStorage.getItem('locationDetected');
     const hasUserCity = User?.user?.response?.city || userFromSession?.city;
     
+    // Only set the flag, don't automatically request location
     if (User?.user?.token && !hasUserCity && !isLocationDetected && !locationRequested) {
       setLocationRequested(true);
-      // Small delay to ensure page is loaded, then directly request location
-      setTimeout(() => {
-        requestLocation();
-      }, 1000);
     }
-  }, [User?.user?.token, User?.user?.response?.city, userFromSession?.city, locationRequested, requestLocation]);
+  }, [User?.user?.token, User?.user?.response?.city, userFromSession?.city, locationRequested]);
 
   useEffect(() => {
     dispatch(getUserClub({ search: "" }));
