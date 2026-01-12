@@ -966,92 +966,93 @@ const Booking = ({ className = "" }) => {
   }, [totalSlots]);
 
   // Clean up selected slots only for current date when slots are no longer available
-  useEffect(() => {
-    if (slotData?.data && (Object.keys(selectedTimes)?.length > 0 || selectedCourts?.length > 0)) {
-      const currentDate = selectedDate?.fullDate;
-      const updatedSelectedTimes = { ...selectedTimes };
-      const updatedSelectedCourts = [...selectedCourts];
-      const updatedSelectedBusiness = [...selectedBuisness];
-      let hasChanges = false;
+  // DISABLED: This was causing auto-unselection when switching dates
+  // useEffect(() => {
+  //   if (slotData?.data && (Object.keys(selectedTimes)?.length > 0 || selectedCourts?.length > 0)) {
+  //     const currentDate = selectedDate?.fullDate;
+  //     const updatedSelectedTimes = { ...selectedTimes };
+  //     const updatedSelectedCourts = [...selectedCourts];
+  //     const updatedSelectedBusiness = [...selectedBuisness];
+  //     let hasChanges = false;
 
-      // Only validate slots for current date
-      Object.keys(selectedTimes).forEach(courtId => {
-        if (selectedTimes[courtId][currentDate]) {
-          const court = slotData?.data.find(c => c?._id === courtId);
-          if (court) {
-            const validSlots = selectedTimes[courtId][currentDate].filter(selectedSlot => {
-              return court.slots?.some(availableSlot =>
-                availableSlot?._id === selectedSlot?._id &&
-                availableSlot?.availabilityStatus === "available" &&
-                availableSlot?.status !== "booked"
-              );
-            });
+  //     // Only validate slots for current date
+  //     Object.keys(selectedTimes).forEach(courtId => {
+  //       if (selectedTimes[courtId][currentDate]) {
+  //         const court = slotData?.data.find(c => c?._id === courtId);
+  //         if (court) {
+  //           const validSlots = selectedTimes[courtId][currentDate].filter(selectedSlot => {
+  //             return court.slots?.some(availableSlot =>
+  //               availableSlot?._id === selectedSlot?._id &&
+  //               availableSlot?.availabilityStatus === "available" &&
+  //               availableSlot?.status !== "booked"
+  //             );
+  //           });
 
-            if (validSlots?.length !== selectedTimes[courtId][currentDate]?.length) {
-              hasChanges = true;
-              if (validSlots?.length > 0) {
-                updatedSelectedTimes[courtId][currentDate] = validSlots;
-              } else {
-                delete updatedSelectedTimes[courtId][currentDate];
-                if (Object.keys(updatedSelectedTimes[courtId])?.length === 0) {
-                  delete updatedSelectedTimes[courtId];
-                }
-              }
-            }
-          }
-        }
-      });
+  //           if (validSlots?.length !== selectedTimes[courtId][currentDate]?.length) {
+  //             hasChanges = true;
+  //             if (validSlots?.length > 0) {
+  //               updatedSelectedTimes[courtId][currentDate] = validSlots;
+  //             } else {
+  //               delete updatedSelectedTimes[courtId][currentDate];
+  //               if (Object.keys(updatedSelectedTimes[courtId])?.length === 0) {
+  //                 delete updatedSelectedTimes[courtId];
+  //               }
+  //             }
+  //           }
+  //         }
+  //       }
+  //     });
 
-      // Update selectedCourts only for current date
-      for (let i = updatedSelectedCourts?.length - 1; i >= 0; i--) {
-        const court = updatedSelectedCourts[i];
-        if (court?.date === currentDate) {
-          const validTimeSlots = court?.time.filter(timeSlot => {
-            const courtData = slotData?.data.find(c => c?._id === court?._id);
-            return courtData?.slots?.some(availableSlot =>
-              availableSlot?._id === timeSlot?._id &&
-              availableSlot?.availabilityStatus === "available" &&
-              availableSlot?.status !== "booked"
-            );
-          });
+  //     // Update selectedCourts only for current date
+  //     for (let i = updatedSelectedCourts?.length - 1; i >= 0; i--) {
+  //       const court = updatedSelectedCourts[i];
+  //       if (court?.date === currentDate) {
+  //         const validTimeSlots = court?.time.filter(timeSlot => {
+  //           const courtData = slotData?.data.find(c => c?._id === court?._id);
+  //           return courtData?.slots?.some(availableSlot =>
+  //             availableSlot?._id === timeSlot?._id &&
+  //             availableSlot?.availabilityStatus === "available" &&
+  //             availableSlot?.status !== "booked"
+  //           );
+  //         });
 
-          if (validTimeSlots?.length !== court?.time?.length) {
-            hasChanges = true;
-            if (validTimeSlots?.length > 0) {
-              updatedSelectedCourts[i] = { ...court, time: validTimeSlots };
-            } else {
-              updatedSelectedCourts.splice(i, 1);
-            }
-          }
-        }
-      }
+  //         if (validTimeSlots?.length !== court?.time?.length) {
+  //           hasChanges = true;
+  //           if (validTimeSlots?.length > 0) {
+  //             updatedSelectedCourts[i] = { ...court, time: validTimeSlots };
+  //           } else {
+  //             updatedSelectedCourts.splice(i, 1);
+  //           }
+  //         }
+  //       }
+  //     }
 
-      // Update selectedBusiness only for current date
-      for (let i = updatedSelectedBusiness?.length - 1; i >= 0; i--) {
-        const slot = updatedSelectedBusiness[i];
-        if (slot?.date === currentDate) {
-          const courtExists = slotData?.data.some(court =>
-            court?.slots?.some(courtSlot =>
-              courtSlot?._id === slot?._id &&
-              courtSlot?.availabilityStatus === "available" &&
-              courtSlot?.status !== "booked"
-            )
-          );
-          if (!courtExists) {
-            hasChanges = true;
-            updatedSelectedBusiness?.splice(i, 1);
-          }
-        }
-      }
+  //     // Update selectedBusiness only for current date
+  //     for (let i = updatedSelectedBusiness?.length - 1; i >= 0; i--) {
+  //       const slot = updatedSelectedBusiness[i];
+  //       if (slot?.date === currentDate) {
+  //         const courtExists = slotData?.data.some(court =>
+  //           court?.slots?.some(courtSlot =>
+  //             courtSlot?._id === slot?._id &&
+  //             courtSlot?.availabilityStatus === "available" &&
+  //             courtSlot?.status !== "booked"
+  //           )
+  //         );
+  //         if (!courtExists) {
+  //           hasChanges = true;
+  //           updatedSelectedBusiness?.splice(i, 1);
+  //         }
+  //       }
+  //     }
 
-      // Update state only if there are changes
-      if (hasChanges) {
-        setSelectedTimes(updatedSelectedTimes);
-        setSelectedCourts(updatedSelectedCourts);
-        setSelectedBuisness(updatedSelectedBusiness);
-      }
-    }
-  }, [slotData?.data,]);
+  //     // Update state only if there are changes
+  //     if (hasChanges) {
+  //       setSelectedTimes(updatedSelectedTimes);
+  //       setSelectedCourts(updatedSelectedCourts);
+  //       setSelectedBuisness(updatedSelectedBusiness);
+  //     }
+  //   }
+  // }, [slotData?.data, selectedDate?.fullDate]);
 
   const handleBookNow = async () => {
     if (totalSlots === 0) {
@@ -1750,8 +1751,7 @@ const Booking = ({ className = "" }) => {
                                     const isSlotDisabled =
                                       (slot?.status === "booked" && slot?.duration === 60) ||
                                       slot?.availabilityStatus !== "available" ||
-                                      isPastTime(slot?.time) ||
-                                      (currentTotalSlots >= MAX_SLOTS && !isSlotSelected && !leftHalf && !rightHalf);
+                                      isPastTime(slot?.time);
 
                                     // Hide only if slot is naturally unavailable and showUnavailable is off
                                     // Don't hide slots that are disabled due to 15-slot limit
