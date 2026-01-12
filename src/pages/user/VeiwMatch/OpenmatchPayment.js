@@ -750,7 +750,7 @@ const OpenmatchPayment = () => {
     // Local state for mobile summary
     const [localSelectedCourts, setLocalSelectedCourts] = useState(selectedCourts || []);
 
-    // Calculate display slots and totals based on duration
+    // Calculate display slots and totals based on duration and half-slot selections
     const getDisplayData = () => {
         const displaySlots = [];
         localSelectedCourts.forEach(court => {
@@ -761,7 +761,19 @@ const OpenmatchPayment = () => {
                 });
             });
         });
-        return { displaySlots, totalSlots: displaySlots.length };
+        
+        // Calculate effective slot count considering half-slots
+        let effectiveSlotCount = 0;
+        
+        if (halfSelectedSlots && halfSelectedSlots.size > 0) {
+            // If we have half-selected slots, count them as 0.5 each
+            effectiveSlotCount = halfSelectedSlots.size * 0.5;
+        } else {
+            // Otherwise count regular slots
+            effectiveSlotCount = displaySlots.length;
+        }
+        
+        return { displaySlots, totalSlots: effectiveSlotCount };
     };
 
     const { displaySlots, totalSlots } = getDisplayData();
@@ -1037,7 +1049,7 @@ const OpenmatchPayment = () => {
                         {/* Desktop Booking Summary */}
                         <div className="d-none d-md-block">
                             <div className="d-flex border-top px-3 pt-2 justify-content-between align-items-center d-none d-md-flex">
-                                <h6 className="p-2 mb-1 ps-0 text-white custom-heading-use">Booking Summary {localTotalSlots > 0 ? ` (${localTotalSlots} Slot selected)` : ''}</h6>
+                                <h6 className="p-2 mb-1 ps-0 text-white custom-heading-use">Booking Summary {localTotalSlots > 0 ? ` (${localTotalSlots % 1 === 0 ? localTotalSlots : localTotalSlots.toFixed(1)} Slot selected)` : ''}</h6>
                             </div>
                             <div className="px-3">
                                 <style>{`
@@ -1307,7 +1319,7 @@ const OpenmatchPayment = () => {
                                                     Total to Pay
                                                 </span>
                                                 <span className="d-block text-white" style={{ fontSize: "12px" }}>
-                                                    Total Slots: {localTotalSlots}
+                                                    Total Slots: {localTotalSlots % 1 === 0 ? localTotalSlots : localTotalSlots.toFixed(1)}
                                                 </span>
                                             </div>
 

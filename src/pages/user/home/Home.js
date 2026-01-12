@@ -1,31 +1,23 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import {
   home_banner,
-  football,
-  cricket,
-  tennis2,
-  batmintain,
-  swiming,
   bannerimg,
 } from "../../../assets/files";
-import { LuClock4 } from "react-icons/lu";
 import StarIcon from "@mui/icons-material/Star";
 import StarHalfIcon from "@mui/icons-material/StarHalf";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
-import CloseIcon from "@mui/icons-material/Close";
 import { FaArrowRight } from "react-icons/fa";
-import Lightbox from "react-image-lightbox";
-import "react-image-lightbox/style.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { getReviewClub, getUserClub, getMapData } from "../../../redux/user/club/thunk";
-import { Avatar } from "@mui/material";
-import { getUserProfile } from "../../../redux/user/auth/authThunk";
+import { getUserProfile, updateUser } from "../../../redux/user/auth/authThunk";
 import { ReviewCard } from "./ReviewCard";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { showSuccess, showError } from "../../../helpers/Toast";
+import { getUserFromSession } from "../../../helpers/api/apiCore";
 
 const Home = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -34,6 +26,7 @@ const Home = () => {
   const [reviewSlide, setReviewSlide] = useState(0);
   const [loadedImages, setLoadedImages] = useState({});
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [locationRequested, setLocationRequested] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const store = useSelector((state) => state);
@@ -43,6 +36,7 @@ const Home = () => {
   const getReviewData = store?.userClub?.getReviewData?.data;
   const mapApiData = store?.userClub?.mapData?.data;
   const logo = clubData?.logo;
+  const userFromSession = getUserFromSession();
 
   // Add fake reviews to make it look better
   const fakeReviews = [
@@ -117,6 +111,83 @@ const Home = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Location detection for first-time users
+  const requestLocation = useCallback(() => {
+    if (!navigator.geolocation) {
+      showError('Geolocation is not supported by this browser');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        
+        try {
+          // Reverse geocoding to get city name
+          const response = await fetch(
+            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+          );
+          const data = await response.json();
+          const city = data?.city || data?.locality || data?.principalSubdivision || 'Unknown';
+          
+          // Update user profile with detected location
+          const payload = new FormData();
+          payload.append('city', city);
+          
+          dispatch(updateUser(payload))
+            .then((res) => {
+              if (res?.payload?.status === '200') {
+                showSuccess(`Location updated to ${city}`);
+                dispatch(getUserProfile());
+                localStorage.setItem('locationDetected', 'true');
+              }
+            })
+            .catch(() => {
+              showError('Failed to update location');
+            });
+        } catch (error) {
+          showError('Failed to detect location');
+        }
+      },
+      (error) => {
+        localStorage.setItem('locationDetected', 'declined');
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            showError('Location access denied by user');
+            break;
+          case error.POSITION_UNAVAILABLE:
+            showError('Location information is unavailable');
+            break;
+          case error.TIMEOUT:
+            showError('Location request timed out');
+            break;
+          default:
+            showError('An unknown error occurred while retrieving location');
+            break;
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
+  }, [dispatch]);
+
+  // Check if user needs location detection
+  useEffect(() => {
+    const isLocationDetected = localStorage.getItem('locationDetected');
+    const hasUserCity = User?.user?.response?.city || userFromSession?.city;
+    
+    if (User?.user?.token && !hasUserCity && !isLocationDetected && !locationRequested) {
+      setLocationRequested(true);
+      // Small delay to ensure page is loaded, then directly request location
+      setTimeout(() => {
+        requestLocation();
+      }, 1000);
+    }
+  }, [User?.user?.token, User?.user?.response?.city, userFromSession?.city, locationRequested, requestLocation]);
 
   useEffect(() => {
     dispatch(getUserClub({ search: "" }));

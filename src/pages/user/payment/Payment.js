@@ -45,14 +45,25 @@ const Payment = ({ className = "" }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   console.log('Payment localSelectedCourts:', localSelectedCourts);
   useEffect(() => {
-    const newTotalSlots = localSelectedCourts.reduce((sum, c) => sum + c?.time?.length, 0);
+    // Calculate effective slot count considering half-slots
+    let effectiveSlotCount = 0;
+    
+    if (halfSelectedSlots && halfSelectedSlots.size > 0) {
+      // If we have half-selected slots, count them as 0.5 each
+      effectiveSlotCount = halfSelectedSlots.size * 0.5;
+    } else {
+      // Otherwise count regular slots
+      effectiveSlotCount = localSelectedCourts.reduce((sum, c) => sum + c?.time?.length, 0);
+    }
+    
     const newGrandTotal = localSelectedCourts.reduce(
       (sum, c) => sum + c?.time?.reduce((s, t) => s + Number(t?.amount || 2000), 0),
       0
     );
-    setLocalTotalSlots(newTotalSlots);
+    
+    setLocalTotalSlots(effectiveSlotCount);
     setLocalGrandTotal(newGrandTotal);
-  }, [localSelectedCourts]);
+  }, [localSelectedCourts, halfSelectedSlots]);
 
   useEffect(() => {
     if (!courtData) {
@@ -922,7 +933,7 @@ const Payment = ({ className = "" }) => {
             {/* Desktop Booking Summary Title */}
             <div className="d-flex border-top px-3 pt-2 justify-content-between align-items-center d-none d-sm-flex">
               <h6 className="p-2 mb-1 ps-0 text-white custom-heading-use">
-                Booking Summary ({localTotalSlots} Slot{localTotalSlots !== 1 ? 's' : ''} selected)
+                Booking Summary ({localTotalSlots % 1 === 0 ? localTotalSlots : localTotalSlots.toFixed(1)} Slot{localTotalSlots !== 1 ? 's' : ''} selected)
               </h6>
             </div>
 
@@ -1214,7 +1225,7 @@ const Payment = ({ className = "" }) => {
                           fontFamily: "Poppins",
                         }}
                       >
-                        Total Slot: {localTotalSlots}
+                        Total Slot: {localTotalSlots % 1 === 0 ? localTotalSlots : localTotalSlots.toFixed(1)}
                       </span>
                     </div>
 
