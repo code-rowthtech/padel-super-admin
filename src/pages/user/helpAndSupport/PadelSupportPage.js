@@ -89,6 +89,7 @@ export default function PadelSupportPage() {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [errors, setErrors] = useState({});
   const [sent, setSent] = useState(false);
+  const [activeSection, setActiveSection] = useState('articles'); // 'articles', 'faq', 'submit'
 
   const tags = ['All', ...Array.from(new Set(sampleArticles.map((a) => a.tag)))];
 
@@ -152,7 +153,7 @@ export default function PadelSupportPage() {
                 </Col>
 
                 <Col md={4} xs={12} className="text-md-end mt-3 mt-md-0">
-                  <Button variant="success" className="me-2" onClick={() => window.scrollTo({ top: 1000, behavior: 'smooth' })}>
+                  <Button variant="success" className="me-2" onClick={() => setActiveSection('submit')}>
                     Submit a request
                   </Button>
                   <Button variant="outline-primary" onClick={() => alert('Call us at +91 98765 43210')}>
@@ -173,17 +174,11 @@ export default function PadelSupportPage() {
                 <Card.Body>
                   <h5>Quick links</h5>
                   <ListGroup variant="flush">
-                    <ListGroup.Item action onClick={() => window.scrollTo({ top: 1400, behavior: 'smooth' })}>
-                      FAQs
-                    </ListGroup.Item>
-                    <ListGroup.Item action onClick={() => window.scrollTo({ top: 900, behavior: 'smooth' })}>
+                    <ListGroup.Item action onClick={() => setActiveSection('submit')}>
                       Submit a request
                     </ListGroup.Item>
-                    <ListGroup.Item action onClick={() => setShowChat(true)}>
-                      Live chat
-                    </ListGroup.Item>
-                    <ListGroup.Item action onClick={() => alert('Owner dashboard')}>
-                      Court owners
+                    <ListGroup.Item action onClick={() => setActiveSection('faq')}>
+                      FAQs
                     </ListGroup.Item>
                   </ListGroup>
                 </Card.Body>
@@ -211,124 +206,130 @@ export default function PadelSupportPage() {
             </Col>
 
             <Col lg={8} className="mb-4">
-              <Card className="shadow-sm mb-3">
-                <Card.Body>
-                  <h5>Featured articles</h5>
-                  <Row>
-                    {filtered.map((a) => (
-                      <Col md={6} key={a.id} className="mb-3">
-                        <Card className="h-100 border-0">
-                          <Card.Body>
-                            <div className="d-flex justify-content-between align-items-start">
-                              <div>
-                                <Card.Title className="mb-1" style={{ fontSize: '1rem' }}>{a.title}</Card.Title>
-                                <Card.Text className="text-muted small mb-2">{a.excerpt}</Card.Text>
-                                <Badge bg="secondary">{a.tag}</Badge>
-                              </div>
-                              <div>
-                                <Button variant="outline-primary" size="sm">Read</Button>
-                              </div>
-                            </div>
-                          </Card.Body>
-                        </Card>
-                      </Col>
-                    ))}
+              {activeSection === 'articles' && (
+                <>
+                  <Card className="shadow-sm mb-3">
+                    <Card.Body>
+                      <h5>Featured articles</h5>
+                      <Row>
+                        {filtered.map((a) => (
+                          <Col md={6} key={a.id} className="mb-3">
+                            <Card className="h-100 border-0">
+                              <Card.Body>
+                                <div className="d-flex justify-content-between align-items-start">
+                                  <div>
+                                    <Card.Title className="mb-1" style={{ fontSize: '1rem' }}>{a.title}</Card.Title>
+                                    <Card.Text className="text-muted small mb-2">{a.excerpt}</Card.Text>
+                                    <Badge bg="secondary">{a.tag}</Badge>
+                                  </div>
+                                  <div>
+                                    <Button variant="outline-primary" size="sm">Read</Button>
+                                  </div>
+                                </div>
+                              </Card.Body>
+                            </Card>
+                          </Col>
+                        ))}
 
-                    {filtered.length === 0 && (
-                      <Col>
-                        <div className="text-center text-muted py-4">No articles match your search.</div>
-                      </Col>
-                    )}
-                  </Row>
-                </Card.Body>
-              </Card>
+                        {filtered.length === 0 && (
+                          <Col>
+                            <div className="text-center text-muted py-4">No articles match your search.</div>
+                          </Col>
+                        )}
+                      </Row>
+                    </Card.Body>
+                  </Card>
+                </>
+              )}
 
-              <Card className="shadow-sm">
-                <Card.Body>
-                  <h5>Frequently asked questions</h5>
-                  <Accordion>
-                    {faqs.map((f, i) => (
-                      <Accordion.Item eventKey={String(i)} key={i}>
-                        <Accordion.Header>{f.q}</Accordion.Header>
-                        <Accordion.Body>{f.a}</Accordion.Body>
-                      </Accordion.Item>
-                    ))}
-                  </Accordion>
-                </Card.Body>
-              </Card>
+              {activeSection === 'faq' && (
+                <Card className="shadow-sm">
+                  <Card.Body>
+                    <h5>Frequently asked questions</h5>
+                    <Accordion>
+                      {faqs.map((f, i) => (
+                        <Accordion.Item eventKey={String(i)} key={i}>
+                          <Accordion.Header>{f.q}</Accordion.Header>
+                          <Accordion.Body>{f.a}</Accordion.Body>
+                        </Accordion.Item>
+                      ))}
+                    </Accordion>
+                  </Card.Body>
+                </Card>
+              )}
+
+              {activeSection === 'submit' && (
+                <Card className="shadow-sm">
+                  <Card.Body>
+                    <h5 id="contact-form">Submit a request</h5>
+                    <p className="text-muted">Fill this form and our support team will contact you within 24 hours.</p>
+
+                    {sent && <div className="alert alert-success">Your request has been submitted. We'll reply to your email soon.</div>}
+
+                    <Form onSubmit={handleSubmit} noValidate>
+                      <Row>
+                        <Col md={6}>
+                          <Form.Group className="mb-3">
+                            <Form.Label>Name</Form.Label>
+                            <Form.Control
+                              value={form.name}
+                              onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
+                              isInvalid={!!errors.name}
+                            />
+                            <Form.Control.Feedback type="invalid">{errors.name}</Form.Control.Feedback>
+                          </Form.Group>
+                        </Col>
+
+                        <Col md={6}>
+                          <Form.Group className="mb-3">
+                            <Form.Label>Email</Form.Label>
+                            <Form.Control
+                              value={form.email}
+                              onChange={(e) => setForm((s) => ({ ...s, email: e.target.value }))}
+                              isInvalid={!!errors.email}
+                            />
+                            <Form.Control.Feedback type="invalid">{errors.email}</Form.Control.Feedback>
+                          </Form.Group>
+                        </Col>
+                      </Row>
+
+                      <Form.Group className="mb-3">
+                        <Form.Label>Subject</Form.Label>
+                        <Form.Control
+                          value={form.subject}
+                          onChange={(e) => setForm((s) => ({ ...s, subject: e.target.value }))}
+                          isInvalid={!!errors.subject}
+                        />
+                        <Form.Control.Feedback type="invalid">{errors.subject}</Form.Control.Feedback>
+                      </Form.Group>
+
+                      <Form.Group className="mb-3">
+                        <Form.Label>Message</Form.Label>
+                        <Form.Control
+                          as="textarea"
+                          rows={5}
+                          value={form.message}
+                          onChange={(e) => setForm((s) => ({ ...s, message: e.target.value }))}
+                          isInvalid={!!errors.message}
+                        />
+                        <Form.Control.Feedback type="invalid">{errors.message}</Form.Control.Feedback>
+                      </Form.Group>
+
+                      <div className="d-flex gap-2">
+                        <Button type="submit">Send request</Button>
+                        <Button variant="outline-secondary" onClick={() => setForm({ name: '', email: '', subject: '', message: '' })}>
+                          Reset
+                        </Button>
+                      </div>
+                    </Form>
+                  </Card.Body>
+                </Card>
+              )}
             </Col>
           </Row>
 
           <Row className="mt-4">
-            <Col lg={6} className="mb-4">
-              <Card className="shadow-sm">
-                <Card.Body>
-                  <h5 id="contact-form">Submit a request</h5>
-                  <p className="text-muted">Fill this form and our support team will contact you within 24 hours.</p>
-
-                  {sent && <div className="alert alert-success">Your request has been submitted. We'll reply to your email soon.</div>}
-
-                  <Form onSubmit={handleSubmit} noValidate>
-                    <Row>
-                      <Col md={6}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Name</Form.Label>
-                          <Form.Control
-                            value={form.name}
-                            onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
-                            isInvalid={!!errors.name}
-                          />
-                          <Form.Control.Feedback type="invalid">{errors.name}</Form.Control.Feedback>
-                        </Form.Group>
-                      </Col>
-
-                      <Col md={6}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Email</Form.Label>
-                          <Form.Control
-                            value={form.email}
-                            onChange={(e) => setForm((s) => ({ ...s, email: e.target.value }))}
-                            isInvalid={!!errors.email}
-                          />
-                          <Form.Control.Feedback type="invalid">{errors.email}</Form.Control.Feedback>
-                        </Form.Group>
-                      </Col>
-                    </Row>
-
-                    <Form.Group className="mb-3">
-                      <Form.Label>Subject</Form.Label>
-                      <Form.Control
-                        value={form.subject}
-                        onChange={(e) => setForm((s) => ({ ...s, subject: e.target.value }))}
-                        isInvalid={!!errors.subject}
-                      />
-                      <Form.Control.Feedback type="invalid">{errors.subject}</Form.Control.Feedback>
-                    </Form.Group>
-
-                    <Form.Group className="mb-3">
-                      <Form.Label>Message</Form.Label>
-                      <Form.Control
-                        as="textarea"
-                        rows={5}
-                        value={form.message}
-                        onChange={(e) => setForm((s) => ({ ...s, message: e.target.value }))}
-                        isInvalid={!!errors.message}
-                      />
-                      <Form.Control.Feedback type="invalid">{errors.message}</Form.Control.Feedback>
-                    </Form.Group>
-
-                    <div className="d-flex gap-2">
-                      <Button type="submit">Send request</Button>
-                      <Button variant="outline-secondary" onClick={() => setForm({ name: '', email: '', subject: '', message: '' })}>
-                        Reset
-                      </Button>
-                    </div>
-                  </Form>
-                </Card.Body>
-              </Card>
-            </Col>
-
-            <Col lg={6} className="mb-4">
+            <Col lg={12} className="mb-4">
               <Card className="shadow-sm">
                 <Card.Body>
                   <h5>Contact options</h5>
@@ -336,23 +337,27 @@ export default function PadelSupportPage() {
                   <p className="mb-1"><strong>Phone:</strong> +91 98765 43210</p>
                   <p className="mb-3 text-muted">Available Mon–Sat, 9:00–18:00</p>
 
-                  <h6 className="mt-3">Other resources</h6>
-                  <ListGroup>
-                    <ListGroup.Item action onClick={() => alert('Open community forum')}>Community forum</ListGroup.Item>
-                    <ListGroup.Item action onClick={() => alert('Open status page')}>System status</ListGroup.Item>
-                    <ListGroup.Item action onClick={() => alert('Open pricing & plans')}>Pricing & plans</ListGroup.Item>
-                  </ListGroup>
-
-                  <hr />
-                  <h6>Recent announcements</h6>
-                  <ListGroup variant="flush">
-                    <ListGroup.Item>
-                      <strong>New: </strong>Flexible booking window launched — book up to 6 months ahead.
-                    </ListGroup.Item>
-                    <ListGroup.Item>
-                      <strong>Reminder:</strong> Tournament registrations close 2 days before the event.
-                    </ListGroup.Item>
-                  </ListGroup>
+                  <Row>
+                    <Col md={6}>
+                      <h6 className="mt-3">Other resources</h6>
+                      <ListGroup>
+                        <ListGroup.Item action onClick={() => alert('Open community forum')}>Community forum</ListGroup.Item>
+                        <ListGroup.Item action onClick={() => alert('Open status page')}>System status</ListGroup.Item>
+                        <ListGroup.Item action onClick={() => alert('Open pricing & plans')}>Pricing & plans</ListGroup.Item>
+                      </ListGroup>
+                    </Col>
+                    <Col md={6}>
+                      <h6 className="mt-3">Recent announcements</h6>
+                      <ListGroup variant="flush">
+                        <ListGroup.Item>
+                          <strong>New: </strong>Flexible booking window launched — book up to 6 months ahead.
+                        </ListGroup.Item>
+                        <ListGroup.Item>
+                          <strong>Reminder:</strong> Tournament registrations close 2 days before the event.
+                        </ListGroup.Item>
+                      </ListGroup>
+                    </Col>
+                  </Row>
                 </Card.Body>
               </Card>
             </Col>
