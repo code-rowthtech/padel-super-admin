@@ -226,8 +226,6 @@ const BookingSummary = ({
     duration,  // Add duration prop
     halfSelectedSlots  // Add halfSelectedSlots prop
 }) => {
-    console.log('BookingSummary selectedCourts:', selectedCourts);
-    console.log('BookingSummary duration:', duration);
 
     return (
         <>

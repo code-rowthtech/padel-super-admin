@@ -5,9 +5,9 @@ import * as Url from "../../../helpers/api/apiEndpoint";
 
 export const getUserSlotBooking = createAsyncThunk(
   "club/getUserSlotBooking",
-  async ({ register_club_id, day, date, time ,type, socket}, { rejectWithValue }) => {
+  async ({ register_club_id, day, date, time, type, socket }, { rejectWithValue }) => {
     try {
-      if (!register_club_id  || !day || !date) {
+      if (!register_club_id || !day || !date) {
         throw new Error("Missing required parameters: register_club_id, day, or date");
       }
 
@@ -15,7 +15,7 @@ export const getUserSlotBooking = createAsyncThunk(
         register_club_id,
         day,
         date,
-        
+
       });
 
       if (time) {
@@ -29,7 +29,9 @@ export const getUserSlotBooking = createAsyncThunk(
 
       return response?.data;
     } catch (error) {
-      showError(error?.message || "Something went wrong while fetching slots");
+      if (error?.message || error?.response?.data?.message) {
+        showError(error?.message || error?.response?.data?.message);
+      }
       return rejectWithValue(error?.response?.data || error.message);
     }
   }
@@ -55,17 +57,18 @@ export const getUserSlot = createAsyncThunk(
 
       return response?.data;
     } catch (error) {
-      showError(error?.message || "Something went wrong while fetching slots");
-      return rejectWithValue(error?.response?.data || error.message);
+      if (error?.message || error?.response?.data?.message) {
+        showError(error?.message || error?.response?.data?.message);
+      } return rejectWithValue(error?.response?.data || error.message);
     }
   }
 );
 
 export const getUserSlotPrice = createAsyncThunk(
   "club/getUserSlotPrice",
-  async ({ register_club_id, day, duration}, { rejectWithValue }) => {
+  async ({ register_club_id, day, duration }, { rejectWithValue }) => {
     try {
-      if (!register_club_id ) {
+      if (!register_club_id) {
         throw new Error("Missing required parameters: register_club_id, day, or duration");
       }
 
@@ -79,7 +82,9 @@ export const getUserSlotPrice = createAsyncThunk(
 
       return response?.data;
     } catch (error) {
-      showError(error?.message || "Something went wrong while fetching slots");
+      if (error?.message || error?.response?.data?.message) {
+        showError(error?.message || error?.response?.data?.message);
+      }
       return rejectWithValue(error?.response?.data || error.message);
     }
   }
@@ -87,9 +92,9 @@ export const getUserSlotPrice = createAsyncThunk(
 
 export const getUserHalfSlotPrice = createAsyncThunk(
   "club/getUserHalfSlotPrice",
-  async ({ register_club_id, day}, { rejectWithValue }) => {
+  async ({ register_club_id, day }, { rejectWithValue }) => {
     try {
-      if (!register_club_id ) {
+      if (!register_club_id) {
         throw new Error("Missing required parameters: register_club_id, day, or duration");
       }
 
@@ -102,13 +107,15 @@ export const getUserHalfSlotPrice = createAsyncThunk(
 
       return response?.data;
     } catch (error) {
-      showError(error?.message || "Something went wrong while fetching slots");
+      if (error?.message || error?.response?.data?.message) {
+        showError(error?.message || error?.response?.data?.message);
+      }
       return rejectWithValue(error?.response?.data || error.message);
     }
   }
 );
 
-  
+
 
 
 export const getMatchesSlot = createAsyncThunk(
@@ -129,7 +136,9 @@ export const getMatchesSlot = createAsyncThunk(
 
       return response?.data;
     } catch (error) {
-      showError(error?.message || "Something went wrong while fetching slots");
+      if (error?.message || error?.response?.data?.message) {
+        showError(error?.message || error?.response?.data?.message);
+      }
       return rejectWithValue(error?.response?.data || error.message);
     }
   }

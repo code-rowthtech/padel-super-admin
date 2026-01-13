@@ -51,7 +51,6 @@ const ManualBooking = () => {
     (state) => state?.searchUserByNumber?.getSearchLoading
   );
   const slotPrice = useSelector((state) => state?.userSlot?.slotPriceData?.data || []);
-  console.log({ slotPrice });
   
   // Add price calculation function
   const getPriceForSlot = (slotTime, day = selectedDay) => {

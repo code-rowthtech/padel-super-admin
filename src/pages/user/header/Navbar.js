@@ -44,7 +44,6 @@ const Navbar = () => {
     const [open, setOpen] = useState(false);
     const dropdownRef = useRef(null);
     const [notifications, setNotifications] = useState([]);
-    console.log({ notifications });
     const userId = getUserFromSession()?._id;
     const [notificationCount, setNotificationCount] = useState();
     dayjs.extend(relativeTime);
@@ -121,7 +120,6 @@ const Navbar = () => {
         };
 
         const handleMatchNotification = (notification) => {
-            console.log(notification, 'notificationnotification');
             if (!isMounted) return;
             playNotificationSound();
             setNotifications((prev) => [notification, ...prev.slice(0, 49)]);

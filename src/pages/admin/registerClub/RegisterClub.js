@@ -90,14 +90,12 @@ const RegisterClub = () => {
   };
 
   const goNext = () => {
-    console.log('goNext called, current step:', step);
     setStep((s) => {
       console.log('Moving from step', s, 'to step', s + 1);
       return s + 1;
     });
   };
   const goBack = () => {
-    console.log('goBack called, current step:', step);
     setStep((s) => {
       console.log('Moving from step', s, 'to step', s - 1);
       return s - 1;
@@ -105,13 +103,11 @@ const RegisterClub = () => {
   };
 
   const registerId = useSelector((s) => s?.club?.clubData?.data?._id);
-  console.log({registerId});
   useEffect(() => {
     if (registerId) sessionStorage.setItem("registerId", registerId);
   }, [registerId]);
 
   const renderStep = () => {
-    console.log('Rendering step:', step);
     switch (step) {
       case 1:
         return (

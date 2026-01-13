@@ -1,4 +1,7 @@
 const getOrdinalSuffix = (day) => {
+  if (day >= 11 && day <= 13) {
+    return "th";
+  }
   switch (day % 10) {
     case 1:
       return "st";

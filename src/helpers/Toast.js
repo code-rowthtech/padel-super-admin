@@ -40,7 +40,7 @@ export const showSuccess = (message = "Success!") => {
   });
 };
 
-export const showError = (message = "Something went wrong") => {
+export const showError = (message = "") => {
   createToastWithCount(message, 'error', {
     position: "top-right",
     autoClose: 4000,
