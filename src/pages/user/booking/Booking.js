@@ -483,7 +483,7 @@ const Booking = ({ className = "" }) => {
           bookingTime: slot?.time
         };
 
-        dispatch(removeBookedBooking( payload)).then((result) => {
+        dispatch(removeBookedBooking(payload)).then((result) => {
           setLoadingSlotId(null);
           if (result.payload?.deleted === true) {
             // Only update UI if API confirms slot was deleted
@@ -504,9 +504,14 @@ const Booking = ({ className = "" }) => {
               },
             }));
             updateSelectedBusinessAndCourts(newTimes, courtId, dateKey);
+          } else {
+            // API failed to delete - show warning but don't update UI
+            showError(result?.payload?.message || 'Failed to unselect slot. Please try again.');
           }
-        }).catch(() => {
+        }).catch((error) => {
           setLoadingSlotId(null);
+          // API call failed - show error but don't update UI
+          showError('Network error. Please check your connection and try again.');
         });
       }
       return;
@@ -578,9 +583,14 @@ const Booking = ({ className = "" }) => {
             },
           }));
           updateSelectedBusinessAndCourts(newTimes, courtId, dateKey);
+        } else {
+          // API failed to delete - show warning but don't update UI
+          showError(result?.payload?.message || 'Failed to unselect half slot. Please try again.');
         }
-      }).catch(() => {
+      }).catch((error) => {
         setLoadingSlotId(null);
+        // API call failed - show error but don't update UI
+        showError('Network error. Please check your connection and try again.');
       });
     } else {
       // Selecting - call checkBooking API
@@ -1884,16 +1894,14 @@ const Booking = ({ className = "" }) => {
                           `}</style>
                         {slotData?.data?.map((court, courtIndex) => {
                           const filteredSlots = court?.slots?.filter((slot) => {
-                            // Check if slot is booked for 30 minutes - these should still show
                             const isBookedFor30Min = slot?.status === "booked" && slot?.duration === 30 && slot?.bookingTime;
-                            // Check if slot is booked for 60 minutes - these should NOT show in available
                             const isBookedFor60Min = slot?.status === "booked" && slot?.duration === 60;
 
                             const basicFilter = showUnavailable
                               ? true
                               : (slot?.availabilityStatus === "available" &&
                                 !isBookedFor60Min &&
-                                !isPastTime(slot?.time)) || isBookedFor30Min; // Include 30min booked slots, exclude 60min booked slots
+                                !isPastTime(slot?.time)) || isBookedFor30Min; 
 
                             const hasPrice = getPriceForSlot(slot.time, selectedDate?.day, true) !== null;
 

@@ -501,7 +501,7 @@ const CreateMatches = () => {
           );
           setSlotError("");
         } else {
-          showWarning(result?.payload?.message || 'Failed to unselect slot');
+          showError(result?.payload?.message || 'Failed to unselect slot');
         }
       }).catch(() => {
         setLoadingSlotId(null);

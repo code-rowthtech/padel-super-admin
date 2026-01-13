@@ -122,8 +122,101 @@ const Booking = () => {
     }
   };
 
-  const renderSlotTimes = (slotTimes) =>
-    slotTimes?.length ? slotTimes.map((slot) => slot.time).join(", ") : "-";
+  // Helper function to parse time to minutes for comparison
+  const parseTimeToMinutes = (timeStr) => {
+    if (!timeStr) return null;
+
+    let cleaned = timeStr.toString().toLowerCase().trim();
+    let hour, minute = 0, period = "";
+
+    if (cleaned.includes("am") || cleaned.includes("pm")) {
+      period = cleaned.endsWith("am") ? "am" : "pm";
+      cleaned = cleaned.replace(/am|pm/gi, "").trim();
+    }
+
+    if (cleaned.includes(":")) {
+      const parts = cleaned.split(":");
+      hour = parseInt(parts[0]);
+      minute = parseInt(parts[1]) || 0;
+    } else {
+      hour = parseInt(cleaned);
+    }
+
+    if (isNaN(hour)) return null;
+
+    // Convert to 24-hour format
+    if (period === "pm" && hour !== 12) hour += 12;
+    if (period === "am" && hour === 12) hour = 0;
+
+    return hour * 60 + minute;
+  };
+
+  const renderSlotTimes = (slotTimes) => {
+    if (!slotTimes?.length) return "-";
+
+    // Sort slots by time
+    const sortedSlots = [...slotTimes].sort((a, b) => {
+      const timeA = parseTimeToMinutes(a.time);
+      const timeB = parseTimeToMinutes(b.time);
+      return timeA - timeB;
+    });
+
+    const groups = [];
+    let currentGroup = [];
+
+    for (let i = 0; i < sortedSlots.length; i++) {
+      const slot = sortedSlots[i];
+
+      if (currentGroup.length === 0) {
+        currentGroup = [slot];
+      } else {
+        const lastSlot = currentGroup[currentGroup.length - 1];
+        const lastTime = parseTimeToMinutes(lastSlot.time);
+        const currentTime = parseTimeToMinutes(slot.time);
+        const timeDiff = currentTime - lastTime;
+
+        // Check if slots are consecutive (60 minutes apart)
+        if (timeDiff === 60) {
+          currentGroup.push(slot);
+        } else {
+          groups.push([...currentGroup]);
+          currentGroup = [slot];
+        }
+      }
+    }
+
+    // Add remaining group
+    if (currentGroup.length > 0) {
+      groups.push(currentGroup);
+    }
+
+    // Format groups as ranges or individual times
+    return groups.map(group => {
+      if (group.length === 1) {
+        return group[0].time;
+      } else {
+        const startTime = group[0].time;
+        const lastSlot = group[group.length - 1];
+
+        // Calculate end time (add 1 hour to last slot)
+        const lastTimeMinutes = parseTimeToMinutes(lastSlot.time);
+        const endTimeMinutes = lastTimeMinutes + 60;
+        const endHour = Math.floor(endTimeMinutes / 60);
+
+        let displayHour = endHour;
+        let period = "am";
+
+        if (endHour >= 12) {
+          period = "pm";
+          if (endHour > 12) displayHour = endHour - 12;
+        }
+        if (endHour === 0) displayHour = 12;
+
+        const endTime = `${displayHour} ${period}`;
+        return `${startTime}-${endTime}`;
+      }
+    }).join(", ");
+  };
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
@@ -396,9 +489,33 @@ const Booking = () => {
                                 {formatDate(item?.bookingDate)}
                               </span>
                               <span className="text-muted small ms-2">
-                                {formatTime(
-                                  renderSlotTimes(item?.slot[0]?.slotTimes)
-                                )}
+                                {(() => {
+                                  const times = item?.slot?.[0]?.slotTimes?.map((time) =>
+                                    formatTime(time?.time)
+                                  ) || [];
+
+                                  if (times.length === 0) return "-";
+
+                                  const startTime = times[0];
+                                  const endTime = times[times.length - 1];
+                                  const displayTime = times.length > 1 ? `${startTime} - ${endTime}` : startTime;
+                                  const allTimes = times.join(", ");
+
+                                  return times.length > 3 ? (
+                                    <OverlayTrigger
+                                      placement="top"
+                                      overlay={<Tooltip>{allTimes}</Tooltip>}
+                                    >
+                                      <span className="text-muted small ms-2">
+                                        {displayTime}
+                                      </span>
+                                    </OverlayTrigger>
+                                  ) : (
+                                    <span className="text-muted small ms-2">
+                                      {displayTime}
+                                    </span>
+                                  );
+                                })()}
                               </span>
                             </div>
                           </td>
@@ -481,7 +598,7 @@ const Booking = () => {
                           <span className="mobile-card-value">
                             {item?.userId?.name
                               ? item?.userId?.name.charAt(0).toUpperCase() +
-                                item?.userId?.name?.slice(1)
+                              item?.userId?.name?.slice(1)
                               : "N/A"}
                           </span>
                         </div>
