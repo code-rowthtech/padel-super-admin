@@ -89,15 +89,7 @@ export default function PadelSupportPage() {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [errors, setErrors] = useState({});
   const [sent, setSent] = useState(false);
-  const [activeSection, setActiveSection] = useState('articles'); // 'articles', 'faq', 'submit'
-
-  const tags = ['All', ...Array.from(new Set(sampleArticles.map((a) => a.tag)))];
-
-  const filtered = sampleArticles.filter((a) => {
-    const matchesTag = selectedTag === 'All' || a.tag === selectedTag;
-    const matchesQuery = query.trim() === '' || a.title.toLowerCase().includes(query.toLowerCase()) || a.excerpt.toLowerCase().includes(query.toLowerCase());
-    return matchesTag && matchesQuery;
-  });
+  const [activeSection, setActiveSection] = useState('submit'); // 'articles', 'faq', 'submit'
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -124,7 +116,21 @@ export default function PadelSupportPage() {
   }
 
   return (
-    <Container fluid className="py-4" style={{ background: '#F6F8FB', minHeight: '100vh' }}>
+    <>
+      <style>
+        {`
+          .accordion-button:focus {
+            box-shadow: none !important;
+          }
+          .accordion-button:not(.collapsed) {
+            box-shadow: none !important;
+          }
+          .accordion-item {
+            box-shadow: none !important;
+          }
+        `}
+      </style>
+      <Container fluid className="py-4" style={{ background: '#F6F8FB', minHeight: '100vh' }}>
       <Row className="justify-content-center mb-4">
         <Col xs={12} md={10} lg={9}>
           <Card className="shadow-sm border-0">
@@ -141,6 +147,7 @@ export default function PadelSupportPage() {
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         aria-label="Search help"
+                        style={{ boxShadow: 'none' }}
                       />
                       <Button variant="primary" onClick={() => { }}>
                         Search
@@ -168,83 +175,35 @@ export default function PadelSupportPage() {
 
       <Row className="justify-content-center">
         <Col xs={12} md={10} lg={9}>
-          <Row>
-            <Col lg={4} className="mb-4">
-              <Card className="mb-3 shadow-sm">
-                <Card.Body>
+          <Row className="d-flex align-items-stretch">
+            <Col lg={4} className="mb-4 d-flex">
+              <Card className="mb-3 shadow-sm w-100">
+                <Card.Body className="h-100">
                   <h5>Quick links</h5>
                   <ListGroup variant="flush">
-                    <ListGroup.Item action onClick={() => setActiveSection('submit')}>
+                    <ListGroup.Item 
+                      action 
+                      onClick={() => setActiveSection('submit')}
+                      style={{ backgroundColor: activeSection === 'submit' ? '#f8f9fa' : 'transparent' }}
+                    >
                       Submit a request
                     </ListGroup.Item>
-                    <ListGroup.Item action onClick={() => setActiveSection('faq')}>
+                    <ListGroup.Item 
+                      action 
+                      onClick={() => setActiveSection('faq')}
+                      style={{ backgroundColor: activeSection === 'faq' ? '#f8f9fa' : 'transparent' }}
+                    >
                       FAQs
                     </ListGroup.Item>
                   </ListGroup>
                 </Card.Body>
               </Card>
-
-              <Card className="shadow-sm">
-                <Card.Body>
-                  <h6>Filter by tag</h6>
-                  <div className="d-flex flex-wrap gap-2">
-                    {tags.map((t) => (
-                      <Badge
-                        key={t}
-                        pill
-                        bg={t === selectedTag ? 'primary' : 'light'}
-                        text={t === selectedTag ? 'light' : 'dark'}
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => setSelectedTag(t)}
-                      >
-                        {t}
-                      </Badge>
-                    ))}
-                  </div>
-                </Card.Body>
-              </Card>
             </Col>
 
-            <Col lg={8} className="mb-4">
-              {activeSection === 'articles' && (
-                <>
-                  <Card className="shadow-sm mb-3">
-                    <Card.Body>
-                      <h5>Featured articles</h5>
-                      <Row>
-                        {filtered.map((a) => (
-                          <Col md={6} key={a.id} className="mb-3">
-                            <Card className="h-100 border-0">
-                              <Card.Body>
-                                <div className="d-flex justify-content-between align-items-start">
-                                  <div>
-                                    <Card.Title className="mb-1" style={{ fontSize: '1rem' }}>{a.title}</Card.Title>
-                                    <Card.Text className="text-muted small mb-2">{a.excerpt}</Card.Text>
-                                    <Badge bg="secondary">{a.tag}</Badge>
-                                  </div>
-                                  <div>
-                                    <Button variant="outline-primary" size="sm">Read</Button>
-                                  </div>
-                                </div>
-                              </Card.Body>
-                            </Card>
-                          </Col>
-                        ))}
-
-                        {filtered.length === 0 && (
-                          <Col>
-                            <div className="text-center text-muted py-4">No articles match your search.</div>
-                          </Col>
-                        )}
-                      </Row>
-                    </Card.Body>
-                  </Card>
-                </>
-              )}
-
+            <Col lg={8} className="mb-4 d-flex">
               {activeSection === 'faq' && (
-                <Card className="shadow-sm">
-                  <Card.Body>
+                <Card className="shadow-sm w-100">
+                  <Card.Body className="h-100">
                     <h5>Frequently asked questions</h5>
                     <Accordion>
                       {faqs.map((f, i) => (
@@ -259,8 +218,8 @@ export default function PadelSupportPage() {
               )}
 
               {activeSection === 'submit' && (
-                <Card className="shadow-sm">
-                  <Card.Body>
+                <Card className="shadow-sm w-100">
+                  <Card.Body className="h-100">
                     <h5 id="contact-form">Submit a request</h5>
                     <p className="text-muted">Fill this form and our support team will contact you within 24 hours.</p>
 
@@ -275,6 +234,7 @@ export default function PadelSupportPage() {
                               value={form.name}
                               onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
                               isInvalid={!!errors.name}
+                              style={{ boxShadow: 'none' }}
                             />
                             <Form.Control.Feedback type="invalid">{errors.name}</Form.Control.Feedback>
                           </Form.Group>
@@ -287,6 +247,7 @@ export default function PadelSupportPage() {
                               value={form.email}
                               onChange={(e) => setForm((s) => ({ ...s, email: e.target.value }))}
                               isInvalid={!!errors.email}
+                              style={{ boxShadow: 'none' }}
                             />
                             <Form.Control.Feedback type="invalid">{errors.email}</Form.Control.Feedback>
                           </Form.Group>
@@ -299,6 +260,7 @@ export default function PadelSupportPage() {
                           value={form.subject}
                           onChange={(e) => setForm((s) => ({ ...s, subject: e.target.value }))}
                           isInvalid={!!errors.subject}
+                          style={{ boxShadow: 'none' }}
                         />
                         <Form.Control.Feedback type="invalid">{errors.subject}</Form.Control.Feedback>
                       </Form.Group>
@@ -311,6 +273,7 @@ export default function PadelSupportPage() {
                           value={form.message}
                           onChange={(e) => setForm((s) => ({ ...s, message: e.target.value }))}
                           isInvalid={!!errors.message}
+                          style={{ boxShadow: 'none' }}
                         />
                         <Form.Control.Feedback type="invalid">{errors.message}</Form.Control.Feedback>
                       </Form.Group>
@@ -383,5 +346,6 @@ export default function PadelSupportPage() {
         </Modal.Footer>
       </Modal>
     </Container>
+    </>
   );
 }

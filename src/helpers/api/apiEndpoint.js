@@ -12,6 +12,9 @@ export const GET_SLOT_PRICES = "/api/price/prices";
 export const GET_SLOT_HALF_PRICES = "/api/price/getPrioritizedPrices";
 export const GET_MATCHES_SLOT_API = "/api/slot/getAvailableSlot";
 export const CREATE_BOOKING_API = "/api/booking/manualBookingByOwner";
+export const CHECK_BOOKING_API = "/api/booking/createOrGetSlotHistory";
+export const REMOVE_BOOKING_API = "/api/booking/deleteSlotHistory";
+
 export const GET_BOOKING_API = "/api/booking/getUserBookings";
 export const BOOKING_STATUS_CHANGE = "/api/booking/updateBookingStatus";
 export const ADD_REVIEW_CLUB = "/api/review/saveCustomerReview";

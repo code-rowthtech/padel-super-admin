@@ -26,9 +26,7 @@ import { LocalizationProvider, StaticDatePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { getUserClub } from "../../../redux/user/club/thunk";
 import MatchPlayer from "./MatchPlayer";
-import { HiMoon } from "react-icons/hi";
-import { BsSunFill } from "react-icons/bs";
-import { PiSunHorizonFill } from "react-icons/pi";
+
 import {
   booking_dropdown_img2,
   booking_dropdown_img3,
@@ -38,9 +36,11 @@ import { getUserProfile } from "../../../redux/user/auth/authThunk";
 import { getPlayerLevel, getQuestionData } from "../../../redux/user/notifiction/thunk";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import { MatchplayerShimmer } from "../../../helpers/loading/ShimmerLoading";
+import { checkBooking, removeBookedBooking } from "../../../redux/user/booking/thunk";
+import { showError, showWarning } from "../../../helpers/Toast";
 
-const MAX_SLOTS = 3; // Full slots max
-const MAX_HALF_SLOTS = 6; // Half slots max
+const MAX_SLOTS = 3; 
+const MAX_HALF_SLOTS = 6;
 
 const parseTimeToHour = (timeStr) => {
   if (!timeStr) return null;
@@ -104,6 +104,7 @@ const CreateMatches = () => {
   const [selectedAnswers, setSelectedAnswers] = useState(location?.state?.finalSkillDetails || {});
   const [slotError, setSlotError] = useState("");
   const [selectedBuisness, setSelectedBuisness] = useState([]);
+  const [loadingSlotId, setLoadingSlotId] = useState(null);
 
 
 
@@ -297,6 +298,7 @@ const CreateMatches = () => {
     const currentCourtTimes = selectedTimes[courtId] || [];
     const isAlreadySelected = currentCourtTimes.some((t) => t?._id === time?._id);
     const hasThirtyMinPrice = time?.has30MinPrice === true;
+    const slotKey = `${courtId}-${time._id}-${dateKey}`;
 
     // Helper function to update selected business and courts
     const updateSelectedBusinessAndCourts = (newTimes, courtId, timeEntries) => {
@@ -448,28 +450,46 @@ const CreateMatches = () => {
     // FULL SLOT LOGIC (has30MinPrice = false)
     // If already selected, unselect
     if (isAlreadySelected) {
-      const filteredTimes = currentCourtTimes.filter(t => t._id !== time._id);
-      setSelectedTimes(prev => {
-        const updated = { ...prev };
-        if (filteredTimes.length > 0) {
-          updated[courtId] = filteredTimes;
-        } else {
-          delete updated[courtId];
-        }
-        return updated;
-      });
+      setLoadingSlotId(slotKey);
+      const payload = {
+        slotId: time._id,
+        courtId: courtId,
+        bookingDate: selectedDate?.fullDate,
+        time: time.time,
+        bookingTime: time.time
+      };
 
-      setSelectedBuisness(prev => prev.filter(t => t._id !== time._id));
-      setSelectedCourts(prev =>
-        prev
-          .map(c =>
-            c._id === courtId
-              ? { ...c, time: c.time.filter(t => t._id !== time._id) }
-              : c
-          )
-          .filter(c => c.time.length > 0)
-      );
-      setSlotError("");
+      dispatch(removeBookedBooking(payload)).then((result) => {
+        setLoadingSlotId(null);
+        if (result.payload?.success === true || result.payload?.message) {
+          const filteredTimes = currentCourtTimes.filter(t => t._id !== time._id);
+          setSelectedTimes(prev => {
+            const updated = { ...prev };
+            if (filteredTimes.length > 0) {
+              updated[courtId] = filteredTimes;
+            } else {
+              delete updated[courtId];
+            }
+            return updated;
+          });
+
+          setSelectedBuisness(prev => prev.filter(t => t._id !== time._id));
+          setSelectedCourts(prev =>
+            prev
+              .map(c =>
+                c._id === courtId
+                  ? { ...c, time: c.time.filter(t => t._id !== time._id) }
+                  : c
+              )
+              .filter(c => c.time.length > 0)
+          );
+          setSlotError("");
+        } else {
+          showWarning(result?.payload?.message || 'Failed to unselect slot');
+        }
+      }).catch(() => {
+        setLoadingSlotId(null);
+      });
       return;
     }
 
@@ -481,15 +501,33 @@ const CreateMatches = () => {
     }
 
     // Select full slot
-    const newTimeEntry = {
-      _id: time._id,
+    setLoadingSlotId(slotKey);
+    const payload = {
+      slotId: time._id,
+      courtId: courtId,
+      bookingDate: selectedDate?.fullDate,
       time: time.time,
-      amount: getPriceForSlot(time.time, selectedDate?.day, false), // Full slot price (2x half price)
+      bookingTime: time.time
     };
 
-    const newTimes = [...currentCourtTimes, newTimeEntry];
-    updateSelectedBusinessAndCourts(newTimes, courtId, [newTimeEntry]);
-    setSlotError("");
+    dispatch(checkBooking(payload)).then((result) => {
+      setLoadingSlotId(null);
+      if (result.payload?.created === true) {
+        const newTimeEntry = {
+          _id: time._id,
+          time: time.time,
+          amount: getPriceForSlot(time.time, selectedDate?.day, false),
+        };
+
+        const newTimes = [...currentCourtTimes, newTimeEntry];
+        updateSelectedBusinessAndCourts(newTimes, courtId, [newTimeEntry]);
+        setSlotError("");
+      } else {
+        showWarning(result?.payload?.message || 'This slot is currently locked for another user. Please try again after 10 minutes');
+      }
+    }).catch(() => {
+      setLoadingSlotId(null);
+    });
   };
 
   const maxSelectableDate = new Date();
@@ -887,6 +925,8 @@ const CreateMatches = () => {
     const leftHalf = halfSelectedSlots.has(leftKey);
     const rightHalf = halfSelectedSlots.has(rightKey);
     const hasThirtyMinPrice = slot?.has30MinPrice === true;
+    const slotKey = `${courtId}-${slot._id}-${dateKey}`;
+    const isThisSlotLoading = loadingSlotId === slotKey;
     const price = getPriceForSlot(slot.time, selectedDate?.day, hasThirtyMinPrice);
 
     // Hide slot if no price data
@@ -961,7 +1001,7 @@ const CreateMatches = () => {
 
     // Click handler
     const handleClick = (e) => {
-      if (isDisabled) return;
+      if (isDisabled || isThisSlotLoading) return;
 
       if (hasThirtyMinPrice) {
         const rect = e.currentTarget.getBoundingClientRect();
@@ -983,12 +1023,12 @@ const CreateMatches = () => {
       <div key={index} className="col-3 col-sm-3 col-md-3 col-lg-2 mb-2">
         <button
           className="btn rounded-2 w-100 text-nowrap slot-time-btn position-relative overflow-hidden"
-          disabled={isDisabled}
+          disabled={isDisabled || isThisSlotLoading}
           onClick={handleClick}
           style={{
             background: getBackground(),
-            cursor: isDisabled ? "not-allowed" : "pointer",
-            opacity: isDisabled ? 0.6 : 1,
+            cursor: (isDisabled || isThisSlotLoading) ? "not-allowed" : "pointer",
+            opacity: (isDisabled || isThisSlotLoading) ? 0.6 : 1,
             border: "1px solid #dee2e6",
             borderRadius: "12px",
             height: "68px",
@@ -1000,59 +1040,76 @@ const CreateMatches = () => {
           }}
         >
           {/* Text display logic */}
-          {hasThirtyMinPrice && (leftHalf || rightHalf) ? (
-            leftHalf && rightHalf ? (
-              /* Both halves selected - show normal white text */
-              <>
-                <span style={{ fontWeight: 600, fontSize: "14px", color: "white" }}>
-                  {formatTimeForDisplay(slot.time)}
-                </span>
-                <span style={{ fontSize: "12px", color: "white" }}>
-                  ₹{price}
-                </span>
-              </>
+          {isThisSlotLoading ? (
+            <div className="d-flex justify-content-center align-items-center">
+              <div 
+                className="spinner-border spinner-border-sm" 
+                role="status"
+                style={{
+                  width: "20px",
+                  height: "20px",
+                  borderWidth: "2px",
+                  color: "#0034E4"
+                }}
+              >
+                <span className="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          ) : (
+            hasThirtyMinPrice && (leftHalf || rightHalf) ? (
+              leftHalf && rightHalf ? (
+                /* Both halves selected - show normal white text */
+                <>
+                  <span style={{ fontWeight: 600, fontSize: "14px", color: "white" }}>
+                    {formatTimeForDisplay(slot.time)}
+                  </span>
+                  <span style={{ fontSize: "12px", color: "white" }}>
+                    ₹{price}
+                  </span>
+                </>
+              ) : (
+                /* Only one half selected - show gradient text */
+                <>
+                  <span
+                    style={{
+                      fontWeight: 600,
+                      fontSize: "14px",
+                      background: leftHalf
+                        ? "linear-gradient(to right, white 50%, #111827 50%)"
+                        : "linear-gradient(to right, #111827 50%, white 50%)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      backgroundClip: "text"
+                    }}
+                  >
+                    {formatTimeForDisplay(slot.time)}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      background: leftHalf
+                        ? "linear-gradient(to right, white 50%, #6b7280 50%)"
+                        : "linear-gradient(to right, #6b7280 50%, white 50%)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      backgroundClip: "text"
+                    }}
+                  >
+                    ₹{price}
+                  </span>
+                </>
+              )
             ) : (
-              /* Only one half selected - show gradient text */
+              /* Normal full slot display */
               <>
-                <span
-                  style={{
-                    fontWeight: 600,
-                    fontSize: "14px",
-                    background: leftHalf
-                      ? "linear-gradient(to right, white 50%, #111827 50%)"
-                      : "linear-gradient(to right, #111827 50%, white 50%)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    backgroundClip: "text"
-                  }}
-                >
+                <span style={{ fontWeight: 600, fontSize: "14px", color: isSlotSelected ? "white" : "#000000" }}>
                   {formatTimeForDisplay(slot.time)}
                 </span>
-                <span
-                  style={{
-                    fontSize: "12px",
-                    background: leftHalf
-                      ? "linear-gradient(to right, white 50%, #6b7280 50%)"
-                      : "linear-gradient(to right, #6b7280 50%, white 50%)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    backgroundClip: "text"
-                  }}
-                >
+                <span style={{ fontSize: "12px", color: isSlotSelected ? "white" : "#6b7280" }}>
                   ₹{price}
                 </span>
               </>
             )
-          ) : (
-            /* Normal full slot display */
-            <>
-              <span style={{ fontWeight: 600, fontSize: "14px", color: isSlotSelected ? "white" : "#000000" }}>
-                {formatTimeForDisplay(slot.time)}
-              </span>
-              <span style={{ fontSize: "12px", color: isSlotSelected ? "white" : "#6b7280" }}>
-                ₹{price}
-              </span>
-            </>
           )}
         </button>
       </div>
@@ -1392,7 +1449,6 @@ const CreateMatches = () => {
                           
                           const basicFilter = showUnavailable ||
                             (slot?.availabilityStatus === "available" &&
-                              !isBookedFor60Min &&
                               !isPastTime(slot?.time)) || isBookedFor30Min;
                           
                           const hasPrice = getPriceForSlot(slot.time, selectedDate?.day, true) !== null;
@@ -1473,7 +1529,7 @@ const CreateMatches = () => {
                             const basicFilter = showUnavailable
                               ? true
                               : (slot?.availabilityStatus === "available" &&
-                                !isPastTime(slot?.time)) || isBookedFor30Min || isBookedFor60Min; // Include both 30min and 60min booked slots
+                                !isPastTime(slot?.time)) || isBookedFor30Min; // Only include 30min booked slots, exclude 60min booked slots
                             
                             // Check if price exists
                             const hasPrice = getPriceForSlot(slot.time, selectedDate?.day, slot?.has30MinPrice === true) !== null;
@@ -1529,7 +1585,6 @@ const CreateMatches = () => {
                           
                           const basicFilter = showUnavailable ||
                             (slot?.availabilityStatus === "available" &&
-                              !isBookedFor60Min &&
                               !isPastTime(slot?.time)) || isBookedFor30Min;
                           
                           const hasPrice = getPriceForSlot(slot.time, selectedDate?.day, true) !== null;
@@ -1570,7 +1625,6 @@ const CreateMatches = () => {
                             
                             const basicFilter = showUnavailable ||
                               (slot?.availabilityStatus === "available" &&
-                                !isBookedFor60Min &&
                                 !isPastTime(slot?.time)) || isBookedFor30Min;
                             
                             const hasPrice = getPriceForSlot(slot.time, selectedDate?.day, slot?.has30MinPrice === true) !== null;

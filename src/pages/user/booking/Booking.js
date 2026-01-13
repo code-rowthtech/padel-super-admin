@@ -29,13 +29,13 @@ import {
   MdOutlineArrowBackIosNew,
   MdOutlineArrowForwardIos,
 } from "react-icons/md";
-import { HiMoon } from "react-icons/hi";
-import { BsSunFill } from "react-icons/bs";
-import { PiSunHorizonFill } from "react-icons/pi";
+
 import io from 'socket.io-client';
 import config from '../../../config';
 import BookingSummary from "./BookingSummary";
 import { duration } from "@mui/material/styles";
+import { checkBooking, removeBookedBooking } from "../../../redux/user/booking/thunk";
+import { showError, showWarning } from "../../../helpers/Toast";
 
 const parseTimeToHour = (timeStr) => {
   if (!timeStr) return null;
@@ -123,7 +123,7 @@ const Booking = ({ className = "" }) => {
   const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
   const slotPriceLoading = useSelector((state) => state?.userSlot?.slotPriceLoading);
   const slotPrice = useSelector((state) => state?.userSlot?.slotPriceData?.data || []);
-  console.log({ slotPrice });
+  const checkSlotLoading = useSelector((state) => state?.userBooking?.bookingLoading);
   const [errorMessage, setErrorMessage] = useState("");
   const [errorShow, setErrorShow] = useState(false);
   const logo = clubData?.logo;
@@ -140,9 +140,9 @@ const Booking = ({ className = "" }) => {
   });
   const [showBanner, setShowBanner] = useState(true);
   const [halfSelectedSlots, setHalfSelectedSlots] = useState(new Set());
-  // Single source of truth for 30min half selections
   const [activeHalves, setActiveHalves] = useState(new Map()); // Map<slotKey, "left"|"right">
   const [isExpanded, setIsExpanded] = useState(false);
+  const [loadingSlotId, setLoadingSlotId] = useState(null);
   console.log('Debug selectedCourts:', selectedCourts);
   console.log('Debug halfSelectedSlots:', halfSelectedSlots);
   console.log('Debug selectedTimes:', selectedTimes);
@@ -410,10 +410,11 @@ const Booking = ({ className = "" }) => {
   const MAX_SLOTS = 15;
 
 
-  const toggleTime = (slot, courtId, dateKey, clickSide = null) => {
+  const toggleTime = async (slot, courtId, dateKey, clickSide = null) => {
     const currentCourtTimes = selectedTimes[courtId]?.[dateKey] || [];
     const leftKey = `${courtId}-${slot._id}-${dateKey}-left`;
     const rightKey = `${courtId}-${slot._id}-${dateKey}-right`;
+    const slotKey = `${courtId}-${slot._id}-${dateKey}`;
 
     // Check if we've reached the maximum slot limit
     const currentTotalSlots = Object.values(selectedTimes).reduce((total, courtDates) => {
@@ -425,33 +426,91 @@ const Booking = ({ className = "" }) => {
     // Full slot (no half support)
     if (!slot.has30MinPrice) {
       const isSelected = currentCourtTimes.some(t => t._id === slot._id);
-      
+
       // If not selected and we're at max limit, prevent selection
       if (!isSelected && currentTotalSlots >= MAX_SLOTS) {
         return;
       }
-      
+
       const price = getPriceForSlot(slot.time, selectedDate?.day, false) || 0;
 
-      const newTimes = isSelected
-        ? currentCourtTimes.filter(t => t._id !== slot._id)
-        : [...currentCourtTimes, { ...slot, amount: price }];
+      // Call API based on selection state
+      if (!isSelected) {
+        const slotKey = `${courtId}-${slot?._id}-${dateKey}`;
+        setLoadingSlotId(slotKey);
+        const payload = {
+          slotId: slot?._id,
+          courtId: courtId,
+          bookingDate: selectedDate?.fullDate,
+          time: slot?.time,
+          bookingTime: slot?.time
+        };
 
-      setHalfSelectedSlots(prev => {
-        const s = new Set(prev);
-        s.delete(leftKey);
-        s.delete(rightKey);
-        return s;
-      });
+        dispatch(checkBooking(payload)).then((result) => {
+          setLoadingSlotId(null);
+          if (result.payload?.created === true) {
+            // Only update UI if API confirms slot can be booked
+            const newTimes = [...currentCourtTimes, { ...slot, amount: price }];
 
-      setSelectedTimes(prev => ({
-        ...prev,
-        [courtId]: {
-          ...prev[courtId],
-          [dateKey]: newTimes.length ? newTimes : undefined,
-        },
-      }));
-      updateSelectedBusinessAndCourts(newTimes, courtId, dateKey);
+            setHalfSelectedSlots(prev => {
+              const s = new Set(prev);
+              s.delete(leftKey);
+              s.delete(rightKey);
+              return s;
+            });
+
+            setSelectedTimes(prev => ({
+              ...prev,
+              [courtId]: {
+                ...prev[courtId],
+                [dateKey]: newTimes,
+              },
+            }));
+            updateSelectedBusinessAndCourts(newTimes, courtId, dateKey);
+          } else {
+            showWarning(result?.payload?.message || 'This slot is currently locked for another user. Please try again after 10 minutes');
+          }
+        }).catch(() => {
+          setLoadingSlotId(null);
+        });
+      } else {
+        // Unselecting slot - call removeBookedBooking first
+        const slotKey = `${courtId}-${slot?._id}-${dateKey}`;
+        setLoadingSlotId(slotKey);
+        const payload = {
+          slotId: slot?._id,
+          courtId: courtId,
+          bookingDate: selectedDate?.fullDate,
+          time: slot?.time,
+          bookingTime: slot?.time
+        };
+
+        dispatch(removeBookedBooking( payload)).then((result) => {
+          setLoadingSlotId(null);
+          if (result.payload?.deleted === true) {
+            // Only update UI if API confirms slot was deleted
+            const newTimes = currentCourtTimes.filter(t => t?._id !== slot?._id);
+
+            setHalfSelectedSlots(prev => {
+              const s = new Set(prev);
+              s.delete(leftKey);
+              s.delete(rightKey);
+              return s;
+            });
+
+            setSelectedTimes(prev => ({
+              ...prev,
+              [courtId]: {
+                ...prev[courtId],
+                [dateKey]: newTimes.length ? newTimes : undefined,
+              },
+            }));
+            updateSelectedBusinessAndCourts(newTimes, courtId, dateKey);
+          }
+        }).catch(() => {
+          setLoadingSlotId(null);
+        });
+      }
       return;
     }
 
@@ -479,7 +538,7 @@ const Booking = ({ className = "" }) => {
     });
 
     // Rebuild times for this slot
-    const otherTimes = currentCourtTimes.filter(t => t._id !== slot._id);
+    const otherTimes = currentCourtTimes.filter(t => t?._id !== slot?._id);
     let newTimes = [...otherTimes];
 
     // Check if there are any remaining half selections after this toggle
@@ -488,10 +547,10 @@ const Booking = ({ className = "" }) => {
 
     if (willHaveLeft || willHaveRight) {
       const displayTime = willHaveRight && !willHaveLeft
-        ? slot.time.replace(":00", ":30").replace(/\s*(am|pm)/i, ":30 $1")
-        : slot.time;
+        ? slot?.time.replace(":00", ":30").replace(/\s*(am|pm)/i, ":30 $1")
+        : slot?.time;
 
-      const halfPrice = getPriceForSlot(slot.time, selectedDate?.day, true) || 0;
+      const halfPrice = getPriceForSlot(slot?.time, selectedDate?.day, true) || 0;
       const totalPrice = willHaveLeft && willHaveRight ? halfPrice * 2 : halfPrice;
 
       newTimes.push({
@@ -499,6 +558,85 @@ const Booking = ({ className = "" }) => {
         time: displayTime,
         side: willHaveLeft && willHaveRight ? "both" : (willHaveLeft ? "left" : "right"),
         amount: totalPrice,
+      });
+
+      if (!wasSelected) {
+        const slotKey = `${courtId}-${slot._id}-${dateKey}`;
+        setLoadingSlotId(slotKey);
+        const payload = {
+          slotId: slot._id,
+          courtId: courtId,
+          bookingDate: selectedDate?.fullDate,
+          time: displayTime,
+          bookingTime: displayTime
+        };
+
+        dispatch(checkBooking(payload)).then((result) => {
+          setLoadingSlotId(null);
+          if (result.payload?.created === true) {
+            // Only update UI if API confirms slot can be booked
+            setHalfSelectedSlots(prev => {
+              const s = new Set(prev);
+              s.add(targetKey);
+              return s;
+            });
+
+            const updatedNewTimes = [...otherTimes, {
+              ...slot,
+              time: displayTime,
+              side: willHaveLeft && willHaveRight ? "both" : (willHaveLeft ? "left" : "right"),
+              amount: totalPrice,
+            }];
+
+            setSelectedTimes(prev => ({
+              ...prev,
+              [courtId]: {
+                ...prev[courtId],
+                [dateKey]: updatedNewTimes,
+              },
+            }));
+            updateSelectedBusinessAndCourts(updatedNewTimes, courtId, dateKey);
+          } else {
+            showWarning(
+              result?.payload?.message || 'This slot is currently locked for another user. Please try again after 10 minutes')
+          }
+        }).catch(() => {
+          setLoadingSlotId(null);
+        });
+      }
+    } else if (wasSelected) {
+      const slotKey = `${courtId}-${slot._id}-${dateKey}`;
+      setLoadingSlotId(slotKey);
+      const payload = {
+        slotId: slot?._id,
+        courtId: courtId,
+        bookingDate: selectedDate?.fullDate,
+        time: slot.time,
+        bookingTime: slot.time
+      };
+
+      dispatch(removeBookedBooking( payload)).then((result) => {
+        setLoadingSlotId(null);
+        if (result.payload?.deleted === true) {
+          // Only update UI if API confirms slot was deleted
+          setHalfSelectedSlots(prev => {
+            const s = new Set(prev);
+            s.delete(targetKey);
+            return s;
+          });
+
+          const updatedNewTimes = [...otherTimes];
+          setSelectedTimes(prev => ({
+            ...prev,
+            [courtId]: {
+              ...prev[courtId],
+              [dateKey]: updatedNewTimes.length ? updatedNewTimes : undefined,
+            },
+          }));
+          updateSelectedBusinessAndCourts(updatedNewTimes, courtId, dateKey);
+        }
+      }).catch(() => {
+        setLoadingSlotId(null);
       });
     }
 
@@ -515,6 +653,10 @@ const Booking = ({ className = "" }) => {
 
 
   const handleDeleteSlot = (courtId, date, timeId) => {
+    // Get the slots to be removed for API calls
+    const currentCourtTimes = selectedTimes[courtId]?.[date] || [];
+    const slotsToRemove = [];
+
     // Clear half selections for this specific slot
     const clearHalfSelections = (slotId) => {
       setHalfSelectedSlots(prev => {
@@ -539,10 +681,19 @@ const Booking = ({ className = "" }) => {
         return newMap;
       });
       clearHalfSelections(timeId);
+
+      // Add single slot for API call
+      const slotToRemove = currentCourtTimes.find(t => t._id === timeId);
+      if (slotToRemove) {
+        slotsToRemove.push(slotToRemove);
+      }
     }
 
     // For 90min duration, handle both first slot and auto-selected half slot removal
-    if (selectedDuration === 90) {
+    else if (selectedDuration === 90) {
+      // Add all slots for this court and date for API call
+      slotsToRemove.push(...currentCourtTimes);
+
       // Clear all half selections for this court and date
       setHalfSelectedSlots(prev => {
         const newSet = new Set();
@@ -581,29 +732,30 @@ const Booking = ({ className = "" }) => {
       setSelectedCourts((prev) =>
         prev.filter((c) => !(c?._id === courtId && c?.date === date))
       );
-      return;
     }
 
     // For 120min duration, handle both consecutive slots removal
-    if (selectedDuration === 120) {
-      const currentCourtTimes = selectedTimes[courtId]?.[date] || [];
-      const slotsToRemove = new Set([timeId]);
+    else if (selectedDuration === 120) {
+      const slotsToRemoveSet = new Set([timeId]);
 
       // Find all slots that are part of the same 120min booking
       currentCourtTimes.forEach(slot => {
         if (slot._id !== timeId) {
-          slotsToRemove.add(slot._id);
+          slotsToRemoveSet.add(slot._id);
           clearHalfSelections(slot._id);
         }
       });
       clearHalfSelections(timeId);
+
+      // Add all related slots for API call
+      slotsToRemove.push(...currentCourtTimes.filter(t => slotsToRemoveSet.has(t._id)));
 
       // Remove all related slots from selectedTimes
       setSelectedTimes((prev) => {
         if (!prev[courtId] || !prev[courtId][date]) return prev;
 
         const courtTimes = prev[courtId][date];
-        const filtered = courtTimes.filter((t) => !slotsToRemove.has(t._id));
+        const filtered = courtTimes.filter((t) => !slotsToRemoveSet.has(t._id));
 
         if (filtered.length === 0) {
           const { [date]: _, ...restDates } = prev[courtId];
@@ -633,7 +785,7 @@ const Booking = ({ className = "" }) => {
       setSelectedBuisness((prev) =>
         prev.filter((t) => {
           if (t?.date !== date) return true;
-          return !slotsToRemove.has(t._id);
+          return !slotsToRemoveSet.has(t._id);
         })
       );
 
@@ -644,110 +796,144 @@ const Booking = ({ className = "" }) => {
             c?._id === courtId && c?.date === date
               ? {
                 ...c,
-                time: c?.time.filter((t) => !slotsToRemove.has(t._id))
+                time: c?.time.filter((t) => !slotsToRemoveSet.has(t._id))
               }
               : c
           )
           .filter((c) => c?.time?.length > 0)
       );
-      return;
     }
 
-    // Check if this is a half-selected slot (for other durations)
-    const isHalfSlot = timeId.includes('-left') || timeId.includes('-right');
+    // For other durations (60min)
+    else {
+      // Check if this is a half-selected slot
+      const isHalfSlot = timeId.includes('-left') || timeId.includes('-right');
 
-    if (isHalfSlot) {
-      const parts = timeId.split('-');
-      const originalId = parts[0];
-      const side = parts[parts.length - 1];
-      const key = `${courtId}-${originalId}-${date}-${side}`;
+      if (isHalfSlot) {
+        const parts = timeId.split('-');
+        const originalId = parts[0];
+        const side = parts[parts.length - 1];
+        const key = `${courtId}-${originalId}-${date}-${side}`;
 
-      // Remove from half-selected slots
-      setHalfSelectedSlots(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(key);
-        return newSet;
-      });
+        // Remove from half-selected slots
+        setHalfSelectedSlots(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(key);
+          return newSet;
+        });
 
-      // Also remove the corresponding first slot if it exists
-      setSelectedTimes((prev) => {
-        if (!prev[courtId] || !prev[courtId][date]) return prev;
+        // Add slot for API call
+        const slotToRemove = currentCourtTimes.find(t => t._id === originalId);
+        if (slotToRemove) {
+          slotsToRemove.push(slotToRemove);
+        }
 
-        const courtTimes = prev[courtId][date];
-        const filtered = courtTimes.filter((t) => t?._id !== originalId);
+        // Also remove the corresponding first slot if it exists
+        setSelectedTimes((prev) => {
+          if (!prev[courtId] || !prev[courtId][date]) return prev;
 
-        if (filtered.length === 0) {
-          const { [date]: _, ...restDates } = prev[courtId];
-          const newCourt = Object.keys(restDates).length > 0 ? restDates : undefined;
+          const courtTimes = prev[courtId][date];
+          const filtered = courtTimes.filter((t) => t?._id !== originalId);
 
-          if (!newCourt) {
-            const { [courtId]: __, ...restCourts } = prev;
-            return restCourts;
+          if (filtered.length === 0) {
+            const { [date]: _, ...restDates } = prev[courtId];
+            const newCourt = Object.keys(restDates).length > 0 ? restDates : undefined;
+
+            if (!newCourt) {
+              const { [courtId]: __, ...restCourts } = prev;
+              return restCourts;
+            }
+
+            return {
+              ...prev,
+              [courtId]: newCourt,
+            };
           }
 
           return {
             ...prev,
-            [courtId]: newCourt,
+            [courtId]: {
+              ...prev[courtId],
+              [date]: filtered,
+            },
           };
+        });
+      } else {
+        // Regular slot deletion - clear half selections for this slot
+        clearHalfSelections(timeId);
+
+        // Add slot for API call
+        const slotToRemove = currentCourtTimes.find(t => t._id === timeId);
+        if (slotToRemove) {
+          slotsToRemove.push(slotToRemove);
         }
 
-        return {
-          ...prev,
-          [courtId]: {
-            ...prev[courtId],
-            [date]: filtered,
-          },
-        };
-      });
-    } else {
-      // Regular slot deletion - clear half selections for this slot
-      clearHalfSelections(timeId);
+        setSelectedTimes((prev) => {
+          if (!prev[courtId] || !prev[courtId][date]) return prev;
 
-      setSelectedTimes((prev) => {
-        if (!prev[courtId] || !prev[courtId][date]) return prev;
+          const courtTimes = prev[courtId][date];
+          const filtered = courtTimes.filter((t) => t?._id !== timeId);
 
-        const courtTimes = prev[courtId][date];
-        const filtered = courtTimes.filter((t) => t?._id !== timeId);
+          if (filtered.length === 0) {
+            const { [date]: _, ...restDates } = prev[courtId];
+            const newCourt =
+              Object.keys(restDates).length > 0 ? restDates : undefined;
 
-        if (filtered.length === 0) {
-          const { [date]: _, ...restDates } = prev[courtId];
-          const newCourt =
-            Object.keys(restDates).length > 0 ? restDates : undefined;
+            if (!newCourt) {
+              const { [courtId]: __, ...restCourts } = prev;
+              return restCourts;
+            }
 
-          if (!newCourt) {
-            const { [courtId]: __, ...restCourts } = prev;
-            return restCourts;
+            return {
+              ...prev,
+              [courtId]: newCourt,
+            };
           }
 
           return {
             ...prev,
-            [courtId]: newCourt,
+            [courtId]: {
+              ...prev[courtId],
+              [date]: filtered,
+            },
           };
-        }
+        });
+      }
 
-        return {
-          ...prev,
-          [courtId]: {
-            ...prev[courtId],
-            [date]: filtered,
-          },
-        };
-      });
+      setSelectedBuisness((prev) =>
+        prev.filter((t) => !(t?._id === timeId && t?.date === date))
+      );
+
+      setSelectedCourts((prev) =>
+        prev
+          ?.map((c) =>
+            c?._id === courtId && c?.date === date
+              ? { ...c, time: c?.time.filter((t) => t?._id !== timeId) }
+              : c
+          )
+          .filter((c) => c?.time?.length > 0)
+      );
     }
 
-    setSelectedBuisness((prev) =>
-      prev.filter((t) => !(t?._id === timeId && t?.date === date))
-    );
+    // Call removeBookedBooking API for all slots to be removed
+    slotsToRemove.forEach(async (slot) => {
+      const payload = {
+        slotId: slot?._id,
+        courtId: courtId,
+        bookingDate: date,
+        time: slot?.time,
+        bookingTime: slot?.time
+      };
 
-    setSelectedCourts((prev) =>
-      prev
-        ?.map((c) =>
-          c?._id === courtId && c?.date === date
-            ? { ...c, time: c?.time.filter((t) => t?._id !== timeId) }
-            : c
-        )
-        .filter((c) => c?.time?.length > 0)
-    );
+      try {
+        const result = await dispatch(removeBookedBooking(payload));
+        if (result.payload?.deleted !== true) {
+          console.error('Failed to delete slot:', slot._id);
+        }
+      } catch (error) {
+        console.error('Error removing slot:', error);
+      }
+    });
   };
 
   const handleClearAll = () => {
@@ -845,7 +1031,7 @@ const Booking = ({ className = "" }) => {
 
     // Count half-selected slots
     const halfSlotCount = halfSelectedSlots.size;
-    
+
     // If we have half-selected slots, calculate based on them
     if (halfSlotCount > 0) {
       return Number((halfSlotCount * 0.5).toFixed(1));
@@ -892,7 +1078,7 @@ const Booking = ({ className = "" }) => {
     setSelectedBuisness([]);
     setSelectedCourts([]);
     setHalfSelectedSlots(new Set());
-    setActiveHalves(new Map()); 
+    setActiveHalves(new Map());
     setIsExpanded(false);
   }, [selectedDuration]);
 
@@ -913,7 +1099,7 @@ const Booking = ({ className = "" }) => {
     dispatch(getUserClub({ search: "" }));
     fetchSlots();
     document.addEventListener("mousedown", handleClickOutside);
-    
+
     // Clear slots if coming from payment error
     if (location.state?.clearSlots) {
       setSelectedTimes({});
@@ -924,7 +1110,7 @@ const Booking = ({ className = "" }) => {
       // Clear the state to prevent clearing on subsequent renders
       window.history.replaceState({}, document.title);
     }
-    
+
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [selectedDate, fetchSlots, location.state]);
 
@@ -1079,7 +1265,6 @@ const Booking = ({ className = "" }) => {
       .filter((id) => id)
       .join(",");
 
-    // Use selectedCourts as is - it already contains all slots including auto-selected half slots
     const paymentStateData = {
       courtData: {
         day: selectedDate?.day,
@@ -1090,7 +1275,7 @@ const Booking = ({ className = "" }) => {
         slot: slotData?.data?.[0]?.slots,
       },
       clubData,
-      selectedCourts: selectedCourts, // Use original selectedCourts which already has all slots
+      selectedCourts: selectedCourts,
       selectedDate,
       grandTotal,
       totalSlots: displayedSlotCount,
@@ -1514,7 +1699,7 @@ const Booking = ({ className = "" }) => {
                     );
 
                     // Calculate half-slot count for this date
-                    const halfSlotCount = Array.from(halfSelectedSlots).filter(key => 
+                    const halfSlotCount = Array.from(halfSelectedSlots).filter(key =>
                       key.includes(`-${d?.fullDate}-`)
                     ).length;
 
@@ -1669,6 +1854,7 @@ const Booking = ({ className = "" }) => {
 
                       <div
                         style={{
+                          maxHeight: "60vh",
                           overflowY: "auto",
                           overflowX: "hidden",
                           paddingRight: "8px",
@@ -1750,17 +1936,19 @@ const Booking = ({ className = "" }) => {
                                     const leftHalf = halfSelectedSlots.has(leftKey);
                                     const rightHalf = halfSelectedSlots.has(rightKey);
                                     const hasThirtyMinPrice = slot?.has30MinPrice === true;
-                                    
+                                    const slotKey = `${courtId}-${slot?._id}-${dateKey}`;
+                                    const isThisSlotLoading = loadingSlotId === slotKey;
+
                                     // ✅ PEHLE declare karo, phir use karo
                                     const currentCourtTimes = selectedTimes[courtId]?.[dateKey] || [];
                                     const isSlotSelected = currentCourtTimes.some(t => t._id === slot._id);
-                                    
+
                                     const currentTotalSlots = Object.values(selectedTimes).reduce((total, courtDates) => {
                                       return total + Object.values(courtDates).reduce((dateTotal, timeSlots) => {
                                         return dateTotal + timeSlots?.length;
                                       }, 0);
                                     }, 0);
-                                    
+
                                     const isSlotDisabled =
                                       (slot?.status === "booked" && slot?.duration === 60) ||
                                       slot?.availabilityStatus !== "available" ||
@@ -1773,7 +1961,7 @@ const Booking = ({ className = "" }) => {
                                       slot?.availabilityStatus !== "available" ||
                                       isPastTime(slot?.time)
                                     );
-                                    
+
                                     if (shouldHideSlot) {
                                       return null;
                                     }
@@ -1831,9 +2019,8 @@ const Booking = ({ className = "" }) => {
                                     const textColor = isFullySelected || (hasThirtyMinPrice && isAnyHalfSelected) ? "white" : "#000000";
                                     const priceColor = isFullySelected || (hasThirtyMinPrice && isAnyHalfSelected) ? "white" : "#6b7280";
 
-                                    // CLICK HANDLER - MAIN LOGIC CHANGE
                                     const handleClick = (e) => {
-                                      if (isSlotDisabled) return;
+                                      if (isSlotDisabled || isThisSlotLoading || (checkSlotLoading && !isSlotSelected)) return;
 
                                       if (slot?.has30MinPrice) {
                                         const rect = e.currentTarget.getBoundingClientRect();
@@ -1855,12 +2042,12 @@ const Booking = ({ className = "" }) => {
                                       <div key={slot?._id} className="col-3 col-sm-3 col-md-3 col-lg-2 mb-2">
                                         <button
                                           className="btn rounded-2 w-100 text-nowrap slot-time-btn position-relative overflow-hidden"
-                                          disabled={isSlotDisabled}
+                                          disabled={isSlotDisabled || isThisSlotLoading || (checkSlotLoading && !isSlotSelected)}
                                           onClick={handleClick}
                                           style={{
                                             background: getBackground(),
-                                            cursor: isSlotDisabled ? "not-allowed" : "pointer",
-                                            opacity: isSlotDisabled ? 0.6 : 1,
+                                            cursor: (isSlotDisabled || isThisSlotLoading || (checkSlotLoading && !isSlotSelected)) ? "not-allowed" : "pointer",
+                                            opacity: (isSlotDisabled || isThisSlotLoading || (checkSlotLoading && !isSlotSelected)) ? 0.6 : 1,
                                             border: "1px solid #dee2e6",
                                             borderRadius: "12px",
                                             height: "68px",
@@ -1871,60 +2058,78 @@ const Booking = ({ className = "" }) => {
                                             position: "relative"
                                           }}
                                         >
-                                          {/* Text display logic */}
-                                          {hasThirtyMinPrice && (leftHalf || rightHalf) ? (
-                                            leftHalf && rightHalf ? (
-                                              /* Both halves selected - show normal white text */
-                                              <>
-                                                <span style={{ fontWeight: 600, fontSize: "14px", color: "white" }}>
-                                                  {formatTimeForDisplay(slot?.time)}
-                                                </span>
-                                                <span style={{ fontSize: "12px", color: "white" }}>
-                                                  ₹{price}
-                                                </span>
-                                              </>
+                                          {/* Loading spinner */}
+                                          {(isThisSlotLoading || (checkSlotLoading && isSlotSelected)) ? (
+                                            <div className="d-flex justify-content-center align-items-center">
+                                              <div
+                                                className="spinner-border spinner-border-sm"
+                                                role="status"
+                                                style={{
+                                                  width: "20px",
+                                                  height: "20px",
+                                                  borderWidth: "2px",
+                                                  color: "#0034E4"
+                                                }}
+                                              >
+                                                <span className="visually-hidden">Loading...</span>
+                                              </div>
+                                            </div>
+                                          ) : (
+                                            /* Text display logic */
+                                            hasThirtyMinPrice && (leftHalf || rightHalf) ? (
+                                              leftHalf && rightHalf ? (
+                                                /* Both halves selected - show normal white text */
+                                                <>
+                                                  <span style={{ fontWeight: 600, fontSize: "14px", color: "white" }}>
+                                                    {formatTimeForDisplay(slot?.time)}
+                                                  </span>
+                                                  <span style={{ fontSize: "12px", color: "white" }}>
+                                                    ₹{price}
+                                                  </span>
+                                                </>
+                                              ) : (
+                                                /* Only one half selected - show gradient text */
+                                                <>
+                                                  <span
+                                                    style={{
+                                                      fontWeight: 600,
+                                                      fontSize: "14px",
+                                                      background: leftHalf
+                                                        ? "linear-gradient(to right, white 50%, #111827 50%)"
+                                                        : "linear-gradient(to right, #111827 50%, white 50%)",
+                                                      WebkitBackgroundClip: "text",
+                                                      WebkitTextFillColor: "transparent",
+                                                      backgroundClip: "text"
+                                                    }}
+                                                  >
+                                                    {formatTimeForDisplay(slot?.time)}
+                                                  </span>
+                                                  <span
+                                                    style={{
+                                                      fontSize: "12px",
+                                                      background: leftHalf
+                                                        ? "linear-gradient(to right, white 50%, #6b7280 50%)"
+                                                        : "linear-gradient(to right, #6b7280 50%, white 50%)",
+                                                      WebkitBackgroundClip: "text",
+                                                      WebkitTextFillColor: "transparent",
+                                                      backgroundClip: "text"
+                                                    }}
+                                                  >
+                                                    ₹{price}
+                                                  </span>
+                                                </>
+                                              )
                                             ) : (
-                                              /* Only one half selected - show gradient text */
+                                              /* Normal full slot display */
                                               <>
-                                                <span
-                                                  style={{
-                                                    fontWeight: 600,
-                                                    fontSize: "14px",
-                                                    background: leftHalf
-                                                      ? "linear-gradient(to right, white 50%, #111827 50%)"
-                                                      : "linear-gradient(to right, #111827 50%, white 50%)",
-                                                    WebkitBackgroundClip: "text",
-                                                    WebkitTextFillColor: "transparent",
-                                                    backgroundClip: "text"
-                                                  }}
-                                                >
+                                                <span style={{ fontWeight: 600, fontSize: "14px", color: textColor }}>
                                                   {formatTimeForDisplay(slot?.time)}
                                                 </span>
-                                                <span
-                                                  style={{
-                                                    fontSize: "12px",
-                                                    background: leftHalf
-                                                      ? "linear-gradient(to right, white 50%, #6b7280 50%)"
-                                                      : "linear-gradient(to right, #6b7280 50%, white 50%)",
-                                                    WebkitBackgroundClip: "text",
-                                                    WebkitTextFillColor: "transparent",
-                                                    backgroundClip: "text"
-                                                  }}
-                                                >
+                                                <span style={{ fontSize: "12px", color: priceColor }}>
                                                   ₹{price}
                                                 </span>
                                               </>
                                             )
-                                          ) : (
-                                            /* Normal full slot display */
-                                            <>
-                                              <span style={{ fontWeight: 600, fontSize: "14px", color: textColor }}>
-                                                {formatTimeForDisplay(slot?.time)}
-                                              </span>
-                                              <span style={{ fontSize: "12px", color: priceColor }}>
-                                                ₹{price}
-                                              </span>
-                                            </>
                                           )}
                                         </button>
                                       </div>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { createBooking } from "../../../redux/user/booking/thunk";
+import { createBooking, removeBookedBooking } from "../../../redux/user/booking/thunk";
 import { getUserProfile, loginUserNumber, updateUser } from "../../../redux/user/auth/authThunk";
 import { ButtonLoading } from "../../../helpers/loading/Loaders";
 import { Button, Modal } from "react-bootstrap";
@@ -20,7 +20,6 @@ const Payment = ({ className = "" }) => {
   const user = getUserFromSession();
   const store = useSelector((state) => state?.userAuth);
   const bookingStatus = useSelector((state) => state?.userBooking);
-  console.log({bookingStatus});
   const userLoading = useSelector((state) => state?.userAuth);
   const logo = clubData?.logo;
   const updateName = JSON.parse(localStorage.getItem("updateprofile"));
@@ -97,28 +96,54 @@ const Payment = ({ className = "" }) => {
     return () => clearTimeout(timer);
   }, [errors]);
 
-  const handleDeleteSlot = (e, courtId, date, timeId) => {
+  const handleDeleteSlot = async (e, courtId, date, timeId) => {
     e.stopPropagation();
+
+    const slotsToRemove = [];
 
     // For 90min duration, handle both first slot and auto-selected half slot removal
     if (duration === 90) {
+      const court = localSelectedCourts.find(c => c._id === courtId && c.date === date);
+      if (court) {
+        court.time.forEach(slot => {
+          slotsToRemove.push({
+            slotId: slot._id,
+            courtId: courtId,
+            bookingDate: date,
+            time: slot.time,
+            bookingTime: slot.bookingTime
+          });
+        });
+      }
+      
       // Remove all slots for this court and date (both first slot and half slot)
       setLocalSelectedCourts((prev) =>
         prev.filter((c) => !(c?._id === courtId && c?.date === date))
       );
-      return;
     }
-
     // For 120min duration, handle both consecutive slots removal
-    if (duration === 120) {
+    else if (duration === 120) {
       const court = localSelectedCourts.find(c => c._id === courtId && c.date === date);
       if (court) {
-        const slotsToRemove = new Set([timeId]);
+        const slotsToRemoveSet = new Set([timeId]);
 
         // Find all slots that are part of the same 120min booking
         court.time.forEach(slot => {
           if (slot._id !== timeId) {
-            slotsToRemove.add(slot._id);
+            slotsToRemoveSet.add(slot._id);
+          }
+        });
+
+        // Collect slots for API removal
+        court.time.forEach(slot => {
+          if (slotsToRemoveSet.has(slot._id)) {
+            slotsToRemove.push({
+              slotId: slot._id,
+              courtId: courtId,
+              bookingDate: date,
+              time: slot.time,
+              bookingTime: slot.bookingTime
+            });
           }
         });
 
@@ -129,26 +154,51 @@ const Payment = ({ className = "" }) => {
               c?._id === courtId && c?.date === date
                 ? {
                   ...c,
-                  time: c?.time.filter((t) => !slotsToRemove.has(t._id))
+                  time: c?.time.filter((t) => !slotsToRemoveSet.has(t._id))
                 }
                 : c
             )
             .filter((c) => c?.time?.length > 0)
         );
       }
-      return;
+    }
+    // Regular slot deletion for other durations
+    else {
+      const court = localSelectedCourts.find(c => c._id === courtId && c.date === date);
+      const slot = court?.time.find(t => t._id === timeId);
+      
+      if (slot) {
+        slotsToRemove.push({
+          slotId: slot._id,
+          courtId: courtId,
+          bookingDate: date,
+          time: slot.time,
+          bookingTime: slot.bookingTime
+        });
+      }
+
+      setLocalSelectedCourts((prev) =>
+        prev
+          ?.map((court) =>
+            court?._id === courtId && court?.date === date
+              ? { ...court, time: court?.time.filter((t) => t?._id !== timeId) }
+              : court
+          )
+          .filter((court) => court?.time?.length > 0)
+      );
     }
 
-    // Regular slot deletion for other durations
-    setLocalSelectedCourts((prev) =>
-      prev
-        ?.map((court) =>
-          court?._id === courtId && court?.date === date
-            ? { ...court, time: court?.time.filter((t) => t?._id !== timeId) }
-            : court
-        )
-        .filter((court) => court?.time?.length > 0)
-    );
+    // Make API calls for all slots to be removed
+    for (const slotData of slotsToRemove) {
+      try {
+        const result = await dispatch(removeBookedBooking( slotData));
+        if (result.payload?.deleted !== true) {
+          console.error('Failed to delete slot:', slotData.slotId);
+        }
+      } catch (error) {
+        console.error('Error removing slot:', error);
+      }
+    }
 
     // If no courts remain, navigate back to booking
     if (localSelectedCourts?.length === 1 && localSelectedCourts[0]?.time?.length === 1) {
