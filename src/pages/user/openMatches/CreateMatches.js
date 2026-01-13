@@ -742,7 +742,6 @@ const CreateMatches = () => {
 
 
   const handleNext = async () => {
-    // Check if any slots are selected (full slots or half slots)
     if (selectedCourts?.length === 0 && halfSelectedSlots?.size === 0) {
       setSlotError("Select a slot to enable booking");
       return;
