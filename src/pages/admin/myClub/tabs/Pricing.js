@@ -498,7 +498,7 @@ const Pricing = () => {
         );
       })
       .catch((error) => {
-        showError("Failed to update prices. Please try again.");
+        showError(error?.message || error);
       });
   };
 

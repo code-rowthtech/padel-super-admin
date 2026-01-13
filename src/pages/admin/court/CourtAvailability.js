@@ -310,7 +310,7 @@ const CourtAvailability = () => {
         })
       );
     } catch (error) {
-      showError("Failed to update slot status.");
+      showError(error);
     }
   };
 

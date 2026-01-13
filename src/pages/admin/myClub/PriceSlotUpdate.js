@@ -212,7 +212,7 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                 }
                 await dispatch(createSlotPrice(payload30)).unwrap(); // Always create 30min (0 or half)
             } catch (err) {
-                showError("Failed to save prices");
+                showError(err);
             }
         } else {
             // Update mode logic (same as before)
@@ -250,7 +250,7 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                     await dispatch(updateSlotPrice({ updates })).unwrap();
                     dispatch(getUserSlotPrice({ register_club_id: registerId, day: "", duration: 60 }));
                 } catch (err) {
-                    showError("Failed to update prices");
+                    showError(err);
                 }
             }
         }
@@ -266,7 +266,6 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
 
         const numericPrice = parseInt(allPrice.replace(/[^0-9]/g, ''), 10);
         if (numericPrice < 500 || numericPrice > 4000) {
-            showError("Price must be between 500 and 4000");
             return;
         }
 
@@ -315,7 +314,7 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                     // Fresh data reload
                     dispatch(getUserSlotPrice({ register_club_id: registerId, day: "", duration: 60 }));
                 } catch (err) {
-                    showError("Failed to update prices");
+                    showError(err);
                     console.error(err);
                 }
             } else {
@@ -349,7 +348,7 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
 
                     dispatch(getUserSlotPrice({ register_club_id: registerId, day: "", duration: 60 }));
                 } catch (err) {
-                    showError("Failed to create prices");
+                    showError(err);
                     console.error(err);
                 }
             }
@@ -376,7 +375,7 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
 
                 dispatch(getUserSlotPrice({ register_club_id: registerId, day: "", duration: 60 }));
             } catch (err) {
-                showError("Bulk update failed");
+                showError(err);
                 console.error(err);
             }
         }
@@ -396,7 +395,7 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                 }
                 await dispatch(createSlotPrice(payload30)).unwrap();
             } catch (err) {
-                showError("Failed to save prices");
+                showError(err);
             }
         } else {
             const updates = [];
@@ -431,7 +430,7 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                     await dispatch(updateSlotPrice({ updates })).unwrap();
                     dispatch(getUserSlotPrice({ register_club_id: registerId, day: "", duration: 60 }));
                 } catch (err) {
-                    showError("Update failed");
+                    showError(err);
                 }
             }
         }
@@ -493,7 +492,7 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                 dispatch(resetClub());
             } catch (err) {
                 console.error(err);
-                showError("Failed to update prices");
+                showError(err);
             }
         }
 

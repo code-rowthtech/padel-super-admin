@@ -111,7 +111,7 @@ const AddPlayerModal = ({ show, onHide, team, matchId, onPlayerAdded }) => {
       })
       .catch((err) => {
         showError(
-          err?.response?.data?.message || "An error occurred. Please try again."
+          err?.response?.data?.message ||err
         );
       })
       .finally(() => {
