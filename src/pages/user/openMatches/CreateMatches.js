@@ -461,7 +461,7 @@ const CreateMatches = () => {
 
       dispatch(removeBookedBooking(payload)).then((result) => {
         setLoadingSlotId(null);
-        if (result.payload?.success === true || result.payload?.message) {
+        if (result.payload?.deleted === true) {
           const filteredTimes = currentCourtTimes.filter(t => t._id !== time._id);
           setSelectedTimes(prev => {
             const updated = { ...prev };
@@ -827,47 +827,64 @@ const CreateMatches = () => {
   useEffect(() => {
     const totalSelected = Object.values(selectedTimes).flat().length;
     const totalHalfSelected = halfSelectedSlots.size;
+    
+    const tooltip = document.getElementById('slot-limit-tooltip-create') || (() => {
+      const newTooltip = document.createElement('div');
+      newTooltip.id = 'slot-limit-tooltip-create';
+      newTooltip.style.cssText = `
+        position: fixed;
+        background: #333;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        z-index: 9999;
+        pointer-events: none;
+        white-space: nowrap;
+        display: none;
+      `;
+      document.body.appendChild(newTooltip);
+      return newTooltip;
+    })();
+
+    const handleMouseEnter = (e) => {
+      if (totalSelected >= MAX_SLOTS) {
+        const button = e.currentTarget;
+        const isSelected = button.style.background.includes('linear-gradient');
+        if (!isSelected) {
+          tooltip.textContent = `You can select only ${MAX_SLOTS} slots`;
+          tooltip.style.display = 'block';
+          tooltip.style.left = e.clientX + 10 + 'px';
+          tooltip.style.top = e.clientY - 30 + 'px';
+        }
+      }
+    };
+
+    const handleMouseMove = (e) => {
+      if (totalSelected >= MAX_SLOTS && tooltip.style.display === 'block') {
+        tooltip.style.left = e.clientX + 10 + 'px';
+        tooltip.style.top = e.clientY - 30 + 'px';
+      }
+    };
+
+    const handleMouseLeave = () => {
+      tooltip.style.display = 'none';
+    };
+
     const buttons = document.querySelectorAll('.slot-time-btn');
     buttons.forEach(button => {
-      if (button.title && button.title.includes('Maximum') && (totalSelected >= MAX_SLOTS || totalHalfSelected >= MAX_HALF_SLOTS)) {
-        button.addEventListener('mouseenter', () => {
-          let tooltip = document.getElementById('slot-limit-tooltip-create');
-          if (!tooltip) {
-            tooltip = document.createElement('div');
-            tooltip.id = 'slot-limit-tooltip-create';
-            tooltip.style.cssText = `
-              position: fixed;
-              background: #333;
-              color: white;
-              padding: 8px 12px;
-              border-radius: 4px;
-              font-size: 12px;
-              z-index: 9999;
-              pointer-events: none;
-              white-space: nowrap;
-            `;
-            document.body.appendChild(tooltip);
-          }
-          tooltip.textContent = button.title;
-          tooltip.style.display = 'block';
-        });
-
-        button.addEventListener('mousemove', (e) => {
-          const tooltip = document.getElementById('slot-limit-tooltip-create');
-          if (tooltip) {
-            tooltip.style.left = e.clientX + 10 + 'px';
-            tooltip.style.top = e.clientY - 30 + 'px';
-          }
-        });
-
-        button.addEventListener('mouseleave', () => {
-          const tooltip = document.getElementById('slot-limit-tooltip-create');
-          if (tooltip) {
-            tooltip.style.display = 'none';
-          }
-        });
-      }
+      button.addEventListener('mouseenter', handleMouseEnter);
+      button.addEventListener('mousemove', handleMouseMove);
+      button.addEventListener('mouseleave', handleMouseLeave);
     });
+
+    return () => {
+      buttons.forEach(button => {
+        button.removeEventListener('mouseenter', handleMouseEnter);
+        button.removeEventListener('mousemove', handleMouseMove);
+        button.removeEventListener('mouseleave', handleMouseLeave);
+      });
+    };
   }, [selectedTimes, halfSelectedSlots]);
 
   const getCurrentMonth = (selectedDate) => {

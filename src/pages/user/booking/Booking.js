@@ -2020,7 +2020,7 @@ const Booking = ({ className = "" }) => {
                                     const priceColor = isFullySelected || (hasThirtyMinPrice && isAnyHalfSelected) ? "white" : "#6b7280";
 
                                     const handleClick = (e) => {
-                                      if (isSlotDisabled || isThisSlotLoading || (checkSlotLoading && !isSlotSelected)) return;
+                                      if (isSlotDisabled || isThisSlotLoading) return;
 
                                       if (slot?.has30MinPrice) {
                                         const rect = e.currentTarget.getBoundingClientRect();
@@ -2046,8 +2046,8 @@ const Booking = ({ className = "" }) => {
                                           onClick={handleClick}
                                           style={{
                                             background: getBackground(),
-                                            cursor: (isSlotDisabled || isThisSlotLoading || (checkSlotLoading && !isSlotSelected)) ? "not-allowed" : "pointer",
-                                            opacity: (isSlotDisabled || isThisSlotLoading || (checkSlotLoading && !isSlotSelected)) ? 0.6 : 1,
+                                            cursor: (isSlotDisabled || isThisSlotLoading) ? "not-allowed" : "pointer",
+                                            opacity: (isSlotDisabled || isThisSlotLoading) ? 0.6 : 1,
                                             border: "1px solid #dee2e6",
                                             borderRadius: "12px",
                                             height: "68px",
@@ -2059,7 +2059,7 @@ const Booking = ({ className = "" }) => {
                                           }}
                                         >
                                           {/* Loading spinner */}
-                                          {(isThisSlotLoading || (checkSlotLoading && isSlotSelected)) ? (
+                                          {isThisSlotLoading ? (
                                             <div className="d-flex justify-content-center align-items-center">
                                               <div
                                                 className="spinner-border spinner-border-sm"
