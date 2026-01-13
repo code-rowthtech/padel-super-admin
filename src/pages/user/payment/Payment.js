@@ -20,7 +20,6 @@ const Payment = ({ className = "" }) => {
   const user = getUserFromSession();
   const store = useSelector((state) => state?.userAuth);
   const bookingStatus = useSelector((state) => state?.userBooking);
-  console.log({bookingStatus});
   const userLoading = useSelector((state) => state?.userAuth);
   const logo = clubData?.logo;
   const updateName = JSON.parse(localStorage.getItem("updateprofile"));

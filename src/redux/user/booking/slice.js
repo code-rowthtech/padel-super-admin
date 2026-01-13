@@ -1,12 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { bookingStatus, createBooking, getBooking } from "./thunk";
+import { bookingStatus, checkBooking, createBooking, getBooking, removeBookedBooking } from "./thunk";
 
 const initialState = {
     bookingLoading: false,
     bookingData: null,
     bookingError: null,
     bookingStatusData: null,
-    bookingStatusLoading:false
+    bookingStatusLoading: false
 };
 
 const bookingSlice = createSlice({
@@ -24,7 +24,7 @@ const bookingSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-        // create booking slice
+            // create booking slice
             .addCase(createBooking.pending, (state) => {
                 state.bookingLoading = true;
                 state.bookingError = null;
@@ -34,6 +34,34 @@ const bookingSlice = createSlice({
                 state.bookingData = action.payload;
             })
             .addCase(createBooking.rejected, (state, action) => {
+                state.bookingLoading = false;
+                state.bookingError = action.payload;
+            })
+
+            // create booking slice
+            .addCase(checkBooking.pending, (state) => {
+                state.bookingLoading = true;
+                state.bookingError = null;
+            })
+            .addCase(checkBooking.fulfilled, (state, action) => {
+                state.bookingLoading = false;
+                state.bookingData = action.payload;
+            })
+            .addCase(checkBooking.rejected, (state, action) => {
+                state.bookingLoading = false;
+                state.bookingError = action.payload;
+            })
+
+              // create booking slice
+            .addCase(removeBookedBooking.pending, (state) => {
+                state.bookingLoading = true;
+                state.bookingError = null;
+            })
+            .addCase(removeBookedBooking.fulfilled, (state, action) => {
+                state.bookingLoading = false;
+                state.bookingData = action.payload;
+            })
+            .addCase(removeBookedBooking.rejected, (state, action) => {
                 state.bookingLoading = false;
                 state.bookingError = action.payload;
             })

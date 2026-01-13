@@ -9,7 +9,36 @@ export const createBooking = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const res = await userApi.post(`${Url.CREATE_BOOKING_API}`, data);
-      console.log(res,'resresres');
+      console.log(res, 'resresres');
+      return res?.data;
+    } catch (error) {
+      showError(error || error?.message);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+
+// check booking thunk
+export const checkBooking = createAsyncThunk(
+  "booking/checkBooking",
+  async (data, { rejectWithValue }) => {
+    try {
+      const res = await userApi.post(`${Url.CHECK_BOOKING_API}`, data);
+      return res?.data;
+    } catch (error) {
+      showError(error || error?.message);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+// remove booking thunk
+export const removeBookedBooking = createAsyncThunk(
+  "booking/removeBookedBooking",
+  async (data, { rejectWithValue }) => {
+    try {
+      const res = await userApi.delete(`${Url.REMOVE_BOOKING_API}`,  data );
       return res?.data;
     } catch (error) {
       showError(error || error?.message);
