@@ -119,7 +119,6 @@ const VerifyOTP = () => {
           dispatch(updateUser(payload))
             .then((res) => {
               if (res?.payload?.status === '200') {
-                showSuccess(`Location updated to ${city}`);
                 localStorage.setItem('locationDetected', 'true');
               }
             })

@@ -125,7 +125,6 @@ const Home = () => {
     console.log('Calling navigator.geolocation.getCurrentPosition...');
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        console.log('Location success:', position);
         const { latitude, longitude } = position.coords;
         
         try {
