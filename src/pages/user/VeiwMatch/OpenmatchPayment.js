@@ -471,7 +471,6 @@ const OpenmatchPayment = () => {
         halfSelectedSlots = new Set(),
         activeHalves = new Map()
     } = state || {};
-    console.log(halfSelectedSlots,selectedCourts,'halfSelectedSlots');
 
     const finalAddedPlayers =
         Object.keys(stateAddedPlayers).length > 0
@@ -545,13 +544,11 @@ const OpenmatchPayment = () => {
                     const rightSelected = halfSelectedSlots?.has(rightKey);
                     
                     // Debug logging
-                    console.log(`Slot ${timeSlot?.time}: leftSelected=${leftSelected}, rightSelected=${rightSelected}`);
                     
                     // Determine if this is a half-slot selection
                     // Only consider it a half-slot if exactly one half is selected
                     const isHalfSlot = (leftSelected && !rightSelected) || (rightSelected && !leftSelected);
                     
-                    console.log(`Slot ${timeSlot?.time}: isHalfSlot=${isHalfSlot}, duration will be ${isHalfSlot ? 30 : 60}`);
                     
                     if (rightSelected && !leftSelected) {
                         // For right half, we need to add 30 minutes to the original time
@@ -691,7 +688,6 @@ const OpenmatchPayment = () => {
                     theme: { color: "#001B76" },
 
                     handler: async function (response) {
-                        console.log({response});
                         try {
                             // Second API call after successful payment
                             const finalMatchData = {
@@ -792,16 +788,37 @@ const OpenmatchPayment = () => {
     const localGrandTotal = calculateTotalAmount();
 
     const handleDeleteSlot = async (courtId, slotId) => {
-        const court = localSelectedCourts.find(c => c._id === courtId);
-        const slot = court?.time.find(t => t._id === slotId);
+        const court = localSelectedCourts.find(c => c?._id === courtId);
+        const slot = court?.time.find(t => t?._id === slotId);
         
         if (slot) {
+            let duration = 60; // default
+            let apiTime = slot?.time;
+
+            if (slot?.time && slot?.time.includes(':30')) {
+                duration = 30;
+            } else if (halfSelectedSlots && halfSelectedSlots.size > 0) {
+                const leftKey = `${courtId}-${slotId}-${court.date}-left`;
+                const rightKey = `${courtId}-${slotId}-${court.date}-right`;
+                if (halfSelectedSlots.has(leftKey)) {
+                    duration = 30;
+                    // Left side uses original time
+                } else if (halfSelectedSlots.has(rightKey)) {
+                    duration = 30;
+                    // Right side needs :30 added
+                    const baseTime = slot?.time?.replace(' pm', '').replace(' am', '');
+                    const period = slot?.time?.includes('pm') ? 'pm' : 'am';
+                    apiTime = `${baseTime}:30 ${period}`;
+                }
+            }
+            
             const payload = {
-                slotId: slot._id,
+                slotId: slot?._id,
                 courtId: courtId,
-                bookingDate: court.date,
-                time: slot.time,
-                bookingTime: slot.bookingTime
+                bookingDate: court?.date,
+                time: apiTime,
+                bookingTime: slot?.bookingTime || apiTime,
+                duration: duration
             };
             
             try {

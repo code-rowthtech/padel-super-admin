@@ -70,7 +70,6 @@ const Cancellation = () => {
   const bookingDetails = getBookingDetailsData?.booking || {};
   const totalItems = getBookingData?.totalItems || 0;
   const sendDate = startDate && endDate;
-  console.log({ bookings });
   const [counts, setCounts] = useState({
     request: 0,
     cancelled: 0,
@@ -125,7 +124,6 @@ const Cancellation = () => {
     setCurrentPage(pageNumber);
   };
   const renderSlotTimes = (slot) => {
-    console.log(slot, 'slotslotslot');
     if (!slot || !Array.isArray(slot)) return "-";
 
     // Get all slot times from all slots

@@ -103,7 +103,6 @@ const Pricing = ({
   const { updateClubLoading, clubLoading, clubData } = useSelector(
     (state) => state.club
   );
-  console.log({clubData});
   const PricingData = clubData?.data || [];
   const [formData, setFormData] = useState({
     selectedSlots: "Morning",
@@ -684,7 +683,6 @@ const Pricing = ({
         };
       })
       .filter(Boolean);
-      console.log({filledSlotTimes});
     if (filledSlotTimes.length === 0) {
       return; // Silently return if no valid prices
     }

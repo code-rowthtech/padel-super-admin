@@ -65,11 +65,9 @@ const ChatPopup = ({ showChat,matchTime, setShowChat, chatMessage, setChatMessag
                 socketRef.current.emit('getUnreadCount', { matchId });
             });
             socketRef.current.on('userJoined', (data) => {
-                console.log(data,'data3');
                 setMessages((prev) => [...prev, { ...data, isSystemMessage: true }]);
             });
             socketRef.current.on('messagesReceived', (data) => {
-                console.log(data,'data1');
                 setMessages(data?.messages || []);
                 clearTimeout(loadingTimeout);
                 setLoading(false);
@@ -77,7 +75,6 @@ const ChatPopup = ({ showChat,matchTime, setShowChat, chatMessage, setChatMessag
                 setTimeout(() => scrollToBottom(), 100);
             });
             socketRef.current.on('newMessage', (data) => {
-                console.log(data,'data2');
                 setMessages((prev) => [...prev, data]);
                 if (data?.senderId?._id !== User?._id && !showChat) {
                     playNotificationSound();

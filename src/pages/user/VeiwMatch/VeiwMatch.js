@@ -154,7 +154,6 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, isFromBookingH
     const navigate = useNavigate();
     const user = getUserFromSession();
     const { state } = useLocation();
-    console.log({ state });
     const matchesData = useSelector((state) => state.userMatches?.viewMatchesData);
     const userLoading = useSelector((state) => state.userMatches?.viewMatchesLoading);
     const RequestData = useSelector((state) => state.requestData?.requestData?.requests);
@@ -871,7 +870,6 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, isFromBookingH
                                         </p>
                                     </div>
                                 )}
-                                {console.log(matchesData?.data, selectedPlayer, 'matchesData?.data')}
 
                                 {(selectedPlayer?.skillLevel || matchesData?.data?.skillLevel) && (
                                     <div className="mb-2 d-flex gap-2 align-items-center    ">
@@ -929,7 +927,6 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, isFromBookingH
                             <p className="mb-0" style={{ fontSize: "15px", fontWeight: 500, fontFamily: "Poppins" }}>Players approved</p>
                         </div>
                         <div className="d-flex flex-column ">
-                            {console.log({ RequestData })}
                             {RequestDataLoading ? <DataLoading /> : RequestData?.length > 0 ? (
                                 RequestData?.map((player, index) => (
                                     <div key={index} className="d-flex align-items-center justify-content-between p-3 border-bottom rounded-3">

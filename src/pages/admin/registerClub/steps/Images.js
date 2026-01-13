@@ -555,15 +555,10 @@ const Images = ({ updateImage, formData, onNext, onBack, updateFormData }) => {
       } else {
         result = await dispatch(registerClub(apiFormData)).unwrap();
       }
-      console.log({result});
       // Check for successful registration
       if (result?.status === 200 || result?.message === 'res' || result?.success === true || result?.data) {
-        console.log('Images.js: API call successful, calling onNext()');
-        console.log('Images.js: Current step should move from 2 to 3 (PriceSlotUpdate)');
         onNext(); // Move to PriceSlotUpdate step
       } else {
-        console.log('Images.js: API call failed or no success indicator');
-        console.log('Images.js: Result:', result);
         // showInfo(result?.message || "Something went wrong.");
       }
     } catch (error) {

@@ -85,7 +85,6 @@ const MatchPlayer = ({
     activeHalves
 }) => {
     const dispatch = useDispatch();
-    console.log({totalAmount});
     const navigate = useNavigate();
     const User = getUserFromSession();
     const [selectedGender, setSelectedGender] = useState('');

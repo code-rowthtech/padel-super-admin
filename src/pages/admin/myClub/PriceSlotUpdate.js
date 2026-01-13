@@ -311,8 +311,6 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                     };
                     await dispatch(updateSlotBulkPrice(payload30)).unwrap();
 
-                    console.log("Apply All (Create Mode - Update): 60min →", numericPrice);
-                    console.log("Apply All (Create Mode - Update): 30min →", price30);
 
                     // Fresh data reload
                     dispatch(getUserSlotPrice({ register_club_id: registerId, day: "", duration: 60 }));
@@ -348,8 +346,6 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                     await dispatch(createSlotPrice(payload60)).unwrap();
                     await dispatch(createSlotPrice(payload30)).unwrap();
 
-                    console.log("Apply All (Create Mode - Create): 60min →", payload60);
-                    console.log("Apply All (Create Mode - Create): 30min →", payload30);
 
                     dispatch(getUserSlotPrice({ register_club_id: registerId, day: "", duration: 60 }));
                 } catch (err) {
@@ -483,12 +479,10 @@ const PriceSlotUpdate = ({ onHide, setUpdateImage, onBack, onFinalSuccess }) => 
                 // Always update both (since they were created earlier with 0 or half)
                 if (updates60?.length > 0) {
                     await dispatch(updateSlotPrice({ updates: updates60 })).unwrap();
-                    console.log('Updated 60min prices:', updates60);
                 }
 
                 if (updates30?.length > 0) {
                     await dispatch(updateSlotPrice({ updates: updates30 })).unwrap();
-                    console.log('Updated 30min prices:', updates30);
                 }
 
                 onFinalSuccess?.();

@@ -136,16 +136,15 @@ const Home = () => {
           dispatch(updateUser(payload))
             .then((res) => {
               if (res?.payload?.status === '200') {
-                showSuccess(`Location updated to ${city}`);
                 dispatch(getUserProfile());
                 localStorage.setItem('locationDetected', 'true');
               }
             })
             .catch(() => {
-              showError('Failed to update location');
+              console.error('Failed to update location');
             });
         } catch (error) {
-          showError('Failed to detect location');
+          console.error('Failed to detect location');
         }
       },
       (error) => {

@@ -8,7 +8,6 @@ export const registerClub = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const res = await ownerApi.post(Url.REGISTER_CLUB, data);
-      console.log({ res });
       if (res?.data?.status === 200 || res?.data?.message === 'res') {
         return res?.data;
       } else {

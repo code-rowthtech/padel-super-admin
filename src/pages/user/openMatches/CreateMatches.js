@@ -91,11 +91,9 @@ const CreateMatches = () => {
   const [halfSelectedSlots, setHalfSelectedSlots] = useState(new Set());
   const [activeHalves, setActiveHalves] = useState(new Map()); // Single source of truth for 30min
   const slotPrice = useSelector((state) => state?.userSlot?.slotPriceData?.data || []);
-  console.log("slotPrice", slotPrice);
   const [showUnavailable, setShowUnavailable] = useState(false);
   const [currentCourtId, setCurrentCourtId] = useState(null);
   const { slotData } = useSelector((state) => state?.userSlot);
-  console.log("slotData", slotData);
   const slotLoading = useSelector((state) => state?.userSlot?.slotLoading);
   const questionList = useSelector((state) => state?.userNotificationData?.getQuestionData?.data) || [];
   const getPlayerLevels = useSelector((state) => state?.userNotificationData?.getPlayerLevel?.data) || [];
@@ -343,38 +341,58 @@ const CreateMatches = () => {
 
       // If clicking same side that's already selected - unselect
       if ((clickSide === "left" && leftHalf) || (clickSide === "right" && rightHalf)) {
-        setHalfSelectedSlots(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(clickSide === "left" ? leftKey : rightKey);
-          return newSet;
-        });
+        const targetKey = clickSide === "left" ? leftKey : rightKey;
+        setLoadingSlotId(slotKey);
+        
+        const apiTime = clickSide === "left" ? time.time : time?.time.replace(":00", ":30").replace(/\s*(am|pm)/i, ":30 $1");
+        const payload = {
+          slotId: time._id,
+          courtId: courtId,
+          bookingDate: selectedDate?.fullDate,
+          time: apiTime,
+          bookingTime: apiTime,
+          duration: 30
+        };
 
-        // If no halves left, remove from selected times
-        const otherHalf = clickSide === "left" ? rightHalf : leftHalf;
-        if (!otherHalf) {
-          const filteredTimes = currentCourtTimes.filter(t => t._id !== time._id);
-          setSelectedTimes(prev => {
-            const updated = { ...prev };
-            if (filteredTimes.length > 0) {
-              updated[courtId] = filteredTimes;
-            } else {
-              delete updated[courtId];
+        dispatch(removeBookedBooking(payload)).then((result) => {
+          setLoadingSlotId(null);
+          if (result.payload?.deleted === true) {
+            setHalfSelectedSlots(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(targetKey);
+              return newSet;
+            });
+
+            // If no halves left, remove from selected times
+            const otherHalf = clickSide === "left" ? rightHalf : leftHalf;
+            if (!otherHalf) {
+              const filteredTimes = currentCourtTimes.filter(t => t._id !== time._id);
+              setSelectedTimes(prev => {
+                const updated = { ...prev };
+                if (filteredTimes.length > 0) {
+                  updated[courtId] = filteredTimes;
+                } else {
+                  delete updated[courtId];
+                }
+                return updated;
+              });
+
+              setSelectedBuisness(prev => prev.filter(t => t._id !== time._id));
+              setSelectedCourts(prev =>
+                prev
+                  .map(c =>
+                    c._id === courtId
+                      ? { ...c, time: c.time.filter(t => t._id !== time._id) }
+                      : c
+                  )
+                  .filter(c => c.time.length > 0)
+              );
             }
-            return updated;
-          });
-
-          setSelectedBuisness(prev => prev.filter(t => t._id !== time._id));
-          setSelectedCourts(prev =>
-            prev
-              .map(c =>
-                c._id === courtId
-                  ? { ...c, time: c.time.filter(t => t._id !== time._id) }
-                  : c
-              )
-              .filter(c => c.time.length > 0)
-          );
-        }
-        setSlotError("");
+            setSlotError("");
+          }
+        }).catch(() => {
+          setLoadingSlotId(null);
+        });
         return;
       }
 
@@ -384,66 +402,63 @@ const CreateMatches = () => {
         return;
       }
 
-      // Set new half selection
-      setHalfSelectedSlots(prev => {
-        const newSet = new Set(prev);
-        if (clickSide === "left") {
-          newSet.add(leftKey);
-        } else {
-          newSet.add(rightKey);
-        }
-        return newSet;
-      });
+      // Select new half
+      setLoadingSlotId(slotKey);
+      const apiTime = clickSide === "left" ? time.time : time?.time.replace(":00", ":30").replace(/\s*(am|pm)/i, ":30 $1");
+      const payload = {
+        slotId: time._id,
+        courtId: courtId,
+        bookingDate: selectedDate?.fullDate,
+        time: apiTime,
+        bookingTime: apiTime,
+        duration: 30
+      };
 
-      // Check if there are any remaining half selections after this toggle
-      const wasSelected = (clickSide === "left" && leftHalf) || (clickSide === "right" && rightHalf);
-      const willHaveLeft = clickSide === "left" ? !leftHalf : halfSelectedSlots.has(leftKey);
-      const willHaveRight = clickSide === "right" ? !rightHalf : halfSelectedSlots.has(rightKey);
-      
-      if (willHaveLeft || willHaveRight) {
-        // Calculate amount based on final selection state
-        let amount;
-        if (willHaveLeft && willHaveRight) {
-          // Both halves will be selected = full price
-          amount = getPriceForSlot(time.time, selectedDate?.day, false);
-        } else {
-          // Only one half will be selected = half price
-          amount = getPriceForSlot(time.time, selectedDate?.day, true);
-        }
+      dispatch(checkBooking(payload)).then((result) => {
+        setLoadingSlotId(null);
+        if (result.payload?.created === true) {
+          // Set new half selection
+          setHalfSelectedSlots(prev => {
+            const newSet = new Set(prev);
+            if (clickSide === "left") {
+              newSet.add(leftKey);
+            } else {
+              newSet.add(rightKey);
+            }
+            return newSet;
+          });
 
-        const newTimeEntry = {
-          _id: time._id,
-          time: time.time,
-          amount: amount,
-        };
+          // Check if there are any remaining half selections after this toggle
+          const willHaveLeft = clickSide === "left" ? true : halfSelectedSlots.has(leftKey);
+          const willHaveRight = clickSide === "right" ? true : halfSelectedSlots.has(rightKey);
+          
+          if (willHaveLeft || willHaveRight) {
+            // Calculate amount based on final selection state
+            let amount;
+            if (willHaveLeft && willHaveRight) {
+              // Both halves will be selected = full price
+              amount = getPriceForSlot(time.time, selectedDate?.day, false);
+            } else {
+              // Only one half will be selected = half price
+              amount = getPriceForSlot(time.time, selectedDate?.day, true);
+            }
 
-        const newTimes = [...currentCourtTimes.filter(t => t._id !== time._id), newTimeEntry];
-        updateSelectedBusinessAndCourts(newTimes, courtId, [newTimeEntry]);
-      } else {
-        // No halves selected, remove completely
-        const newTimes = currentCourtTimes.filter(t => t._id !== time._id);
-        setSelectedTimes(prev => {
-          const updated = { ...prev };
-          if (newTimes.length > 0) {
-            updated[courtId] = newTimes;
-          } else {
-            delete updated[courtId];
+            const newTimeEntry = {
+              _id: time._id,
+              time: time.time,
+              amount: amount,
+            };
+
+            const newTimes = [...currentCourtTimes.filter(t => t._id !== time._id), newTimeEntry];
+            updateSelectedBusinessAndCourts(newTimes, courtId, [newTimeEntry]);
           }
-          return updated;
-        });
-
-        setSelectedBuisness(prev => prev.filter(t => t._id !== time._id));
-        setSelectedCourts(prev =>
-          prev
-            .map(c =>
-              c._id === courtId
-                ? { ...c, time: c.time.filter(t => t._id !== time._id) }
-                : c
-            )
-            .filter(c => c.time.length > 0)
-        );
-      }
-      setSlotError("");
+          setSlotError("");
+        } else {
+          showWarning(result?.payload?.message || 'This slot is currently locked for another user. Please try again after 10 minutes');
+        }
+      }).catch(() => {
+        setLoadingSlotId(null);
+      });
       return;
     }
 
@@ -456,7 +471,8 @@ const CreateMatches = () => {
         courtId: courtId,
         bookingDate: selectedDate?.fullDate,
         time: time.time,
-        bookingTime: time.time
+        bookingTime: time.time,
+        duration: 60
       };
 
       dispatch(removeBookedBooking(payload)).then((result) => {
@@ -507,7 +523,8 @@ const CreateMatches = () => {
       courtId: courtId,
       bookingDate: selectedDate?.fullDate,
       time: time.time,
-      bookingTime: time.time
+      bookingTime: time.time,
+      duration: 60
     };
 
     dispatch(checkBooking(payload)).then((result) => {
@@ -742,7 +759,6 @@ const CreateMatches = () => {
 
 
   const handleNext = async () => {
-    // Check if any slots are selected (full slots or half slots)
     if (selectedCourts?.length === 0 && halfSelectedSlots?.size === 0) {
       setSlotError("Select a slot to enable booking");
       return;
@@ -761,7 +777,8 @@ const CreateMatches = () => {
         const apiData = response?.data || [];
 
         if (!Array.isArray(apiData) || apiData?.length === 0) {
-          throw new Error("Empty API response");
+          setSlotError("No player levels available for your skill level. Please contact support.");
+          return;
         }
 
         const newLastStep = {
@@ -1018,7 +1035,7 @@ const CreateMatches = () => {
 
     // Click handler
     const handleClick = (e) => {
-      if (isDisabled || isThisSlotLoading) return;
+      if (isDisabled || isThisSlotLoading || loadingSlotId) return;
 
       if (hasThirtyMinPrice) {
         const rect = e.currentTarget.getBoundingClientRect();

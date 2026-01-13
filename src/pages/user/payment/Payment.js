@@ -36,6 +36,7 @@ const Payment = ({ className = "" }) => {
     general: "",
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [modal, setModal] = useState(false);
   const [errorModal, setErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -45,7 +46,6 @@ const Payment = ({ className = "" }) => {
   const [localGrandTotal, setLocalGrandTotal] = useState(grandTotal || 0);
   const [localTotalSlots, setLocalTotalSlots] = useState(totalSlots || 0);
   const [isExpanded, setIsExpanded] = useState(false);
-  console.log('Payment localSelectedCourts:', localSelectedCourts);
   useEffect(() => {
     // Calculate effective slot count considering half-slots
     let effectiveSlotCount = 0;
@@ -96,8 +96,16 @@ const Payment = ({ className = "" }) => {
     return () => clearTimeout(timer);
   }, [errors]);
 
+  // Auto redirect when all slots are deleted
+  useEffect(() => {
+    if (localSelectedCourts?.length === 0 && courtData) {
+      navigate("/booking");
+    }
+  }, [localSelectedCourts, navigate, courtData]);
+
   const handleDeleteSlot = async (e, courtId, date, timeId) => {
     e.stopPropagation();
+    setDeleteLoading(true);
 
     const slotsToRemove = [];
 
@@ -111,7 +119,8 @@ const Payment = ({ className = "" }) => {
             courtId: courtId,
             bookingDate: date,
             time: slot.time,
-            bookingTime: slot.bookingTime
+            bookingTime: slot.bookingTime,
+            duration: 60
           });
         });
       }
@@ -142,7 +151,8 @@ const Payment = ({ className = "" }) => {
               courtId: courtId,
               bookingDate: date,
               time: slot.time,
-              bookingTime: slot.bookingTime
+              bookingTime: slot.bookingTime,
+              duration: 60
             });
           }
         });
@@ -173,7 +183,8 @@ const Payment = ({ className = "" }) => {
           courtId: courtId,
           bookingDate: date,
           time: slot.time,
-          bookingTime: slot.bookingTime
+          bookingTime: slot.bookingTime,
+          duration: 60
         });
       }
 
@@ -190,9 +201,34 @@ const Payment = ({ className = "" }) => {
 
     // Make API calls for all slots to be removed
     for (const slotData of slotsToRemove) {
+      // Determine if this is a half-slot deletion and set correct duration
+      let duration = 60; // default
+      let apiTime = slotData.time;
+      
+      // Check if this is a half-slot (contains :30 or is marked as half)
+      if (slotData.time && slotData.time.includes(':30')) {
+        duration = 30;
+      } else if (halfSelectedSlots && halfSelectedSlots.size > 0) {
+        // Check if any half-slots exist for this slot
+        const leftKey = `${slotData.courtId}-${slotData.slotId}-${slotData.bookingDate}-left`;
+        const rightKey = `${slotData.courtId}-${slotData.slotId}-${slotData.bookingDate}-right`;
+        if (halfSelectedSlots.has(leftKey) || halfSelectedSlots.has(rightKey)) {
+          duration = 30;
+        }
+      }
+      
+      const payload = {
+        slotId: slotData.slotId,
+        courtId: slotData.courtId,
+        bookingDate: slotData.bookingDate,
+        time: apiTime,
+        bookingTime: apiTime,
+        duration: duration
+      };
+      
       try {
-        const result = await dispatch(removeBookedBooking( slotData));
-        if (result.payload?.deleted !== true) {
+        const result = await dispatch(removeBookedBooking(payload));
+        if (result?.payload?.deleted !== true) {
           console.error('Failed to delete slot:', slotData.slotId);
         }
       } catch (error) {
@@ -204,6 +240,8 @@ const Payment = ({ className = "" }) => {
     if (localSelectedCourts?.length === 1 && localSelectedCourts[0]?.time?.length === 1) {
       setTimeout(() => navigate("/booking"), 100);
     }
+    
+    setDeleteLoading(false);
   };
 
   useEffect(() => {
@@ -601,13 +639,23 @@ const Payment = ({ className = "" }) => {
       };
 
       if (user?.phoneNumber) {
-        await dispatch(
-          updateUser({
-            phoneNumber: rawPhoneNumber,
-            name: name.trim(),
-            email: email.trim(),
-          })
-        ).unwrap()
+        // Check if any values have actually changed
+        const currentName = name.trim();
+        const currentEmail = email.trim();
+        const hasNameChanged = currentName !== (user?.name || '');
+        const hasPhoneChanged = rawPhoneNumber !== (user?.phoneNumber || '');
+        const hasEmailChanged = currentEmail !== (user?.email || '');
+        
+        // Only call updateUser if any value has changed
+        if (hasNameChanged || hasPhoneChanged || hasEmailChanged) {
+          await dispatch(
+            updateUser({
+              phoneNumber: rawPhoneNumber,
+              name: currentName,
+              email: currentEmail,
+            })
+          ).unwrap()
+        }
       }
 
       const initialBookingResponse = await dispatch(createBooking({
@@ -636,7 +684,6 @@ const Payment = ({ className = "" }) => {
                 razorpayPaymentId: response.razorpay_payment_id,
                 razorpaySignature: response.razorpay_signature
               })).unwrap();
-              console.log({finalBookingResponse});
 
               if (finalBookingResponse?.success || finalBookingResponse?.message?.includes("created")) {
                 setLocalSelectedCourts([]);
@@ -1086,8 +1133,9 @@ const Payment = ({ className = "" }) => {
                             <MdOutlineDeleteOutline
                               className="ms-1 mb-1 mt-1 text-white"
                               size={15}
-                              style={{ cursor: "pointer" }}
+                              style={{ cursor: deleteLoading ? "not-allowed" : "pointer", opacity: deleteLoading ? 0.5 : 1 }}
                               onClick={(e) => {
+                                if (deleteLoading) return;
                                 e.stopPropagation();
                                 // Delete all slots in the group
                                 group.slots.forEach(slot => {
@@ -1212,10 +1260,12 @@ const Payment = ({ className = "" }) => {
                               <MdOutlineDeleteOutline
                                 className="ms-1 text-white"
                                 style={{
-                                  cursor: "pointer",
+                                  cursor: deleteLoading ? "not-allowed" : "pointer",
                                   fontSize: "14px",
+                                  opacity: deleteLoading ? 0.5 : 1
                                 }}
                                 onClick={(e) => {
+                                  if (deleteLoading) return;
                                   e.stopPropagation();
                                   // Delete all slots in the group
                                   group.slots.forEach(slot => {
@@ -1424,7 +1474,7 @@ const Payment = ({ className = "" }) => {
                     />
                   </g>
                 </svg>
-                <div style={contentStyle}>  {bookingStatus?.bookingLoading ? <ButtonLoading color="#001B76" /> : "Pay Now"}</div>
+                <div style={contentStyle}>  {isLoading ? <ButtonLoading color="#001B76" /> : "Pay Now"}</div>
               </button>
             </div>
           </div>

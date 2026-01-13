@@ -143,9 +143,6 @@ const Booking = ({ className = "" }) => {
   const [activeHalves, setActiveHalves] = useState(new Map()); // Map<slotKey, "left"|"right">
   const [isExpanded, setIsExpanded] = useState(false);
   const [loadingSlotId, setLoadingSlotId] = useState(null);
-  console.log('Debug selectedCourts:', selectedCourts);
-  console.log('Debug halfSelectedSlots:', halfSelectedSlots);
-  console.log('Debug selectedTimes:', selectedTimes);
   const dayShortMap = {
     Monday: "Mon",
     Tuesday: "Tue",
@@ -443,7 +440,8 @@ const Booking = ({ className = "" }) => {
           courtId: courtId,
           bookingDate: selectedDate?.fullDate,
           time: slot?.time,
-          bookingTime: slot?.time
+          bookingTime: slot?.time,
+          duration: 60
         };
 
         dispatch(checkBooking(payload)).then((result) => {
@@ -526,96 +524,21 @@ const Booking = ({ className = "" }) => {
       return;
     }
 
-    // Toggle the clicked half
-    setHalfSelectedSlots(prev => {
-      const s = new Set(prev);
-      if (wasSelected) {
-        s.delete(targetKey);
-      } else {
-        s.add(targetKey);
-      }
-      return s;
-    });
+    setLoadingSlotId(slotKey);
 
-    // Rebuild times for this slot
-    const otherTimes = currentCourtTimes.filter(t => t?._id !== slot?._id);
-    let newTimes = [...otherTimes];
-
-    // Check if there are any remaining half selections after this toggle
-    const willHaveLeft = wasSelected && isLeft ? false : halfSelectedSlots.has(leftKey) || (!wasSelected && isLeft);
-    const willHaveRight = wasSelected && !isLeft ? false : halfSelectedSlots.has(rightKey) || (!wasSelected && !isLeft);
-
-    if (willHaveLeft || willHaveRight) {
-      const displayTime = willHaveRight && !willHaveLeft
-        ? slot?.time.replace(":00", ":30").replace(/\s*(am|pm)/i, ":30 $1")
-        : slot?.time;
-
-      const halfPrice = getPriceForSlot(slot?.time, selectedDate?.day, true) || 0;
-      const totalPrice = willHaveLeft && willHaveRight ? halfPrice * 2 : halfPrice;
-
-      newTimes.push({
-        ...slot,
-        time: displayTime,
-        side: willHaveLeft && willHaveRight ? "both" : (willHaveLeft ? "left" : "right"),
-        amount: totalPrice,
-      });
-
-      if (!wasSelected) {
-        const slotKey = `${courtId}-${slot._id}-${dateKey}`;
-        setLoadingSlotId(slotKey);
-        const payload = {
-          slotId: slot._id,
-          courtId: courtId,
-          bookingDate: selectedDate?.fullDate,
-          time: displayTime,
-          bookingTime: displayTime
-        };
-
-        dispatch(checkBooking(payload)).then((result) => {
-          setLoadingSlotId(null);
-          if (result.payload?.created === true) {
-            // Only update UI if API confirms slot can be booked
-            setHalfSelectedSlots(prev => {
-              const s = new Set(prev);
-              s.add(targetKey);
-              return s;
-            });
-
-            const updatedNewTimes = [...otherTimes, {
-              ...slot,
-              time: displayTime,
-              side: willHaveLeft && willHaveRight ? "both" : (willHaveLeft ? "left" : "right"),
-              amount: totalPrice,
-            }];
-
-            setSelectedTimes(prev => ({
-              ...prev,
-              [courtId]: {
-                ...prev[courtId],
-                [dateKey]: updatedNewTimes,
-              },
-            }));
-            updateSelectedBusinessAndCourts(updatedNewTimes, courtId, dateKey);
-          } else {
-            showWarning(
-              result?.payload?.message || 'This slot is currently locked for another user. Please try again after 10 minutes')
-          }
-        }).catch(() => {
-          setLoadingSlotId(null);
-        });
-      }
-    } else if (wasSelected) {
-      const slotKey = `${courtId}-${slot._id}-${dateKey}`;
-      setLoadingSlotId(slotKey);
+    if (wasSelected) {
+      // Unselecting - always call removeBookedBooking API
+      const apiTime = isLeft ? slot.time : slot?.time.replace(":00", ":30").replace(/\s*(am|pm)/i, ":30 $1");
       const payload = {
         slotId: slot?._id,
         courtId: courtId,
         bookingDate: selectedDate?.fullDate,
-        time: slot.time,
-        bookingTime: slot.time
+        time: apiTime,
+        bookingTime: apiTime,
+        duration: 30
       };
 
-      dispatch(removeBookedBooking( payload)).then((result) => {
+      dispatch(removeBookedBooking(payload)).then((result) => {
         setLoadingSlotId(null);
         if (result.payload?.deleted === true) {
           // Only update UI if API confirms slot was deleted
@@ -625,30 +548,95 @@ const Booking = ({ className = "" }) => {
             return s;
           });
 
-          const updatedNewTimes = [...otherTimes];
+          // Rebuild times for this slot after API confirmation
+          const otherTimes = currentCourtTimes.filter(t => t?._id !== slot?._id);
+          const willHaveLeft = isLeft ? false : halfSelectedSlots.has(leftKey);
+          const willHaveRight = !isLeft ? false : halfSelectedSlots.has(rightKey);
+
+          let newTimes = [...otherTimes];
+          if (willHaveLeft || willHaveRight) {
+            const displayTime = willHaveRight && !willHaveLeft
+              ? slot?.time.replace(":00", ":30").replace(/\s*(am|pm)/i, ":30 $1")
+              : slot?.time;
+
+            const halfPrice = getPriceForSlot(slot?.time, selectedDate?.day, true) || 0;
+            const totalPrice = willHaveLeft && willHaveRight ? halfPrice * 2 : halfPrice;
+
+            newTimes.push({
+              ...slot,
+              time: displayTime,
+              side: willHaveLeft && willHaveRight ? "both" : (willHaveLeft ? "left" : "right"),
+              amount: totalPrice,
+            });
+          }
+
           setSelectedTimes(prev => ({
             ...prev,
             [courtId]: {
               ...prev[courtId],
-              [dateKey]: updatedNewTimes.length ? updatedNewTimes : undefined,
+              [dateKey]: newTimes.length ? newTimes : undefined,
+            },
+          }));
+          updateSelectedBusinessAndCourts(newTimes, courtId, dateKey);
+        }
+      }).catch(() => {
+        setLoadingSlotId(null);
+      });
+    } else {
+      // Selecting - call checkBooking API
+      const otherTimes = currentCourtTimes.filter(t => t?._id !== slot?._id);
+      const willHaveLeft = isLeft ? true : halfSelectedSlots.has(leftKey);
+      const willHaveRight = !isLeft ? true : halfSelectedSlots.has(rightKey);
+      
+      const apiTime = isLeft ? slot?.time : slot?.time.replace(":00", ":30").replace(/\s*(am|pm)/i, ":30 $1");
+      const displayTime = willHaveRight && !willHaveLeft
+        ? slot?.time.replace(":00", ":30").replace(/\s*(am|pm)/i, ":30 $1")
+        : slot?.time;
+
+      const payload = {
+        slotId: slot?._id,
+        courtId: courtId,
+        bookingDate: selectedDate?.fullDate,
+        time: apiTime,
+        bookingTime: apiTime,
+        duration: 30
+      };
+
+      dispatch(checkBooking(payload)).then((result) => {
+        setLoadingSlotId(null);
+        if (result.payload?.created === true) {
+          setHalfSelectedSlots(prev => {
+            const s = new Set(prev);
+            s.add(targetKey);
+            return s;
+          });
+
+          const halfPrice = getPriceForSlot(slot?.time, selectedDate?.day, true) || 0;
+          const totalPrice = willHaveLeft && willHaveRight ? halfPrice * 2 : halfPrice;
+
+          const updatedNewTimes = [...otherTimes, {
+            ...slot,
+            time: displayTime,
+            side: willHaveLeft && willHaveRight ? "both" : (willHaveLeft ? "left" : "right"),
+            amount: totalPrice,
+          }];
+
+          setSelectedTimes(prev => ({
+            ...prev,
+            [courtId]: {
+              ...prev[courtId],
+              [dateKey]: updatedNewTimes,
             },
           }));
           updateSelectedBusinessAndCourts(updatedNewTimes, courtId, dateKey);
+        } else {
+          showWarning(
+            result?.payload?.message || 'This slot is currently locked for another user. Please try again after 10 minutes')
         }
       }).catch(() => {
         setLoadingSlotId(null);
       });
     }
-
-    setSelectedTimes(prev => ({
-      ...prev,
-      [courtId]: {
-        ...prev[courtId],
-        [dateKey]: newTimes.length ? newTimes : undefined,
-      },
-    }));
-
-    updateSelectedBusinessAndCourts(newTimes, courtId, dateKey);
   };
 
 
@@ -917,12 +905,34 @@ const Booking = ({ className = "" }) => {
 
     // Call removeBookedBooking API for all slots to be removed
     slotsToRemove.forEach(async (slot) => {
+      // Determine if this is a half-slot deletion
+      const isHalfSlot = timeId.includes('-left') || timeId.includes('-right') || 
+                        halfSelectedSlots.has(`${courtId}-${slot._id || slot.originalId || timeId}-${date}-left`) ||
+                        halfSelectedSlots.has(`${courtId}-${slot._id || slot.originalId || timeId}-${date}-right`);
+      
+      // For half-slots, determine which side and send appropriate time
+      let apiTime = slot?.time;
+      let duration = 60; // default
+      
+      if (isHalfSlot) {
+        duration = 30;
+        // Check if this is a right-side half slot (contains :30)
+        if (slot?.time && slot.time.includes(':30')) {
+          apiTime = slot.time; // Already has :30
+        } else if (timeId.includes('-right') || (slot?.side === 'right')) {
+          // Convert to :30 time for right side
+          apiTime = slot?.time?.replace(':00', ':30').replace(/\s*(am|pm)/i, ':30 $1') || slot?.time;
+        }
+        // For left side, use original time
+      }
+
       const payload = {
-        slotId: slot?._id,
+        slotId: slot?._id || slot?.originalId || timeId,
         courtId: courtId,
         bookingDate: date,
-        time: slot?.time,
-        bookingTime: slot?.time
+        time: apiTime,
+        bookingTime: apiTime,
+        duration: duration
       };
 
       try {
@@ -1872,7 +1882,6 @@ const Booking = ({ className = "" }) => {
                               scrollbar-width: none; /* Firefox */
                             }
                           `}</style>
-                        {console.log(slotData, 'slotData')}
                         {slotData?.data?.map((court, courtIndex) => {
                           const filteredSlots = court?.slots?.filter((slot) => {
                             // Check if slot is booked for 30 minutes - these should still show
@@ -1890,7 +1899,6 @@ const Booking = ({ className = "" }) => {
 
                             return basicFilter && hasPrice;
                           });
-                          console.log({ filteredSlots });
 
                           if (filteredSlots?.length === 0) return null;
 
