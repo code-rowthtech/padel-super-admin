@@ -33,6 +33,153 @@ import { resetSearchData } from "../../../../redux/admin/searchUserbynumber/slic
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { duration } from "@mui/material/styles";
 
+// Helper function to parse time to minutes for comparison
+const parseTimeToMinutes = (timeStr) => {
+  if (!timeStr) return null;
+  
+  let cleaned = timeStr.toString().toLowerCase().trim();
+  let hour, minute = 0, period = "";
+  
+  if (cleaned.includes("am") || cleaned.includes("pm")) {
+    period = cleaned.endsWith("am") ? "am" : "pm";
+    cleaned = cleaned.replace(/am|pm/gi, "").trim();
+  }
+  
+  if (cleaned.includes(":")) {
+    const parts = cleaned.split(":");
+    hour = parseInt(parts[0]);
+    minute = parseInt(parts[1]) || 0;
+  } else {
+    hour = parseInt(cleaned);
+  }
+  
+  if (isNaN(hour)) return null;
+  
+  // Convert to 24-hour format
+  if (period === "pm" && hour !== 12) hour += 12;
+  if (period === "am" && hour === 12) hour = 0;
+  
+  return hour * 60 + minute;
+};
+
+// Function to group consecutive slots
+const groupConsecutiveSlots = (selectedSlots, allCourtsList) => {
+  const groupedResults = [];
+  
+  Object.entries(selectedSlots)
+    .sort(([dateA], [dateB]) => new Date(dateA) - new Date(dateB))
+    .forEach(([date, dateSlots]) => {
+      Object.entries(dateSlots).forEach(([courtId, courtData]) => {
+        const court = allCourtsList.find(c => c?._id === courtId) || { courtName: "Unknown" };
+        const slots = courtData?.slots || [];
+        
+        if (slots?.length === 0) return;
+        
+        // Sort slots by time
+        const sortedSlots = [...slots].sort((a, b) => {
+          const timeA = parseTimeToMinutes(a.time);
+          const timeB = parseTimeToMinutes(b.time);
+          return timeA - timeB;
+        });
+        
+        const groups = [];
+        let currentGroup = [];
+        
+        for (let i = 0; i < sortedSlots.length; i++) {
+          const slot = sortedSlots[i];
+          
+          if (currentGroup.length === 0) {
+            currentGroup = [slot];
+          } else {
+            const lastSlot = currentGroup[currentGroup.length - 1];
+            const lastTime = parseTimeToMinutes(lastSlot.time);
+            const currentTime = parseTimeToMinutes(slot.time);
+            const timeDiff = currentTime - lastTime;
+            
+            // Check if slots are consecutive (60 minutes apart)
+            if (timeDiff === 60) {
+              currentGroup.push(slot);
+            } else {
+              groups.push([...currentGroup]);
+              currentGroup = [slot];
+            }
+          }
+        }
+        
+        // Add remaining group
+        if (currentGroup.length > 0) {
+          groups.push(currentGroup);
+        }
+        
+        // Create grouped results
+        groups.forEach(group => {
+          if (group.length === 1) {
+            // Single slot
+            const slot = group[0];
+            groupedResults.push({
+              date,
+              courtId,
+              court,
+              slots: group,
+              isGroup: false,
+              displayTime: slot.time?.replace(" am", ":00 am").replace(" pm", ":00 pm"),
+              totalAmount: Number(slot.amount || 0)
+            });
+          } else {
+            // Multiple consecutive slots - create time range
+            const startTime = group[0].time;
+            const endSlot = group[group.length - 1];
+            const endTime = endSlot.time; // Use last slot time directly
+            const totalAmount = group.reduce((sum, slot) => sum + Number(slot.amount || 0), 0);
+            
+            groupedResults.push({
+              date,
+              courtId,
+              court,
+              slots: group,
+              isGroup: true,
+              displayTime: `${formatTimeForRange(startTime)} – ${formatTimeForRange(endTime)}`,
+              totalAmount
+            });
+          }
+        });
+      });
+    });
+  
+  return groupedResults;
+};
+
+// Helper to calculate end time (use the last slot's end time, not add extra hour)
+const calculateEndTime = (timeStr) => {
+  return timeStr; // Just return the last slot time, no need to add extra hour
+};
+
+// Helper to format time for range display
+const formatTimeForRange = (timeStr) => {
+  if (!timeStr) return "";
+  
+  let cleaned = timeStr.toString().toLowerCase().trim();
+  let hour, minute = "00", period = "";
+  
+  if (cleaned.includes("am") || cleaned.includes("pm")) {
+    period = cleaned.endsWith("am") ? "AM" : "PM";
+    cleaned = cleaned.replace(/am|pm/gi, "").trim();
+  }
+  
+  if (cleaned.includes(":")) {
+    [hour, minute] = cleaned.split(":");
+  } else {
+    hour = cleaned;
+  }
+  
+  let hourNum = parseInt(hour);
+  if (isNaN(hourNum)) return timeStr;
+  
+  let formattedHour = hourNum.toString().padStart(2, "0");
+  minute = minute ? minute.padStart(2, "0") : "00";
+  return `${formattedHour}:${minute} ${period}`.trim();
+};
+
 const ManualBooking = () => {
   const dispatch = useDispatch();
   const Owner = getOwnerFromSession();
@@ -54,7 +201,7 @@ const ManualBooking = () => {
   
   // Add price calculation function
   const getPriceForSlot = (slotTime, day = selectedDay) => {
-    if (!slotPrice || !Array.isArray(slotPrice) || slotPrice.length === 0) return 1000;
+    if (!slotPrice || !Array.isArray(slotPrice) || slotPrice?.length === 0) return 1000;
 
     // Parse hour from time string
     const parseTimeToHour = (timeStr) => {
@@ -214,10 +361,10 @@ const ManualBooking = () => {
     setSelectedSlots(newSelectedSlots);
   };
 
-  const removeSlot = (date, courtId, slotId) => {
+  const removeSlotGroup = (date, courtId, slotIds) => {
     const dateSlots = selectedSlots[date] || {};
     const courtData = dateSlots[courtId] || { slots: [] };
-    const newCourtSlots = courtData?.slots.filter((t) => t?._id !== slotId);
+    const newCourtSlots = courtData?.slots.filter((t) => !slotIds.includes(t._id));
 
     const newCourtData = { ...courtData, slots: newCourtSlots };
 
@@ -1021,104 +1168,60 @@ const ManualBooking = () => {
                     </div>
                   ) : (
                     <div>
-                      {Object.entries(selectedSlots)
-                        .sort(
-                          ([dateA], [dateB]) =>
-                            new Date(dateA) - new Date(dateB)
-                        )
-                        .map(([date, dateSlots]) =>
-                          Object.entries(dateSlots).map(
-                            ([courtId, courtData]) => {
-                              const court = allCourtsList.find(
-                                (c) => c?._id === courtId
-                              ) || { courtName: "Unknown" };
-                              const slots = courtData?.slots;
-                              return (
-                                <React.Fragment key={`${date}-${courtId}`}>
-                                  {slots?.map((slot) => (
-                                    <div
-                                      key={slot?._id}
-                                      className="row mb-md-2 mb-0 pt-2 ps-2 "
-                                    >
-                                      <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
-                                        <div
-                                          className="d-flex"
-                                          style={{ color: "#000000" }}
-                                        >
-                                          <span
-                                            style={{
-                                              fontWeight: "600",
-                                              fontFamily: "Poppins",
-                                              fontSize: "14px",
-                                            }}
-                                          >
-                                            {new Date(date).toLocaleString(
-                                              "en-US",
-                                              { day: "2-digit" }
-                                            )}
-                                            ,{" "}
-                                            {new Date(date).toLocaleString(
-                                              "en-US",
-                                              { month: "short" }
-                                            )}
-                                          </span>
-                                          <span
-                                            className="ps-2"
-                                            style={{
-                                              fontWeight: "600",
-                                              fontFamily: "Poppins",
-                                              fontSize: "14px",
-                                            }}
-                                          >
-                                            {slot?.time
-                                              ?.replace(" am", ":00 am")
-                                              .replace(" pm", ":00 pm")}
-                                          </span>
-                                          <span
-                                            className="ps-2"
-                                            style={{
-                                              fontWeight: "500",
-                                              fontFamily: "Poppins",
-                                              fontSize: "13px",
-                                            }}
-                                          >
-                                            {court.courtName}
-                                          </span>
-                                        </div>
-                                        <div>
-                                          ₹
-                                          <span
-                                            className="ps-1"
-                                            style={{
-                                              fontWeight: "600",
-                                              fontFamily: "Poppins",
-                                            }}
-                                          >
-                                            {slot?.amount || "N/A"}
-                                          </span>
-                                          <FaTrash
-                                            className="ms-2 mb-1 text-danger"
-                                            style={{
-                                              cursor: "pointer",
-                                              fontSize: "12px",
-                                            }}
-                                            onClick={() =>
-                                              removeSlot(
-                                                date,
-                                                courtId,
-                                                slot?._id
-                                              )
-                                            }
-                                          />
-                                        </div>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </React.Fragment>
-                              );
-                            }
-                          )
-                        )}
+                      {(() => {
+                        const groupedSlots = groupConsecutiveSlots(selectedSlots, allCourtsList);
+                        
+                        return groupedSlots.map((group, index) => (
+                          <div key={`group-${index}`} className="row mb-md-2 mb-0 pt-2 ps-2">
+                            <div className="col-12 d-flex gap-2 mb-0 m-0 align-items-center justify-content-between">
+                              <div className="d-flex" style={{ color: "#000000" }}>
+                                <span style={{
+                                  fontWeight: "600",
+                                  fontFamily: "Poppins",
+                                  fontSize: "14px",
+                                }}>
+                                  {new Date(group.date).toLocaleString("en-US", { day: "2-digit" })}, {new Date(group.date).toLocaleString("en-US", { month: "short" })}
+                                </span>
+                                <span className="ps-2" style={{
+                                  fontWeight: "600",
+                                  fontFamily: "Poppins",
+                                  fontSize: "14px",
+                                }}>
+                                  {group.displayTime}
+                                </span>
+                                <span className="ps-2" style={{
+                                  fontWeight: "500",
+                                  fontFamily: "Poppins",
+                                  fontSize: "13px",
+                                }}>
+                                  {group.court.courtName}
+                                </span>
+                              </div>
+                              <div>
+                                ₹<span className="ps-1" style={{
+                                  fontWeight: "600",
+                                  fontFamily: "Poppins",
+                                }}>
+                                  {group.totalAmount || "N/A"}
+                                </span>
+                                <FaTrash
+                                  className="ms-2 mb-1 text-danger"
+                                  style={{
+                                    cursor: "pointer",
+                                    fontSize: "12px",
+                                  }}
+                                  onClick={() => {
+                                    // Delete all slots in the group at once
+                                    const slotIds = group.slots.map(slot => slot._id);
+                                    removeSlotGroup(group.date, group.courtId, slotIds);
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ));
+                      })()
+                      }
                     </div>
                   )}
                 </div>
