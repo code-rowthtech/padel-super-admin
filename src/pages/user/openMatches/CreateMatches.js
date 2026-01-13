@@ -968,7 +968,13 @@ const CreateMatches = () => {
       return null;
     }
 
-    let isDisabled = slot?.availabilityStatus !== "available" || isPastTime(slot?.time);
+    // Check if same time slot is selected in other courts
+    const isTimeSelectedInOtherCourt = Object.entries(selectedTimes).some(([otherCourtId, times]) => {
+      if (otherCourtId === courtId) return false; // Skip current court
+      return times.some(time => time.time === slot.time);
+    });
+
+    let isDisabled = slot?.availabilityStatus !== "available" || isPastTime(slot?.time) || isTimeSelectedInOtherCourt;
     
     // Check if slot is booked for 60 minutes - treat as partial booking
     const isBookedFor60Min = slot?.status === "booked" && slot?.duration === 60;
