@@ -18,6 +18,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { resetClub } from "../../../../redux/admin/club/slice";
 import { showError, showInfo, showWarning } from "../../../../helpers/Toast";
+import { error } from "ajv/dist/vocabularies/applicator/dependencies";
 
 // Helper: Normalize time to consistent format (e.g., "6 am" → "6 am")
 const normalizeTime = (time) => {
@@ -620,8 +621,8 @@ const Pricing = ({ setUpdateImage, onBack, onFinalSuccess }) => {
         localStorage.removeItem("owner_signup_id");
         dispatch(resetClub());
       })
-      .catch(() => {
-        showError("Failed to update prices. Please try again.");
+      .catch((error) => {
+        showError(error?.message || error);
       });
   };
 

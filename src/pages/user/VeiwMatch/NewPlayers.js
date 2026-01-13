@@ -53,7 +53,7 @@ const NewPlayers = ({
   });
   const [lastSearchedNumber, setLastSearchedNumber] = useState("");
   const [errors, setErrors] = useState({});
-  const [showErrors, setShowErrors] = useState({});
+  const [showErrors, setshowErrors] = useState({});
   const dispatch = useDispatch();
   const userLoading = useSelector(
     (state) => state?.userAuth?.userSignUpLoading
@@ -127,7 +127,7 @@ const NewPlayers = ({
       .map((p) => p?.level);
 
     setErrors(newErrors);
-    setShowErrors(
+    setshowErrors(
       Object.fromEntries(Object.keys(newErrors).map((k) => [k, true]))
     );
     return Object.keys(newErrors).length === 0;
@@ -138,7 +138,7 @@ const NewPlayers = ({
     if (!validate()) return;
 
     setErrors({});
-    setShowErrors({});
+    setshowErrors({});
 
     dispatch(Usersignup(formData))
       .unwrap()
@@ -191,7 +191,7 @@ const NewPlayers = ({
       .catch((err) => {
         const msg = err?.response?.data?.message // || "Failed to add player";
         setErrors({ submit: msg });
-        setShowErrors({ submit: true });
+        setshowErrors({ submit: true });
       });
   };
 
@@ -199,13 +199,13 @@ const NewPlayers = ({
     const formatted = formatFn ? formatFn(value) : value;
     setFormData((prev) => ({ ...prev, [field]: formatted }));
     setErrors((prev) => ({ ...prev, [field]: "" }));
-    setShowErrors((prev) => ({ ...prev, [field]: false }));
+    setshowErrors((prev) => ({ ...prev, [field]: false }));
   };
 
   useEffect(() => {
     if (showAddMeForm) {
       setErrors({});
-      setShowErrors({});
+      setshowErrors({});
       dispatch(getPlayerLevelBySkillLevel(skillDetails?.[0]));
     }
   }, [showAddMeForm, dispatch]);
@@ -214,7 +214,7 @@ const NewPlayers = ({
     const timers = Object.keys(showErrors)
       .filter((f) => showErrors[f])
       .map((f) =>
-        setTimeout(() => setShowErrors((p) => ({ ...p, [f]: false })), 2000)
+        setTimeout(() => setshowErrors((p) => ({ ...p, [f]: false })), 2000)
       );
     return () => timers.forEach(clearTimeout);
   }, [showErrors]);
@@ -380,7 +380,7 @@ const NewPlayers = ({
         setShowAddMeForm(false);
         setActiveSlot(null);
         setErrors({});
-        setShowErrors({});
+        setshowErrors({});
         setFormData({
           name: "",
           email: "",
@@ -561,7 +561,7 @@ const NewPlayers = ({
                       onChange={(e) => {
                         setFormData((prev) => ({ ...prev, gender: e.target.value }));
                         setErrors((prev) => ({ ...prev, gender: "" }));
-                        setShowErrors((prev) => ({ ...prev, gender: false }));
+                        setshowErrors((prev) => ({ ...prev, gender: false }));
                       }}
                       style={{ boxShadow: "none" }}
                     />
@@ -672,7 +672,7 @@ const NewPlayers = ({
                 setShowAddMeForm(false);
                 setActiveSlot(null);
                 setErrors({});
-                setShowErrors({});
+                setshowErrors({});
                 setFormData({
                   name: "",
                   email: "",

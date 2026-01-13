@@ -65,7 +65,7 @@ const UpdatePlayers = ({
   });
   const [lastSearchedNumber, setLastSearchedNumber] = useState("");
   const [errors, setErrors] = useState({});
-  const [showErrors, setShowErrors] = useState({});
+  const [showErrors, setshowErrors] = useState({});
   const loading = useSelector((state) => state?.userAuth?.userSignUpLoading);
   const authData = useSelector((state) => state.userAuth);
   const getPlayerLevelsLoading = useSelector(
@@ -132,7 +132,7 @@ const UpdatePlayers = ({
 
     if (Object.values(newErrors).some(Boolean)) {
       setErrors(newErrors);
-      setShowErrors(Object.fromEntries(Object.keys(newErrors).map((k) => [k, true])));
+      setshowErrors(Object.fromEntries(Object.keys(newErrors).map((k) => [k, true])));
       return;
     }
 
@@ -227,7 +227,7 @@ const UpdatePlayers = ({
     const timers = Object.keys(showErrors)
       .filter((key) => showErrors[key])
       .map((key) =>
-        setTimeout(() => setShowErrors((prev) => ({ ...prev, [key]: false })), 3000)
+        setTimeout(() => setshowErrors((prev) => ({ ...prev, [key]: false })), 3000)
       );
     return () => timers.forEach(clearTimeout);
   }, [showErrors]);
@@ -251,7 +251,7 @@ const UpdatePlayers = ({
       setFormData((prev) => ({ ...prev, type: matchId.gender, gender: autoGender }));
       setUserEnteredData((prev) => ({ ...prev, gender: autoGender }));
       setErrors({});
-      setShowErrors({});
+      setshowErrors({});
     } else if (!showModal) {
       // Complete form reset when modal closes
       setFormData({
@@ -274,7 +274,7 @@ const UpdatePlayers = ({
       });
       setLastSearchedNumber("");
       setErrors({});
-      setShowErrors({});
+      setshowErrors({});
     }
   }, [showModal, matchId?.gender]);
 
@@ -507,7 +507,7 @@ const UpdatePlayers = ({
                       onChange={(e) => {
                         setFormData((prev) => ({ ...prev, gender: e.target.value }));
                         setErrors((prev) => ({ ...prev, gender: "" }));
-                        setShowErrors((prev) => ({ ...prev, gender: false }));
+                        setshowErrors((prev) => ({ ...prev, gender: false }));
                       }}
                       style={{ boxShadow: "none" }}
                     />

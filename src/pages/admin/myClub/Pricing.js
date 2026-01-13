@@ -723,7 +723,7 @@ const Pricing = ({
         setHasPriceChanges(false);
       })
       .catch((error) => {
-        showError("Failed to update prices. Please try again.");
+        showError(error?.message || error);
       });
   };
   // Clean up direct time keys from pricing data

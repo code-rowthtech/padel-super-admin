@@ -114,13 +114,18 @@ const Home = () => {
 
   // Location detection for first-time users
   const requestLocation = useCallback(() => {
+    console.log('requestLocation called');
+    
     if (!navigator.geolocation) {
+      console.log('Geolocation not supported');
       showError('Geolocation is not supported by this browser');
       return;
     }
 
+    console.log('Calling navigator.geolocation.getCurrentPosition...');
     navigator.geolocation.getCurrentPosition(
       async (position) => {
+        console.log('Location success:', position);
         const { latitude, longitude } = position.coords;
         
         try {
@@ -148,19 +153,20 @@ const Home = () => {
         }
       },
       (error) => {
+        console.log('Location error:', error);
         localStorage.setItem('locationDetected', 'declined');
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            showError('Location access denied by user');
+            console.error('Location access denied by user');
             break;
           case error.POSITION_UNAVAILABLE:
-            showError('Location information is unavailable');
+            console.error('Location information is unavailable');
             break;
           case error.TIMEOUT:
-            showError('Location request timed out');
+            console.error('Location request timed out');
             break;
           default:
-            showError('An unknown error occurred while retrieving location');
+            console.error('An unknown error occurred while retrieving location');
             break;
         }
       },
@@ -172,16 +178,26 @@ const Home = () => {
     );
   }, [dispatch]);
 
-  // Check if user needs location detection - only show manual option
+  // Check if user needs location detection - request directly
   useEffect(() => {
     const isLocationDetected = localStorage.getItem('locationDetected');
     const hasUserCity = User?.user?.response?.city || userFromSession?.city;
     
-    // Only set the flag, don't automatically request location
+    console.log('Location check:', {
+      token: !!User?.user?.token,
+      hasUserCity: !!hasUserCity,
+      isLocationDetected,
+      locationRequested
+    });
+    
+    // Request location directly if user is logged in and doesn't have location set
     if (User?.user?.token && !hasUserCity && !isLocationDetected && !locationRequested) {
+      console.log('Requesting location...');
       setLocationRequested(true);
+      // Call immediately without delay
+      requestLocation();
     }
-  }, [User?.user?.token, User?.user?.response?.city, userFromSession?.city, locationRequested]);
+  }, [User?.user?.token, User?.user?.response?.city, userFromSession?.city, locationRequested, requestLocation]);
 
   useEffect(() => {
     dispatch(getUserClub({ search: "" }));
@@ -350,6 +366,8 @@ const Home = () => {
                 >
                   Book Now <FaArrowRight className="ms-2" />
                 </Link>
+                {/* Test Location Button - Remove after testing */}
+               
                 <style >{`
                   .book-now-btn {
                     background: #ffffff;

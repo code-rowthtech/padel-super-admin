@@ -48,7 +48,7 @@ const ResetPassword = () => {
       await dispatch(resetPassword({ email, password })).unwrap();
       navigate("/admin/login");
     } catch (err) {
-      showError("Something went wrong during password reset.");
+      showError(err);
     }
   };
 
