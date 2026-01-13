@@ -6,7 +6,7 @@ import { createMatches } from "../../../redux/user/matches/thunk";
 import { ButtonLoading } from "../../../helpers/loading/Loaders";
 import { Avatar } from "@mui/material";
 import { getUserClub } from "../../../redux/user/club/thunk";
-import { createBooking } from "../../../redux/user/booking/thunk";
+import { createBooking, removeBookedBooking } from "../../../redux/user/booking/thunk";
 import { getUserFromSession } from "../../../helpers/api/apiCore";
 import {
     MdOutlineDeleteOutline,
@@ -791,27 +791,47 @@ const OpenmatchPayment = () => {
     
     const localGrandTotal = calculateTotalAmount();
 
-    const handleDeleteSlot = (courtId, slotId) => {
-        setLocalSelectedCourts(prev => {
-            const updated = prev
-                ?.map((c) =>
-                    c?._id === courtId
-                        ? { ...c, time: c?.time.filter((s) => s?._id !== slotId) }
-                        : c
-                )
-                .filter((c) => c?.time?.length > 0);
+    const handleDeleteSlot = async (courtId, slotId) => {
+        const court = localSelectedCourts.find(c => c._id === courtId);
+        const slot = court?.time.find(t => t._id === slotId);
+        
+        if (slot) {
+            const payload = {
+                slotId: slot._id,
+                courtId: courtId,
+                bookingDate: court.date,
+                time: slot.time,
+                bookingTime: slot.bookingTime
+            };
+            
+            try {
+                const result = await dispatch(removeBookedBooking(payload));
+                if (result.payload?.deleted === true) {
+                    setLocalSelectedCourts(prev => {
+                        const updated = prev
+                            ?.map((c) =>
+                                c?._id === courtId
+                                    ? { ...c, time: c?.time.filter((s) => s?._id !== slotId) }
+                                    : c
+                            )
+                            .filter((c) => c?.time?.length > 0);
 
-            // If no slots remain, navigate back to create matches
-            if (updated?.length === 0) {
-                setTimeout(() => {
-                    navigate("/create-matches", {
-                        state: { selectedDate },
+                        // If no slots remain, navigate back to create matches
+                        if (updated?.length === 0) {
+                            setTimeout(() => {
+                                navigate("/create-matches", {
+                                    state: { selectedDate },
+                                });
+                            }, 100);
+                        }
+
+                        return updated;
                     });
-                }, 100);
+                }
+            } catch (error) {
+                console.error('Error removing slot:', error);
             }
-
-            return updated;
-        });
+        }
     };
 
     useEffect(() => {
