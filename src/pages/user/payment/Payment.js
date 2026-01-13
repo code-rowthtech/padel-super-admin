@@ -68,17 +68,19 @@ const Payment = ({ className = "" }) => {
   }, [localSelectedCourts, halfSelectedSlots]);
 
   useEffect(() => {
-    if (!courtData) {
+    // If page is refreshed and no court data exists, redirect to booking
+    if (!courtData && !location.state) {
       navigate("/booking");
       return;
     }
     setLocalSelectedCourts(selectedCourts || []);
-  }, [courtData, selectedCourts, navigate]);
+  }, [courtData, selectedCourts, navigate, location.state]);
 
   useEffect(() => {
     if (paymentConfirmed && bookingStatus?.bookingData?.message === "Bookings created") {
       setLocalSelectedCourts([]);
       setPaymentConfirmed(false);
+      // Don't auto-redirect here - let user click Continue button
     }
   }, [paymentConfirmed, bookingStatus?.bookingData?.message]);
 
@@ -96,12 +98,12 @@ const Payment = ({ className = "" }) => {
     return () => clearTimeout(timer);
   }, [errors]);
 
-  // Auto redirect when all slots are deleted
+  // Auto redirect when all slots are deleted - but NOT after successful payment
   useEffect(() => {
-    if (localSelectedCourts?.length === 0 && courtData) {
+    if (localSelectedCourts?.length === 0 && courtData && !modal) {
       navigate("/booking");
     }
-  }, [localSelectedCourts, navigate, courtData]);
+  }, [localSelectedCourts, navigate, courtData, modal]);
 
   const handleDeleteSlot = async (e, courtId, date, timeId) => {
     e.stopPropagation();
