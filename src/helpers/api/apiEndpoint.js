@@ -100,3 +100,10 @@ export const CREATE_OPEN_MATCH = "/api/openmatch/createOpenMatch ";
 export const SEARCH_USER_BY_PHONE_NUMBER =
   "/api/booking/getCustomerDataByPhoneNumber";
 export const MAP_API = "/api/googleMap/GetgoogleMap"; 
+
+
+// help and support
+
+// export const GET_HELP_AND_SUPPORT = "/api/help/getHelpAndSupport";
+export const CREATE_HELP_REQUEST = "/api/contact/submit";
+// export const GET_HELP_TICKET_STATUS = "/api/help/getHelpTicketStatus";
