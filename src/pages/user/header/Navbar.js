@@ -159,7 +159,7 @@ const Navbar = () => {
             socket.off("connect_error", handleConnectError);
             socket.disconnect();
         };
-    }, [userId, dispatch]);
+    }, [userId,open, dispatch]);
 
     useEffect(() => {
         if (store?.user?.status === '200' && store?.user?.response?.user) {

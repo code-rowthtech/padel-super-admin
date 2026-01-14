@@ -8,7 +8,9 @@ export const createMatches = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const res = await userApi.post(`${Url.CREATE_MATCHES}`, data);
-      showSuccess(res?.data?.message);
+      if (res?.data?.message === 'Open match created successfully') {
+        showSuccess(res?.data?.message);
+      }
       return res?.data;
     } catch (error) {
       showError(error?.message || error);

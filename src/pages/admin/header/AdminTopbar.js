@@ -84,7 +84,7 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
     } catch (error) {
       console.error('❌ Error loading notifications:', error);
     }
-  }, [dispatch]);
+  }, [dispatch, open]);
 
   useEffect(() => {
     if (!userId) return;
