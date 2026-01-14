@@ -133,7 +133,7 @@ const VerifyOTP = () => {
         localStorage.setItem('locationDetected', 'declined');
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            showInfo('Location access denied. You can enable it later in settings.');
+            // showInfo('Location access denied. You can enable it later in settings.');
             break;
           case error.POSITION_UNAVAILABLE:
             showError('Location information is unavailable');
