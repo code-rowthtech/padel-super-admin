@@ -225,7 +225,8 @@ const Payment = ({ className = "" }) => {
         bookingDate: slotData.bookingDate,
         time: apiTime,
         bookingTime: apiTime,
-        duration: duration
+        duration: duration,
+        loading:false
       };
       
       try {
@@ -1476,7 +1477,7 @@ const Payment = ({ className = "" }) => {
                     />
                   </g>
                 </svg>
-                <div style={contentStyle}>  {isLoading ? <ButtonLoading color="#001B76" /> : "Pay Now"}</div>
+                <div style={contentStyle}>  {isLoading || bookingStatus?.bookingLoading ? <ButtonLoading color="#001B76" /> : "Pay Now"}</div>
               </button>
             </div>
           </div>

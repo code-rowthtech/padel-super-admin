@@ -818,7 +818,8 @@ const OpenmatchPayment = () => {
                 bookingDate: court?.date,
                 time: apiTime,
                 bookingTime: slot?.bookingTime || apiTime,
-                duration: duration
+                duration: duration,
+                loading:false
             };
             
             try {
@@ -1463,7 +1464,7 @@ const OpenmatchPayment = () => {
                                                 </g>
                                             </svg>
                                             <div style={contentStyle}>
-                                                {isLoading || createMatchesLoading ? (
+                                                {isLoading  || createMatchesLoading ? (
                                                     <ButtonLoading color={"#001B76"} />
                                                 ) : (
                                                 "Pay Now"

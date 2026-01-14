@@ -1894,14 +1894,14 @@ const Booking = ({ className = "" }) => {
                           `}</style>
                         {slotData?.data?.map((court, courtIndex) => {
                           const filteredSlots = court?.slots?.filter((slot) => {
-                            const isBookedFor30Min = slot?.status === "booked" && slot?.duration === 30 && slot?.bookingTime;
-                            const isBookedFor60Min = slot?.status === "booked" && slot?.duration === 60;
+                            const isHalfBooked = slot?.status === "booked" && slot?.duration === 30;
+                            const isFullBooked = slot?.status === "booked" && slot?.duration === 60;
 
                             const basicFilter = showUnavailable
                               ? true
                               : (slot?.availabilityStatus === "available" &&
-                                !isBookedFor60Min &&
-                                !isPastTime(slot?.time)) || isBookedFor30Min; 
+                                !isFullBooked &&
+                                !isPastTime(slot?.time)) || isHalfBooked; 
 
                             const hasPrice = getPriceForSlot(slot.time, selectedDate?.day, true) !== null;
 
@@ -1951,13 +1951,13 @@ const Booking = ({ className = "" }) => {
                                     const rightKey = `${courtId}-${slot?._id}-${dateKey}-right`;
                                     const leftHalf = halfSelectedSlots.has(leftKey);
                                     const rightHalf = halfSelectedSlots.has(rightKey);
-                                    const hasThirtyMinPrice = slot?.has30MinPrice === true;
+                                    const hasThirtyMinPrice = slot?.has30MinPrice === true ;
                                     const slotKey = `${courtId}-${slot?._id}-${dateKey}`;
                                     const isThisSlotLoading = loadingSlotId === slotKey;
 
                                     // ✅ PEHLE declare karo, phir use karo
                                     const currentCourtTimes = selectedTimes[courtId]?.[dateKey] || [];
-                                    const isSlotSelected = currentCourtTimes.some(t => t._id === slot._id);
+                                    const isSlotSelected = currentCourtTimes.some(t => t?._id === slot?._id);
 
                                     const currentTotalSlots = Object.values(selectedTimes).reduce((total, courtDates) => {
                                       return total + Object.values(courtDates).reduce((dateTotal, timeSlots) => {
