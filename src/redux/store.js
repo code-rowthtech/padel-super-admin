@@ -20,6 +20,7 @@ import notificationDataReducer from "./admin/notifiction/slice";
 import userNotificationDataReducer from "./user/notifiction/slice";
 import searchUserByNumberReducer from "./admin/searchUserbynumber/slice";
 import requestDataReducer from "./user/playerrequest/slice";
+import helpDataReducer from './user/help&support/slice'
 const store = configureStore({
   reducer: {
     ownerAuth: ownerAuthReducer,
@@ -41,6 +42,8 @@ const store = configureStore({
     userMatches: userMatchesReducer,
     userNotificationData: userNotificationDataReducer,
     requestData: requestDataReducer,
+    helpData: helpDataReducer,
+
 
   },
 });

@@ -12,26 +12,11 @@ import {
   Badge,
   Modal,
 } from 'react-bootstrap';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { createHelpRequest } from '../../../redux/user/help&support/thunk';
+import { ButtonLoading } from '../../../helpers/loading/Loaders';
 
-/*
-  Padel Help & Support Page (single-file React component)
 
-  Usage:
-  1. Ensure Bootstrap CSS is loaded in your app (e.g. in index.js):
-     import 'bootstrap/dist/css/bootstrap.min.css';
-
-  2. Place this component on any route or page.
-
-  Features included:
-  - Search bar for knowledgebase articles
-  - Sidebar quick links (FAQs, Contact, Booking Issues, Payments)
-  - Featured help articles list
-  - FAQ accordion
-  - Contact / Support request form with simple validation
-  - Live chat modal placeholder
-  - Responsive layout using react-bootstrap
-*/
 
 const sampleArticles = [
   {
@@ -84,6 +69,7 @@ const faqs = [
 ];
 
 export default function PadelSupportPage() {
+  const dispatch = useDispatch()
   const [query, setQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState('All');
   const [showChat, setShowChat] = useState(false);
@@ -93,7 +79,8 @@ export default function PadelSupportPage() {
   const [activeSection, setActiveSection] = useState('submit');
   const store = useSelector((state) => state)
   const ownerId = store?.userClub?.clubData?.data?.courts?.[0]?.ownerId;
-
+  const helpData = store?.helpData;
+  console.log({ helpData });
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -112,11 +99,13 @@ export default function PadelSupportPage() {
   function handleSubmit(e) {
     e.preventDefault();
     if (!validateForm()) return;
-    setSent(false);
-    setTimeout(() => {
-      setSent(true);
-      setForm({ name: '', email: '', subject: '', message: '' });
-    }, 700);
+    dispatch(createHelpRequest(form)).unwrap().then((result) => {
+      if (result?.status === 201) {
+        setSent(true);
+        setForm({ name: '', email: '', subject: '', message: '' });
+        setTimeout(() => setSent(false), 5000);
+      }
+    });
   }
 
   return (
@@ -140,7 +129,7 @@ export default function PadelSupportPage() {
             <Card className="shadow-sm border-0">
               <Card.Body>
                 <Row className="align-items-center">
-                  <Col md={8} xs={12}>
+                  <Col md={8} xs={8}>
                     <h2 className="mb-1 home-upcoming-heading">Padel Help & Support</h2>
                     {/* <p className="text-muted mb-2">Find answers, contact support, or start a live conversation.</p>
 
@@ -163,11 +152,8 @@ export default function PadelSupportPage() {
                     </Form> */}
                   </Col>
 
-                  <Col md={4} xs={12} className="text-md-end mt-3 mt-md-0">
-                    <Button variant="success" className="me-2 book-now-btn" onClick={() => setActiveSection('submit')}>
-                      Submit a request
-                    </Button>
-                    <Button className="book-now-btn" variant="outline-primary" onClick={() => alert('Call us at +91 98765 43210')}>
+                  <Col md={4} xs={4} className="text-md-end mt-3 mt-md-0">
+                    <Button className="book-now-btn" variant="outline-primary" onClick={() => window.location.href = `tel:${ownerId?.countryCode}${ownerId?.phoneNumber}`}>
                       Call support
                     </Button>
                   </Col>
@@ -181,8 +167,8 @@ export default function PadelSupportPage() {
           <Col xs={12} md={10} lg={9}>
             <Row className="d-flex align-items-stretch">
               <Col lg={4} className="mb-4 d-flex">
-                <Card className="mb-3 shadow-sm w-100">
-                  <Card.Body className="h-100">
+                <Card className="shadow-sm w-100 h-100">
+                  <Card.Body className="d-flex flex-column h-100">
                     <h5 className='add_font_size_nav_logo'>Quick links</h5>
                     <ListGroup variant="flush">
                       <ListGroup.Item
@@ -206,8 +192,8 @@ export default function PadelSupportPage() {
 
               <Col lg={8} className="mb-4 d-flex">
                 {activeSection === 'faq' && (
-                  <Card className="shadow-sm w-100">
-                    <Card.Body className="h-100">
+                  <Card className="shadow-sm w-100 h-100">
+                    <Card.Body className="d-flex flex-column h-100">
                       <h5 className='add_font_size_nav_logo'>Frequently asked questions</h5>
                       <Accordion>
                         {faqs.map((f, i) => (
@@ -283,7 +269,7 @@ export default function PadelSupportPage() {
                         </Form.Group>
 
                         <div className="d-flex gap-2">
-                          <Button type="submit">Send request</Button>
+                          <Button type="submit">{helpData?.helpLoading ? <ButtonLoading /> : 'Send request'}</Button>
                           <Button variant="outline-secondary" onClick={() => setForm({ name: '', email: '', subject: '', message: '' })}>
                             Reset
                           </Button>
