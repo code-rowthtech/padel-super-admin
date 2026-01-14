@@ -52,9 +52,14 @@ const bookingSlice = createSlice({
                 state.bookingError = action.payload;
             })
 
-              // create booking slice
-            .addCase(removeBookedBooking.pending, (state) => {
-                state.bookingLoading = true;
+            // create booking slice
+            .addCase(removeBookedBooking.pending, (state, action) => {
+                console.log({ action });
+                if (action?.meta?.arg?.loading === false) {
+                    state.bookingLoading = false;
+                } else {
+                    state.bookingLoading = true;
+                }
                 state.bookingError = null;
             })
             .addCase(removeBookedBooking.fulfilled, (state, action) => {

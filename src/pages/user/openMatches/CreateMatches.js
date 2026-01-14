@@ -1562,16 +1562,15 @@ const CreateMatches = () => {
                         `}</style>
                         {slotData?.data?.map((court, courtIndex) => {
                           const filteredSlots = court?.slots?.filter((slot) => {
-                            // Check if slot is booked for 30 minutes or 60 minutes - these should still show
-                            const isBookedFor30Min = slot?.status === "booked" && slot?.duration === 30 && slot?.bookingTime;
-                            const isBookedFor60Min = slot?.status === "booked" && slot?.duration === 60 && slot?.bookingTime;
+                            const isHalfBooked = slot?.status === "booked" && slot?.duration === 30;
+                            const isFullBooked = slot?.status === "booked" && slot?.duration === 60;
                             
                             const basicFilter = showUnavailable
                               ? true
                               : (slot?.availabilityStatus === "available" &&
-                                !isPastTime(slot?.time)) || isBookedFor30Min; // Only include 30min booked slots, exclude 60min booked slots
+                                !isFullBooked &&
+                                !isPastTime(slot?.time)) || isHalfBooked;
                             
-                            // Check if price exists
                             const hasPrice = getPriceForSlot(slot.time, selectedDate?.day, slot?.has30MinPrice === true) !== null;
                             
                             return basicFilter && hasPrice;
