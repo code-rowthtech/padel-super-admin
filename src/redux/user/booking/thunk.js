@@ -26,7 +26,7 @@ export const checkBooking = createAsyncThunk(
       const res = await userApi.post(`${Url.CHECK_BOOKING_API}`, data);
       return res?.data;
     } catch (error) {
-      showError(error || error?.message);
+      // showError(error || error?.message);
       return rejectWithValue(error);
     }
   }
@@ -40,7 +40,7 @@ export const removeBookedBooking = createAsyncThunk(
       const res = await userApi.delete(`${Url.REMOVE_BOOKING_API}`,  data );
       return res?.data;
     } catch (error) {
-      showError(error || error?.message);
+      // showError(error || error?.message);
       return rejectWithValue(error);
     }
   }
