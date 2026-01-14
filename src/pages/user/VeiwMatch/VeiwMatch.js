@@ -718,7 +718,6 @@ const ViewMatch = ({ match, onBack, matchBookingId, selectedDate, isFromBookingH
                             Information
                         </h6>
                     </div>
-
                     <div className="d-lg-flex justify-content-lg-between gap-2 position-relative">
                         <div className="d-flex mb-md-4 mb-2 align-items-center gap-3 px-2 px-md-0">
                             <i className="bi bi-layout-text-window-reverse fs-2 text-dark" />
