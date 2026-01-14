@@ -480,7 +480,8 @@ const Booking = ({ className = "" }) => {
           courtId: courtId,
           bookingDate: selectedDate?.fullDate,
           time: slot?.time,
-          bookingTime: slot?.time
+          bookingTime: slot?.time,
+          duration: 60
         };
 
         dispatch(removeBookedBooking(payload)).then((result) => {
