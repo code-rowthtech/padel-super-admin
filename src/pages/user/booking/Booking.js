@@ -598,7 +598,7 @@ const Booking = ({ className = "" }) => {
       const otherTimes = currentCourtTimes.filter(t => t?._id !== slot?._id);
       const willHaveLeft = isLeft ? true : halfSelectedSlots.has(leftKey);
       const willHaveRight = !isLeft ? true : halfSelectedSlots.has(rightKey);
-      
+
       const apiTime = isLeft ? slot?.time : slot?.time.replace(":00", ":30").replace(/\s*(am|pm)/i, ":30 $1");
       const displayTime = willHaveRight && !willHaveLeft
         ? slot?.time.replace(":00", ":30").replace(/\s*(am|pm)/i, ":30 $1")
@@ -917,14 +917,14 @@ const Booking = ({ className = "" }) => {
     // Call removeBookedBooking API for all slots to be removed
     slotsToRemove.forEach(async (slot) => {
       // Determine if this is a half-slot deletion
-      const isHalfSlot = timeId.includes('-left') || timeId.includes('-right') || 
-                        halfSelectedSlots.has(`${courtId}-${slot._id || slot.originalId || timeId}-${date}-left`) ||
-                        halfSelectedSlots.has(`${courtId}-${slot._id || slot.originalId || timeId}-${date}-right`);
-      
+      const isHalfSlot = timeId.includes('-left') || timeId.includes('-right') ||
+        halfSelectedSlots.has(`${courtId}-${slot._id || slot.originalId || timeId}-${date}-left`) ||
+        halfSelectedSlots.has(`${courtId}-${slot._id || slot.originalId || timeId}-${date}-right`);
+
       // For half-slots, determine which side and send appropriate time
       let apiTime = slot?.time;
       let duration = 60; // default
-      
+
       if (isHalfSlot) {
         duration = 30;
         // Check if this is a right-side half slot (contains :30)
@@ -1818,14 +1818,25 @@ const Booking = ({ className = "" }) => {
             <div
               className={`mb-md-0 mb-3 overflow-slot border-0 rounded-3 ${slotData?.data?.some((court) => {
                 const filteredSlots = court?.slots?.filter((slot) => {
-                  const isBookedFor30Min = slot?.status === "booked" && slot?.duration === 30 && slot?.bookingTime;
-                  const isBookedFor60Min = slot?.status === "booked" && slot?.duration === 60;
+                  const isBooked = slot?.status === "booked";
+
+                  const isHalfBooked =
+                    isBooked &&
+                    slot?.duration === 30 &&
+                    slot?.bookingCount === 1;
+
+                  const isFullBooked =
+                    isBooked &&
+                    (
+                      (slot?.duration === 30 && slot?.bookingCount === 2) ||
+                      (slot?.duration === 60 && slot?.bookingCount === 1)
+                    );
 
                   const basicFilter =
                     showUnavailable ||
                     (slot?.availabilityStatus === "available" &&
-                      !isBookedFor60Min &&
-                      !isPastTime(slot?.time)) || isBookedFor30Min;
+                      !isFullBooked &&
+                      !isPastTime(slot?.time)) || isHalfBooked;
 
                   // Filter by selected duration and check if price exists
                   const hasPrice = getPriceForSlot(slot.time, selectedDate?.day, true) !== null;
@@ -1849,14 +1860,23 @@ const Booking = ({ className = "" }) => {
                       {slotData?.data?.length > 0 &&
                         slotData?.data?.some(
                           (court) => court?.slots?.some((slot) => {
-                            const isBookedFor30Min = slot?.status === "booked" && slot?.duration === 30 && slot?.bookingTime;
-                            const isBookedFor60Min = slot?.status === "booked" && slot?.duration === 60;
+                            const isBooked = slot?.status === "booked";
+                            const isHalfBooked =
+                              isBooked &&
+                              slot?.duration === 30 &&
+                              slot?.bookingCount === 1;
+                            const isFullBooked =
+                              isBooked &&
+                              (
+                                (slot?.duration === 30 && slot?.bookingCount === 2) ||
+                                (slot?.duration === 60 && slot?.bookingCount === 1)
+                              );
 
                             const basicFilter = showUnavailable
                               ? true
                               : (slot?.availabilityStatus === "available" &&
-                                !isBookedFor60Min &&
-                                !isPastTime(slot?.time)) || isBookedFor30Min;
+                                !isFullBooked &&
+                                !isPastTime(slot?.time)) || isHalfBooked;
                             const hasPrice = getPriceForSlot(slot.time, selectedDate?.day, true) !== null;
                             return basicFilter && hasPrice;
                           })
@@ -1895,14 +1915,25 @@ const Booking = ({ className = "" }) => {
                           `}</style>
                         {slotData?.data?.map((court, courtIndex) => {
                           const filteredSlots = court?.slots?.filter((slot) => {
-                            const isHalfBooked = slot?.status === "booked" && slot?.duration === 30;
-                            const isFullBooked = slot?.status === "booked" && slot?.duration === 60;
+                            const isBooked = slot?.status === "booked";
+
+                            const isHalfBooked =
+                              isBooked &&
+                              slot?.duration === 30 &&
+                              slot?.bookingCount === 1;
+
+                            const isFullBooked =
+                              isBooked &&
+                              (
+                                (slot?.duration === 30 && slot?.bookingCount === 2) ||
+                                (slot?.duration === 60 && slot?.bookingCount === 1)
+                              );
 
                             const basicFilter = showUnavailable
                               ? true
                               : (slot?.availabilityStatus === "available" &&
                                 !isFullBooked &&
-                                !isPastTime(slot?.time)) || isHalfBooked; 
+                                !isPastTime(slot?.time)) || isHalfBooked;
 
                             const hasPrice = getPriceForSlot(slot.time, selectedDate?.day, true) !== null;
 
@@ -1952,7 +1983,7 @@ const Booking = ({ className = "" }) => {
                                     const rightKey = `${courtId}-${slot?._id}-${dateKey}-right`;
                                     const leftHalf = halfSelectedSlots.has(leftKey);
                                     const rightHalf = halfSelectedSlots.has(rightKey);
-                                    const hasThirtyMinPrice = slot?.has30MinPrice === true ;
+                                    const hasThirtyMinPrice = slot?.has30MinPrice === true;
                                     const slotKey = `${courtId}-${slot?._id}-${dateKey}`;
                                     const isThisSlotLoading = loadingSlotId === slotKey;
 

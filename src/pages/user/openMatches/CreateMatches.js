@@ -39,7 +39,7 @@ import { MatchplayerShimmer } from "../../../helpers/loading/ShimmerLoading";
 import { checkBooking, removeBookedBooking } from "../../../redux/user/booking/thunk";
 import { showError, showWarning } from "../../../helpers/Toast";
 
-const MAX_SLOTS = 3; 
+const MAX_SLOTS = 3;
 const MAX_HALF_SLOTS = 6;
 
 const parseTimeToHour = (timeStr) => {
@@ -343,7 +343,7 @@ const CreateMatches = () => {
       if ((clickSide === "left" && leftHalf) || (clickSide === "right" && rightHalf)) {
         const targetKey = clickSide === "left" ? leftKey : rightKey;
         setLoadingSlotId(slotKey);
-        
+
         const apiTime = clickSide === "left" ? time.time : time?.time.replace(":00", ":30").replace(/\s*(am|pm)/i, ":30 $1");
         const payload = {
           slotId: time._id,
@@ -431,7 +431,7 @@ const CreateMatches = () => {
           // Check if there are any remaining half selections after this toggle
           const willHaveLeft = clickSide === "left" ? true : halfSelectedSlots.has(leftKey);
           const willHaveRight = clickSide === "right" ? true : halfSelectedSlots.has(rightKey);
-          
+
           if (willHaveLeft || willHaveRight) {
             // Calculate amount based on final selection state
             let amount;
@@ -695,28 +695,28 @@ const CreateMatches = () => {
     for (let i = 1; i < sortedSlots.length; i++) {
       const currentHour = parseTimeToHour(sortedSlots[i].time);
       const prevHour = parseTimeToHour(sortedSlots[i - 1].time);
-      
+
       // Check if current slot is consecutive to previous
       const isConsecutive = currentHour === prevHour + 1;
-      
+
       // For half slots, also check if they form a continuous sequence
       const currentLeftKey = `${courtId}-${sortedSlots[i]._id}-${dateKey}-left`;
       const currentRightKey = `${courtId}-${sortedSlots[i]._id}-${dateKey}-right`;
       const prevLeftKey = `${courtId}-${sortedSlots[i - 1]._id}-${dateKey}-left`;
       const prevRightKey = `${courtId}-${sortedSlots[i - 1]._id}-${dateKey}-right`;
-      
+
       const currentHasLeft = halfSelectedSlots.has(currentLeftKey);
       const currentHasRight = halfSelectedSlots.has(currentRightKey);
       const prevHasLeft = halfSelectedSlots.has(prevLeftKey);
       const prevHasRight = halfSelectedSlots.has(prevRightKey);
-      
+
       // Check if half slots form a continuous sequence
       const isHalfConsecutive = isConsecutive && (
         (prevHasRight && currentHasLeft) || // Previous right half + current left half
         (prevHasLeft && prevHasRight && currentHasLeft) || // Previous full + current left
         (!prevHasLeft && !prevHasRight && !currentHasLeft && !currentHasRight) // Both full slots
       );
-      
+
       if (isConsecutive && (isHalfConsecutive || (!currentHasLeft && !currentHasRight && !prevHasLeft && !prevHasRight))) {
         currentGroup.push(sortedSlots[i]);
       } else {
@@ -724,7 +724,7 @@ const CreateMatches = () => {
         currentGroup = [sortedSlots[i]];
       }
     }
-    
+
     groups.push(currentGroup);
     return groups;
   };
@@ -734,13 +734,13 @@ const CreateMatches = () => {
     if (group.length === 1) {
       return formatTimeForDisplay(group[0].time);
     }
-    
+
     const startTime = group[0].time;
     const endTime = group[group.length - 1].time;
     const endHour = parseTimeToHour(endTime) + 1;
     const endPeriod = endHour >= 12 ? 'pm' : 'am';
     const displayEndHour = endHour > 12 ? endHour - 12 : endHour === 0 ? 12 : endHour;
-    
+
     return `${formatTimeForDisplay(startTime).replace(/:\d{2}/, '')} - ${displayEndHour}:00 ${endPeriod}`;
   };
 
@@ -844,7 +844,7 @@ const CreateMatches = () => {
   useEffect(() => {
     const totalSelected = Object.values(selectedTimes).flat().length;
     const totalHalfSelected = halfSelectedSlots.size;
-    
+
     const tooltip = document.getElementById('slot-limit-tooltip-create') || (() => {
       const newTooltip = document.createElement('div');
       newTooltip.id = 'slot-limit-tooltip-create';
@@ -975,27 +975,27 @@ const CreateMatches = () => {
     });
 
     let isDisabled = slot?.availabilityStatus !== "available" || isPastTime(slot?.time) || isTimeSelectedInOtherCourt;
-    
+
     // Check if slot is booked for 60 minutes - treat as partial booking
     const isBookedFor60Min = slot?.status === "booked" && slot?.duration === 60;
     const bookingTime = slot?.bookingTime?.trim();
-    
+
     // For 60-minute bookings, determine which side should be disabled
     let shouldDisableLeftClick = false;
     let shouldDisableRightClick = false;
-    
+
     if (isBookedFor60Min && bookingTime) {
       // If booked at 3:30 PM, disable right side of 3 PM slot
       const isRightBooked = /:30\s*(AM|PM)?$/i.test(bookingTime);
       const isLeftBooked = (/:(00|0)\s*(AM|PM)?$/i.test(bookingTime) || /^\d{1,2}\s*(am|pm)$/i.test(bookingTime));
-      
+
       if (isRightBooked) {
         shouldDisableRightClick = true;
       } else if (isLeftBooked) {
         shouldDisableLeftClick = true;
       }
     }
-    
+
     // Check if slot is already booked for 30 minutes
     const isSlotBookedFor30Min = slot?.duration === 30 && bookingTime;
     if (isSlotBookedFor30Min) {
@@ -1017,7 +1017,7 @@ const CreateMatches = () => {
       if (leftHalf && rightHalf) {
         return "linear-gradient(180deg, #0034E4 0%, #001B76 100%)"; // Full blue when both selected
       }
-      
+
       // Handle booked slots with grey background for disabled side
       if (isSlotBookedFor30Min || isBookedFor60Min) {
         if (shouldDisableLeftClick) {
@@ -1029,7 +1029,7 @@ const CreateMatches = () => {
           return leftHalf ? "linear-gradient(to right, #0034E4 50%, #9ca3af 50%)" : "linear-gradient(to right, #FFFFFF 50%, #9ca3af 50%)";
         }
       }
-      
+
       if (leftHalf) {
         return "linear-gradient(to right, #0034E4 50%, #FFFFFF 50%)"; // Left blue, right white
       }
@@ -1046,13 +1046,13 @@ const CreateMatches = () => {
       if (hasThirtyMinPrice) {
         const rect = e.currentTarget.getBoundingClientRect();
         const clickSide = (e.clientX - rect.left) < rect.width / 2 ? "left" : "right";
-        
+
         // Check if this side is disabled due to existing booking
-        if ((clickSide === "left" && shouldDisableLeftClick) || 
-            (clickSide === "right" && shouldDisableRightClick)) {
+        if ((clickSide === "left" && shouldDisableLeftClick) ||
+          (clickSide === "right" && shouldDisableRightClick)) {
           return; // Don't allow click on disabled side
         }
-        
+
         toggleTime(slot, courtId, dateKey, clickSide);
       } else {
         toggleTime(slot, courtId, dateKey);
@@ -1082,8 +1082,8 @@ const CreateMatches = () => {
           {/* Text display logic */}
           {isThisSlotLoading ? (
             <div className="d-flex justify-content-center align-items-center">
-              <div 
-                className="spinner-border spinner-border-sm" 
+              <div
+                className="spinner-border spinner-border-sm"
                 role="status"
                 style={{
                   width: "20px",
@@ -1431,7 +1431,7 @@ const CreateMatches = () => {
                           setSelectedDate({ fullDate: d?.fullDate, day: d?.day });
                           const [year, month, dayNum] = d?.fullDate?.split('-').map(Number);
                           setStartDate(new Date(year, month - 1, dayNum));
-                          dispatch(getUserSlotBooking({ day: d?.day, date: d?.fullDate,  register_club_id: localStorage.getItem("register_club_id") || "" }));
+                          dispatch(getUserSlotBooking({ day: d?.day, date: d?.fullDate, register_club_id: localStorage.getItem("register_club_id") || "" }));
                           dispatch(getUserHalfSlotPrice({ day: d?.day, register_club_id: localStorage.getItem("register_club_id") || "" }));
                         }}
                         onMouseEnter={(e) => !isSelected && (e.currentTarget.style.border = "1px solid #3DBE64")}
@@ -1484,15 +1484,28 @@ const CreateMatches = () => {
                     <div className="p-0">
                       {slotData?.data?.some((court) =>
                         court?.slots?.some((slot) => {
-                          const isBookedFor30Min = slot?.status === "booked" && slot?.duration === 30 && slot?.bookingTime;
-                          const isBookedFor60Min = slot?.status === "booked" && slot?.duration === 60;
-                          
-                          const basicFilter = showUnavailable ||
-                            (slot?.availabilityStatus === "available" &&
-                              !isPastTime(slot?.time)) || isBookedFor30Min;
-                          
+                          const isHalfBooked =
+                            slot?.status === "booked" &&
+                            slot?.duration === 30 &&
+                            slot?.bookingCount === 1;
+
+                          const isFullBooked =
+                            slot?.status === "booked" &&
+                            (
+                              slot?.bookingCount === 2 ||      // 30 min completed twice
+                              slot?.duration === 60            // 60 min always full
+                            );
+
+                          const basicFilter = showUnavailable
+                            ? true
+                            : (
+                              slot?.availabilityStatus === "available" &&
+                              !isFullBooked &&
+                              !isPastTime(slot?.time)
+                            ) || isHalfBooked;
+
                           const hasPrice = getPriceForSlot(slot.time, selectedDate?.day, true) !== null;
-                          
+
                           return basicFilter && hasPrice;
                         })
                       ) && (
@@ -1562,16 +1575,33 @@ const CreateMatches = () => {
                         `}</style>
                         {slotData?.data?.map((court, courtIndex) => {
                           const filteredSlots = court?.slots?.filter((slot) => {
-                            const isHalfBooked = slot?.status === "booked" && slot?.duration === 30;
-                            const isFullBooked = slot?.status === "booked" && slot?.duration === 60;
+                            const isHalfBooked =
+                              slot?.status === "booked" &&
+                              slot?.duration === 30 &&
+                              slot?.bookingCount === 1;
+
+                            const isFullBooked =
+                              slot?.status === "booked" &&
+                              (
+                                slot?.bookingCount === 2 ||     // 30 min fully booked
+                                slot?.duration === 60           // 60 min always full
+                              );
+
                             const basicFilter = showUnavailable
                               ? true
-                              : (slot?.availabilityStatus === "available" &&
+                              : (
+                                slot?.availabilityStatus === "available" &&
                                 !isFullBooked &&
-                                !isPastTime(slot?.time)) || isHalfBooked;
-                            
-                            const hasPrice = getPriceForSlot(slot.time, selectedDate?.day, slot?.has30MinPrice === true) !== null;
-                            
+                                !isPastTime(slot?.time)
+                              ) || isHalfBooked;
+
+                            const hasPrice =
+                              getPriceForSlot(
+                                slot.time,
+                                selectedDate?.day,
+                                slot?.has30MinPrice === true
+                              ) !== null;
+
                             return basicFilter && hasPrice;
                           });
                           if (filteredSlots?.length === 0) return null;
@@ -1618,15 +1648,28 @@ const CreateMatches = () => {
                       </div>
                       {slotData?.data?.some((court) =>
                         court?.slots?.some((slot) => {
-                          const isBookedFor30Min = slot?.status === "booked" && slot?.duration === 30 && slot?.bookingTime;
-                          const isBookedFor60Min = slot?.status === "booked" && slot?.duration === 60;
-                          
-                          const basicFilter = showUnavailable ||
-                            (slot?.availabilityStatus === "available" &&
-                              !isPastTime(slot?.time)) || isBookedFor30Min;
-                          
+                          const isHalfBooked =
+                            slot?.status === "booked" &&
+                            slot?.duration === 30 &&
+                            slot?.bookingCount === 1;
+
+                          const isFullBooked =
+                            slot?.status === "booked" &&
+                            (
+                              slot?.bookingCount === 2 ||
+                              slot?.duration === 60
+                            );
+
+                          const basicFilter = showUnavailable
+                            ? true
+                            : (
+                              slot?.availabilityStatus === "available" &&
+                              !isFullBooked &&
+                              !isPastTime(slot?.time)
+                            ) || isHalfBooked;
+
                           const hasPrice = getPriceForSlot(slot.time, selectedDate?.day, true) !== null;
-                          
+
                           return basicFilter && hasPrice;
                         })
                       ) && (
@@ -1658,15 +1701,28 @@ const CreateMatches = () => {
                       (court) =>
                         !court?.slots?.some(
                           (slot) => {
-                            const isBookedFor30Min = slot?.status === "booked" && slot?.duration === 30 && slot?.bookingTime;
-                            const isBookedFor60Min = slot?.status === "booked" && slot?.duration === 60;
-                            
-                            const basicFilter = showUnavailable ||
-                              (slot?.availabilityStatus === "available" &&
-                                !isPastTime(slot?.time)) || isBookedFor30Min;
-                            
+                            const isHalfBooked =
+                              slot?.status === "booked" &&
+                              slot?.duration === 30 &&
+                              slot?.bookingCount === 1;
+
+                            const isFullBooked =
+                              slot?.status === "booked" &&
+                              (
+                                slot?.bookingCount === 2 ||
+                                slot?.duration === 60
+                              );
+
+                            const basicFilter = showUnavailable
+                              ? true
+                              : (
+                                slot?.availabilityStatus === "available" &&
+                                !isFullBooked &&
+                                !isPastTime(slot?.time)
+                              ) || isHalfBooked;
+
                             const hasPrice = getPriceForSlot(slot.time, selectedDate?.day, slot?.has30MinPrice === true) !== null;
-                            
+
                             return basicFilter && hasPrice;
                           }
                         )
@@ -1810,7 +1866,7 @@ const CreateMatches = () => {
                                 // Remove all slots in this group and clear half selections
                                 group.forEach(timeSlot => {
                                   const targetId = timeSlot.originalId || timeSlot._id;
-                                  
+
                                   // Clear half selections for this slot
                                   const leftKey = `${court._id}-${targetId}-${court.date}-left`;
                                   const rightKey = `${court._id}-${targetId}-${court.date}-right`;
@@ -1821,7 +1877,7 @@ const CreateMatches = () => {
                                     return s;
                                   });
                                 });
-                                
+
                                 const groupIds = group.map(slot => slot.originalId || slot._id);
                                 const updatedCourts = selectedCourts
                                   ?.map((c) =>
