@@ -1564,7 +1564,6 @@ const CreateMatches = () => {
                           const filteredSlots = court?.slots?.filter((slot) => {
                             const isHalfBooked = slot?.status === "booked" && slot?.duration === 30;
                             const isFullBooked = slot?.status === "booked" && slot?.duration === 60;
-                            
                             const basicFilter = showUnavailable
                               ? true
                               : (slot?.availabilityStatus === "available" &&
