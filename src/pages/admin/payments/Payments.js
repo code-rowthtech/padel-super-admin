@@ -1,11 +1,11 @@
 import React from "react";
 import { useEffect, useState } from "react";
-import { Row, Col, Container, Table, Card } from "react-bootstrap";
+import { Row, Col, Container, Table, Card, Form, Button } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { MdDateRange, MdOutlineDateRange } from "react-icons/md";
-import { FaTimes } from "react-icons/fa";
+import { FaTimes, FaSearch, FaFilter, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { AppBar, Tabs, Tab, Box } from "@mui/material";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
@@ -23,6 +23,7 @@ import {
 } from "../../../redux/thunks";
 import { Link } from "react-router-dom";
 import { PaymentDetailsModal } from "./modals/PaymentDetailModal";
+import { CreatePaymentModal } from "./modals/CreatePaymentModal";
 import { resetBookingData } from "../../../redux/admin/booking/slice";
 import Pagination from "../../../helpers/Pagination";
 
@@ -42,6 +43,15 @@ const Payments = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showPaymentDetails, setShowPaymentDetails] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  
+  // Sidebar filters
+  const [selectedClub, setSelectedClub] = useState("");
+  const [paymentStatus, setPaymentStatus] = useState(""); // "paid" or "unpaid"
+  const [selectedPayments, setSelectedPayments] = useState([]);
+  const [selectAll, setSelectAll] = useState(false);
+  const [showCreatePayment, setShowCreatePayment] = useState(false);
+  const [currentPaymentId, setCurrentPaymentId] = useState(null);
+console.log(selectedPayments,'selectedPayments');
 
   const setDateRange = (update) => {
     setStartDate(update[0]);
@@ -141,28 +151,28 @@ const Payments = () => {
 
   const summaryCards = [
     {
-      title: "Today Collection",
+      title: "Today",
       value: formatAmount(paymentCounts.totalAmountToday),
       percent: "+15%",
       icon: <BsArrowUpRightCircleFill />,
       color: "success",
-      bigicon: <FaChartLine size={35} />,
+      bigicon: <FaChartLine size={24} />,
     },
     {
-      title: "Monthly Collection",
+      title: "Monthly",
       value: formatAmount(paymentCounts.totalAmountMonth),
       percent: "-3.5%",
       icon: <BsFillArrowDownLeftCircleFill />,
       color: "danger",
-      bigicon: <FaChartLine size={35} />,
+      bigicon: <FaChartLine size={24} />,
     },
     {
-      title: "Refund Amount",
+      title: "Refund",
       value: formatAmount(paymentCounts.totalRefunded),
       percent: "+15%",
       icon: <BsArrowUpRightCircleFill />,
       color: "success",
-      bigicon: <FaChartLine size={35} />,
+      bigicon: <FaChartLine size={24} />,
     },
   ];
 
@@ -171,86 +181,122 @@ const Payments = () => {
     setCurrentPage(pageNumber);
   };
 
+  // Handle checkbox selection
+  const handleSelectAll = (e) => {
+    setSelectAll(e.target.checked);
+    if (e.target.checked) {
+      setSelectedPayments(payments.map(p => p._id));
+    } else {
+      setSelectedPayments([]);
+    }
+  };
+
+  const handleSelectPayment = (id) => {
+    if (selectedPayments.includes(id)) {
+      setSelectedPayments(selectedPayments.filter(p => p !== id));
+    } else {
+      setSelectedPayments([...selectedPayments, id]);
+    }
+  };
+
+  // Calculate totals
+  const totalPaid = payments.filter(p => p.paymentStatus === "paid").reduce((sum, p) => sum + (p.totalAmount || 0), 0);
+  const totalUnpaid = payments.filter(p => p.paymentStatus === "unpaid").reduce((sum, p) => sum + (p.totalAmount || 0), 0);
+
+  const handleCreatePayment = (paymentId = null) => {
+    setCurrentPaymentId(paymentId);
+    setShowCreatePayment(true);
+  };
+
   const renderSlotTimes = (slotTimes) =>
     slotTimes?.length ? slotTimes.map((slot) => slot.time).join(", ") : "-";
+  
   return (
-    <Container fluid className=" px-0 px-md-4  mt-md-0 mt-2">
-      <Row className="mb-0">
+    <Container fluid className="px-0 px-md-0 mt-md-0 mt-2">
+      <style>
+        {`
+          .payment-card-hover {
+            transition: transform 0.2s, box-shadow 0.2s;
+          }
+          .payment-card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1) !important;
+          }
+          .filter-section {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+          }
+          .table-row-hover:hover {
+            background-color: #f8f9fa !important;
+            transform: scale(1.01);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+          }
+          .action-button {
+            transition: all 0.3s ease;
+          }
+          .action-button:hover {
+            transform: scale(1.1);
+          }
+          .badge-custom {
+            font-weight: 500;
+            letter-spacing: 0.3px;
+          }
+        `}
+      </style>
+      <Row className="mb-2">
         {summaryCards.map((card, index) => (
-          <Col key={index} md={4} className="mb-3">
-            <Card className="shadow-sm border-0 rounded-4 h-100">
-              <Card.Body className="d-flex justify-content-between">
-                <div className="mt-2">
-                  <div className="table-data">{card.title}</div>
-                  <div className="card-value">{card.value}</div>
-                  <div
-                    className={`d-flex align-items-center gap-1 text-${card.color} fw-semibold`}
-                  >
-                    {/* <span
-                      style={{
-                        display: "inline-block",
-                      }}
-                    >
-                      {card.icon}
-                    </span> */}
-                    {/* <span className="small">{card.percent}</span> */}
+          <Col key={index} md={4} className="mb-2">
+            <Card className="shadow-sm border-0 rounded-3 h-100" style={{ border: "1px solid #e9ecef" }}>
+              <Card.Body className="p-2">
+                <div className="d-flex justify-content-between align-items-center">
+                  <div>
+                    <p className="text-muted mb-0" style={{ fontSize: "10px", fontWeight: "500", textTransform: "uppercase" }}>{card.title}</p>
+                    <h4 className="mb-0" style={{ fontSize: "18px", fontWeight: "700", color: "#1a1a1a" }}>{card.value}</h4>
                   </div>
-                </div>
-                <div className=" mb-2 text-end">
-                  <div className="mb-4 text-end text-dark">{card.bigicon}</div>
-                  <Link to="#" className="dashboard-viewmore">
-                    View Report
-                  </Link>
+                  <div style={{ opacity: "0.15", color: "#6c757d" }}>{card.bigicon}</div>
                 </div>
               </Card.Body>
             </Card>
           </Col>
         ))}
       </Row>
-      <Row className="mb-3">
+      {/* <Row className="mb-4">
         <Col xs={12}>
-          <div className="d-flex flex-column flex-lg-row justify-content-between align-items-start align-lg-center gap-3">
-            <Box sx={{ bgcolor: "white", width: { xs: "100%", lg: "auto" } }}>
-              <AppBar
-                position="static"
-                color="default"
-                className="bg-white border-bottom border-light"
-                elevation={0}
+          <div className="d-flex flex-column flex-lg-row justify-content-between align-items-start align-lg-center gap-3 bg-white p-3 rounded shadow-sm">
+            <Box sx={{ width: { xs: "100%", lg: "auto" } }}>
+              <Tabs
+                value={tab}
+                onChange={handleTabChange}
+                indicatorColor="primary"
+                textColor="primary"
+                variant="fullWidth"
+                sx={{
+                  "& .MuiTab-root": {
+                    fontSize: { xs: "13px", sm: "13px", lg: "14px" },
+                    minWidth: { xs: "120px", sm: "140px" },
+                    fontWeight: "600",
+                    textTransform: "none",
+                    whiteSpace: "nowrap",
+                    padding: "12px 16px",
+                  },
+                }}
               >
-                <Tabs
-                  value={tab}
-                  onChange={handleTabChange}
-                  indicatorColor="primary"
-                  textColor="primary"
-                  variant="fullWidth"
-                  sx={{
-                    "& .MuiTab-root": {
-                      fontSize: { xs: "13px", sm: "14px", lg: "15px" },
-                      minWidth: { xs: "100px", sm: "120px" },
-                    },
-                  }}
-                >
-                  <Tab className="fw-medium table-data" label="Recent" />
-                  <Tab className="fw-medium table-data" label="Refund" />
-                </Tabs>
-              </AppBar>
+                <Tab label="Recent Transactions" />
+                <Tab label="Refund Transactions" />
+              </Tabs>
             </Box>
 
-            <div className="d-flex align-items-center col-md-6 col-12 justify-content-end">
+            <div className="d-flex align-items-center gap-2">
               {!showDatePicker && !startDate && !endDate ? (
-                <div
-                  className="d-flex align-items-center justify-content-center rounded p-2"
-                  style={{
-                    backgroundColor: "#FAFBFF",
-                    width: "40px",
-                    height: "38px",
-                    border: "1px solid #dee2e6",
-                    cursor: "pointer",
-                  }}
+                <Button
+                  variant="outline-secondary"
+                  size="sm"
+                  className="d-flex align-items-center gap-2"
                   onClick={() => setShowDatePicker(true)}
+                  style={{ borderRadius: "6px", padding: "8px 16px" }}
                 >
-                  <MdOutlineDateRange size={16} className="text-muted" />
-                </div>
+                  <MdOutlineDateRange size={18} />
+                  <span>Select Date</span>
+                </Button>
               ) : (
                 <div
                   className="d-flex align-items-center justify-content-center rounded p-1"
@@ -299,14 +345,103 @@ const Payments = () => {
             </div>
           </div>
         </Col>
-      </Row>
+      </Row> */}
 
-      <Row>
-        <Col md={12}>
-          <div className="bg-white rounded shadow-sm p-md-3 p-2">
-            <h6 className="mb-3 tabel-title">
-              {tab === 0 ? "Recent" : "Refund"} Transactions
-            </h6>
+      <Row className="g-1">
+        {/* Sidebar */}
+        <Col lg={2} md={3} className="pe-1">
+          <div className="bg-white rounded-3 shadow-sm p-2 h-100" >
+            <div className="d-flex align-items-center mb-2 pb-2 border-bottom">
+              <FaFilter className="text-primary me-1" size={12} />
+              <h6 className="mb-0 fw-bold" style={{ fontSize: "13px" }}>Filters</h6>
+            </div>
+            
+            <Form.Group className="mb-2">
+              <Form.Label className="small fw-semibold mb-1" style={{ fontSize: "13px", color: "#6c757d" }}>Club</Form.Label>
+              <Form.Control
+                list="clubOptions"
+                value={selectedClub}
+                onChange={(e) => setSelectedClub(e.target.value)}
+                placeholder="Search or select..."
+                style={{ borderRadius: "4px", fontSize: "11px", height: "32px" }}
+              />
+              <datalist id="clubOptions">
+                <option value="Club 1" />
+                <option value="Club 2" />
+                <option value="Club 3" />
+              </datalist>
+            </Form.Group>
+
+            <Form.Group className="mb-2">
+              <Form.Label className="small fw-semibold mb-1" style={{ fontSize: "13px", color: "#6c757d" }}>Status</Form.Label>
+              <div className="btn-group w-100" role="group">
+                <button
+                  type="button"
+                  className={`btn btn-sm ${paymentStatus === "paid" ? "btn-success" : "btn-outline-success"}`}
+                  style={{ borderRadius: "4px 0 0 4px", fontSize: "12px", padding: "6px 8px" }}
+                  onClick={() => setPaymentStatus(paymentStatus === "paid" ? "" : "paid")}
+                >
+                  <FaCheckCircle size={10} className="me-1" />
+                  Paid
+                </button>
+                <button
+                  type="button"
+                  className={`btn btn-sm ${paymentStatus === "unpaid" ? "btn-danger" : "btn-outline-danger"}`}
+                  style={{ borderRadius: "0 4px 4px 0", fontSize: "12px", padding: "6px 8px" }}
+                  onClick={() => setPaymentStatus(paymentStatus === "unpaid" ? "" : "unpaid")}
+                >
+                  <FaTimesCircle size={10} className="me-1" />
+                  Unpaid
+                </button>
+              </div>
+            </Form.Group>
+
+            {/* <div className="mt-3 pt-2 border-top">
+              <h6 className="fw-bold mb-2" style={{ fontSize: "12px", color: "#6c757d", textTransform: "uppercase" }}>Summary</h6>
+              <div className="bg-light rounded p-2 mb-1" style={{ borderLeft: "2px solid #28a745" }}>
+                <div className="d-flex justify-content-between align-items-center">
+                  <span style={{ fontSize: "12px", color: "#6c757d" }}>Paid</span>
+                  <span className="fw-bold text-success" style={{ fontSize: "12px" }}>₹{totalPaid.toLocaleString()}</span>
+                </div>
+              </div>
+              <div className="bg-light rounded p-2" style={{ borderLeft: "2px solid #dc3545" }}>
+                <div className="d-flex justify-content-between align-items-center">
+                  <span style={{ fontSize: "12px", color: "#6c757d" }}>Unpaid</span>
+                  <span className="fw-bold text-danger" style={{ fontSize: "12px" }}>₹{totalUnpaid.toLocaleString()}</span>
+                </div>
+              </div>
+            </div> */}
+          </div>
+        </Col>
+
+        <Col lg={10} md={9} className="ps-0">
+          <div className="bg-white rounded-3 shadow-sm p-3" style={{ border: "1px solid #e9ecef" }}>
+            <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 pb-3 border-bottom gap-3">
+              <div>
+                <h5 className="mb-1 fw-bold" style={{ fontSize: "16px", color: "#1a1a1a" }}>
+                  {/* {tab === 0 ? "Recent" : "Refund"} */}
+                  Transactions
+                </h5>
+                <p className="text-muted mb-0" style={{ fontSize: "12px" }}>
+                  {selectedPayments.length > 0 
+                    ? `${selectedPayments.length} transaction${selectedPayments.length > 1 ? 's' : ''} selected` 
+                    : `Total ${payments.length} transaction${payments.length !== 1 ? 's' : ''}`}
+                </p>
+              </div>
+              <Button
+                variant="primary"
+                size="sm"
+                disabled={selectedPayments.length === 0}
+                onClick={() => handleCreatePayment()}
+                className="d-flex align-items-center gap-2"
+                style={{ borderRadius: "6px", fontWeight: "500", fontSize: "13px", padding: "8px 16px" }}
+              >
+                <span>Create Payment</span>
+                {selectedPayments.length > 0 && (
+                  <span className="badge bg-white text-primary" style={{ fontSize: "11px" }}>{selectedPayments.length}</span>
+                )}
+              </Button>
+            </div>
 
             {getBookingLoading ? (
               <DataLoading height="60vh" />
@@ -314,78 +449,97 @@ const Payments = () => {
               <>
                 {payments?.length > 0 ? (
                   <>
-                    <div className="custom-scroll-container d-none d-md-block">
+                    <div className="custom-scroll-container d-none d-md-block" style={{ overflowX: "auto" }}>
                       <Table
                         responsive
-                        borderless
-                        size="sm"
-                        className="custom-table"
+                        hover
+                        className="custom-table align-middle"
+                        style={{ minWidth: "800px" }}
                       >
-                        <thead>
+                        <thead style={{ backgroundColor: "#4361ee", color: "white" }}>
                           <tr>
-                            <th>User Name</th>
-                            <th>Contact</th>
-                            <th>Date & Time</th>
-                            <th>Payment Method</th>
-                            <th>Amount</th>
-                            <th>Action</th>
+                            <th style={{ width: "50px", padding: "14px", borderTopLeftRadius: "6px" }}>
+                              <Form.Check
+                                type="checkbox"
+                                checked={selectAll}
+                                onChange={handleSelectAll}
+                                style={{ accentColor: "white" }}
+                              />
+                            </th>
+                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>User Name</th>
+                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Contact</th>
+                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Date & Time</th>
+                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Payment Method</th>
+                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Amount</th>
+                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px", textAlign: "center", borderTopRightRadius: "6px" }}>Action</th>
                           </tr>
                         </thead>
                         <tbody>
                           {payments?.map((item, index) => (
                             <tr
                               key={item?._id}
-                              className="table-data border-bottom align-middle text-center"
+                              className="border-bottom"
+                              style={{ 
+                                backgroundColor: selectedPayments.includes(item._id) ? "#f0f8ff" : "white",
+                                transition: "background-color 0.2s"
+                              }}
                             >
-                              <td>
-                                {/* ✅ SUPER ADMIN: Handle both old format (userId) and new format (user/userName) */}
+                              <td style={{ padding: "12px" }}>
+                                <Form.Check
+                                  type="checkbox"
+                                  checked={selectedPayments.includes(item._id)}
+                                  onChange={() => handleSelectPayment(item._id)}
+                                />
+                              </td>
+                              <td style={{ padding: "12px", fontWeight: "500" }}>
                                 {(item?.userId?.name || item?.user?.name || item?.userName)
                                   ? (item?.userId?.name || item?.user?.name || item?.userName).charAt(0).toUpperCase() +
                                     (item?.userId?.name || item?.user?.name || item?.userName).slice(1)
                                   : "N/A"}
                               </td>
-                              <td>
+                              <td style={{ padding: "12px", color: "#6c757d" }}>
                                 {(item?.userId?.countryCode || item?.user?.countryCode || "")}{" "}
                                 {(item?.userId?.phoneNumber || item?.user?.phoneNumber || "N/A")}
                               </td>
-                              <td>
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    gap: "2px",
-                                  }}
-                                >
-                                  <span className="fw-medium text-nowrap">
+                              <td style={{ padding: "12px" }}>
+                                <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                                  <span className="fw-medium" style={{ fontSize: "13px" }}>
                                     {formatDate(item?.bookingDate)}
                                   </span>
-                                  <span className="text-muted small">
-                                    {formatTime(
-                                      renderSlotTimes(
-                                        item?.slot?.[0]?.slotTimes
-                                      )
-                                    )}
+                                  <span className="text-muted" style={{ fontSize: "12px" }}>
+                                    {formatTime(renderSlotTimes(item?.slot?.[0]?.slotTimes))}
                                   </span>
                                 </div>
                               </td>
-                              <td>
-                                {item?.paymentMethod
-                                  ?.slice(0, 1)
-                                  ?.toUpperCase()
-                                  ?.concat(item?.paymentMethod?.slice(1)) ||
-                                  "-"}
+                              <td style={{ padding: "12px" }}>
+                                <span className="badge bg-light text-dark" style={{ fontSize: "12px", padding: "6px 12px", borderRadius: "6px" }}>
+                                  {item?.paymentMethod?.slice(0, 1)?.toUpperCase()?.concat(item?.paymentMethod?.slice(1)) || "-"}
+                                </span>
                               </td>
-                              <td>₹{item?.totalAmount}</td>
-                              <td
-                                style={{ cursor: "pointer" }}
-                                onClick={() => handlePaymentDetails(item?._id)}
-                              >
-                                {loadingPaymentId === item?._id ? (
-                                  <ButtonLoading color="blue" size={7} />
-                                ) : (
-                                  <FaEye className="text-primary" />
-                                )}
+                              <td style={{ padding: "12px", fontWeight: "600", color: "#28a745", fontSize: "14px" }}>
+                                ₹{item?.totalAmount}
+                              </td>
+                              <td style={{ padding: "12px", textAlign: "center" }}>
+                                <div
+                                  className="d-inline-flex align-items-center justify-content-center"
+                                  style={{ 
+                                    cursor: "pointer",
+                                    width: "36px",
+                                    height: "36px",
+                                    borderRadius: "8px",
+                                    backgroundColor: "#e7f3ff",
+                                    transition: "all 0.2s"
+                                  }}
+                                  onClick={() => handlePaymentDetails(item?._id)}
+                                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#cce5ff"}
+                                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#e7f3ff"}
+                                >
+                                  {loadingPaymentId === item?._id ? (
+                                    <ButtonLoading color="blue" size={7} />
+                                  ) : (
+                                    <FaEye className="text-primary" size={16} />
+                                  )}
+                                </div>
                               </td>
                             </tr>
                           ))}
@@ -499,6 +653,14 @@ const Payments = () => {
         show={showPaymentDetails}
         handleClose={() => setShowPaymentDetails(false)}
         paymentDetails={paymentDetails}
+      />
+      <CreatePaymentModal
+        show={showCreatePayment}
+        handleClose={() => {
+          setShowCreatePayment(false);
+          setCurrentPaymentId(null);
+        }}
+        selectedPayments={currentPaymentId ? [currentPaymentId] : selectedPayments}
       />
     </Container>
   );
