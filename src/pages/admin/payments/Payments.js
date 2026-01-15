@@ -10,6 +10,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppBar, Tabs, Tab, Box } from "@mui/material";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import { getOwnerFromSession } from "../../../helpers/api/apiCore";
+import { useSuperAdminContext } from "../../../contexts/SuperAdminContext";
 import { FaEye, FaChartLine } from "react-icons/fa";
 import {
   BsArrowUpRightCircleFill,
@@ -26,6 +27,16 @@ import { resetBookingData } from "../../../redux/admin/booking/slice";
 import Pagination from "../../../helpers/Pagination";
 
 const Payments = () => {
+  const { selectedOwnerId } = useSuperAdminContext();
+  const Owner = getOwnerFromSession();
+  const ownerData = Owner?.user || Owner;
+  const isSuperAdmin = ownerData?.role === 'super_admin';
+  // ✅ SUPER ADMIN: Use selectedOwnerId if explicitly set, otherwise null (for "All Owners")
+  // For non-super-admin, use logged-in owner's ID
+  const ownerId = isSuperAdmin 
+    ? (selectedOwnerId || null)  // null when "All Owners" is selected
+    : (getOwnerFromSession()?._id);
+  
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -55,7 +66,14 @@ const Payments = () => {
   const sendDate = startDate && endDate;
 
   useEffect(() => {
-    const payload = { status, ownerId, page: currentPage };
+    const payload = { 
+      status, 
+      // ✅ SUPER ADMIN: Only include ownerId if explicitly set (not null)
+      // If ownerId is null (All Owners selected), don't include it in payload
+      ...(ownerId ? { ownerId } : {}),
+      page: currentPage,
+      limit: 15
+    };
     if (sendDate) {
       const formatToYYYYMMDD = (date) => {
         const year = date.getFullYear();
@@ -68,9 +86,7 @@ const Payments = () => {
     }
 
     dispatch(getBookingByStatus(payload));
-  }, [tab, sendDate, currentPage]);
-
-  const ownerId = getOwnerFromSession()?._id;
+  }, [tab, sendDate, currentPage, ownerId, isSuperAdmin, selectedOwnerId]);
   const [loadingPaymentId, setLoadingPaymentId] = useState(null);
 
   const handlePaymentDetails = async (id) => {
@@ -82,10 +98,51 @@ const Payments = () => {
     }
   };
 
+  const [paymentCounts, setPaymentCounts] = useState({
+    totalAmountToday: 0,
+    totalAmountMonth: 0,
+    totalRefunded: 0
+  });
+  const [loadingCounts, setLoadingCounts] = useState(false);
+
+  // Fetch payment dashboard counts
+  useEffect(() => {
+    const fetchPaymentCounts = async () => {
+      try {
+        setLoadingCounts(true);
+        const { ownerApi } = await import("../../../helpers/api/apiCore");
+        const { SUPER_ADMIN_PAYMENT_DASHBOARD_COUNTS } = await import("../../../helpers/api/apiEndpoint");
+        // ✅ Only include ownerId in URL if it's explicitly set (not null)
+        const url = ownerId 
+          ? `${SUPER_ADMIN_PAYMENT_DASHBOARD_COUNTS}?ownerId=${ownerId}` 
+          : SUPER_ADMIN_PAYMENT_DASHBOARD_COUNTS;
+        const res = await ownerApi.get(url);
+        if (res?.data?.success) {
+          setPaymentCounts(res.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching payment counts:", error);
+      } finally {
+        setLoadingCounts(false);
+      }
+    };
+    fetchPaymentCounts();
+  }, [ownerId]);
+
+  const formatAmount = (amount) => {
+    if (!amount) return "₹0";
+    if (amount >= 1000000) {
+      return `₹${(amount / 1000000).toFixed(1)}M`;
+    } else if (amount >= 1000) {
+      return `₹${(amount / 1000).toFixed(1)}K`;
+    }
+    return `₹${amount.toLocaleString()}`;
+  };
+
   const summaryCards = [
     {
       title: "Today Collection",
-      value: "25Hrs",
+      value: formatAmount(paymentCounts.totalAmountToday),
       percent: "+15%",
       icon: <BsArrowUpRightCircleFill />,
       color: "success",
@@ -93,7 +150,7 @@ const Payments = () => {
     },
     {
       title: "Monthly Collection",
-      value: "30Hrs",
+      value: formatAmount(paymentCounts.totalAmountMonth),
       percent: "-3.5%",
       icon: <BsFillArrowDownLeftCircleFill />,
       color: "danger",
@@ -101,7 +158,7 @@ const Payments = () => {
     },
     {
       title: "Refund Amount",
-      value: "3.5M",
+      value: formatAmount(paymentCounts.totalRefunded),
       percent: "+15%",
       icon: <BsArrowUpRightCircleFill />,
       color: "success",
@@ -281,14 +338,15 @@ const Payments = () => {
                               className="table-data border-bottom align-middle text-center"
                             >
                               <td>
-                                {item?.userId?.name
-                                  ? item.userId.name.charAt(0).toUpperCase() +
-                                    item.userId.name.slice(1)
+                                {/* ✅ SUPER ADMIN: Handle both old format (userId) and new format (user/userName) */}
+                                {(item?.userId?.name || item?.user?.name || item?.userName)
+                                  ? (item?.userId?.name || item?.user?.name || item?.userName).charAt(0).toUpperCase() +
+                                    (item?.userId?.name || item?.user?.name || item?.userName).slice(1)
                                   : "N/A"}
                               </td>
                               <td>
-                                {item?.userId?.countryCode || ""}{" "}
-                                {item?.userId?.phoneNumber || "N/A"}
+                                {(item?.userId?.countryCode || item?.user?.countryCode || "")}{" "}
+                                {(item?.userId?.phoneNumber || item?.user?.phoneNumber || "N/A")}
                               </td>
                               <td>
                                 <div
@@ -342,9 +400,10 @@ const Payments = () => {
                             <div className="mobile-card-item">
                               <span className="mobile-card-label">User:</span>
                               <span className="mobile-card-value">
-                                {item?.userId?.name
-                                  ? item.userId.name.charAt(0).toUpperCase() +
-                                    item.userId.name.slice(1)
+                                {/* ✅ SUPER ADMIN: Handle both formats */}
+                                {(item?.userId?.name || item?.user?.name || item?.userName)
+                                  ? (item?.userId?.name || item?.user?.name || item?.userName).charAt(0).toUpperCase() +
+                                    (item?.userId?.name || item?.user?.name || item?.userName).slice(1)
                                   : "N/A"}
                               </span>
                             </div>
@@ -353,8 +412,8 @@ const Payments = () => {
                                 Contact:
                               </span>
                               <span className="mobile-card-value">
-                                {item?.userId?.countryCode || ""}{" "}
-                                {item?.userId?.phoneNumber || "N/A"}
+                                {(item?.userId?.countryCode || item?.user?.countryCode || "")}{" "}
+                                {(item?.userId?.phoneNumber || item?.user?.phoneNumber || "N/A")}
                               </span>
                             </div>
                             <div className="mobile-card-item">

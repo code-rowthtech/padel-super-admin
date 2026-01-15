@@ -10,50 +10,14 @@ import AdminLayout from "../helpers/layout/AdminLayout";
 
 
 
-const Home = React.lazy(() => import("../pages/user/home/Home"));
-const Booking = React.lazy(() => import("../pages/user/booking/Booking"));
-const OpenMatches = React.lazy(() => import("../pages/user/openMatches/Openmatches"));
-const CreateMatches = React.lazy(() => import("../pages/user/openMatches/CreateMatches"));
-const ViewMatch = React.lazy(() => import("../pages/user/VeiwMatch/VeiwMatch"));
-const OpenmatchPayment = React.lazy(() => import("../pages/user/VeiwMatch/OpenmatchPayment"));
-const AmericanoUser = React.lazy(() => import("../pages/user/americano/Americano"));
-const UserProfile = React.lazy(() => import("../pages/user/profile/Profile"));
-const PaymentWrapper = React.lazy(() => import("../pages/user/payment/Payment"));
-const BookingHistory = React.lazy(() => import("../pages/user/booking/BookingHistory"));
-const HelpSupport = React.lazy(() => import("../pages/user/helpAndSupport/PadelSupportPage"));
-const Login = React.lazy(() => import("../pages/user/auth/LoginPage"));
-const VerifyOtpUser = React.lazy(() => import("../pages/user/auth/VerifyOtp"));
+// ✅ SUPER ADMIN ONLY - Removed all user-facing pages
 const AdminLogin = React.lazy(() => import("../pages/admin/auth/Login"));
-const ResetPassword = React.lazy(() => import("../pages/admin/auth/ResetPassword"));
-const SignUpPage = React.lazy(() => import("../pages/admin/auth/SignUpPage"));
-const VerifyOtp = React.lazy(() => import("../pages/admin/auth/VerifyOtp"));
-const ForgotPassword = React.lazy(() => import("../pages/admin/auth/ForgotPassword"));
+// ✅ SUPER ADMIN ONLY - Keep only essential pages
 const AdminDashboard = React.lazy(() => import("../pages/admin/dashboard/Dashboard"));
 const BookingPage = React.lazy(() => import("../pages/admin/booking/Booking"));
-const ManualBooking = React.lazy(() => import("../pages/admin/booking/manual booking/ManualBooking"));
-const Cancellation = React.lazy(() => import("../pages/admin/booking/cancellation/Cancellation"));
-const OpenMatchesPage = React.lazy(() => import("../pages/admin/open-matches/OpenMatches"));
-const Register = React.lazy(() => import("../pages/admin/registerClub/Register"));
-const RegisterClub = React.lazy(() => import("../pages/admin/registerClub/RegisterClub"));
-const MatchDetails = React.lazy(() => import("../pages/admin/open-matches/matchDetails/MatchDetails"));
-const Profile = React.lazy(() => import("../pages/admin/profile/Profile"));
-const CusromerReviews = React.lazy(() => import("../pages/admin/reviews/CustomerReviews"));
 const Payments = React.lazy(() => import("../pages/admin/payments/Payments"));
-const Packages = React.lazy(() => import("../pages/admin/packages/Packages"));
-const PackageDetails = React.lazy(() => import("../pages/admin/packages/PackageDetails"));
-const MyClub = React.lazy(() => import("../pages/admin/myClub/ClubUpdateForm"));
-const PriceSlotUpdate = React.lazy(() => import("../pages/admin/myClub/PriceSlotUpdate"));
-const Americano = React.lazy(() => import("../pages/admin/americano/Americano"));
-const SubOwner = React.lazy(() => import("../pages/admin/subOwner/SubOwner"));
-const CourtAvailability = React.lazy(() => import("../pages/admin/court/CourtAvailability"));
-const CreateMatch = React.lazy(() =>import("../pages/admin/open-matches/create/CreateMatch"));
-const Privacy = React.lazy(() => import("../pages/admin/privacy/Privacy"));
-const PrivacyPolicy = React.lazy(() => import("../pages/user/legalpages/PrivacyPolicy"));
-const ManageCookies = React.lazy(() => import("../pages/user/legalpages/ManageCookies"));
-const Sitemap = React.lazy(() => import("../pages/user/legalpages/Sitemap"));
-const Sameprivacy = React.lazy(() => import("../pages/admin/privacy/Sameprivacy"));
-const Support = React.lazy(() => import("../pages/admin/helpAndSupport/Support"));
-const UnAuthorized = React.lazy(() => import("../pages/error/UnAuthorized"));
+const Profile = React.lazy(() => import("../pages/admin/profile/Profile"));
+const OwnersManagement = React.lazy(() => import("../pages/admin/owners/OwnersManagement"));
 const NotFound = React.lazy(() => import("../pages/error/NotFound"));
 const loading = <DataLoading  height={900} />;
 const LoadComponent = (Component) => (
@@ -63,102 +27,11 @@ const LoadComponent = (Component) => (
 );
 
 const AllRoutes = () => {
-
   return useRoutes([
-    { path: "/", element: <Root /> },
+    { path: "/", element: <Navigate to="/admin/login" replace /> },
     { path: "/admin", element: <Navigate to="/admin/login" replace /> },
 
-    {
-      path: "/",
-      element: <DefaultLayout />,
-      children: [
-        {
-          path: "login",
-          element: LoadComponent(Login),
-        },
-
-        {
-          path: "verify-otp",
-          element: LoadComponent(VerifyOtpUser),
-        },
-
-        {
-          path: "home",
-          element: LoadComponent(Home),
-        },
-        {
-          path: "booking",
-          element: LoadComponent(Booking),
-        },
-        {
-          path: "booking-history",
-          element: LoadComponent(BookingHistory),
-        },
-        {
-          path: "payment",
-          element: LoadComponent(PaymentWrapper),
-        },
-        {
-          path: "open-matches",
-          element: LoadComponent(OpenMatches),
-        },
-        {
-          path: "view-match",
-          element: LoadComponent(ViewMatch),
-        },
-        {
-          path: "create-matches",
-          element: LoadComponent(CreateMatches),
-        },
-
-        {
-          path: "match-payment",
-          element: LoadComponent(OpenmatchPayment),
-        },
-        {
-          path: "americano",
-          element: LoadComponent(AmericanoUser),
-        },
-        {
-          path: "user-profile",
-          element: LoadComponent(UserProfile),
-        },
-        {
-          path: "support",
-          element: LoadComponent(HelpSupport),
-        },
-        {
-          path: "unauthorized",
-          element: LoadComponent(UnAuthorized),
-        },
-        {
-          path: "no-internet",
-          element: LoadComponent(NoInternet),
-        },
-        {
-          path: "*",
-          element: <Navigate to="/not-found" replace />,
-        },
-        {
-          path: "privacy-policy",
-          element: LoadComponent(PrivacyPolicy),
-        },
-        {
-          path: "sitemap",
-          element: LoadComponent(Sitemap),
-        },
-        {
-          path: "manage-cookies",
-          element: LoadComponent(ManageCookies),
-        },
-        {
-          path: "not-found",
-          element: LoadComponent(NotFound),
-        },
-      ],
-    },
-
-
+    // ✅ SUPER ADMIN ONLY - Login route
     {
       path: "/admin",
       element: (
@@ -172,46 +45,10 @@ const AllRoutes = () => {
           element: LoadComponent(AdminLogin),
         },
         {
-          path: "sign-up",
-          element: LoadComponent(SignUpPage),
-        },
-        {
-          path: "forgot-password",
-          element: LoadComponent(ForgotPassword),
-        },
-        {
-          path: "reset-password",
-          element: LoadComponent(ResetPassword),
-        },
-        {
-          path: "verify-otp",
-          element: LoadComponent(VerifyOtp),
-        },
-        {
-          path: "sameprivacy",
-          element: LoadComponent(Sameprivacy),
-        },
-        {
           path: "no-internet",
           element: LoadComponent(NoInternet),
         },
-        {
-          element: (
-            <PrivateRoute>
-              <DefaultLayout />
-            </PrivateRoute>
-          ),
-          children: [
-            {
-              path: "register",
-              element: LoadComponent(Register),
-            },
-            {
-              path: "register-club",
-              element: LoadComponent(RegisterClub),
-            },
-          ],
-        },
+        // ✅ SUPER ADMIN ONLY - Protected routes
         {
           element: (
             <PrivateRoute>
@@ -228,76 +65,28 @@ const AllRoutes = () => {
               element: LoadComponent(BookingPage),
             },
             {
-              path: "manualbooking",
-              element: LoadComponent(ManualBooking),
-            },
-            {
-              path: "cancellation",
-              element: LoadComponent(Cancellation),
-            },
-            {
-              path: "open-matches",
-              element: LoadComponent(OpenMatchesPage),
-            },
-            {
-              path: "match-details/:id",
-              element: LoadComponent(MatchDetails),
-            },
-            {
-              path: "profile",
-              element: LoadComponent(Profile),
-            },
-            {
-              path: "customer-reviews",
-              element: LoadComponent(CusromerReviews),
+              path: "owners",
+              element: LoadComponent(OwnersManagement),
             },
             {
               path: "payments",
               element: LoadComponent(Payments),
             },
             {
-              path: "packages",
-              element: LoadComponent(Packages),
+              path: "profile",
+              element: LoadComponent(Profile),
             },
             {
-              path: "package-details",
-              element: LoadComponent(PackageDetails),
-            },
-            {
-              path: "my-club",
-              element: LoadComponent(MyClub),
-            },
-            {
-              path: "price-slot-update",
-              element: LoadComponent(PriceSlotUpdate),
-            },
-            {
-              path: "americano",
-              element: LoadComponent(Americano),
-            },
-            {
-              path: "users",
-              element: LoadComponent(SubOwner),
-            },
-            {
-              path: "court-availability",
-              element: LoadComponent(CourtAvailability),
-            },
-            {
-              path: "create-match",
-              element: LoadComponent(CreateMatch),
-            },
-            {
-              path: "privacy",
-              element: LoadComponent(Privacy),
-            },
-            {
-              path: "help-support",
-              element: LoadComponent(Support),
+              path: "*",
+              element: <Navigate to="/admin/dashboard" replace />,
             },
           ],
         },
       ],
+    },
+    {
+      path: "*",
+      element: LoadComponent(NotFound),
     },
   ]);
 };

@@ -32,11 +32,20 @@ import { MdOutlineCancel } from "react-icons/md";
 import { resetBookingData } from "../../../redux/admin/booking/slice";
 import Pagination from "../../../helpers/Pagination";
 import { resetOwnerClub } from "../../../redux/admin/manualBooking/slice";
+import { useSuperAdminContext } from "../../../contexts/SuperAdminContext";
 
 const Booking = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const ownerId = getOwnerFromSession()?._id;
+  const { selectedOwnerId } = useSuperAdminContext();
+  const Owner = getOwnerFromSession();
+  const ownerData = Owner?.user || Owner;
+  const isSuperAdmin = ownerData?.role === 'super_admin';
+  // ✅ SUPER ADMIN: Use selectedOwnerId if explicitly set, otherwise null (for "All Owners")
+  // For non-super-admin, use logged-in owner's ID
+  const ownerId = isSuperAdmin 
+    ? (selectedOwnerId || null)  // null when "All Owners" is selected
+    : (getOwnerFromSession()?._id);
   const [currentPage, setCurrentPage] = useState(1);
 
   const [showBookingDetails, setShowBookingDetails] = useState(false);
@@ -73,7 +82,9 @@ const Booking = () => {
 
   useEffect(() => {
     const payload: any = {
-      ownerId,
+      // ✅ SUPER ADMIN: Only include ownerId if explicitly set (not null)
+      // If ownerId is null (All Owners selected), don't include it in payload
+      ...(ownerId ? { ownerId } : {}),
       page: currentPage,
       limit: defaultLimit,
     };
@@ -94,10 +105,14 @@ const Booking = () => {
       payload.endDate = formatToYYYYMMDD(endDate);
     }
 
-    dispatch(bookingCount({ ownerId }));
+    // ✅ SUPER ADMIN: Only fetch counts if ownerId is explicitly provided (not null)
+    // For non-super-admin, always fetch counts
+    if (!isSuperAdmin || ownerId) {
+      dispatch(bookingCount({ ownerId }));
+    }
     dispatch(resetBookingData());
     dispatch(getBookingByStatus(payload));
-  }, [tab, currentPage, dispatch, ownerId, sendDate]);
+  }, [tab, currentPage, dispatch, ownerId, sendDate, isSuperAdmin]);
 
   useEffect(() => {
     if (tabCount && !sendDate) {
@@ -474,14 +489,15 @@ const Booking = () => {
                             className="text-truncate"
                             style={{ maxWidth: "120px" }}
                           >
-                            {item?.userId?.name
-                              ? item?.userId?.name.charAt(0).toUpperCase() +
-                              item?.userId?.name?.slice(1)
+                            {/* ✅ SUPER ADMIN: Handle both old format (userId) and new format (user) */}
+                            {(item?.userId?.name || item?.user?.name || item?.userName)
+                              ? (item?.userId?.name || item?.user?.name || item?.userName).charAt(0).toUpperCase() +
+                              (item?.userId?.name || item?.user?.name || item?.userName)?.slice(1)
                               : "N/A"}
                           </td>
                           <td className="d-none d-md-table-cell small">
-                            {item?.userId?.countryCode || ""}{" "}
-                            {item?.userId?.phoneNumber || "N/A"}
+                            {(item?.userId?.countryCode || item?.user?.countryCode || "")}{" "}
+                            {(item?.userId?.phoneNumber || item?.user?.phoneNumber || "N/A")}
                           </td>
                           <td>
                             <div className="d-flex justify-content-center">
@@ -523,7 +539,8 @@ const Booking = () => {
                             className="text-truncate"
                             style={{ maxWidth: "80px" }}
                           >
-                            {item?.slot?.[0]?.courtName || "-"}
+                            {/* ✅ SUPER ADMIN: Handle both old format and new format */}
+                            {item?.slot?.[0]?.courtName || item?.club?.clubName || item?.clubName || "-"}
                           </td>
                           <td className="text-truncate">
                             {item?.bookingStatus === "in-progress" ? (

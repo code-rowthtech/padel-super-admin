@@ -1,14 +1,8 @@
 import { Navigate } from "react-router-dom";
 
+// ✅ SUPER ADMIN ONLY - Redirect to admin login
 const Root = () => {
-  const getRootUrl = () => {
-    let url = "home";
-    return url;
-  };
-
-  const url = getRootUrl();
-
-  return <Navigate to={`/${url}`} />;
+  return <Navigate to="/admin/login" replace />;
 };
 
 export default Root;

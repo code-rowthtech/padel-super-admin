@@ -107,3 +107,23 @@ export const MAP_API = "/api/googleMap/GetgoogleMap";
 // export const GET_HELP_AND_SUPPORT = "/api/help/getHelpAndSupport";
 export const CREATE_HELP_REQUEST = "/api/contact/submit";
 // export const GET_HELP_TICKET_STATUS = "/api/help/getHelpTicketStatus";
+
+// ============================================
+// SUPER ADMIN API ENDPOINTS
+// ============================================
+// Owner Management
+export const SUPER_ADMIN_CREATE_OWNER = "/api/super-admin/create-owner";
+export const SUPER_ADMIN_GET_ALL_OWNERS = "/api/super-admin/owners";
+export const SUPER_ADMIN_GET_OWNER_BY_ID = "/api/super-admin/owners";
+export const SUPER_ADMIN_UPDATE_OWNER = "/api/super-admin/owners";
+export const SUPER_ADMIN_SUSPEND_OWNER = "/api/super-admin/owners";
+export const SUPER_ADMIN_ACTIVATE_OWNER = "/api/super-admin/owners";
+export const SUPER_ADMIN_DELETE_OWNER = "/api/super-admin/owners";
+
+// Cross-Tenant Data Access
+export const SUPER_ADMIN_GLOBAL_DASHBOARD = "/api/super-admin/dashboard";
+export const SUPER_ADMIN_GET_ALL_BOOKINGS = "/api/super-admin/bookings";
+export const SUPER_ADMIN_GET_ALL_SLOTS = "/api/super-admin/slots";
+export const SUPER_ADMIN_GET_ALL_PRICING = "/api/super-admin/pricing";
+export const SUPER_ADMIN_GET_ALL_CLUBS = "/api/super-admin/clubs";
+export const SUPER_ADMIN_PAYMENT_DASHBOARD_COUNTS = "/api/super-admin/payment-dashboard-counts";

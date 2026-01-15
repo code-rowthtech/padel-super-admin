@@ -37,6 +37,8 @@ import {
 import { useSelector, useDispatch } from "react-redux";
 import { formatDate, formatTime } from "../../../helpers/Formatting";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
+import { getOwnerFromSession } from "../../../helpers/api/apiCore";
+import { useSuperAdminContext } from "../../../contexts/SuperAdminContext";
 import {
   BookingDetailsModal,
   BookingCancelModal,
@@ -48,6 +50,10 @@ import {
 
 const AdminDashboard = () => {
   const dispatch = useDispatch();
+  const { selectedOwnerId } = useSuperAdminContext();
+  const Owner = getOwnerFromSession();
+  const ownerData = Owner?.user || Owner;
+  const isSuperAdmin = ownerData?.role === 'super_admin';
 
   const {
     dashboardLoading,
@@ -175,11 +181,14 @@ const AdminDashboard = () => {
   const [showRequest, setShowRequest] = useState(false);
 
   useEffect(() => {
-    dispatch(getCountDataForDashboard());
-    dispatch(getCancelledBookingsForDashboard());
-    dispatch(getRecentBookingsForDashboard());
-    dispatch(getRevenueForDashboard());
-  }, [dispatch]);
+    // ✅ SUPER ADMIN: Pass ownerId ONLY if selectedOwnerId is explicitly set (not null/undefined)
+    // If selectedOwnerId is null, don't pass ownerId to show all data
+    const params = selectedOwnerId ? { ownerId: selectedOwnerId } : {};
+    dispatch(getCountDataForDashboard(params));
+    dispatch(getCancelledBookingsForDashboard(params));
+    dispatch(getRecentBookingsForDashboard(params));
+    dispatch(getRevenueForDashboard(params));
+  }, [dispatch, selectedOwnerId]);
 
   const renderSlotTimes = (slotTimes) =>
     slotTimes?.length ? slotTimes?.map((slot) => slot?.time).join(", ") : "-";
@@ -598,10 +607,11 @@ const AdminDashboard = () => {
                                   className="text-truncate py-2"
                                   style={{ maxWidth: "120px" }}
                                 >
-                                  {item?.userId?.name
+                                  {/* ✅ SUPER ADMIN: Handle both old format (userId) and new format (user/userName) */}
+                                  {(item?.userId?.name || item?.user?.name || item?.userName)
                                     ?.slice(0, 1)
                                     ?.toUpperCase()
-                                    ?.concat(item?.userId?.name?.slice(1)) ||
+                                    ?.concat((item?.userId?.name || item?.user?.name || item?.userName)?.slice(1)) ||
                                     "N/A"}
                                 </td>
                                 <td className="text-truncate py-2">
@@ -622,7 +632,8 @@ const AdminDashboard = () => {
                                   className="text-truncate py-2"
                                   style={{ maxWidth: "80px" }}
                                 >
-                                  {item?.slot[0]?.courtName || "-"}
+                                  {/* ✅ SUPER ADMIN: Handle both old format and new format */}
+                                  {item?.slot?.[0]?.courtName || item?.club?.clubName || item?.clubName || "-"}
                                 </td>
                                 <td
                                   className="py-2"
@@ -785,10 +796,11 @@ const AdminDashboard = () => {
                                   className="text-truncate"
                                   style={{ maxWidth: "120px" }}
                                 >
-                                  {item?.userId?.name
+                                  {/* ✅ SUPER ADMIN: Handle both old format (userId) and new format (user/userName) */}
+                                  {(item?.userId?.name || item?.user?.name || item?.userName)
                                     ?.slice(0, 1)
                                     ?.toUpperCase()
-                                    ?.concat(item?.userId?.name?.slice(1)) ||
+                                    ?.concat((item?.userId?.name || item?.user?.name || item?.userName)?.slice(1)) ||
                                     "N/A"}
                                 </td>
                                 <td>
@@ -809,7 +821,8 @@ const AdminDashboard = () => {
                                   className="text-truncate"
                                   style={{ maxWidth: "80px" }}
                                 >
-                                  {item?.slot[0]?.courtName || "-"}
+                                  {/* ✅ SUPER ADMIN: Handle both old format and new format */}
+                                  {item?.slot?.[0]?.courtName || item?.club?.clubName || item?.clubName || "-"}
                                 </td>
                                 <td style={{ cursor: "pointer" }}>
                                   {loadingById === item?._id ? (

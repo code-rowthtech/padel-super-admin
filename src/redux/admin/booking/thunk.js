@@ -15,7 +15,16 @@ export const getBookingByStatus = createAsyncThunk(
       const buildQuery = (params) => {
         const query = new URLSearchParams();
 
-        if (params?.status) query.append("bookingStatus", params?.status);
+        // ✅ SUPER ADMIN: Map status to bookingStatus
+        if (params?.status) {
+          if (params.status === "upcoming") {
+            query.append("bookingStatus", "upcoming");
+          } else if (params.status === "completed") {
+            query.append("bookingStatus", "completed");
+          } else {
+            query.append("bookingStatus", params.status);
+          }
+        }
         if (params?.ownerId) query.append("ownerId", params?.ownerId);
         if (params.startDate) query.append("startDate", params.startDate);
         if (params.endDate) query.append("endDate", params.endDate);
@@ -24,12 +33,20 @@ export const getBookingByStatus = createAsyncThunk(
 
         return query.toString();
       };
+      
+      // ✅ SUPER ADMIN: Use Super Admin booking API
       const res = await ownerApi.get(
-        `${Url.GET_BOOKING_BY_STATUS}?${buildQuery(params)}`
+        `${Url.SUPER_ADMIN_GET_ALL_BOOKINGS}?${buildQuery(params)}`
       );
       const { status, data, message } = res || {};
       if (status === 200 || "200") {
-        return data;
+        // Map Super Admin response format to expected format
+        return {
+          bookings: data?.data?.bookings || [],
+          totalItems: data?.data?.pagination?.totalItems || 0,
+          currentPage: data?.data?.pagination?.currentPage || 1,
+          totalPages: data?.data?.pagination?.totalPages || 1
+        };
       }
 
       const errorMessage = message || ERROR_MESSAGES.FETCH_FAILED;
@@ -37,6 +54,7 @@ export const getBookingByStatus = createAsyncThunk(
     } catch (error) {
       const errorMessage =
         error?.response?.data?.message || ERROR_MESSAGES.NETWORK_ERROR;
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -79,10 +97,21 @@ export const bookingCount = createAsyncThunk(
   "manualBooking/bookingCount",
   async (data, { rejectWithValue }) => {
     try {
-      const res = await ownerApi.get(`${Url.GET_BOOKING_COUNT}?ownerId=${data?.ownerId}`);
-      return res?.data;
+      // ✅ SUPER ADMIN: Use Super Admin booking API to get counts
+      // Only include ownerId in query if it's explicitly provided (not null/undefined)
+      const queryParams = data?.ownerId ? `?ownerId=${data.ownerId}` : '';
+      const allRes = await ownerApi.get(`${Url.SUPER_ADMIN_GET_ALL_BOOKINGS}${queryParams}&limit=1`);
+      const upcomingRes = await ownerApi.get(`${Url.SUPER_ADMIN_GET_ALL_BOOKINGS}${queryParams}&bookingStatus=upcoming&limit=1`);
+      const completedRes = await ownerApi.get(`${Url.SUPER_ADMIN_GET_ALL_BOOKINGS}${queryParams}&bookingStatus=completed&limit=1`);
+      
+      return {
+        allCount: allRes?.data?.data?.pagination?.totalItems || 0,
+        upcomingCount: upcomingRes?.data?.data?.pagination?.totalItems || 0,
+        completedCount: completedRes?.data?.data?.pagination?.totalItems || 0
+      };
     } catch (error) {
       showError(error?.message);
+      return rejectWithValue(error?.message);
     }
   }
 );
