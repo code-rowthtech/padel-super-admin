@@ -27,7 +27,6 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   const [owners, setOwners] = useState([]);
   const [loadingOwners, setLoadingOwners] = useState(false);
 
-  // Fetch owners for Super Admin
   useEffect(() => {
     if (isSuperAdmin) {
       fetchOwners();
@@ -42,6 +41,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
       setOwners(ownersData);
     } catch (error) {
       console.error('Error fetching owners:', error);
+      setOwners([]);
     } finally {
       setLoadingOwners(false);
     }
@@ -51,7 +51,6 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
     const newOwnerId = e.target.value;
     const selectedOwnerData = owners.find(o => o._id === newOwnerId);
     updateSelectedOwner(newOwnerId === 'all' ? null : newOwnerId, selectedOwnerData);
-    // Refresh the page to reload data with new owner
     window.location.reload();
   };
 
@@ -77,13 +76,21 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
     >
       {/* Logo Section */}
       <div
-        className="d-flex align-items-center justify-content-center mb-2 pb-2"
-        style={{ marginTop: "10px" }}
+        className="d-flex align-items-center justify-content-center mb-4 pb-3 border-bottom"
+        style={{ marginTop: "20px", cursor: 'pointer', borderColor: 'rgba(255,255,255,0.1)' }}
+        onClick={() => navigate('/admin/dashboard')}
       >
         <div className={`position-relative ${isCollapsed ? "" : "me-3"}`}>
-          <div className="bg-primary rounded-circle p-2">
+          <div 
+            className="rounded-circle p-3"
+            style={{
+              background: 'rgb(31, 65, 187)',
+              boxShadow: '0 4px 12px rgba(31, 65, 187, 0.3)'
+            }}
+          >
             <IoTennisballOutline
               size={isCollapsed ? 24 : window.innerWidth <= 768 ? 110 : 80}
+              color="white"
             />
           </div>
         </div>
@@ -92,7 +99,15 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
       {/* Super Admin Badge */}
       {isSuperAdmin && !isCollapsed && (
         <div className="px-3 mb-3">
-          <div className="bg-primary text-white p-2 rounded text-center small fw-bold">
+          <div 
+            className="text-white p-2 rounded text-center small fw-bold"
+            onClick={() => navigate('/admin/dashboard')}
+            style={{ 
+              cursor: 'pointer',
+              background: 'rgb(31, 65, 187)',
+              boxShadow: '0 2px 8px rgba(31, 65, 187, 0.3)'
+            }}
+          >
             SUPER ADMIN
           </div>
         </div>
@@ -155,12 +170,12 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
                 : linkClasses
             }
             style={({ isActive }) => ({
-              backgroundColor: isActive ? "#333B48" : "transparent",
+              backgroundColor: isActive ? "rgba(31, 65, 187, 0.15)" : "transparent",
               color: "#CCD2DD",
               fontSize: "15px",
               fontWeight: "500",
               fontFamily: "Poppins",
-              boxShadow: isActive ? "-28px 22px 45px 0px #1B1D4224" : "none",
+              boxShadow: isActive ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
               minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
               width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
             })}
@@ -208,12 +223,12 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
                 : linkClasses
             }
             style={({ isActive }) => ({
-              backgroundColor: isActive ? "#333B48" : "transparent",
+              backgroundColor: isActive ? "rgba(31, 65, 187, 0.15)" : "transparent",
               color: "#CCD2DD",
               fontSize: "15px",
               fontWeight: "500",
               fontFamily: "Poppins",
-              boxShadow: isActive ? "-28px 22px 45px 0px #1B1D4224" : "none",
+              boxShadow: isActive ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
               minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
               width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
             })}
@@ -262,12 +277,12 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
                   : linkClasses
               }
               style={({ isActive }) => ({
-                backgroundColor: isActive ? "#333B48" : "transparent",
+                backgroundColor: isActive ? "rgba(31, 65, 187, 0.15)" : "transparent",
                 color: "#CCD2DD",
                 fontSize: "15px",
                 fontWeight: "500",
                 fontFamily: "Poppins",
-                boxShadow: isActive ? "-28px 22px 45px 0px #1B1D4224" : "none",
+                boxShadow: isActive ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
                 minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
                 width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
               })}
@@ -316,12 +331,12 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
                 : linkClasses
             }
             style={({ isActive }) => ({
-              backgroundColor: isActive ? "#333B48" : "transparent",
+              backgroundColor: isActive ? "rgba(31, 65, 187, 0.15)" : "transparent",
               color: "#CCD2DD",
               fontSize: "15px",
               fontWeight: "500",
               fontFamily: "Poppins",
-              boxShadow: isActive ? "-28px 22px 45px 0px #1B1D4224" : "none",
+              boxShadow: isActive ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
               minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
               width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
             })}
@@ -369,12 +384,12 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
                 : linkClasses
             }
             style={({ isActive }) => ({
-              backgroundColor: isActive ? "#333B48" : "transparent",
+              backgroundColor: isActive ? "rgba(31, 65, 187, 0.15)" : "transparent",
               color: "#CCD2DD",
               fontSize: "15px",
               fontWeight: "500",
               fontFamily: "Poppins",
-              boxShadow: isActive ? "-28px 22px 45px 0px #1B1D4224" : "none",
+              boxShadow: isActive ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
               minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
               width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
             })}

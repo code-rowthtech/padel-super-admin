@@ -179,10 +179,10 @@ const OwnersManagement = () => {
         <Col xs={12}>
           <div className="d-flex justify-content-between align-items-center">
             <h4 className="mb-0">Owners Management</h4>
-            <Button variant="primary" onClick={() => handleOpenModal()}>
+            {/* <Button variant="primary" onClick={() => handleOpenModal()}>
               <FaPlus className="me-2" />
               Create Owner
-            </Button>
+            </Button> */}
           </div>
         </Col>
       </Row>

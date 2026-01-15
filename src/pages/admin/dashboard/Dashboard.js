@@ -313,59 +313,28 @@ const AdminDashboard = () => {
   return (
     <Container
       fluid
-      className="p-2 "
-      style={{ background: "#f4f7fd", minHeight: "100vh" }}
+      className="p-2 p-md-4"
+      style={{ background: "#f9fafb", minHeight: "100vh" }}
     >
       {dashboardLoading ? (
         <DataLoading height="80vh" />
       ) : (
         <>
-          <Row className="mb-md-4 mb-0">
+          <Row className="mb-4 g-3">
             {summaryCards?.map((card, index) => (
-              <Col key={index} xs={12} sm={6} lg={3} className="mb-3">
-                <Card className="shadow border-0 rounded-0 h-100">
-                  <Card.Body className="d-flex justify-content-between">
-                    <div className="mt-2">
-                      <div className="table-data">{card?.title}</div>
-                      <div className="card-value">{card?.value}</div>
-                      <div
-                        className={`d-flex align-items-center gap-1 text-${card?.color} fw-semibold`}
-                      >
-                        {/* <div
-                          className="d-flex align-items-center justify-content-center"
-                          style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            paddingLeft: "6px",
-                            paddingRight: "6px",
-                            paddingTop: "4px",
-                            paddingBottom: "4px",
-                            borderRadius: "50%",
-                            backgroundColor:
-                              card.color === "danger" ? "#FFD9D7" : "#B5FFCE",
-                          }}
-                        >
-                          <span
-                            style={{
-                              display: "inline-block",
-                              transform:
-                                card.color === "danger"
-                                  ? "rotate(45deg)"
-                                  : "rotate(-45deg)",
-                              transition: "transform 0.3s ease",
-                            }}
-                          >
-                            {card.icon}
-                          </span>
-                        </div> */}
-
+              <Col key={index} xs={12} sm={6} lg={3} className="fade-in-up">
+                <Card className="stat-card h-100 border-0">
+                  <Card.Body className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <div className="text-muted mb-2" style={{ fontSize: "13px", fontWeight: "500" }}>
+                        {card?.title}
+                      </div>
+                      <div className="fw-bold mb-2" style={{ fontSize: "28px", color: "#1f2937" }}>
+                        {card?.value}
                       </div>
                     </div>
-                    <div className=" mb-2 text-end">
-                      <div className="mb-4 text-end text-dark">
-                        {card?.bigicon}
-                      </div>
+                    <div className="stat-icon">
+                      {card?.bigicon}
                     </div>
                   </Card.Body>
                 </Card>
@@ -373,26 +342,16 @@ const AdminDashboard = () => {
             ))}
           </Row>
 
-          <Row className="mb-4">
-            <Col xs={12} lg={7} className="mb-4 mb-lg-0">
-              <Card className="shadow border-0 rounded-3">
+          <Row className="mb-4 g-3">
+            <Col xs={12} lg={7} className="fade-in-up">
+              <Card className="border-0 h-100">
                 <Card.Body>
                   <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-sm-center mb-4">
                     <div>
-                      <h6
-                        className="mb-1"
-                        style={{
-                          fontSize: "18px",
-                          fontWeight: "700",
-                          color: "#1f2937",
-                        }}
-                      >
+                      <h5 className="mb-1 fw-bold" style={{ color: "#1f2937" }}>
                         Monthly Booking Analytics
-                      </h6>
-                      <p
-                        className="text-muted mb-0"
-                        style={{ fontSize: "12px" }}
-                      >
+                      </h5>
+                      <p className="text-muted mb-0" style={{ fontSize: "13px" }}>
                         Track your booking performance over time
                       </p>
                     </div>
@@ -542,27 +501,24 @@ const AdminDashboard = () => {
                 </Card.Body>
               </Card>
             </Col>
-            <Col xs={12} lg={5}>
-              <Card
-                className="shadow border-0"
-                style={{
-                  height:
-                    dashboardCancelledBookings?.length > 0 ? "450px" : "450px",
-                }}
-              >
+            <Col xs={12} lg={5} className="fade-in-up">
+              <Card className="border-0 h-100" style={{ maxHeight: "450px" }}>
                 <Card.Body>
-                  <div className="d-flex justify-content-between">
-                    <h6
-                      className="mb-3"
-                      style={{ fontSize: "20px", fontWeight: "600" }}
-                    >
+                  <div className="d-flex justify-content-between align-items-center mb-3">
+                    <h5 className="mb-0 fw-bold" style={{ color: "#1f2937" }}>
                       Today Cancellation
-                    </h6>
+                    </h5>
                     <Link
                       to="/admin/cancellation"
-                      className="dashboard-viewmore"
+                      className="text-decoration-none"
+                      style={{ 
+                        fontSize: "13px", 
+                        fontWeight: "600",
+                        color: "rgb(31, 65, 187)",
+                        transition: "all 0.2s ease"
+                      }}
                     >
-                      View More
+                      View More →
                     </Link>
                   </div>
                   <div
@@ -748,17 +704,23 @@ const AdminDashboard = () => {
 
           <Row>
             <Col>
-              <Card className="shadow-sm border-0">
+              <Card className="border-0 fade-in-up">
                 <Card.Body className="pb-2">
-                  <div className="d-flex justify-content-between mb-2">
-                    <h6
-                      className="mb-3"
-                      style={{ fontSize: "20px", fontWeight: "600" }}
-                    >
+                  <div className="d-flex justify-content-between align-items-center mb-3">
+                    <h5 className="mb-0 fw-bold" style={{ color: "#1f2937" }}>
                       Recent Bookings
-                    </h6>
-                    <Link to="/admin/booking" className="dashboard-viewmore">
-                      View More
+                    </h5>
+                    <Link 
+                      to="/admin/booking" 
+                      className="text-decoration-none"
+                      style={{ 
+                        fontSize: "13px", 
+                        fontWeight: "600",
+                        color: "rgb(31, 65, 187)",
+                        transition: "all 0.2s ease"
+                      }}
+                    >
+                      View More →
                     </Link>
                   </div>
                   {dashboardRecentBookings?.length > 0 ? (

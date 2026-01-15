@@ -41,6 +41,18 @@ export const showSuccess = (message = "Success!") => {
 };
 
 export const showError = (message = "") => {
+  // Suppress specific expected errors
+  const suppressedErrors = [
+    'No registered courts found',
+    'Network error',
+    'Network Error'
+  ];
+  
+  if (suppressedErrors.some(err => message?.toString().includes(err))) {
+    console.warn('Suppressed error:', message);
+    return;
+  }
+  
   createToastWithCount(message, 'error', {
     position: "top-right",
     autoClose: 4000,

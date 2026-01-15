@@ -369,7 +369,7 @@ const Booking = () => {
                 </div>
               )}
 
-              <button
+              {/* <button
                 className="d-flex align-items-center position-relative p-0 border-0"
                 style={{
                   borderRadius: "20px 10px 10px 20px",
@@ -421,7 +421,7 @@ const Booking = () => {
                 >
                   Manual Booking
                 </div>
-              </button>
+              </button> */}
             </div>
           </div>
         </Col>

@@ -1,9 +1,0 @@
-services:
-  padal_fe_production:
-    build:
-      context: .
-      dockerfile: Dockerfile.production
-    container_name: padal_fe_production_container
-    ports:
-      - "5001:80"
-    restart: always
