@@ -1,0 +1,7 @@
+services:
+  padal_fe:
+    build: ./
+    container_name: padal_fe_container
+    ports:
+      - "5660:80"
+    restart: always
