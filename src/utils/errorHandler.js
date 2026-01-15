@@ -23,8 +23,9 @@ class ErrorHandler {
       // Handle specific error types
       if (event.reason?.message?.includes('Loading chunk')) {
         this.handleChunkLoadError();
-      } else if (event.reason?.message?.includes('Network Error')) {
-        this.handleNetworkError();
+      } else if (event.reason?.message?.includes('Network Error') || event.reason?.message?.includes('Network error')) {
+        // Silently log network errors during initial load
+        console.warn('Network error detected - this may be expected during initial load');
       } else {
         this.handleGenericError(event.reason);
       }

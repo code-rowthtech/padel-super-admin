@@ -22,12 +22,14 @@ export const getOwnerRegisteredClub = createAsyncThunk(
       }
 
       const errorMessage = message || ERROR_MESSAGES.FETCH_FAILED;
-      showError(errorMessage);
       return rejectWithValue(errorMessage);
     } catch (error) {
       const errorMessage =
         error?.response?.data?.message || ERROR_MESSAGES.NETWORK_ERROR;
-      showError(error);
+      // Don't show error for "No registered courts" - it's expected for new users
+      if (!errorMessage.includes('No registered courts')) {
+        showError(errorMessage);
+      }
       return rejectWithValue(errorMessage);
     }
   }
@@ -51,6 +53,10 @@ export const getActiveCourts = createAsyncThunk(
     } catch (error) {
       const errorMessage =
         error?.response?.data?.message || ERROR_MESSAGES.NETWORK_ERROR;
+      // Don't show error for "No registered courts" - it's expected
+      if (!errorMessage.includes('No registered courts')) {
+        showError(errorMessage);
+      }
       return rejectWithValue(errorMessage);
     }
   }
