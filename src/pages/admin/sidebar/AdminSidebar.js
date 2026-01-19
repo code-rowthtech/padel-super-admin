@@ -7,7 +7,7 @@ import {
   FaUser,
 } from "react-icons/fa";
 import { useDispatch } from "react-redux";
-import { RiWallet3Line } from "react-icons/ri";
+import { RiWallet3Line, RiWalletLine } from "react-icons/ri";
 import { getOwnerFromSession, ownerApi } from "../../../helpers/api/apiCore";
 import { ButtonLoading } from "../../../helpers/loading/Loaders";
 import { useSuperAdminContext } from "../../../contexts/SuperAdminContext";
@@ -364,6 +364,59 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               }}
             >
               Payments
+            </div>
+          )}
+        </div>
+
+        {/* Wallet */}
+        <div
+          className="position-relative"
+          onMouseEnter={() =>
+            isCollapsed && window.innerWidth > 768 && setHoveredItem("wallet")
+          }
+          onMouseLeave={() => setHoveredItem(null)}
+        >
+          <NavLink
+            to="/admin/wallet"
+            className={
+              isCollapsed && window.innerWidth > 768
+                ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
+                : linkClasses
+            }
+            style={({ isActive }) => ({
+              backgroundColor: isActive ? "rgba(31, 65, 187, 0.15)" : "transparent",
+              color: "#CCD2DD",
+              fontSize: "15px",
+              fontWeight: "500",
+              fontFamily: "Poppins",
+              boxShadow: isActive ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
+              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+            })}
+            onClick={() => window.innerWidth <= 768 && onClose()}
+          >
+            <RiWalletLine
+              className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
+              size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
+            />
+            {(!isCollapsed || window.innerWidth <= 768) && "Wallet"}
+          </NavLink>
+          {isCollapsed && window.innerWidth > 768 && hoveredItem === "wallet" && (
+            <div
+              className="position-absolute bg-dark px-2 py-1 rounded"
+              style={{
+                left: "75px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                zIndex: 1200,
+                fontSize: "15px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+                color: "#CCD2DD",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Wallet
             </div>
           )}
         </div>

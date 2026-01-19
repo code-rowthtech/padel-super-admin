@@ -16,6 +16,7 @@ const AdminLogin = React.lazy(() => import("../pages/admin/auth/Login"));
 const AdminDashboard = React.lazy(() => import("../pages/admin/dashboard/Dashboard"));
 const BookingPage = React.lazy(() => import("../pages/admin/booking/Booking"));
 const Payments = React.lazy(() => import("../pages/admin/payments/Payments"));
+const Wallet = React.lazy(() => import("../pages/admin/wallet/Wallet"));
 const Profile = React.lazy(() => import("../pages/admin/profile/Profile"));
 const OwnersManagement = React.lazy(() => import("../pages/admin/owners/OwnersManagement"));
 const NotFound = React.lazy(() => import("../pages/error/NotFound"));
@@ -71,6 +72,10 @@ const AllRoutes = () => {
             {
               path: "payments",
               element: LoadComponent(Payments),
+            },
+            {
+              path: "wallet",
+              element: LoadComponent(Wallet),
             },
             {
               path: "profile",
