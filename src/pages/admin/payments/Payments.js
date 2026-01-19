@@ -1,11 +1,11 @@
 import React from "react";
 import { useEffect, useState } from "react";
-import { Row, Col, Container, Table, Card, Form, Button } from "react-bootstrap";
+import { Row, Col, Container, Table, Card, Form, Button, ListGroup, Badge } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { MdDateRange, MdOutlineDateRange } from "react-icons/md";
-import { FaTimes, FaSearch, FaFilter, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
+import { FaTimes, FaSearch, FaFilter, FaCheckCircle, FaTimesCircle, FaBuilding } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { AppBar, Tabs, Tab, Box } from "@mui/material";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
@@ -71,6 +71,19 @@ console.log(selectedPayments,'selectedPayments');
 
   const payments = getBookingData?.bookings || [];
   const paymentDetails = getBookingDetailsData?.booking || {};
+
+  // Mock clubs data - Replace with actual API
+  const clubs = [
+    { _id: "1", name: "Club Alpha", transactionCount: 45 },
+    { _id: "2", name: "Club Beta", transactionCount: 32 },
+    { _id: "3", name: "Club Gamma", transactionCount: 28 },
+    { _id: "4", name: "Club Delta", transactionCount: 19 },
+  ];
+
+  // Filter payments by selected club
+  const filteredPayments = selectedClub
+    ? payments.filter(p => p?.clubId?.name === selectedClub || p?.club?.name === selectedClub)
+    : payments;
 
   const status = tab === 0 ? "" : "refunded";
   const sendDate = startDate && endDate;
@@ -396,6 +409,58 @@ console.log(selectedPayments,'selectedPayments');
               </div>
             </Form.Group>
 
+            <div className="mt-2">
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <span style={{ fontSize: "11px", color: "#6c757d", fontWeight: "600" }}>CLUBS</span>
+                <Badge bg="primary" style={{ fontSize: "10px" }}>{clubs.length}</Badge>
+              </div>
+              <div style={{ maxHeight: "calc(100vh - 400px)", overflowY: "auto" }}>
+                <ListGroup variant="flush">
+                  {clubs.map((club) => (
+                    <ListGroup.Item
+                      key={club._id}
+                      action
+                      active={selectedClub === club.name}
+                      onClick={() => setSelectedClub(selectedClub === club.name ? "" : club.name)}
+                      className="px-2 py-2"
+                      style={{
+                        cursor: "pointer",
+                        borderLeft: selectedClub === club.name ? "3px solid #4361ee" : "3px solid transparent",
+                        fontSize: "12px",
+                        transition: "all 0.2s"
+                      }}
+                    >
+                      <div className="d-flex align-items-center">
+                        <div
+                          className="rounded-circle d-flex align-items-center justify-content-center me-2"
+                          style={{
+                            width: "28px",
+                            height: "28px",
+                            backgroundColor: selectedClub === club.name ? "#fff" : "#e7f3ff",
+                            color: selectedClub === club.name ? "#4361ee" : "#4361ee"
+                          }}
+                        >
+                          <FaBuilding size={12} />
+                        </div>
+                        <div className="flex-grow-1">
+                          <div className="fw-semibold" style={{ fontSize: "11px" }}>{club.name}</div>
+                        </div>
+                        <div className="text-end">
+                          <Badge 
+                            bg={selectedClub === club.name ? "light" : "secondary"} 
+                            text={selectedClub === club.name ? "primary" : "white"}
+                            style={{ fontSize: "9px" }}
+                          >
+                            {club.transactionCount}
+                          </Badge>
+                        </div>
+                      </div>
+                    </ListGroup.Item>
+                  ))}
+                </ListGroup>
+              </div>
+            </div>
+
             {/* <div className="mt-3 pt-2 border-top">
               <h6 className="fw-bold mb-2" style={{ fontSize: "12px", color: "#6c757d", textTransform: "uppercase" }}>Summary</h6>
               <div className="bg-light rounded p-2 mb-1" style={{ borderLeft: "2px solid #28a745" }}>
@@ -419,13 +484,12 @@ console.log(selectedPayments,'selectedPayments');
             <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 pb-3 border-bottom gap-3">
               <div>
                 <h5 className="mb-1 fw-bold" style={{ fontSize: "16px", color: "#1a1a1a" }}>
-                  {/* {tab === 0 ? "Recent" : "Refund"} */}
-                  Transactions
+                  {selectedClub ? `${selectedClub} - ` : ""}Transactions
                 </h5>
                 <p className="text-muted mb-0" style={{ fontSize: "12px" }}>
                   {selectedPayments.length > 0 
                     ? `${selectedPayments.length} transaction${selectedPayments.length > 1 ? 's' : ''} selected` 
-                    : `Total ${payments.length} transaction${payments.length !== 1 ? 's' : ''}`}
+                    : `Total ${filteredPayments.length} transaction${filteredPayments.length !== 1 ? 's' : ''}`}
                 </p>
               </div>
               <Button
@@ -447,7 +511,7 @@ console.log(selectedPayments,'selectedPayments');
               <DataLoading height="60vh" />
             ) : (
               <>
-                {payments?.length > 0 ? (
+                {filteredPayments?.length > 0 ? (
                   <>
                     <div className="custom-scroll-container d-none d-md-block" style={{ overflowX: "auto" }}>
                       <Table
@@ -475,7 +539,7 @@ console.log(selectedPayments,'selectedPayments');
                           </tr>
                         </thead>
                         <tbody>
-                          {payments?.map((item, index) => (
+                          {filteredPayments?.map((item, index) => (
                             <tr
                               key={item?._id}
                               className="border-bottom"
@@ -548,7 +612,7 @@ console.log(selectedPayments,'selectedPayments');
                     </div>
 
                     <div className="mobile-card-table d-block d-md-none">
-                      {payments?.map((item) => (
+                      {filteredPayments?.map((item) => (
                         <div key={item?._id} className="card mb-2">
                           <div className="card-body">
                             <div className="mobile-card-item">
