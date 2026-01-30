@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from "react";
-import { Row, Col, Container, Table, Card, Form, InputGroup, ListGroup, Badge } from "react-bootstrap";
-import { FaSearch, FaFilter, FaWallet, FaHistory, FaUser } from "react-icons/fa";
+import React, { useState, useEffect, useRef } from "react";
+import { Row, Col, Container, Table, Card, Form, InputGroup, ListGroup, Badge, Button } from "react-bootstrap";
+import { FaSearch, FaFilter, FaWallet, FaHistory, FaUser, FaDownload } from "react-icons/fa";
 import { DataLoading } from "../../../helpers/loading/Loaders";
 import { ownerApi } from "../../../helpers/api/apiCore";
 import { SUPER_ADMIN_GET_WALLET_USERS, SUPER_ADMIN_GET_WALLET_TRANSACTIONS } from "../../../helpers/api/apiEndpoint";
 import Pagination from "../../../helpers/Pagination";
+
+// Add export endpoint
+const SUPER_ADMIN_EXPORT_WALLET_BALANCES = "http://192.168.0.116:7600/api/super-admin/export-wallet-balances";
 
 const Wallet = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -21,6 +24,7 @@ const Wallet = () => {
   const [transactionsLoading, setTransactionsLoading] = useState(false);
   const [transactionPage, setTransactionPage] = useState(1);
   const [transactionTotalRecords, setTransactionTotalRecords] = useState(0);
+  const [exportLoading, setExportLoading] = useState(false);
   const transactionLimit = 20;
 
   const filteredWallets = wallets.filter(wallet =>
@@ -109,6 +113,20 @@ const Wallet = () => {
 
   const handleTransactionPageChange = (page) => {
     setTransactionPage(page);
+  };
+
+  const handleWalletExport = async () => {
+    try {
+      setExportLoading(true);
+      const res = await ownerApi.get(SUPER_ADMIN_EXPORT_WALLET_BALANCES);
+      if (res?.data?.success && res?.data?.data?.downloadUrl) {
+        window.open(res.data.data.downloadUrl, '_blank');
+      }
+    } catch (error) {
+      console.error('Wallet export failed:', error);
+    } finally {
+      setExportLoading(false);
+    }
   };
 
   return (
@@ -219,6 +237,17 @@ const Wallet = () => {
                     </h5>
                     <p className="text-muted mb-0" style={{ fontSize: "12px" }}>{selectedWallet.email}</p>
                   </div>
+                  <Button
+                    variant="outline-primary"
+                    size="sm"
+                    onClick={handleWalletExport}
+                    disabled={exportLoading}
+                    className="d-flex align-items-center gap-2"
+                    style={{ borderRadius: "6px", fontSize: "13px", padding: "8px 16px" }}
+                  >
+                    <FaDownload size={12} />
+                    <span>{exportLoading ? "Exporting..." : "Export Wallets"}</span>
+                  </Button>
                 </div>
 
                 <div className="mb-4">
