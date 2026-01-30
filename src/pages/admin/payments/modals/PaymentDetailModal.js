@@ -1,7 +1,7 @@
 import React from "react";
 import { Modal } from "react-bootstrap";
 import { modalSuccess } from "../../../../assets/files";
-import { formatDate, formatSlotTime } from "../../../../helpers/Formatting";
+import { formatDate } from "../../../../helpers/Formatting";
 
 export const PaymentDetailsModal = ({ show, handleClose, paymentDetails }) => (
   <Modal
@@ -37,8 +37,18 @@ export const PaymentDetailsModal = ({ show, handleClose, paymentDetails }) => (
           style={{ width: "200px" }}
           loading="lazy"
         />
-        <h4>Payment Successful!</h4>
-        <span>Your payment has been received successfully.</span>
+        <h4>
+          {paymentDetails?.amount
+            ? paymentDetails?.status === "paid"
+              ? "Payment Paid"
+              : "Payment Pending"
+            : "Booking Details"}
+        </h4>
+        <span>
+          {paymentDetails?.amount
+            ? "Settlement details for this club payment."
+            : "Booking details for unpaid settlement."}
+        </span>
         <div
           className="d-flex justify-content-between border align-items-center rounded-3 mb-2 mt-3"
           style={{ backgroundColor: "#CBD6FF1A" }}
@@ -52,7 +62,7 @@ export const PaymentDetailsModal = ({ show, handleClose, paymentDetails }) => (
                 fontFamily: "Poppins",
               }}
             >
-              Name
+              Club
             </p>
             <p
               className="text-muted mb-1"
@@ -62,7 +72,7 @@ export const PaymentDetailsModal = ({ show, handleClose, paymentDetails }) => (
                 fontFamily: "Poppins",
               }}
             >
-              Court Number
+              Owner
             </p>
             <p
               className="text-muted mb-1"
@@ -82,7 +92,7 @@ export const PaymentDetailsModal = ({ show, handleClose, paymentDetails }) => (
                 fontFamily: "Poppins",
               }}
             >
-              Time
+              Status
             </p>
           </div>
           <div className="text-end p-2 pe-3">
@@ -94,10 +104,9 @@ export const PaymentDetailsModal = ({ show, handleClose, paymentDetails }) => (
                 fontFamily: "Poppins",
               }}
             >
-              {paymentDetails?.userId?.name
-                ?.slice(0, 1)
-                ?.toUpperCase()
-                ?.concat(paymentDetails?.userId?.name?.slice(1)) || "N/A"}
+              {paymentDetails?.clubId?.clubName ||
+                paymentDetails?.register_club_id?.clubName ||
+                "N/A"}
             </p>
             <p
               className="fw-bold mb-1"
@@ -107,7 +116,10 @@ export const PaymentDetailsModal = ({ show, handleClose, paymentDetails }) => (
                 fontFamily: "Poppins",
               }}
             >
-              {paymentDetails?.slot?.[0]?.courtName || "-"}
+              {paymentDetails?.ownerId?.name ||
+                paymentDetails?.clubId?.ownerId?.name ||
+                paymentDetails?.register_club_id?.ownerId?.name ||
+                "-"}
             </p>
             <p
               className="fw-bold mb-1"
@@ -117,7 +129,7 @@ export const PaymentDetailsModal = ({ show, handleClose, paymentDetails }) => (
                 fontFamily: "Poppins",
               }}
             >
-              {formatDate(paymentDetails?.bookingDate)}
+              {formatDate(paymentDetails?.paidDate || paymentDetails?.bookingDate)}
             </p>
             <p
               className="fw-bold mb-1"
@@ -127,8 +139,7 @@ export const PaymentDetailsModal = ({ show, handleClose, paymentDetails }) => (
                 fontFamily: "Poppins",
               }}
             >
-              {paymentDetails?.slot?.[0]?.businessHours?.[0]?.day || ""}{" "}
-              {formatSlotTime(paymentDetails?.slot?.[0]?.slotTimes?.[0]?.time)}
+              {paymentDetails?.status || paymentDetails?.bookingStatus || "-"}
             </p>
           </div>
         </div>
@@ -141,7 +152,7 @@ export const PaymentDetailsModal = ({ show, handleClose, paymentDetails }) => (
             color: "#374151",
           }}
         >
-          Payment Details
+          Settlement Details
         </h2>
         <div className="d-flex justify-content-between">
           <h2
@@ -163,11 +174,33 @@ export const PaymentDetailsModal = ({ show, handleClose, paymentDetails }) => (
               color: "#374151",
             }}
           >
-            {paymentDetails?.totalAmount
-              ? `₹ ${paymentDetails?.totalAmount}`
+            {paymentDetails?.amount || paymentDetails?.totalAmount
+              ? `₹ ${paymentDetails?.amount || paymentDetails?.totalAmount}`
               : "N/A"}
           </h2>
         </div>
+        {paymentDetails?.invoiceUrl && (
+          <div className="d-flex justify-content-between">
+            <h2
+              className="tabel-title py-1 text-start text-muted"
+              style={{
+                fontFamily: "Poppins",
+                fontSize: "14px",
+                fontWeight: "500",
+              }}
+            >
+              Invoice
+            </h2>
+            <a
+              href={paymentDetails.invoiceUrl}
+              target="_blank"
+              rel="noreferrer"
+              style={{ fontSize: "14px", fontWeight: "600" }}
+            >
+              View
+            </a>
+          </div>
+        )}
       </div>
     </Modal.Body>
   </Modal>

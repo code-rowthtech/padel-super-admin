@@ -26,6 +26,8 @@ export const getBookingByStatus = createAsyncThunk(
           }
         }
         if (params?.ownerId) query.append("ownerId", params?.ownerId);
+        if (params?.clubId) query.append("clubId", params?.clubId);
+        if (params?.paymentStatus) query.append("paymentStatus", params?.paymentStatus);
         if (params.startDate) query.append("startDate", params.startDate);
         if (params.endDate) query.append("endDate", params.endDate);
         if (params.page) query.append("page", params.page);
@@ -98,12 +100,29 @@ export const bookingCount = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       // ✅ SUPER ADMIN: Use Super Admin booking API to get counts
-      // Only include ownerId in query if it's explicitly provided (not null/undefined)
-      const queryParams = data?.ownerId ? `?ownerId=${data.ownerId}` : '';
-      const allRes = await ownerApi.get(`${Url.SUPER_ADMIN_GET_ALL_BOOKINGS}${queryParams}&limit=1`);
-      const upcomingRes = await ownerApi.get(`${Url.SUPER_ADMIN_GET_ALL_BOOKINGS}${queryParams}&bookingStatus=upcoming&limit=1`);
-      const completedRes = await ownerApi.get(`${Url.SUPER_ADMIN_GET_ALL_BOOKINGS}${queryParams}&bookingStatus=completed&limit=1`);
-      
+      const buildUrl = (params = {}) => {
+        const query = new URLSearchParams(params);
+        const queryString = query.toString();
+        return queryString
+          ? `${Url.SUPER_ADMIN_GET_ALL_BOOKINGS}?${queryString}`
+          : Url.SUPER_ADMIN_GET_ALL_BOOKINGS;
+      };
+      const baseParams = {
+        ...(data?.ownerId ? { ownerId: data.ownerId } : {}),
+        ...(data?.startDate ? { startDate: data.startDate } : {}),
+        ...(data?.endDate ? { endDate: data.endDate } : {}),
+      };
+
+      const allRes = await ownerApi.get(
+        buildUrl({ ...baseParams, limit: 1 })
+      );
+      const upcomingRes = await ownerApi.get(
+        buildUrl({ ...baseParams, bookingStatus: "upcoming", limit: 1 })
+      );
+      const completedRes = await ownerApi.get(
+        buildUrl({ ...baseParams, bookingStatus: "completed", limit: 1 })
+      );
+
       return {
         allCount: allRes?.data?.data?.pagination?.totalItems || 0,
         upcomingCount: upcomingRes?.data?.data?.pagination?.totalItems || 0,

@@ -295,7 +295,7 @@ const AdminLayout = () => {
                 }
             `}</style>
 
-            <div className="admin-layout">
+            <div className="admin-layout" key={pathname}>
                 <div
                     className={`sidebar-overlay ${sidebarOpen ? "show" : ""}`}
                     onClick={() => setSidebarOpen(false)}
@@ -317,7 +317,7 @@ const AdminLayout = () => {
                         pageName={getPageName(pathname)}
                     />
                     <div className="admin-scrollable-content">
-                        <Outlet />
+                        <Outlet key={pathname} />
                     </div>
                 </div>
             </div>

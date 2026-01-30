@@ -74,9 +74,9 @@ const Booking = () => {
     completedCount: 0,
   });
 
-  const allCount = sendDate && tab === 0 ? totalItems : counts?.allCount;
-  const upcomingCount = sendDate && tab === 1 ? totalItems : counts?.upcomingCount;
-  const completedCount = sendDate && tab === 2 ? totalItems : counts?.completedCount;
+  const allCount = counts?.allCount ?? 0;
+  const upcomingCount = counts?.upcomingCount ?? 0;
+  const completedCount = counts?.completedCount ?? 0;
 
   const defaultLimit = 20;
 
@@ -105,24 +105,26 @@ const Booking = () => {
       payload.endDate = formatToYYYYMMDD(endDate);
     }
 
-    // ✅ SUPER ADMIN: Only fetch counts if ownerId is explicitly provided (not null)
-    // For non-super-admin, always fetch counts
-    if (!isSuperAdmin || ownerId) {
-      dispatch(bookingCount({ ownerId }));
-    }
+    // ✅ SUPER ADMIN: Fetch counts for global view or selected owner
+    dispatch(
+      bookingCount({
+        ownerId: ownerId || undefined,
+        ...(sendDate ? { startDate: payload.startDate, endDate: payload.endDate } : {}),
+      })
+    );
     dispatch(resetBookingData());
     dispatch(getBookingByStatus(payload));
   }, [tab, currentPage, dispatch, ownerId, sendDate, isSuperAdmin]);
 
   useEffect(() => {
-    if (tabCount && !sendDate) {
+    if (tabCount) {
       setCounts({
         allCount: tabCount.allCount || 0,
         upcomingCount: tabCount.upcomingCount || 0,
         completedCount: tabCount.completedCount || 0,
       });
     }
-  }, [tabCount, sendDate]);
+  }, [tabCount]);
 
   const handleBookingDetails = async (id, type) => {
     setLoadingBookingId(id);
@@ -255,7 +257,6 @@ const Booking = () => {
                   onChange={(_, v) => {
                     setTab(v);
                     setCurrentPage(1);
-                    setDateRange([null, null]);
                   }}
                   indicatorColor="primary"
                   textColor="primary"
@@ -464,6 +465,9 @@ const Booking = () => {
                       <tr className="text-center">
                         <th className="d-lg-table-cell">Sr No.</th>
                         <th className="d-none d-lg-table-cell">User Name</th>
+                        {isSuperAdmin && (
+                          <th className="d-none d-lg-table-cell">Owner</th>
+                        )}
                         <th className="d-lg-none">User</th>
                         <th className="d-none d-md-table-cell">Contact</th>
                         <th>Date</th>
@@ -495,6 +499,14 @@ const Booking = () => {
                               (item?.userId?.name || item?.user?.name || item?.userName)?.slice(1)
                               : "N/A"}
                           </td>
+                          {isSuperAdmin && (
+                            <td
+                              className="text-truncate"
+                              style={{ maxWidth: "160px" }}
+                            >
+                              {item?.ownerName || item?.owner?.name || "N/A"}
+                            </td>
+                          )}
                           <td className="d-none d-md-table-cell small">
                             {(item?.userId?.countryCode || item?.user?.countryCode || "")}{" "}
                             {(item?.userId?.phoneNumber || item?.user?.phoneNumber || "N/A")}
@@ -619,6 +631,14 @@ const Booking = () => {
                               : "N/A"}
                           </span>
                         </div>
+                        {isSuperAdmin && (
+                          <div className="mobile-card-item">
+                            <span className="mobile-card-label">Owner:</span>
+                            <span className="mobile-card-value">
+                              {item?.ownerName || item?.owner?.name || "N/A"}
+                            </span>
+                          </div>
+                        )}
                         <div className="mobile-card-item">
                           <span className="mobile-card-label">Contact:</span>
                           <span className="mobile-card-value">

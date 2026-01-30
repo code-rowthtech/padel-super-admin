@@ -77,7 +77,6 @@ const OwnersManagement = () => {
       email: "",
       password: "",
       phoneNumber: "",
-      countryCode: "+91",
       domainLink: "",
     });
     setErrors({});
@@ -179,10 +178,10 @@ const OwnersManagement = () => {
         <Col xs={12}>
           <div className="d-flex justify-content-between align-items-center">
             <h4 className="mb-0">Owners Management</h4>
-            {/* <Button variant="primary" onClick={() => handleOpenModal()}>
+            <Button variant="primary" onClick={() => handleOpenModal()}>
               <FaPlus className="me-2" />
               Create Owner
-            </Button> */}
+            </Button>
           </div>
         </Col>
       </Row>
@@ -455,7 +454,7 @@ const OwnersManagement = () => {
             <Form.Group className="mb-3">
               <Form.Label>Phone Number *</Form.Label>
               <Form.Control
-                type="number"
+                type="tel"
                 value={formData.phoneNumber}
                 onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
                 isInvalid={!!errors.phoneNumber}
