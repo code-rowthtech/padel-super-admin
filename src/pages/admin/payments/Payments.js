@@ -6,8 +6,6 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { MdDateRange, MdOutlineDateRange } from "react-icons/md";
 import { FaTimes, FaSearch, FaFilter, FaCheckCircle, FaTimesCircle, FaBuilding } from "react-icons/fa";
-import { useDispatch, useSelector } from "react-redux";
-import { AppBar, Tabs, Tab, Box } from "@mui/material";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 import { useSuperAdminContext } from "../../../contexts/SuperAdminContext";
@@ -16,15 +14,18 @@ import {
   BsArrowUpRightCircleFill,
   BsFillArrowDownLeftCircleFill,
 } from "react-icons/bs";
-import { formatDate, formatTime } from "../../../helpers/Formatting";
+import { formatDate } from "../../../helpers/Formatting";
 import {
-  getBookingByStatus,
-  getBookingDetailsById,
-} from "../../../redux/thunks";
-import { Link } from "react-router-dom";
+  SUPER_ADMIN_GET_CLUB_PAYMENTS,
+  SUPER_ADMIN_GET_CLUB_PAYMENT_BY_ID,
+  SUPER_ADMIN_GET_ALL_CLUBS,
+  SUPER_ADMIN_PAYMENT_DASHBOARD_COUNTS,
+  SUPER_ADMIN_GET_UNPAID_BOOKINGS,
+  GET_BOOKING_DETAILS_BY_ID,
+} from "../../../helpers/api/apiEndpoint";
+import { ownerApi } from "../../../helpers/api/apiCore";
 import { PaymentDetailsModal } from "./modals/PaymentDetailModal";
 import { CreatePaymentModal } from "./modals/CreatePaymentModal";
-import { resetBookingData } from "../../../redux/admin/booking/slice";
 import Pagination from "../../../helpers/Pagination";
 
 const Payments = () => {
@@ -45,8 +46,8 @@ const Payments = () => {
   const [currentPage, setCurrentPage] = useState(1);
   
   // Sidebar filters
-  const [selectedClub, setSelectedClub] = useState("");
-  const [paymentStatus, setPaymentStatus] = useState(""); // "paid" or "unpaid"
+  const [selectedClubId, setSelectedClubId] = useState("");
+  const [paymentStatus, setPaymentStatus] = useState("unpaid"); // "paid" or "unpaid"
   const [selectedPayments, setSelectedPayments] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
   const [showCreatePayment, setShowCreatePayment] = useState(false);
@@ -58,65 +59,106 @@ console.log(selectedPayments,'selectedPayments');
     setEndDate(update[1]);
   };
 
-  const dispatch = useDispatch();
-  const { getBookingData, getBookingLoading, getBookingDetailsData } =
-    useSelector((state) => state.booking);
+  const [payments, setPayments] = useState([]);
+  const [paymentsLoading, setPaymentsLoading] = useState(false);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [paymentDetails, setPaymentDetails] = useState({});
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [selectedTotal, setSelectedTotal] = useState(0);
+  const canSelectBookings =
+    (!isSuperAdmin ? true : Boolean(selectedOwnerId && selectedClubId)) &&
+    paymentStatus === "unpaid";
   const [tab, setTab] = useState(0);
 
   const handleTabChange = (_, newValue) => {
-    dispatch(resetBookingData());
     setTab(newValue);
+    setPaymentStatus(newValue === 0 ? "unpaid" : "paid");
     setCurrentPage(1);
   };
 
-  const payments = getBookingData?.bookings || [];
-  const paymentDetails = getBookingDetailsData?.booking || {};
+  const [clubs, setClubs] = useState([]);
+  const [loadingClubs, setLoadingClubs] = useState(false);
+  const selectedClub = clubs.find((club) => club._id === selectedClubId);
 
-  // Mock clubs data - Replace with actual API
-  const clubs = [
-    { _id: "1", name: "Club Alpha", transactionCount: 45 },
-    { _id: "2", name: "Club Beta", transactionCount: 32 },
-    { _id: "3", name: "Club Gamma", transactionCount: 28 },
-    { _id: "4", name: "Club Delta", transactionCount: 19 },
-  ];
-
-  // Filter payments by selected club
-  const filteredPayments = selectedClub
-    ? payments.filter(p => p?.clubId?.name === selectedClub || p?.club?.name === selectedClub)
+  // Filter payments by selected club (fallback if API doesn't filter)
+  const filteredPayments = selectedClubId
+    ? payments.filter((p) =>
+        p?.register_club_id?._id === selectedClubId ||
+        p?.clubId?._id === selectedClubId ||
+        p?.club?._id === selectedClubId
+      )
     : payments;
 
-  const status = tab === 0 ? "" : "refunded";
   const sendDate = startDate && endDate;
 
   useEffect(() => {
-    const payload = { 
-      status, 
-      // ✅ SUPER ADMIN: Only include ownerId if explicitly set (not null)
-      // If ownerId is null (All Owners selected), don't include it in payload
-      ...(ownerId ? { ownerId } : {}),
-      page: currentPage,
-      limit: 15
-    };
-    if (sendDate) {
-      const formatToYYYYMMDD = (date) => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const day = String(date.getDate()).padStart(2, "0");
-        return `${year}-${month}-${day}`;
-      };
-      payload.startDate = formatToYYYYMMDD(startDate);
-      payload.endDate = formatToYYYYMMDD(endDate);
-    }
+    const fetchPayments = async () => {
+      try {
+        setPaymentsLoading(true);
+        const payload = {
+          // ✅ SUPER ADMIN: Only include ownerId if explicitly set (not null)
+          // If ownerId is null (All Owners selected), don't include it in payload
+          ...(ownerId ? { ownerId } : {}),
+          ...(selectedClubId ? { clubId: selectedClubId } : {}),
+          ...(paymentStatus ? { status: paymentStatus } : {}),
+          page: currentPage,
+          limit: 15,
+        };
+        if (sendDate) {
+          const formatToYYYYMMDD = (date) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            return `${year}-${month}-${day}`;
+          };
+          payload.startDate = formatToYYYYMMDD(startDate);
+          payload.endDate = formatToYYYYMMDD(endDate);
+        }
 
-    dispatch(getBookingByStatus(payload));
-  }, [tab, sendDate, currentPage, ownerId, isSuperAdmin, selectedOwnerId]);
+        const query = new URLSearchParams(payload).toString();
+        const endpoint =
+          paymentStatus === "unpaid"
+            ? SUPER_ADMIN_GET_UNPAID_BOOKINGS
+            : SUPER_ADMIN_GET_CLUB_PAYMENTS;
+        const res = await ownerApi.get(query ? `${endpoint}?${query}` : endpoint);
+        const data = res?.data?.data;
+        if (paymentStatus === "unpaid") {
+          setPayments(data?.bookings || []);
+        } else {
+          setPayments(data?.payments || []);
+        }
+        setTotalRecords(data?.pagination?.totalItems || 0);
+      } catch (error) {
+        console.error("Error fetching payments:", error);
+        setPayments([]);
+        setTotalRecords(0);
+      } finally {
+        setPaymentsLoading(false);
+      }
+    };
+
+    fetchPayments();
+  }, [tab, sendDate, currentPage, ownerId, isSuperAdmin, selectedOwnerId, selectedClubId, paymentStatus, refreshKey]);
   const [loadingPaymentId, setLoadingPaymentId] = useState(null);
 
   const handlePaymentDetails = async (id) => {
     try {
-      await dispatch(getBookingDetailsById({ id })).unwrap();
-      setShowPaymentDetails(true);
+      if (paymentStatus === "unpaid") {
+        const res = await ownerApi.get(`${GET_BOOKING_DETAILS_BY_ID}?_id=${id}`);
+        const booking = res?.data?.booking;
+        if (booking) {
+          setPaymentDetails(booking);
+          setShowPaymentDetails(true);
+        }
+      } else {
+        const res = await ownerApi.get(`${SUPER_ADMIN_GET_CLUB_PAYMENT_BY_ID}/${id}`);
+        if (res?.data?.data) {
+          setPaymentDetails(res.data.data);
+          setShowPaymentDetails(true);
+        }
+      }
     } catch (error) {
+      console.error("Error fetching payment details:", error);
     } finally {
     }
   };
@@ -133,8 +175,6 @@ console.log(selectedPayments,'selectedPayments');
     const fetchPaymentCounts = async () => {
       try {
         setLoadingCounts(true);
-        const { ownerApi } = await import("../../../helpers/api/apiCore");
-        const { SUPER_ADMIN_PAYMENT_DASHBOARD_COUNTS } = await import("../../../helpers/api/apiEndpoint");
         // ✅ Only include ownerId in URL if it's explicitly set (not null)
         const url = ownerId 
           ? `${SUPER_ADMIN_PAYMENT_DASHBOARD_COUNTS}?ownerId=${ownerId}` 
@@ -150,7 +190,33 @@ console.log(selectedPayments,'selectedPayments');
       }
     };
     fetchPaymentCounts();
-  }, [ownerId]);
+  }, [ownerId, refreshKey]);
+
+  // Fetch clubs for filter
+  useEffect(() => {
+    const fetchClubs = async () => {
+      if (!isSuperAdmin) {
+        setClubs([]);
+        return;
+      }
+      try {
+        setLoadingClubs(true);
+        const { ownerApi } = await import("../../../helpers/api/apiCore");
+        const { SUPER_ADMIN_GET_ALL_CLUBS } = await import("../../../helpers/api/apiEndpoint");
+        const url = ownerId
+          ? `${SUPER_ADMIN_GET_ALL_CLUBS}?ownerId=${ownerId}`
+          : SUPER_ADMIN_GET_ALL_CLUBS;
+        const res = await ownerApi.get(url);
+        setClubs(res?.data?.data || []);
+      } catch (error) {
+        console.error("Error fetching clubs:", error);
+        setClubs([]);
+      } finally {
+        setLoadingClubs(false);
+      }
+    };
+    fetchClubs();
+  }, [isSuperAdmin, ownerId]);
 
   const formatAmount = (amount) => {
     if (!amount) return "₹0";
@@ -180,16 +246,16 @@ console.log(selectedPayments,'selectedPayments');
       bigicon: <FaChartLine size={24} />,
     },
     {
-      title: "Refund",
+      title: "Unpaid",
       value: formatAmount(paymentCounts.totalRefunded),
-      percent: "+15%",
-      icon: <BsArrowUpRightCircleFill />,
-      color: "success",
+      percent: "-",
+      icon: <BsFillArrowDownLeftCircleFill />,
+      color: "danger",
       bigicon: <FaChartLine size={24} />,
     },
   ];
 
-  const totalRecords = getBookingData?.totalItems || 1;
+  const totalRecordsCount = totalRecords || 0;
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
@@ -212,18 +278,38 @@ console.log(selectedPayments,'selectedPayments');
     }
   };
 
+  useEffect(() => {
+    if (paymentStatus !== "unpaid") {
+      setSelectedPayments([]);
+      setSelectAll(false);
+      setSelectedTotal(0);
+      return;
+    }
+    if (!canSelectBookings) {
+      setSelectedPayments([]);
+      setSelectAll(false);
+      setSelectedTotal(0);
+      return;
+    }
+    const total = payments
+      .filter((p) => selectedPayments.includes(p._id))
+      .reduce((sum, p) => sum + (p.totalAmount || 0), 0);
+    setSelectedTotal(total);
+  }, [selectedPayments, payments, paymentStatus, canSelectBookings]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [paymentStatus, selectedClubId, selectedOwnerId]);
+
   // Calculate totals
-  const totalPaid = payments.filter(p => p.paymentStatus === "paid").reduce((sum, p) => sum + (p.totalAmount || 0), 0);
-  const totalUnpaid = payments.filter(p => p.paymentStatus === "unpaid").reduce((sum, p) => sum + (p.totalAmount || 0), 0);
+  const totalPaid = payments.filter(p => p.status === "paid").reduce((sum, p) => sum + (p.amount || 0), 0);
+  const totalUnpaid = payments.filter(p => p.status === "unpaid").reduce((sum, p) => sum + (p.amount || 0), 0);
 
   const handleCreatePayment = (paymentId = null) => {
     setCurrentPaymentId(paymentId);
     setShowCreatePayment(true);
   };
 
-  const renderSlotTimes = (slotTimes) =>
-    slotTimes?.length ? slotTimes.map((slot) => slot.time).join(", ") : "-";
-  
   return (
     <Container fluid className="px-0 px-md-0 mt-md-0 mt-2">
       <style>
@@ -368,23 +454,12 @@ console.log(selectedPayments,'selectedPayments');
               <FaFilter className="text-primary me-1" size={12} />
               <h6 className="mb-0 fw-bold" style={{ fontSize: "13px" }}>Filters</h6>
             </div>
+          {!canSelectBookings && paymentStatus === "unpaid" && (
+            <div className="alert alert-warning py-1 px-2 mb-2" style={{ fontSize: "11px" }}>
+              Select an owner and a club to choose bookings.
+            </div>
+          )}
             
-            <Form.Group className="mb-2">
-              <Form.Label className="small fw-semibold mb-1" style={{ fontSize: "13px", color: "#6c757d" }}>Club</Form.Label>
-              <Form.Control
-                list="clubOptions"
-                value={selectedClub}
-                onChange={(e) => setSelectedClub(e.target.value)}
-                placeholder="Search or select..."
-                style={{ borderRadius: "4px", fontSize: "11px", height: "32px" }}
-              />
-              <datalist id="clubOptions">
-                <option value="Club 1" />
-                <option value="Club 2" />
-                <option value="Club 3" />
-              </datalist>
-            </Form.Group>
-
             <Form.Group className="mb-2">
               <Form.Label className="small fw-semibold mb-1" style={{ fontSize: "13px", color: "#6c757d" }}>Status</Form.Label>
               <div className="btn-group w-100" role="group">
@@ -392,7 +467,11 @@ console.log(selectedPayments,'selectedPayments');
                   type="button"
                   className={`btn btn-sm ${paymentStatus === "paid" ? "btn-success" : "btn-outline-success"}`}
                   style={{ borderRadius: "4px 0 0 4px", fontSize: "12px", padding: "6px 8px" }}
-                  onClick={() => setPaymentStatus(paymentStatus === "paid" ? "" : "paid")}
+                  onClick={() => {
+                    setPaymentStatus("paid");
+                    setTab(1);
+                    setCurrentPage(1);
+                  }}
                 >
                   <FaCheckCircle size={10} className="me-1" />
                   Paid
@@ -401,7 +480,11 @@ console.log(selectedPayments,'selectedPayments');
                   type="button"
                   className={`btn btn-sm ${paymentStatus === "unpaid" ? "btn-danger" : "btn-outline-danger"}`}
                   style={{ borderRadius: "0 4px 4px 0", fontSize: "12px", padding: "6px 8px" }}
-                  onClick={() => setPaymentStatus(paymentStatus === "unpaid" ? "" : "unpaid")}
+                  onClick={() => {
+                    setPaymentStatus("unpaid");
+                    setTab(0);
+                    setCurrentPage(1);
+                  }}
                 >
                   <FaTimesCircle size={10} className="me-1" />
                   Unpaid
@@ -420,12 +503,12 @@ console.log(selectedPayments,'selectedPayments');
                     <ListGroup.Item
                       key={club._id}
                       action
-                      active={selectedClub === club.name}
-                      onClick={() => setSelectedClub(selectedClub === club.name ? "" : club.name)}
+                      active={selectedClubId === club._id}
+                      onClick={() => setSelectedClubId(selectedClubId === club._id ? "" : club._id)}
                       className="px-2 py-2"
                       style={{
                         cursor: "pointer",
-                        borderLeft: selectedClub === club.name ? "3px solid #4361ee" : "3px solid transparent",
+                        borderLeft: selectedClubId === club._id ? "3px solid #4361ee" : "3px solid transparent",
                         fontSize: "12px",
                         transition: "all 0.2s"
                       }}
@@ -436,22 +519,22 @@ console.log(selectedPayments,'selectedPayments');
                           style={{
                             width: "28px",
                             height: "28px",
-                            backgroundColor: selectedClub === club.name ? "#fff" : "#e7f3ff",
-                            color: selectedClub === club.name ? "#4361ee" : "#4361ee"
+                            backgroundColor: selectedClubId === club._id ? "#fff" : "#e7f3ff",
+                            color: selectedClubId === club._id ? "#4361ee" : "#4361ee"
                           }}
                         >
                           <FaBuilding size={12} />
                         </div>
                         <div className="flex-grow-1">
-                          <div className="fw-semibold" style={{ fontSize: "11px" }}>{club.name}</div>
+                          <div className="fw-semibold" style={{ fontSize: "11px" }}>{club.clubName}</div>
                         </div>
                         <div className="text-end">
                           <Badge 
-                            bg={selectedClub === club.name ? "light" : "secondary"} 
-                            text={selectedClub === club.name ? "primary" : "white"}
+                            bg={selectedClubId === club._id ? "light" : "secondary"} 
+                            text={selectedClubId === club._id ? "primary" : "white"}
                             style={{ fontSize: "9px" }}
                           >
-                            {club.transactionCount}
+                            {club.transactionCount || 0}
                           </Badge>
                         </div>
                       </div>
@@ -484,30 +567,25 @@ console.log(selectedPayments,'selectedPayments');
             <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 pb-3 border-bottom gap-3">
               <div>
                 <h5 className="mb-1 fw-bold" style={{ fontSize: "16px", color: "#1a1a1a" }}>
-                  {selectedClub ? `${selectedClub} - ` : ""}Transactions
+                  {selectedClub ? `${selectedClub.clubName} - ` : ""}Transactions
                 </h5>
                 <p className="text-muted mb-0" style={{ fontSize: "12px" }}>
-                  {selectedPayments.length > 0 
-                    ? `${selectedPayments.length} transaction${selectedPayments.length > 1 ? 's' : ''} selected` 
-                    : `Total ${filteredPayments.length} transaction${filteredPayments.length !== 1 ? 's' : ''}`}
+                  {`Total ${filteredPayments.length} ${paymentStatus === "unpaid" ? "booking" : "payment"}${filteredPayments.length !== 1 ? "s" : ""}`}
                 </p>
               </div>
               <Button
                 variant="primary"
                 size="sm"
-                disabled={selectedPayments.length === 0}
                 onClick={() => handleCreatePayment()}
+                disabled={paymentStatus !== "unpaid" || selectedPayments.length === 0 || !canSelectBookings}
                 className="d-flex align-items-center gap-2"
                 style={{ borderRadius: "6px", fontWeight: "500", fontSize: "13px", padding: "8px 16px" }}
               >
                 <span>Create Payment</span>
-                {selectedPayments.length > 0 && (
-                  <span className="badge bg-white text-primary" style={{ fontSize: "11px" }}>{selectedPayments.length}</span>
-                )}
               </Button>
             </div>
 
-            {getBookingLoading ? (
+            {paymentsLoading ? (
               <DataLoading height="60vh" />
             ) : (
               <>
@@ -523,17 +601,24 @@ console.log(selectedPayments,'selectedPayments');
                         <thead style={{ backgroundColor: "#4361ee", color: "white" }}>
                           <tr>
                             <th style={{ width: "50px", padding: "14px", borderTopLeftRadius: "6px" }}>
-                              <Form.Check
-                                type="checkbox"
-                                checked={selectAll}
-                                onChange={handleSelectAll}
-                                style={{ accentColor: "white" }}
-                              />
+                              {paymentStatus === "unpaid" && (
+                                <Form.Check
+                                  type="checkbox"
+                                  checked={selectAll}
+                                  onChange={handleSelectAll}
+                                  disabled={!canSelectBookings}
+                                  style={{ accentColor: "white" }}
+                                />
+                              )}
                             </th>
-                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>User Name</th>
-                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Contact</th>
-                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Date & Time</th>
-                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Payment Method</th>
+                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Club</th>
+                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Owner</th>
+                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                              {paymentStatus === "unpaid" ? "Booking Date" : "Paid Date"}
+                            </th>
+                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                              {paymentStatus === "unpaid" ? "Booking Status" : "Status"}
+                            </th>
                             <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Amount</th>
                             <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px", textAlign: "center", borderTopRightRadius: "6px" }}>Action</th>
                           </tr>
@@ -549,39 +634,37 @@ console.log(selectedPayments,'selectedPayments');
                               }}
                             >
                               <td style={{ padding: "12px" }}>
-                                <Form.Check
-                                  type="checkbox"
-                                  checked={selectedPayments.includes(item._id)}
-                                  onChange={() => handleSelectPayment(item._id)}
-                                />
+                                {paymentStatus === "unpaid" && (
+                                  <Form.Check
+                                    type="checkbox"
+                                    checked={selectedPayments.includes(item._id)}
+                                    onChange={() => handleSelectPayment(item._id)}
+                                    disabled={!canSelectBookings}
+                                  />
+                                )}
                               </td>
                               <td style={{ padding: "12px", fontWeight: "500" }}>
-                                {(item?.userId?.name || item?.user?.name || item?.userName)
-                                  ? (item?.userId?.name || item?.user?.name || item?.userName).charAt(0).toUpperCase() +
-                                    (item?.userId?.name || item?.user?.name || item?.userName).slice(1)
-                                  : "N/A"}
+                                {paymentStatus === "unpaid" ? item?.register_club_id?.clubName : item?.clubId?.clubName || "N/A"}
                               </td>
                               <td style={{ padding: "12px", color: "#6c757d" }}>
-                                {(item?.userId?.countryCode || item?.user?.countryCode || "")}{" "}
-                                {(item?.userId?.phoneNumber || item?.user?.phoneNumber || "N/A")}
+                                {paymentStatus === "unpaid"
+                                  ? item?.ownerId?.name || item?.register_club_id?.ownerId?.name || "N/A"
+                                  : item?.ownerId?.name || item?.clubId?.ownerId?.name || "N/A"}
                               </td>
                               <td style={{ padding: "12px" }}>
-                                <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                                  <span className="fw-medium" style={{ fontSize: "13px" }}>
-                                    {formatDate(item?.bookingDate)}
-                                  </span>
-                                  <span className="text-muted" style={{ fontSize: "12px" }}>
-                                    {formatTime(renderSlotTimes(item?.slot?.[0]?.slotTimes))}
-                                  </span>
-                                </div>
+                                <span className="fw-medium" style={{ fontSize: "13px" }}>
+                                  {formatDate(paymentStatus === "unpaid" ? item?.bookingDate : item?.paidDate)}
+                                </span>
                               </td>
                               <td style={{ padding: "12px" }}>
                                 <span className="badge bg-light text-dark" style={{ fontSize: "12px", padding: "6px 12px", borderRadius: "6px" }}>
-                                  {item?.paymentMethod?.slice(0, 1)?.toUpperCase()?.concat(item?.paymentMethod?.slice(1)) || "-"}
+                                  {paymentStatus === "unpaid"
+                                    ? item?.bookingStatus?.slice(0, 1)?.toUpperCase()?.concat(item?.bookingStatus?.slice(1)) || "-"
+                                    : item?.status?.slice(0, 1)?.toUpperCase()?.concat(item?.status?.slice(1)) || "-"}
                                 </span>
                               </td>
                               <td style={{ padding: "12px", fontWeight: "600", color: "#28a745", fontSize: "14px" }}>
-                                ₹{item?.totalAmount}
+                                ₹{paymentStatus === "unpaid" ? item?.totalAmount || 0 : item?.amount || 0}
                               </td>
                               <td style={{ padding: "12px", textAlign: "center" }}>
                                 <div
@@ -616,51 +699,35 @@ console.log(selectedPayments,'selectedPayments');
                         <div key={item?._id} className="card mb-2">
                           <div className="card-body">
                             <div className="mobile-card-item">
-                              <span className="mobile-card-label">User:</span>
+                              <span className="mobile-card-label">Club:</span>
                               <span className="mobile-card-value">
-                                {/* ✅ SUPER ADMIN: Handle both formats */}
-                                {(item?.userId?.name || item?.user?.name || item?.userName)
-                                  ? (item?.userId?.name || item?.user?.name || item?.userName).charAt(0).toUpperCase() +
-                                    (item?.userId?.name || item?.user?.name || item?.userName).slice(1)
-                                  : "N/A"}
+                                {paymentStatus === "unpaid" ? item?.register_club_id?.clubName : item?.clubId?.clubName || "N/A"}
                               </span>
                             </div>
                             <div className="mobile-card-item">
-                              <span className="mobile-card-label">
-                                Contact:
-                              </span>
+                              <span className="mobile-card-label">Owner:</span>
                               <span className="mobile-card-value">
-                                {(item?.userId?.countryCode || item?.user?.countryCode || "")}{" "}
-                                {(item?.userId?.phoneNumber || item?.user?.phoneNumber || "N/A")}
+                                {paymentStatus === "unpaid"
+                                  ? item?.ownerId?.name || item?.register_club_id?.ownerId?.name || "N/A"
+                                  : item?.ownerId?.name || item?.clubId?.ownerId?.name || "N/A"}
                               </span>
                             </div>
                             <div className="mobile-card-item">
                               <span className="mobile-card-label">Date:</span>
                               <span className="mobile-card-value">
-                                {formatDate(item?.bookingDate)}
+                                {formatDate(paymentStatus === "unpaid" ? item?.bookingDate : item?.paidDate)}
                               </span>
                             </div>
                             <div className="mobile-card-item">
-                              <span className="mobile-card-label">Time:</span>
+                              <span className="mobile-card-label">Status:</span>
                               <span className="mobile-card-value">
-                                {formatTime(
-                                  renderSlotTimes(item?.slot?.[0]?.slotTimes)
-                                )}
-                              </span>
-                            </div>
-                            <div className="mobile-card-item">
-                              <span className="mobile-card-label">Method:</span>
-                              <span className="mobile-card-value">
-                                {item?.bookingType
-                                  ?.slice(0, 1)
-                                  ?.toUpperCase()
-                                  ?.concat(item?.bookingType?.slice(1)) || "-"}
+                                {paymentStatus === "unpaid" ? item?.bookingStatus || "-" : item?.status || "-"}
                               </span>
                             </div>
                             <div className="mobile-card-item">
                               <span className="mobile-card-label">Amount:</span>
                               <span className="mobile-card-value">
-                                ₹{item?.totalAmount}
+                                ₹{paymentStatus === "unpaid" ? item?.totalAmount || 0 : item?.amount || 0}
                               </span>
                             </div>
                             <div className="mobile-card-item">
@@ -692,9 +759,9 @@ console.log(selectedPayments,'selectedPayments');
                   >
                     No
                     <span className="px-1">
-                      {tab === 0
-                        ? "Recent Tansactions were Found !"
-                        : "Tansactions were Found for Refund !"}
+                      {paymentStatus === "unpaid"
+                        ? "Unpaid bookings found!"
+                        : "Paid transactions found!"}
                     </span>
                   </div>
                 )}
@@ -706,7 +773,7 @@ console.log(selectedPayments,'selectedPayments');
       <Row className="mt-3">
         <Col className="d-flex justify-content-center">
           <Pagination
-            totalRecords={totalRecords}
+            totalRecords={totalRecordsCount}
             defaultLimit={15}
             handlePageChange={handlePageChange}
             currentPage={currentPage}
@@ -724,7 +791,13 @@ console.log(selectedPayments,'selectedPayments');
           setShowCreatePayment(false);
           setCurrentPaymentId(null);
         }}
-        selectedPayments={currentPaymentId ? [currentPaymentId] : selectedPayments}
+        selectedClubId={selectedClubId}
+        selectedBookingIds={selectedPayments}
+        totalAmount={selectedTotal}
+        onCreated={() => {
+          setCurrentPage(1);
+          setRefreshKey((prev) => prev + 1);
+        }}
       />
     </Container>
   );

@@ -2,66 +2,36 @@ import React, { useState, useEffect } from "react";
 import { Row, Col, Container, Table, Card, Form, InputGroup, ListGroup, Badge } from "react-bootstrap";
 import { FaSearch, FaFilter, FaWallet, FaHistory, FaUser } from "react-icons/fa";
 import { DataLoading } from "../../../helpers/loading/Loaders";
+import { ownerApi } from "../../../helpers/api/apiCore";
+import { SUPER_ADMIN_GET_WALLET_USERS, SUPER_ADMIN_GET_WALLET_TRANSACTIONS } from "../../../helpers/api/apiEndpoint";
 import Pagination from "../../../helpers/Pagination";
 
 const Wallet = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedWallet, setSelectedWallet] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [wallets, setWallets] = useState([]);
+  const [walletTotals, setWalletTotals] = useState({
+    totalBalance: 0,
+    totalSpent: 0,
+    totalAdded: 0
+  });
+  const [transactions, setTransactions] = useState([]);
+  const [transactionsLoading, setTransactionsLoading] = useState(false);
+  const [transactionPage, setTransactionPage] = useState(1);
+  const [transactionTotalRecords, setTransactionTotalRecords] = useState(0);
+  const transactionLimit = 20;
 
-  // Mock data - Replace with actual API call
-  const users = [
-    {
-      _id: "1",
-      name: "John Doe",
-      email: "john@example.com",
-      phone: "+91 9876543210",
-      walletBalance: 5000,
-      totalSpent: 15000,
-      totalAdded: 20000,
-      transactions: [
-        { id: "t1", type: "debit", amount: 500, description: "Court Booking", date: "2024-01-15", balance: 5000 },
-        { id: "t2", type: "credit", amount: 2000, description: "Wallet Recharge", date: "2024-01-14", balance: 5500 },
-        { id: "t3", type: "debit", amount: 300, description: "Court Booking", date: "2024-01-13", balance: 3500 },
-      ]
-    },
-    {
-      _id: "2",
-      name: "Jane Smith",
-      email: "jane@example.com",
-      phone: "+91 9876543211",
-      walletBalance: 3200,
-      totalSpent: 8000,
-      totalAdded: 11200,
-      transactions: [
-        { id: "t4", type: "debit", amount: 400, description: "Court Booking", date: "2024-01-15", balance: 3200 },
-        { id: "t5", type: "credit", amount: 1000, description: "Wallet Recharge", date: "2024-01-12", balance: 3600 },
-      ]
-    },
-    {
-      _id: "3",
-      name: "Mike Johnson",
-      email: "mike@example.com",
-      phone: "+91 9876543212",
-      walletBalance: 7500,
-      totalSpent: 12000,
-      totalAdded: 19500,
-      transactions: [
-        { id: "t6", type: "credit", amount: 5000, description: "Wallet Recharge", date: "2024-01-16", balance: 7500 },
-        { id: "t7", type: "debit", amount: 600, description: "Court Booking", date: "2024-01-15", balance: 2500 },
-      ]
-    },
-  ];
-
-  const filteredUsers = users.filter(user =>
-    user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.phone.includes(searchQuery)
+  const filteredWallets = wallets.filter(wallet =>
+    wallet.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    wallet.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    `${wallet.countryCode || ""} ${wallet.phoneNumber || ""}`.includes(searchQuery)
   );
 
-  const handleUserClick = (user) => {
-    setSelectedUser(user);
+  const handleWalletClick = (wallet) => {
+    setSelectedWallet(wallet);
+    setTransactionPage(1);
   };
 
   const formatDate = (dateString) => {
@@ -69,9 +39,9 @@ const Wallet = () => {
     return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
   };
 
-  const totalWalletBalance = users.reduce((sum, user) => sum + user.walletBalance, 0);
-  const totalSpent = users.reduce((sum, user) => sum + user.totalSpent, 0);
-  const totalAdded = users.reduce((sum, user) => sum + user.totalAdded, 0);
+  const totalWalletBalance = walletTotals.totalBalance || 0;
+  const totalSpent = walletTotals.totalSpent || 0;
+  const totalAdded = walletTotals.totalAdded || 0;
 
   const formatAmount = (amount) => {
     if (!amount) return "₹0";
@@ -85,6 +55,61 @@ const Wallet = () => {
     { title: "Total Spent", value: formatAmount(totalSpent), icon: <FaHistory size={24} />, color: "#dc3545" },
     { title: "Total Added", value: formatAmount(totalAdded), icon: <FaWallet size={24} />, color: "#28a745" },
   ];
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        const params = new URLSearchParams({
+          page: currentPage,
+          limit: 50,
+          ...(searchQuery ? { search: searchQuery } : {})
+        }).toString();
+        const res = await ownerApi.get(`${SUPER_ADMIN_GET_WALLET_USERS}?${params}`);
+        const data = res?.data?.data;
+        setWallets(data?.users || []);
+        setWalletTotals(data?.totals || { totalBalance: 0, totalSpent: 0, totalAdded: 0 });
+      } catch (error) {
+        console.error("Error fetching wallet users:", error);
+        setWallets([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUsers();
+  }, [currentPage, searchQuery]);
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      if (!selectedWallet?.walletId) {
+        setTransactions([]);
+        return;
+      }
+      try {
+        setTransactionsLoading(true);
+        const params = new URLSearchParams({
+          walletId: selectedWallet.walletId,
+          page: transactionPage,
+          limit: transactionLimit
+        }).toString();
+        const res = await ownerApi.get(`${SUPER_ADMIN_GET_WALLET_TRANSACTIONS}?${params}`);
+        const data = res?.data?.data;
+        setTransactions(data?.transactions || []);
+        setTransactionTotalRecords(data?.pagination?.totalItems || 0);
+      } catch (error) {
+        console.error("Error fetching wallet transactions:", error);
+        setTransactions([]);
+        setTransactionTotalRecords(0);
+      } finally {
+        setTransactionsLoading(false);
+      }
+    };
+    fetchTransactions();
+  }, [selectedWallet?.walletId, transactionPage]);
+
+  const handleTransactionPageChange = (page) => {
+    setTransactionPage(page);
+  };
 
   return (
     <Container fluid className="px-0 px-md-0 mt-md-0 mt-2">
@@ -132,20 +157,20 @@ const Wallet = () => {
             <div className="mb-2">
               <div className="d-flex justify-content-between align-items-center mb-2">
                 <span style={{ fontSize: "11px", color: "#6c757d", fontWeight: "600" }}>USERS LIST</span>
-                <Badge bg="primary" style={{ fontSize: "10px" }}>{filteredUsers.length}</Badge>
+                <Badge bg="primary" style={{ fontSize: "10px" }}>{filteredWallets.length}</Badge>
               </div>
               <div style={{ maxHeight: "calc(100vh - 300px)", overflowY: "auto" }}>
                 <ListGroup variant="flush">
-                  {filteredUsers.map((user) => (
+                  {filteredWallets.map((wallet) => (
                     <ListGroup.Item
-                      key={user._id}
+                      key={wallet.walletId}
                       action
-                      active={selectedUser?._id === user._id}
-                      onClick={() => handleUserClick(user)}
+                      active={selectedWallet?.walletId === wallet.walletId}
+                      onClick={() => handleWalletClick(wallet)}
                       className="px-2 py-2"
                       style={{
                         cursor: "pointer",
-                        borderLeft: selectedUser?._id === user._id ? "3px solid #4361ee" : "3px solid transparent",
+                        borderLeft: selectedWallet?.walletId === wallet.walletId ? "3px solid #4361ee" : "3px solid transparent",
                         fontSize: "12px",
                         transition: "all 0.2s"
                       }}
@@ -156,19 +181,21 @@ const Wallet = () => {
                           style={{
                             width: "32px",
                             height: "32px",
-                            backgroundColor: selectedUser?._id === user._id ? "#fff" : "#e7f3ff",
-                            color: selectedUser?._id === user._id ? "#4361ee" : "#4361ee"
+                            backgroundColor: selectedWallet?.walletId === wallet.walletId ? "#fff" : "#e7f3ff",
+                            color: selectedWallet?.walletId === wallet.walletId ? "#4361ee" : "#4361ee"
                           }}
                         >
                           <FaUser size={14} />
                         </div>
                         <div className="flex-grow-1">
-                          <div className="fw-semibold" style={{ fontSize: "12px" }}>{user.name}</div>
-                          <div className="text-muted" style={{ fontSize: "10px" }}>{user.phone}</div>
+                          <div className="fw-semibold" style={{ fontSize: "12px" }}>{wallet.name}</div>
+                          <div className="text-muted" style={{ fontSize: "10px" }}>
+                            {wallet.countryCode || ""} {wallet.phoneNumber || ""}
+                          </div>
                         </div>
                         <div className="text-end">
-                          <div className="fw-bold" style={{ fontSize: "11px", color: selectedUser?._id === user._id ? "#fff" : "#28a745" }}>
-                            ₹{user.walletBalance.toLocaleString()}
+                          <div className="fw-bold" style={{ fontSize: "11px", color: selectedWallet?.walletId === wallet.walletId ? "#fff" : "#28a745" }}>
+                            ₹{(wallet.walletBalance || 0).toLocaleString()}
                           </div>
                         </div>
                       </div>
@@ -182,15 +209,15 @@ const Wallet = () => {
 
         <Col lg={10} md={9} className="ps-0">
           <div className="bg-white rounded-3 shadow-sm p-3" style={{ height: "calc(100vh - 180px)", overflowY: "auto" }}>
-            {selectedUser ? (
+            {selectedWallet ? (
               <>
                 <div className="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
                   <div>
                     <h5 className="mb-1 fw-bold" style={{ fontSize: "16px", color: "#1a1a1a" }}>
                       <FaWallet className="me-2 text-primary" />
-                      {selectedUser.name}'s Wallet
+                      {selectedWallet.name}'s Wallet
                     </h5>
-                    <p className="text-muted mb-0" style={{ fontSize: "12px" }}>{selectedUser.email}</p>
+                    <p className="text-muted mb-0" style={{ fontSize: "12px" }}>{selectedWallet.email}</p>
                   </div>
                 </div>
 
@@ -201,7 +228,7 @@ const Wallet = () => {
                         <div className="card-body p-3">
                           <p className="text-muted mb-1" style={{ fontSize: "12px", fontWeight: "500" }}>Current Balance</p>
                           <h4 className="mb-0 text-primary" style={{ fontSize: "20px", fontWeight: "700" }}>
-                            ₹{selectedUser.walletBalance.toLocaleString()}
+                            ₹{(selectedWallet.walletBalance || 0).toLocaleString()}
                           </h4>
                         </div>
                       </div>
@@ -211,7 +238,7 @@ const Wallet = () => {
                         <div className="card-body p-3">
                           <p className="text-muted mb-1" style={{ fontSize: "12px", fontWeight: "500" }}>Total Spent</p>
                           <h4 className="mb-0 text-danger" style={{ fontSize: "20px", fontWeight: "700" }}>
-                            ₹{selectedUser.totalSpent.toLocaleString()}
+                            ₹{(selectedWallet.totalSpent || 0).toLocaleString()}
                           </h4>
                         </div>
                       </div>
@@ -221,7 +248,7 @@ const Wallet = () => {
                         <div className="card-body p-3">
                           <p className="text-muted mb-1" style={{ fontSize: "12px", fontWeight: "500" }}>Total Added</p>
                           <h4 className="mb-0 text-success" style={{ fontSize: "20px", fontWeight: "700" }}>
-                            ₹{selectedUser.totalAdded.toLocaleString()}
+                            ₹{(selectedWallet.totalAdded || 0).toLocaleString()}
                           </h4>
                         </div>
                       </div>
@@ -241,31 +268,58 @@ const Wallet = () => {
                         <th style={{ fontSize: "12px", fontWeight: "600", padding: "12px" }}>Type</th>
                         <th style={{ fontSize: "12px", fontWeight: "600", padding: "12px" }}>Description</th>
                         <th style={{ fontSize: "12px", fontWeight: "600", padding: "12px", textAlign: "right" }}>Amount</th>
-                        <th style={{ fontSize: "12px", fontWeight: "600", padding: "12px", textAlign: "right" }}>Balance</th>
+                        <th style={{ fontSize: "12px", fontWeight: "600", padding: "12px", textAlign: "right" }}>Status</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {selectedUser.transactions.map((transaction) => (
-                        <tr key={transaction.id}>
-                          <td style={{ fontSize: "13px", padding: "12px" }}>{formatDate(transaction.date)}</td>
-                          <td style={{ fontSize: "13px", padding: "12px" }}>
-                            {transaction.type === "credit" ? (
-                              <Badge bg="success" style={{ fontSize: "10px" }}>Credit</Badge>
-                            ) : (
-                              <Badge bg="danger" style={{ fontSize: "10px" }}>Debit</Badge>
-                            )}
-                          </td>
-                          <td style={{ fontSize: "13px", padding: "12px" }}>{transaction.description}</td>
-                          <td style={{ fontSize: "13px", padding: "12px", textAlign: "right", fontWeight: "600", color: transaction.type === "credit" ? "#28a745" : "#dc3545" }}>
-                            {transaction.type === "credit" ? "+" : "-"}₹{transaction.amount.toLocaleString()}
-                          </td>
-                          <td style={{ fontSize: "13px", padding: "12px", textAlign: "right", fontWeight: "600" }}>
-                            ₹{transaction.balance.toLocaleString()}
+                      {transactionsLoading ? (
+                        <tr>
+                          <td colSpan={5} className="text-center py-3">
+                            <DataLoading height="60px" />
                           </td>
                         </tr>
-                      ))}
+                      ) : transactions.length > 0 ? (
+                        transactions.map((transaction) => (
+                          <tr key={transaction._id}>
+                            <td style={{ fontSize: "13px", padding: "12px" }}>{formatDate(transaction.createdAt)}</td>
+                            <td style={{ fontSize: "13px", padding: "12px" }}>
+                              {transaction.type === "credit" ? (
+                                <Badge bg="success" style={{ fontSize: "10px" }}>Credit</Badge>
+                              ) : (
+                                <Badge bg="danger" style={{ fontSize: "10px" }}>Debit</Badge>
+                              )}
+                            </td>
+                            <td style={{ fontSize: "13px", padding: "12px" }}>{transaction.description || "-"}</td>
+                            <td style={{ fontSize: "13px", padding: "12px", textAlign: "right", fontWeight: "600", color: transaction.type === "credit" ? "#28a745" : "#dc3545" }}>
+                              {transaction.type === "credit" ? "+" : "-"}₹{(transaction.amount || 0).toLocaleString()}
+                            </td>
+                            <td style={{ fontSize: "13px", padding: "12px", textAlign: "right", fontWeight: "600" }}>
+                              {transaction.status || "-"}
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={5} className="text-center py-3 text-muted">
+                            No transactions found
+                          </td>
+                        </tr>
+                      )}
                     </tbody>
                   </Table>
+                  {transactionTotalRecords > transactionLimit && (
+                    <div
+                      className="pt-3 d-flex justify-content-center align-items-center border-top"
+                      style={{ backgroundColor: "white" }}
+                    >
+                      <Pagination
+                        totalRecords={transactionTotalRecords}
+                        defaultLimit={transactionLimit}
+                        handlePageChange={handleTransactionPageChange}
+                        currentPage={transactionPage}
+                      />
+                    </div>
+                  )}
                 </div>
               </>
             ) : (

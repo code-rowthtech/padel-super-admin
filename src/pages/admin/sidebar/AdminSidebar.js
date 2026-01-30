@@ -54,8 +54,10 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
     window.location.reload();
   };
 
-  const linkClasses = ({ isActive }) =>
-    `d-flex align-items-center px-4 py-2 my-1 text-decoration-none mx-3 rounded-2 cursor-pointer ${isActive ? "active-parent-link" : "bg-transparent"
+  const isActivePath = (path) => location.pathname === path;
+
+  const linkClasses = (active) =>
+    `d-flex align-items-center px-4 py-2 my-1 text-decoration-none mx-3 rounded-2 cursor-pointer ${active ? "active-parent-link" : "bg-transparent"
     }`;
 
   const handleNavigation = (path) => {
@@ -164,18 +166,20 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
         >
           <NavLink
             to="/admin/dashboard"
+            end
+            reloadDocument
             className={
               isCollapsed && window.innerWidth > 768
                 ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
-                : linkClasses
+                : linkClasses(isActivePath("/admin/dashboard"))
             }
-            style={({ isActive }) => ({
-              backgroundColor: isActive ? "rgba(31, 65, 187, 0.15)" : "transparent",
+            style={() => ({
+              backgroundColor: isActivePath("/admin/dashboard") ? "rgba(31, 65, 187, 0.15)" : "transparent",
               color: "#CCD2DD",
               fontSize: "15px",
               fontWeight: "500",
               fontFamily: "Poppins",
-              boxShadow: isActive ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
+              boxShadow: isActivePath("/admin/dashboard") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
               minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
               width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
             })}
@@ -217,18 +221,20 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
         >
           <NavLink
             to="/admin/booking"
+            end
+            reloadDocument
             className={
               isCollapsed && window.innerWidth > 768
                 ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
-                : linkClasses
+                : linkClasses(isActivePath("/admin/booking"))
             }
-            style={({ isActive }) => ({
-              backgroundColor: isActive ? "rgba(31, 65, 187, 0.15)" : "transparent",
+            style={() => ({
+              backgroundColor: isActivePath("/admin/booking") ? "rgba(31, 65, 187, 0.15)" : "transparent",
               color: "#CCD2DD",
               fontSize: "15px",
               fontWeight: "500",
               fontFamily: "Poppins",
-              boxShadow: isActive ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
+              boxShadow: isActivePath("/admin/booking") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
               minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
               width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
             })}
@@ -271,18 +277,20 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
           >
             <NavLink
               to="/admin/owners"
+              end
+              reloadDocument
               className={
                 isCollapsed && window.innerWidth > 768
                   ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
-                  : linkClasses
+                  : linkClasses(isActivePath("/admin/owners"))
               }
-              style={({ isActive }) => ({
-                backgroundColor: isActive ? "rgba(31, 65, 187, 0.15)" : "transparent",
+              style={() => ({
+                backgroundColor: isActivePath("/admin/owners") ? "rgba(31, 65, 187, 0.15)" : "transparent",
                 color: "#CCD2DD",
                 fontSize: "15px",
                 fontWeight: "500",
                 fontFamily: "Poppins",
-                boxShadow: isActive ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
+                boxShadow: isActivePath("/admin/owners") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
                 minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
                 width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
               })}
@@ -325,18 +333,20 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
         >
           <NavLink
             to="/admin/payments"
+            end
+            reloadDocument
             className={
               isCollapsed && window.innerWidth > 768
                 ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
-                : linkClasses
+                : linkClasses(isActivePath("/admin/payments"))
             }
-            style={({ isActive }) => ({
-              backgroundColor: isActive ? "rgba(31, 65, 187, 0.15)" : "transparent",
+            style={() => ({
+              backgroundColor: isActivePath("/admin/payments") ? "rgba(31, 65, 187, 0.15)" : "transparent",
               color: "#CCD2DD",
               fontSize: "15px",
               fontWeight: "500",
               fontFamily: "Poppins",
-              boxShadow: isActive ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
+              boxShadow: isActivePath("/admin/payments") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
               minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
               width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
             })}
@@ -378,18 +388,20 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
         >
           <NavLink
             to="/admin/wallet"
+            end
+            reloadDocument
             className={
               isCollapsed && window.innerWidth > 768
                 ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
-                : linkClasses
+                : linkClasses(isActivePath("/admin/wallet"))
             }
-            style={({ isActive }) => ({
-              backgroundColor: isActive ? "rgba(31, 65, 187, 0.15)" : "transparent",
+            style={() => ({
+              backgroundColor: isActivePath("/admin/wallet") ? "rgba(31, 65, 187, 0.15)" : "transparent",
               color: "#CCD2DD",
               fontSize: "15px",
               fontWeight: "500",
               fontFamily: "Poppins",
-              boxShadow: isActive ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
+              boxShadow: isActivePath("/admin/wallet") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
               minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
               width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
             })}
@@ -431,18 +443,20 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
         >
           <NavLink
             to="/admin/profile"
+            end
+            reloadDocument
             className={
               isCollapsed && window.innerWidth > 768
                 ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
-                : linkClasses
+                : linkClasses(isActivePath("/admin/profile"))
             }
-            style={({ isActive }) => ({
-              backgroundColor: isActive ? "rgba(31, 65, 187, 0.15)" : "transparent",
+            style={() => ({
+              backgroundColor: isActivePath("/admin/profile") ? "rgba(31, 65, 187, 0.15)" : "transparent",
               color: "#CCD2DD",
               fontSize: "15px",
               fontWeight: "500",
               fontFamily: "Poppins",
-              boxShadow: isActive ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
+              boxShadow: isActivePath("/admin/profile") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
               minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
               width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
             })}

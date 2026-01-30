@@ -127,3 +127,13 @@ export const SUPER_ADMIN_GET_ALL_SLOTS = "/api/super-admin/slots";
 export const SUPER_ADMIN_GET_ALL_PRICING = "/api/super-admin/pricing";
 export const SUPER_ADMIN_GET_ALL_CLUBS = "/api/super-admin/clubs";
 export const SUPER_ADMIN_PAYMENT_DASHBOARD_COUNTS = "/api/super-admin/payment-dashboard-counts";
+
+// Club Payments (Settlements)
+export const SUPER_ADMIN_GET_CLUB_PAYMENTS = "/api/super-admin/club-payments";
+export const SUPER_ADMIN_CREATE_CLUB_PAYMENT = "/api/super-admin/club-payments";
+export const SUPER_ADMIN_GET_CLUB_PAYMENT_BY_ID = "/api/super-admin/club-payments";
+export const SUPER_ADMIN_GET_UNPAID_BOOKINGS = "/api/super-admin/club-payments-unpaid-bookings";
+
+// Wallet (Customer)
+export const SUPER_ADMIN_GET_WALLET_USERS = "/api/super-admin/wallet-users";
+export const SUPER_ADMIN_GET_WALLET_TRANSACTIONS = "/api/super-admin/wallet-transactions";
