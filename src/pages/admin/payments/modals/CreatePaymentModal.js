@@ -5,7 +5,7 @@ import "react-datepicker/dist/react-datepicker.css";
 
 export const CreatePaymentModal = ({ show, handleClose, selectedPayments }) => {
   const [formData, setFormData] = useState({
-    price: "",
+    payment: "",
     Description: "",
     attachment: null,
     date: new Date(),
@@ -35,9 +35,9 @@ export const CreatePaymentModal = ({ show, handleClose, selectedPayments }) => {
             </Form.Label>
             <Form.Control
               type="number"
-              placeholder="Enter price"
-              value={formData.price}
-              onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+              placeholder="Enter Payment"
+              value={formData.payment}
+              onChange={(e) => setFormData({ ...formData, payment: e.target.value })}
               required
             />
           </Form.Group>
