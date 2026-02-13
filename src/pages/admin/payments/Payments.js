@@ -27,10 +27,10 @@ import { ownerApi } from "../../../helpers/api/apiCore";
 import { PaymentDetailsModal } from "./modals/PaymentDetailModal";
 import { CreatePaymentModal } from "./modals/CreatePaymentModal";
 import Pagination from "../../../helpers/Pagination";
+import config from "../../../config";
 
 // Add export endpoints
-const SUPER_ADMIN_EXPORT_TRANSACTIONS = "http://192.168.0.116:7600/api/super-admin/export-transactions";
-const SUPER_ADMIN_EXPORT_WALLET_BALANCES = "http://192.168.0.116:7600/api/super-admin/export-wallet-balances";
+const SUPER_ADMIN_EXPORT_TRANSACTIONS = `${config.API_URL}api/super-admin/export-transactions`;
 
 const Payments = () => {
   const { selectedOwnerId } = useSuperAdminContext();
@@ -42,13 +42,11 @@ const Payments = () => {
   const ownerId = useMemo(() => isSuperAdmin 
     ? (selectedOwnerId || null)  // null when "All Owners" is selected
     : (getOwnerFromSession()?._id), [isSuperAdmin, selectedOwnerId]);
-  
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showPaymentDetails, setShowPaymentDetails] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  
   // Sidebar filters
   const [selectedClubId, setSelectedClubId] = useState("");
   const [paymentStatus, setPaymentStatus] = useState("unpaid"); // "paid" or "unpaid"
@@ -116,7 +114,6 @@ const Payments = () => {
     return matchesClub && matchesSearch;
   });
   
-
   const sendDate = startDate && endDate;
 
   useEffect(() => {
@@ -770,16 +767,17 @@ const Payments = () => {
                                 />
                               )}
                             </th>
-                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Club</th>
-                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Owner</th>
+                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>User</th>
+                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Club & Owner</th>
+                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Court & Time</th>
+                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Booking Info</th>
                             <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
                               {paymentStatus === "unpaid" ? "Booking Date" : "Paid Date"}
                             </th>
-                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                              {paymentStatus === "unpaid" ? "Booking Status" : "Status"}
-                            </th>
+                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Club Payment</th>
+                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Payment Status</th>
                             <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Amount</th>
-                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px", textAlign: "center", borderTopRightRadius: "6px" }}>Action</th>
+                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px", textAlign: "center", borderTopRightRadius: "6px" }}>Invoice</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -802,48 +800,119 @@ const Payments = () => {
                                   />
                                 )}
                               </td>
-                              <td style={{ padding: "12px", fontWeight: "500" }}>
-                                {paymentStatus === "unpaid" ? item?.register_club_id?.clubName : item?.clubId?.clubName || "N/A"}
+                              <td style={{ padding: "12px" }}>
+                                <div>
+                                  <div className="fw-medium" style={{ fontSize: "13px" }}>
+                                    {item?.userId?.name || "N/A"}
+                                  </div>
+                                  <div className="text-muted" style={{ fontSize: "11px" }}>
+                                    {item?.userId?.countryCode} {item?.userId?.phoneNumber}
+                                  </div>
+                                </div>
                               </td>
-                              <td style={{ padding: "12px", color: "#6c757d" }}>
-                                {paymentStatus === "unpaid"
-                                  ? item?.ownerId?.name || item?.register_club_id?.ownerId?.name || "N/A"
-                                  : item?.ownerId?.name || item?.clubId?.ownerId?.name || "N/A"}
+                              <td style={{ padding: "12px", fontWeight: "500" }}>
+                                <div>
+                                  <div style={{ fontSize: "13px" }}>
+                                    {paymentStatus === "unpaid" ? item?.register_club_id?.clubName : item?.clubId?.clubName || "N/A"}
+                                  </div>
+                                  <div className="text-muted" style={{ fontSize: "11px" }}>
+                                    {item?.ownerId?.name || "N/A"}
+                                  </div>
+                                  <div className="text-muted" style={{ fontSize: "10px" }}>
+                                    {item?.ownerId?.email || "N/A"}
+                                  </div>
+                                </div>
+                              </td>
+                              <td style={{ padding: "12px" }}>
+                                <div>
+                                  <div className="fw-medium" style={{ fontSize: "12px" }}>
+                                    {item?.slot?.[0]?.courtName || "N/A"}
+                                  </div>
+                                  <div className="text-muted" style={{ fontSize: "11px" }}>
+                                    {item?.slot?.[0]?.slotTimes?.[0]?.time || item?.startTime || "N/A"} - {item?.slot?.[0]?.slotTimes?.[item?.slot?.[0]?.slotTimes?.length - 1]?.time || item?.endTime || "N/A"}
+                                  </div>
+                                  <div className="text-muted" style={{ fontSize: "10px" }}>
+                                    {item?.duration}min
+                                  </div>
+                                </div>
+                              </td>
+                              <td style={{ padding: "12px" }}>
+                                <div>
+                                  <div className="fw-medium" style={{ fontSize: "11px" }}>
+                                    <span className={`badge ${item?.bookingType === 'openMatch' ? 'bg-info' : item?.bookingType === 'regular' ? 'bg-primary' : 'bg-secondary'}`} style={{ fontSize: "9px", padding: "2px 6px", borderRadius: "3px" }}>
+                                      {item?.bookingType?.toUpperCase() || "N/A"}
+                                    </span>
+                                  </div>
+                                  <div className="text-muted" style={{ fontSize: "10px", marginTop: "2px" }}>
+                                    {item?.matchType || "N/A"}
+                                  </div>
+                                </div>
                               </td>
                               <td style={{ padding: "12px" }}>
                                 <span className="fw-medium" style={{ fontSize: "13px" }}>
                                   {formatDate(paymentStatus === "unpaid" ? item?.bookingDate : item?.paidDate)}
                                 </span>
                               </td>
-                              <td style={{ padding: "12px" }}>
-                                <span className="badge bg-light text-dark" style={{ fontSize: "12px", padding: "6px 12px", borderRadius: "6px" }}>
-                                  {paymentStatus === "unpaid"
-                                    ? item?.bookingStatus?.slice(0, 1)?.toUpperCase()?.concat(item?.bookingStatus?.slice(1)) || "-"
-                                    : item?.status?.slice(0, 1)?.toUpperCase()?.concat(item?.status?.slice(1)) || "-"}
+                              <td style={{ padding: "12px", textAlign: "center" }}>
+                                <span className={`badge ${item?.clubPaidStatus === 'paid' ? 'bg-success' : 'bg-warning'}`} style={{ fontSize: "10px", padding: "4px 8px", borderRadius: "4px" }}>
+                                  {item?.clubPaidStatus?.toUpperCase() || "UNPAID"}
                                 </span>
+                              </td>
+                              <td style={{ padding: "12px" }}>
+                                <div>
+                                  <span className={`badge ${item?.paymentStatus === 'paid' ? 'bg-success' : item?.paymentStatus === 'pending' ? 'bg-warning' : 'bg-secondary'}`} style={{ fontSize: "10px", padding: "4px 8px", borderRadius: "4px" }}>
+                                    {item?.paymentStatus?.toUpperCase() || "N/A"}
+                                  </span>
+                                  <div className="text-muted" style={{ fontSize: "10px", marginTop: "2px" }}>
+                                    {item?.paymentMethod || "N/A"}
+                                  </div>
+                                </div>
                               </td>
                               <td style={{ padding: "12px", fontWeight: "600", color: "#28a745", fontSize: "14px" }}>
                                 ₹{paymentStatus === "unpaid" ? item?.totalAmount || 0 : item?.amount || 0}
                               </td>
                               <td style={{ padding: "12px", textAlign: "center" }}>
-                                <div
-                                  className="d-inline-flex align-items-center justify-content-center"
-                                  style={{ 
-                                    cursor: "pointer",
-                                    width: "36px",
-                                    height: "36px",
-                                    borderRadius: "8px",
-                                    backgroundColor: "#e7f3ff",
-                                    transition: "all 0.2s"
-                                  }}
-                                  onClick={() => handlePaymentDetails(item?._id)}
-                                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#cce5ff"}
-                                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#e7f3ff"}
-                                >
-                                  {loadingPaymentId === item?._id ? (
-                                    <ButtonLoading color="blue" size={7} />
+                                <div className="d-flex align-items-center justify-content-center gap-2">
+                                  {/* <div
+                                    className="d-inline-flex align-items-center justify-content-center"
+                                    style={{ 
+                                      cursor: "pointer",
+                                      width: "36px",
+                                      height: "36px",
+                                      borderRadius: "8px",
+                                      backgroundColor: "#e7f3ff",
+                                      transition: "all 0.2s"
+                                    }}
+                                    onClick={() => handlePaymentDetails(item?._id)}
+                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#cce5ff"}
+                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#e7f3ff"}
+                                  >
+                                    {loadingPaymentId === item?._id ? (
+                                      <ButtonLoading color="blue" size={7} />
+                                    ) : (
+                                      <FaEye className="text-primary" size={16} />
+                                    )}
+                                  </div> */}
+                                  {item?.invoiceUrl ? (
+                                    <div
+                                      className="d-inline-flex align-items-center justify-content-center"
+                                      style={{ 
+                                        cursor: "pointer",
+                                        width: "36px",
+                                        height: "36px",
+                                        borderRadius: "8px",
+                                        backgroundColor: "#e7ffe7",
+                                        transition: "all 0.2s"
+                                      }}
+                                      onClick={() => window.open(item.invoiceUrl, '_blank')}
+                                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#ccffcc"}
+                                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#e7ffe7"}
+                                      title="View Invoice"
+                                    >
+                                      <FaDownload className="text-success" size={14} />
+                                    </div>
                                   ) : (
-                                    <FaEye className="text-primary" size={16} />
+                                    <span className="text-muted" style={{ fontSize: "11px" }}>N/A</span>
                                   )}
                                 </div>
                               </td>
@@ -858,17 +927,33 @@ const Payments = () => {
                         <div key={item?._id || `mobile-payment-${index}`} className="card mb-2">
                           <div className="card-body">
                             <div className="mobile-card-item">
-                              <span className="mobile-card-label">Club:</span>
+                              <span className="mobile-card-label">User:</span>
                               <span className="mobile-card-value">
-                                {paymentStatus === "unpaid" ? item?.register_club_id?.clubName : item?.clubId?.clubName || "N/A"}
+                                {item?.userId?.name || "N/A"} ({item?.userId?.countryCode} {item?.userId?.phoneNumber})
                               </span>
                             </div>
                             <div className="mobile-card-item">
-                              <span className="mobile-card-label">Owner:</span>
+                              <span className="mobile-card-label">Club & Owner:</span>
                               <span className="mobile-card-value">
-                                {paymentStatus === "unpaid"
-                                  ? item?.ownerId?.name || item?.register_club_id?.ownerId?.name || "N/A"
-                                  : item?.ownerId?.name || item?.clubId?.ownerId?.name || "N/A"}
+                                {paymentStatus === "unpaid" ? item?.register_club_id?.clubName : item?.clubId?.clubName || "N/A"} • {item?.ownerId?.name}
+                              </span>
+                            </div>
+                            <div className="mobile-card-item">
+                              <span className="mobile-card-label">Court & Time:</span>
+                              <span className="mobile-card-value">
+                                {item?.slot?.[0]?.courtName || "N/A"} • {item?.slot?.[0]?.slotTimes?.[0]?.time || item?.startTime || "N/A"} - {item?.slot?.[0]?.slotTimes?.[item?.slot?.[0]?.slotTimes?.length - 1]?.time || item?.endTime || "N/A"} ({item?.duration}min)
+                              </span>
+                            </div>
+                            <div className="mobile-card-item">
+                              <span className="mobile-card-label">Booking Info:</span>
+                              <span className="mobile-card-value">
+                                {item?.bookingType?.toUpperCase()} • {item?.matchType}
+                              </span>
+                            </div>
+                            <div className="mobile-card-item">
+                              <span className="mobile-card-label">Club Payment:</span>
+                              <span className="mobile-card-value">
+                                {item?.clubPaidStatus?.toUpperCase() || "UNPAID"}
                               </span>
                             </div>
                             <div className="mobile-card-item">
@@ -878,9 +963,9 @@ const Payments = () => {
                               </span>
                             </div>
                             <div className="mobile-card-item">
-                              <span className="mobile-card-label">Status:</span>
+                              <span className="mobile-card-label">Payment:</span>
                               <span className="mobile-card-value">
-                                {paymentStatus === "unpaid" ? item?.bookingStatus || "-" : item?.status || "-"}
+                                {item?.paymentStatus?.toUpperCase() || "N/A"} • {item?.paymentMethod || "N/A"}
                               </span>
                             </div>
                             <div className="mobile-card-item">
@@ -891,7 +976,7 @@ const Payments = () => {
                             </div>
                             <div className="mobile-card-item">
                               <span className="mobile-card-label">Action:</span>
-                              <div className="mobile-card-value">
+                              <div className="mobile-card-value d-flex align-items-center gap-2">
                                 {loadingPaymentId === item?._id ? (
                                   <ButtonLoading color="blue" size={7} />
                                 ) : (
@@ -903,6 +988,17 @@ const Payments = () => {
                                     size={18}
                                     style={{ cursor: "pointer" }}
                                   />
+                                )}
+                                {item?.invoiceUrl ? (
+                                  <FaDownload
+                                    className="text-success"
+                                    onClick={() => window.open(item.invoiceUrl, '_blank')}
+                                    size={16}
+                                    style={{ cursor: "pointer" }}
+                                    title="View Invoice"
+                                  />
+                                ) : (
+                                  <span className="text-muted" style={{ fontSize: "11px" }}>N/A</span>
                                 )}
                               </div>
                             </div>

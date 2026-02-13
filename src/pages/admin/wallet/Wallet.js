@@ -5,9 +5,10 @@ import { DataLoading } from "../../../helpers/loading/Loaders";
 import { ownerApi } from "../../../helpers/api/apiCore";
 import { SUPER_ADMIN_GET_WALLET_USERS, SUPER_ADMIN_GET_WALLET_TRANSACTIONS } from "../../../helpers/api/apiEndpoint";
 import Pagination from "../../../helpers/Pagination";
+import config from "../../../config";
 
 // Add export endpoint
-const SUPER_ADMIN_EXPORT_WALLET_BALANCES = "http://192.168.0.116:7600/api/super-admin/export-wallet-balances";
+const SUPER_ADMIN_EXPORT_WALLET_BALANCES = `${config.API_URL}api/super-admin/export-wallet-balances`;
 
 const Wallet = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -71,8 +72,14 @@ const Wallet = () => {
         }).toString();
         const res = await ownerApi.get(`${SUPER_ADMIN_GET_WALLET_USERS}?${params}`);
         const data = res?.data?.data;
-        setWallets(data?.users || []);
+        const users = data?.users || [];
+        setWallets(users);
         setWalletTotals(data?.totals || { totalBalance: 0, totalSpent: 0, totalAdded: 0 });
+        
+        // Auto-select first user if no user is selected and users exist
+        if (!selectedWallet && users.length > 0) {
+          setSelectedWallet(users[0]);
+        }
       } catch (error) {
         console.error("Error fetching wallet users:", error);
         setWallets([]);
@@ -293,43 +300,80 @@ const Wallet = () => {
                   <Table hover className="mb-0">
                     <thead style={{ backgroundColor: "#f8f9fa", position: "sticky", top: 0, zIndex: 1 }}>
                       <tr>
-                        <th style={{ fontSize: "12px", fontWeight: "600", padding: "12px" }}>Date</th>
+                        <th style={{ fontSize: "12px", fontWeight: "600", padding: "12px" }}>User</th>
+                        <th style={{ fontSize: "12px", fontWeight: "600", padding: "12px" }}>Date & Time</th>
                         <th style={{ fontSize: "12px", fontWeight: "600", padding: "12px" }}>Type</th>
                         <th style={{ fontSize: "12px", fontWeight: "600", padding: "12px" }}>Description</th>
                         <th style={{ fontSize: "12px", fontWeight: "600", padding: "12px", textAlign: "right" }}>Amount</th>
-                        <th style={{ fontSize: "12px", fontWeight: "600", padding: "12px", textAlign: "right" }}>Status</th>
+                        <th style={{ fontSize: "12px", fontWeight: "600", padding: "12px", textAlign: "center" }}>Status</th>
                       </tr>
                     </thead>
                     <tbody>
                       {transactionsLoading ? (
                         <tr>
-                          <td colSpan={5} className="text-center py-3">
+                          <td colSpan={6} className="text-center py-3">
                             <DataLoading height="60px" />
                           </td>
                         </tr>
                       ) : transactions.length > 0 ? (
                         transactions.map((transaction) => (
                           <tr key={transaction._id}>
-                            <td style={{ fontSize: "13px", padding: "12px" }}>{formatDate(transaction.createdAt)}</td>
                             <td style={{ fontSize: "13px", padding: "12px" }}>
-                              {transaction.type === "credit" ? (
-                                <Badge bg="success" style={{ fontSize: "10px" }}>Credit</Badge>
-                              ) : (
-                                <Badge bg="danger" style={{ fontSize: "10px" }}>Debit</Badge>
-                              )}
+                              <div>
+                                <div className="fw-medium" style={{ fontSize: "13px" }}>
+                                  {transaction?.userId?.name || "N/A"}
+                                </div>
+                                <div className="text-muted" style={{ fontSize: "11px" }}>
+                                  {transaction?.userId?.countryCode} {transaction?.userId?.phoneNumber}
+                                </div>
+                                <div className="text-muted" style={{ fontSize: "10px" }}>
+                                  {transaction?.userId?.email}
+                                </div>
+                              </div>
                             </td>
-                            <td style={{ fontSize: "13px", padding: "12px" }}>{transaction.description || "-"}</td>
-                            <td style={{ fontSize: "13px", padding: "12px", textAlign: "right", fontWeight: "600", color: transaction.type === "credit" ? "#28a745" : "#dc3545" }}>
+                            <td style={{ fontSize: "13px", padding: "12px" }}>
+                              <div>
+                                <div className="fw-medium" style={{ fontSize: "12px" }}>
+                                  {formatDate(transaction.createdAt)}
+                                </div>
+                                <div className="text-muted" style={{ fontSize: "10px" }}>
+                                  {new Date(transaction.createdAt).toLocaleTimeString('en-US', { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit',
+                                    hour12: true 
+                                  })}
+                                </div>
+                              </div>
+                            </td>
+                            <td style={{ fontSize: "13px", padding: "12px" }}>
+                              <Badge 
+                                bg={transaction.type === "credit" ? "success" : "danger"} 
+                                style={{ fontSize: "10px", padding: "4px 8px", borderRadius: "4px" }}
+                              >
+                                {transaction.type?.toUpperCase()}
+                              </Badge>
+                            </td>
+                            <td style={{ fontSize: "13px", padding: "12px" }}>
+                              <div className="text-wrap" style={{ maxWidth: "200px" }}>
+                                {transaction.description || "-"}
+                              </div>
+                            </td>
+                            <td style={{ fontSize: "14px", padding: "12px", textAlign: "right", fontWeight: "600", color: transaction.type === "credit" ? "#28a745" : "#dc3545" }}>
                               {transaction.type === "credit" ? "+" : "-"}₹{(transaction.amount || 0).toLocaleString()}
                             </td>
-                            <td style={{ fontSize: "13px", padding: "12px", textAlign: "right", fontWeight: "600" }}>
-                              {transaction.status || "-"}
+                            <td style={{ fontSize: "13px", padding: "12px", textAlign: "center" }}>
+                              <Badge 
+                                bg={transaction.status === "success" ? "success" : transaction.status === "pending" ? "warning" : "secondary"}
+                                style={{ fontSize: "10px", padding: "4px 8px", borderRadius: "4px" }}
+                              >
+                                {transaction.status?.toUpperCase() || "N/A"}
+                              </Badge>
                             </td>
                           </tr>
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={5} className="text-center py-3 text-muted">
+                          <td colSpan={6} className="text-center py-3 text-muted">
                             No transactions found
                           </td>
                         </tr>
