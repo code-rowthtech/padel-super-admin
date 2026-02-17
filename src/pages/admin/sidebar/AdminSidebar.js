@@ -167,7 +167,6 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
           <NavLink
             to="/admin/dashboard"
             end
-            reloadDocument
             className={
               isCollapsed && window.innerWidth > 768
                 ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
@@ -222,7 +221,6 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
           <NavLink
             to="/admin/booking"
             end
-            reloadDocument
             className={
               isCollapsed && window.innerWidth > 768
                 ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
@@ -278,7 +276,6 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             <NavLink
               to="/admin/owners"
               end
-              reloadDocument
               className={
                 isCollapsed && window.innerWidth > 768
                   ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
@@ -334,7 +331,6 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
           <NavLink
             to="/admin/payments"
             end
-            reloadDocument
             className={
               isCollapsed && window.innerWidth > 768
                 ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
@@ -389,7 +385,6 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
           <NavLink
             to="/admin/wallet"
             end
-            reloadDocument
             className={
               isCollapsed && window.innerWidth > 768
                 ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
@@ -444,7 +439,6 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
           <NavLink
             to="/admin/profile"
             end
-            reloadDocument
             className={
               isCollapsed && window.innerWidth > 768
                 ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"

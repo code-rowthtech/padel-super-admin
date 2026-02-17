@@ -71,12 +71,12 @@ const Pagination = ({
           <div className="d-flex align-items-center gap-1">
             {pageNumbers.map((number, index) =>
               number === "..." ? (
-                <span key={index} style={{ fontSize: window.innerWidth <= 768 ? '12px' : '14px' }}>
+                <span key={`ellipsis-${index}`} style={{ fontSize: window.innerWidth <= 768 ? '12px' : '14px' }}>
                   ...
                 </span>
               ) : (
                 <button
-                  key={number}
+                  key={`page-${number}`}
                   className="btn shadow-none rounded-circle"
                   style={{
                     color: number === adjustedCurrentPage ? "white" : "black",

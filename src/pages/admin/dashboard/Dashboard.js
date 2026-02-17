@@ -457,7 +457,7 @@ const AdminDashboard = () => {
                                     }}
                                   >
                                     {dataPoint?.Cancelation}
-                                  </span>
+                                </span>
                                 </div>
                                 <hr
                                   style={{

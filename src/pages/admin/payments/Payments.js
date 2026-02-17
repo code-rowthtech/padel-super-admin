@@ -1,11 +1,11 @@
 import React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { Row, Col, Container, Table, Card, Form, Button, ListGroup, Badge } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { MdDateRange, MdOutlineDateRange } from "react-icons/md";
-import { FaTimes, FaSearch, FaFilter, FaCheckCircle, FaTimesCircle, FaBuilding } from "react-icons/fa";
+import { FaTimes, FaSearch, FaFilter, FaCheckCircle, FaTimesCircle, FaBuilding, FaDownload } from "react-icons/fa";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 import { useSuperAdminContext } from "../../../contexts/SuperAdminContext";
@@ -27,24 +27,26 @@ import { ownerApi } from "../../../helpers/api/apiCore";
 import { PaymentDetailsModal } from "./modals/PaymentDetailModal";
 import { CreatePaymentModal } from "./modals/CreatePaymentModal";
 import Pagination from "../../../helpers/Pagination";
+import config from "../../../config";
+
+// Add export endpoints
+const SUPER_ADMIN_EXPORT_TRANSACTIONS = `${config.API_URL}api/super-admin/export-transactions`;
 
 const Payments = () => {
   const { selectedOwnerId } = useSuperAdminContext();
-  const Owner = getOwnerFromSession();
+  const Owner = useMemo(() => getOwnerFromSession(), []);
   const ownerData = Owner?.user || Owner;
   const isSuperAdmin = ownerData?.role === 'super_admin';
   // ✅ SUPER ADMIN: Use selectedOwnerId if explicitly set, otherwise null (for "All Owners")
   // For non-super-admin, use logged-in owner's ID
-  const ownerId = isSuperAdmin 
+  const ownerId = useMemo(() => isSuperAdmin 
     ? (selectedOwnerId || null)  // null when "All Owners" is selected
-    : (getOwnerFromSession()?._id);
-  
+    : (getOwnerFromSession()?._id), [isSuperAdmin, selectedOwnerId]);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showPaymentDetails, setShowPaymentDetails] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  
   // Sidebar filters
   const [selectedClubId, setSelectedClubId] = useState("");
   const [paymentStatus, setPaymentStatus] = useState("unpaid"); // "paid" or "unpaid"
@@ -52,7 +54,11 @@ const Payments = () => {
   const [selectAll, setSelectAll] = useState(false);
   const [showCreatePayment, setShowCreatePayment] = useState(false);
   const [currentPaymentId, setCurrentPaymentId] = useState(null);
-console.log(selectedPayments,'selectedPayments');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showExportDropdown, setShowExportDropdown] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
+  const [exportSearchTerm, setExportSearchTerm] = useState("");
+  const exportDropdownRef = useRef(null);
 
   const setDateRange = (update) => {
     setStartDate(update[0]);
@@ -65,9 +71,16 @@ console.log(selectedPayments,'selectedPayments');
   const [paymentDetails, setPaymentDetails] = useState({});
   const [refreshKey, setRefreshKey] = useState(0);
   const [selectedTotal, setSelectedTotal] = useState(0);
-  const canSelectBookings =
-    (!isSuperAdmin ? true : Boolean(selectedOwnerId && selectedClubId)) &&
-    paymentStatus === "unpaid";
+  const canSelectBookings = useMemo(() => 
+    (!isSuperAdmin ? true : Boolean(selectedOwnerId !== undefined && selectedClubId)) &&
+    paymentStatus === "unpaid",
+    [isSuperAdmin, selectedOwnerId, selectedClubId, paymentStatus]
+  );
+  
+  const canSelectClubs = useMemo(() => 
+    !isSuperAdmin || selectedOwnerId !== undefined,
+    [isSuperAdmin, selectedOwnerId]
+  );
   const [tab, setTab] = useState(0);
 
   const handleTabChange = (_, newValue) => {
@@ -80,15 +93,27 @@ console.log(selectedPayments,'selectedPayments');
   const [loadingClubs, setLoadingClubs] = useState(false);
   const selectedClub = clubs.find((club) => club._id === selectedClubId);
 
-  // Filter payments by selected club (fallback if API doesn't filter)
-  const filteredPayments = selectedClubId
-    ? payments.filter((p) =>
-        p?.register_club_id?._id === selectedClubId ||
-        p?.clubId?._id === selectedClubId ||
-        p?.club?._id === selectedClubId
-      )
-    : payments;
-
+  // Filter payments by selected club and search term
+  const filteredPayments = payments.filter((p) => {
+    const matchesClub = selectedClubId
+      ? (paymentStatus === "unpaid" 
+          ? p?.register_club_id?._id === selectedClubId
+          : p?.clubId?._id === selectedClubId)
+      : true;
+    
+    const matchesSearch = searchTerm
+      ? (paymentStatus === "unpaid" 
+          ? (p?.register_club_id?.clubName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+             p?.ownerId?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+             p?.register_club_id?.ownerId?.name?.toLowerCase().includes(searchTerm.toLowerCase()))
+          : (p?.clubId?.clubName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+             p?.ownerId?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+             p?.clubId?.ownerId?.name?.toLowerCase().includes(searchTerm.toLowerCase())))
+      : true;
+    
+    return matchesClub && matchesSearch;
+  });
+  
   const sendDate = startDate && endDate;
 
   useEffect(() => {
@@ -122,6 +147,10 @@ console.log(selectedPayments,'selectedPayments');
             : SUPER_ADMIN_GET_CLUB_PAYMENTS;
         const res = await ownerApi.get(query ? `${endpoint}?${query}` : endpoint);
         const data = res?.data?.data;
+        console.log(data, 'data');
+        console.log('paymentStatus:', paymentStatus);
+        console.log('payments array:', paymentStatus === "unpaid" ? data?.bookings : data?.payments);
+        
         if (paymentStatus === "unpaid") {
           setPayments(data?.bookings || []);
         } else {
@@ -138,7 +167,7 @@ console.log(selectedPayments,'selectedPayments');
     };
 
     fetchPayments();
-  }, [tab, sendDate, currentPage, ownerId, isSuperAdmin, selectedOwnerId, selectedClubId, paymentStatus, refreshKey]);
+  }, [tab, sendDate, currentPage, ownerId, selectedClubId, paymentStatus, refreshKey]);
   const [loadingPaymentId, setLoadingPaymentId] = useState(null);
 
   const handlePaymentDetails = async (id) => {
@@ -264,7 +293,7 @@ console.log(selectedPayments,'selectedPayments');
   const handleSelectAll = (e) => {
     setSelectAll(e.target.checked);
     if (e.target.checked) {
-      setSelectedPayments(payments.map(p => p._id));
+      setSelectedPayments(filteredPayments.map(p => p._id));
     } else {
       setSelectedPayments([]);
     }
@@ -280,26 +309,49 @@ console.log(selectedPayments,'selectedPayments');
 
   useEffect(() => {
     if (paymentStatus !== "unpaid") {
-      setSelectedPayments([]);
-      setSelectAll(false);
-      setSelectedTotal(0);
+      if (selectedPayments.length > 0 || selectAll || selectedTotal > 0) {
+        setSelectedPayments([]);
+        setSelectAll(false);
+        setSelectedTotal(0);
+      }
       return;
     }
     if (!canSelectBookings) {
-      setSelectedPayments([]);
-      setSelectAll(false);
-      setSelectedTotal(0);
+      if (selectedPayments.length > 0 || selectAll || selectedTotal > 0) {
+        setSelectedPayments([]);
+        setSelectAll(false);
+        setSelectedTotal(0);
+      }
       return;
     }
     const total = payments
       .filter((p) => selectedPayments.includes(p._id))
       .reduce((sum, p) => sum + (p.totalAmount || 0), 0);
-    setSelectedTotal(total);
-  }, [selectedPayments, payments, paymentStatus, canSelectBookings]);
+    if (total !== selectedTotal) {
+      setSelectedTotal(total);
+    }
+  }, [selectedPayments, payments, paymentStatus, canSelectBookings, selectAll, selectedTotal]);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [paymentStatus, selectedClubId, selectedOwnerId]);
+
+  // Close export dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (exportDropdownRef.current && !exportDropdownRef.current.contains(event.target)) {
+        setShowExportDropdown(false);
+      }
+    };
+
+    if (showExportDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showExportDropdown]);
 
   // Calculate totals
   const totalPaid = payments.filter(p => p.status === "paid").reduce((sum, p) => sum + (p.amount || 0), 0);
@@ -308,6 +360,31 @@ console.log(selectedPayments,'selectedPayments');
   const handleCreatePayment = (paymentId = null) => {
     setCurrentPaymentId(paymentId);
     setShowCreatePayment(true);
+  };
+
+  const handleExport = async (clubId = null) => {
+    try {
+      setExportLoading(true);
+      const params = new URLSearchParams();
+      if (startDate && endDate) {
+        params.append('startDate', startDate.toISOString().split('T')[0]);
+        params.append('endDate', endDate.toISOString().split('T')[0]);
+      }
+      if (ownerId) params.append('ownerId', ownerId);
+      if (clubId) params.append('clubId', clubId);
+      if (searchTerm) params.append('search', searchTerm);
+      if (paymentStatus) params.append('status', paymentStatus);
+      
+      const res = await ownerApi.get(`${SUPER_ADMIN_EXPORT_TRANSACTIONS}?${params.toString()}`);
+      if (res?.data?.success && res?.data?.data?.downloadUrl) {
+        window.open(res.data.data.downloadUrl, '_blank');
+      }
+    } catch (error) {
+      console.error('Export failed:', error);
+    } finally {
+      setExportLoading(false);
+      setShowExportDropdown(false);
+    }
   };
 
   return (
@@ -339,6 +416,9 @@ console.log(selectedPayments,'selectedPayments');
             font-weight: 500;
             letter-spacing: 0.3px;
           }
+          .hover-bg-light:hover {
+            background-color: #f8f9fa !important;
+          }
         `}
       </style>
       <Row className="mb-2">
@@ -358,93 +438,6 @@ console.log(selectedPayments,'selectedPayments');
           </Col>
         ))}
       </Row>
-      {/* <Row className="mb-4">
-        <Col xs={12}>
-          <div className="d-flex flex-column flex-lg-row justify-content-between align-items-start align-lg-center gap-3 bg-white p-3 rounded shadow-sm">
-            <Box sx={{ width: { xs: "100%", lg: "auto" } }}>
-              <Tabs
-                value={tab}
-                onChange={handleTabChange}
-                indicatorColor="primary"
-                textColor="primary"
-                variant="fullWidth"
-                sx={{
-                  "& .MuiTab-root": {
-                    fontSize: { xs: "13px", sm: "13px", lg: "14px" },
-                    minWidth: { xs: "120px", sm: "140px" },
-                    fontWeight: "600",
-                    textTransform: "none",
-                    whiteSpace: "nowrap",
-                    padding: "12px 16px",
-                  },
-                }}
-              >
-                <Tab label="Recent Transactions" />
-                <Tab label="Refund Transactions" />
-              </Tabs>
-            </Box>
-
-            <div className="d-flex align-items-center gap-2">
-              {!showDatePicker && !startDate && !endDate ? (
-                <Button
-                  variant="outline-secondary"
-                  size="sm"
-                  className="d-flex align-items-center gap-2"
-                  onClick={() => setShowDatePicker(true)}
-                  style={{ borderRadius: "6px", padding: "8px 16px" }}
-                >
-                  <MdOutlineDateRange size={18} />
-                  <span>Select Date</span>
-                </Button>
-              ) : (
-                <div
-                  className="d-flex align-items-center justify-content-center rounded p-1"
-                  style={{
-                    backgroundColor: "#FAFBFF",
-                    maxWidth: "280px",
-                    height: "38px",
-                    border: "1px solid #dee2e6",
-                    gap: "8px",
-                  }}
-                >
-                  <div className="px-2">
-                    <MdOutlineDateRange size={16} className="text-muted" />
-                  </div>
-                  <DatePicker
-                    selectsRange
-                    startDate={startDate}
-                    endDate={endDate}
-                    onChange={(update) => {
-                      setDateRange(update);
-                      const [start, end] = update;
-                      if (start && end) {
-                        setShowDatePicker(false);
-                      }
-                    }}
-                    dateFormat="dd/MM/yy"
-                    placeholderText="DD/MM/YY – DD/MM/YY"
-                    className="form-control border-0 bg-transparent shadow-none custom-datepicker-input"
-                    open={showDatePicker}
-                    onClickOutside={() => setShowDatePicker(false)}
-                  />
-                  {(startDate || endDate) && (
-                    <div
-                      className="px-2"
-                      onClick={() => {
-                        setDateRange([null, null]);
-                        setShowDatePicker(false);
-                      }}
-                      style={{ cursor: "pointer" }}
-                    >
-                      <FaTimes size={14} className="text-danger" />
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </Col>
-      </Row> */}
 
       <Row className="g-1">
         {/* Sidebar */}
@@ -456,7 +449,7 @@ console.log(selectedPayments,'selectedPayments');
             </div>
           {!canSelectBookings && paymentStatus === "unpaid" && (
             <div className="alert alert-warning py-1 px-2 mb-2" style={{ fontSize: "11px" }}>
-              Select an owner and a club to choose bookings.
+              {!canSelectClubs ? "Select an owner first." : "Select a club to choose bookings."}
             </div>
           )}
             
@@ -471,6 +464,7 @@ console.log(selectedPayments,'selectedPayments');
                     setPaymentStatus("paid");
                     setTab(1);
                     setCurrentPage(1);
+                    setSelectedClubId(""); // Clear club selection when switching
                   }}
                 >
                   <FaCheckCircle size={10} className="me-1" />
@@ -484,6 +478,7 @@ console.log(selectedPayments,'selectedPayments');
                     setPaymentStatus("unpaid");
                     setTab(0);
                     setCurrentPage(1);
+                    setSelectedClubId(""); // Clear club selection when switching
                   }}
                 >
                   <FaTimesCircle size={10} className="me-1" />
@@ -496,18 +491,20 @@ console.log(selectedPayments,'selectedPayments');
               <div className="d-flex justify-content-between align-items-center mb-2">
                 <span style={{ fontSize: "11px", color: "#6c757d", fontWeight: "600" }}>CLUBS</span>
                 <Badge bg="primary" style={{ fontSize: "10px" }}>{clubs.length}</Badge>
+                {console.log(clubs,'clubs.length')}
               </div>
               <div style={{ maxHeight: "calc(100vh - 400px)", overflowY: "auto" }}>
                 <ListGroup variant="flush">
-                  {clubs.map((club) => (
+                  {clubs.map((club, index) => (
                     <ListGroup.Item
-                      key={club._id}
+                      key={club._id || `club-${index}`}
                       action
                       active={selectedClubId === club._id}
-                      onClick={() => setSelectedClubId(selectedClubId === club._id ? "" : club._id)}
+                      onClick={() => canSelectClubs ? setSelectedClubId(selectedClubId === club._id ? "" : club._id) : null}
                       className="px-2 py-2"
                       style={{
-                        cursor: "pointer",
+                        cursor: canSelectClubs ? "pointer" : "not-allowed",
+                        opacity: canSelectClubs ? 1 : 0.5,
                         borderLeft: selectedClubId === club._id ? "3px solid #4361ee" : "3px solid transparent",
                         fontSize: "12px",
                         transition: "all 0.2s"
@@ -543,22 +540,6 @@ console.log(selectedPayments,'selectedPayments');
                 </ListGroup>
               </div>
             </div>
-
-            {/* <div className="mt-3 pt-2 border-top">
-              <h6 className="fw-bold mb-2" style={{ fontSize: "12px", color: "#6c757d", textTransform: "uppercase" }}>Summary</h6>
-              <div className="bg-light rounded p-2 mb-1" style={{ borderLeft: "2px solid #28a745" }}>
-                <div className="d-flex justify-content-between align-items-center">
-                  <span style={{ fontSize: "12px", color: "#6c757d" }}>Paid</span>
-                  <span className="fw-bold text-success" style={{ fontSize: "12px" }}>₹{totalPaid.toLocaleString()}</span>
-                </div>
-              </div>
-              <div className="bg-light rounded p-2" style={{ borderLeft: "2px solid #dc3545" }}>
-                <div className="d-flex justify-content-between align-items-center">
-                  <span style={{ fontSize: "12px", color: "#6c757d" }}>Unpaid</span>
-                  <span className="fw-bold text-danger" style={{ fontSize: "12px" }}>₹{totalUnpaid.toLocaleString()}</span>
-                </div>
-              </div>
-            </div> */}
           </div>
         </Col>
 
@@ -573,16 +554,191 @@ console.log(selectedPayments,'selectedPayments');
                   {`Total ${filteredPayments.length} ${paymentStatus === "unpaid" ? "booking" : "payment"}${filteredPayments.length !== 1 ? "s" : ""}`}
                 </p>
               </div>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => handleCreatePayment()}
-                disabled={paymentStatus !== "unpaid" || selectedPayments.length === 0 || !canSelectBookings}
-                className="d-flex align-items-center gap-2"
-                style={{ borderRadius: "6px", fontWeight: "500", fontSize: "13px", padding: "8px 16px" }}
-              >
-                <span>Create Payment</span>
-              </Button>
+              <div className="d-flex align-items-center gap-2">
+                {!showDatePicker && !startDate && !endDate ? (
+                  <Button
+                    variant="outline-secondary"
+                    size="sm"
+                    className="d-flex align-items-center gap-2"
+                    onClick={() => setShowDatePicker(true)}
+                    style={{ borderRadius: "6px", padding: "8px 16px", fontSize: "13px" }}
+                  >
+                    <MdOutlineDateRange size={16} />
+                    <span>Select Date</span>
+                  </Button>
+                ) : (
+                  <div
+                    className="d-flex align-items-center justify-content-center rounded p-1"
+                    style={{
+                      backgroundColor: "#FAFBFF",
+                      maxWidth: "200px",
+                      height: "36px",
+                      border: "1px solid #dee2e6",
+                      gap: "8px",
+                    }}
+                  >
+                    <div className="px-2">
+                      <MdOutlineDateRange size={14} className="text-muted" />
+                    </div>
+                    <DatePicker
+                      selectsRange
+                      startDate={startDate}
+                      endDate={endDate}
+                      onChange={(update) => {
+                        setDateRange(update);
+                        const [start, end] = update;
+                        if (start && end) {
+                          setShowDatePicker(false);
+                        }
+                      }}
+                      dateFormat="dd/MM/yy"
+                      placeholderText="DD/MM/YY – DD/MM/YY"
+                      className="form-control border-0 bg-transparent shadow-none"
+                      style={{ fontSize: "12px", width: "120px" }}
+                      open={showDatePicker}
+                      onClickOutside={() => setShowDatePicker(false)}
+                    />
+                    {(startDate || endDate) && (
+                      <div
+                        className="px-2"
+                        onClick={() => {
+                          setDateRange([null, null]);
+                          setShowDatePicker(false);
+                        }}
+                        style={{ cursor: "pointer" }}
+                      >
+                        <FaTimes size={12} className="text-danger" />
+                      </div>
+                    )}
+                  </div>
+                )}
+                <div className="position-relative" ref={exportDropdownRef}>
+                  <Button
+                    variant="outline-primary"
+                    size="sm"
+                    onClick={() => setShowExportDropdown(!showExportDropdown)}
+                    className="d-flex align-items-center gap-2"
+                    style={{ borderRadius: "6px", fontSize: "13px", padding: "8px 16px" }}
+                    disabled={exportLoading}
+                  >
+                    <FaDownload size={12} />
+                    <span>{exportLoading ? "Exporting..." : "Export"}</span>
+                  </Button>
+                  {showExportDropdown && (
+                    <div 
+                      className="position-absolute bg-white border rounded shadow-sm"
+                      style={{ 
+                        top: "100%", 
+                        right: "0", 
+                        zIndex: 1000, 
+                        minWidth: "250px",
+                        marginTop: "4px"
+                      }}
+                    >
+                      <div className="p-2">
+                        <div 
+                          className={`p-2 rounded ${exportLoading ? 'text-muted' : 'hover-bg-light cursor-pointer'}`}
+                          onClick={() => !exportLoading && handleExport()}
+                          style={{ 
+                            cursor: exportLoading ? "not-allowed" : "pointer", 
+                            fontSize: "13px",
+                            opacity: exportLoading ? 0.5 : 1
+                          }}
+                        >
+                          <FaDownload size={12} className="me-2" />
+                          Export All
+                        </div>
+                        {clubs.length > 0 && (
+                          <>
+                            <hr className="my-1" />
+                            <div className="fw-bold" style={{ fontSize: "12px", color: "#6c757d", padding: "4px 8px" }}>By Club:</div>
+                            <div className="position-relative mb-2">
+                              <FaSearch 
+                                className="position-absolute" 
+                                style={{ 
+                                  left: "8px", 
+                                  top: "50%", 
+                                  transform: "translateY(-50%)", 
+                                  color: "#6c757d", 
+                                  fontSize: "10px" 
+                                }} 
+                              />
+                              <Form.Control
+                                type="text"
+                                placeholder="Search clubs..."
+                                value={exportSearchTerm}
+                                onChange={(e) => setExportSearchTerm(e.target.value)}
+                                style={{
+                                  paddingLeft: "25px",
+                                  fontSize: "12px",
+                                  height: "30px",
+                                  borderRadius: "4px",
+                                  border: "1px solid #dee2e6"
+                                }}
+                              />
+                            </div>
+                            {clubs
+                              .filter(club => 
+                                club.clubName?.toLowerCase().includes(exportSearchTerm.toLowerCase())
+                              )
+                              .map((club) => (
+                              <div 
+                                key={club._id}
+                                className={`p-2 rounded ${exportLoading ? 'text-muted' : 'hover-bg-light cursor-pointer'}`}
+                                onClick={() => !exportLoading && handleExport(club._id)}
+                                style={{ 
+                                  cursor: exportLoading ? "not-allowed" : "pointer", 
+                                  fontSize: "13px",
+                                  opacity: exportLoading ? 0.5 : 1
+                                }}
+                              >
+                                <FaBuilding size={12} className="me-2" />
+                                {club.clubName}
+                              </div>
+                            ))}
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="position-relative">
+                  <FaSearch 
+                    className="position-absolute" 
+                    style={{ 
+                      left: "10px", 
+                      top: "50%", 
+                      transform: "translateY(-50%)", 
+                      color: "#6c757d", 
+                      fontSize: "12px" 
+                    }} 
+                  />
+                  <Form.Control
+                    type="text"
+                    placeholder="Search by club or owner..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    style={{
+                      paddingLeft: "35px",
+                      fontSize: "13px",
+                      height: "36px",
+                      borderRadius: "6px",
+                      border: "1px solid #dee2e6",
+                      width: "250px"
+                    }}
+                  />
+                </div>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => handleCreatePayment()}
+                  disabled={paymentStatus !== "unpaid" || selectedPayments.length === 0 || !canSelectBookings}
+                  className="d-flex align-items-center gap-2"
+                  style={{ borderRadius: "6px", fontWeight: "500", fontSize: "13px", padding: "8px 16px" }}
+                >
+                  <span>Create Payment</span>
+                </Button>
+              </div>
             </div>
 
             {paymentsLoading ? (
@@ -611,22 +767,23 @@ console.log(selectedPayments,'selectedPayments');
                                 />
                               )}
                             </th>
-                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Club</th>
-                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Owner</th>
+                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>User</th>
+                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Club & Owner</th>
+                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Court & Time</th>
+                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Booking Info</th>
                             <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
                               {paymentStatus === "unpaid" ? "Booking Date" : "Paid Date"}
                             </th>
-                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                              {paymentStatus === "unpaid" ? "Booking Status" : "Status"}
-                            </th>
+                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Club Payment</th>
+                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Payment Status</th>
                             <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Amount</th>
-                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px", textAlign: "center", borderTopRightRadius: "6px" }}>Action</th>
+                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px", textAlign: "center", borderTopRightRadius: "6px" }}>Invoice</th>
                           </tr>
                         </thead>
                         <tbody>
                           {filteredPayments?.map((item, index) => (
                             <tr
-                              key={item?._id}
+                              key={item?._id || `payment-${index}`}
                               className="border-bottom"
                               style={{ 
                                 backgroundColor: selectedPayments.includes(item._id) ? "#f0f8ff" : "white",
@@ -643,48 +800,119 @@ console.log(selectedPayments,'selectedPayments');
                                   />
                                 )}
                               </td>
-                              <td style={{ padding: "12px", fontWeight: "500" }}>
-                                {paymentStatus === "unpaid" ? item?.register_club_id?.clubName : item?.clubId?.clubName || "N/A"}
+                              <td style={{ padding: "12px" }}>
+                                <div>
+                                  <div className="fw-medium" style={{ fontSize: "13px" }}>
+                                    {item?.userId?.name || "N/A"}
+                                  </div>
+                                  <div className="text-muted" style={{ fontSize: "11px" }}>
+                                    {item?.userId?.countryCode} {item?.userId?.phoneNumber}
+                                  </div>
+                                </div>
                               </td>
-                              <td style={{ padding: "12px", color: "#6c757d" }}>
-                                {paymentStatus === "unpaid"
-                                  ? item?.ownerId?.name || item?.register_club_id?.ownerId?.name || "N/A"
-                                  : item?.ownerId?.name || item?.clubId?.ownerId?.name || "N/A"}
+                              <td style={{ padding: "12px", fontWeight: "500" }}>
+                                <div>
+                                  <div style={{ fontSize: "13px" }}>
+                                    {paymentStatus === "unpaid" ? item?.register_club_id?.clubName : item?.clubId?.clubName || "N/A"}
+                                  </div>
+                                  <div className="text-muted" style={{ fontSize: "11px" }}>
+                                    {item?.ownerId?.name || "N/A"}
+                                  </div>
+                                  <div className="text-muted" style={{ fontSize: "10px" }}>
+                                    {item?.ownerId?.email || "N/A"}
+                                  </div>
+                                </div>
+                              </td>
+                              <td style={{ padding: "12px" }}>
+                                <div>
+                                  <div className="fw-medium" style={{ fontSize: "12px" }}>
+                                    {item?.slot?.[0]?.courtName || "N/A"}
+                                  </div>
+                                  <div className="text-muted" style={{ fontSize: "11px" }}>
+                                    {item?.slot?.[0]?.slotTimes?.[0]?.time || item?.startTime || "N/A"} - {item?.slot?.[0]?.slotTimes?.[item?.slot?.[0]?.slotTimes?.length - 1]?.time || item?.endTime || "N/A"}
+                                  </div>
+                                  <div className="text-muted" style={{ fontSize: "10px" }}>
+                                    {item?.duration}min
+                                  </div>
+                                </div>
+                              </td>
+                              <td style={{ padding: "12px" }}>
+                                <div>
+                                  <div className="fw-medium" style={{ fontSize: "11px" }}>
+                                    <span className={`badge ${item?.bookingType === 'openMatch' ? 'bg-info' : item?.bookingType === 'regular' ? 'bg-primary' : 'bg-secondary'}`} style={{ fontSize: "9px", padding: "2px 6px", borderRadius: "3px" }}>
+                                      {item?.bookingType?.toUpperCase() || "N/A"}
+                                    </span>
+                                  </div>
+                                  <div className="text-muted" style={{ fontSize: "10px", marginTop: "2px" }}>
+                                    {item?.matchType || "N/A"}
+                                  </div>
+                                </div>
                               </td>
                               <td style={{ padding: "12px" }}>
                                 <span className="fw-medium" style={{ fontSize: "13px" }}>
                                   {formatDate(paymentStatus === "unpaid" ? item?.bookingDate : item?.paidDate)}
                                 </span>
                               </td>
-                              <td style={{ padding: "12px" }}>
-                                <span className="badge bg-light text-dark" style={{ fontSize: "12px", padding: "6px 12px", borderRadius: "6px" }}>
-                                  {paymentStatus === "unpaid"
-                                    ? item?.bookingStatus?.slice(0, 1)?.toUpperCase()?.concat(item?.bookingStatus?.slice(1)) || "-"
-                                    : item?.status?.slice(0, 1)?.toUpperCase()?.concat(item?.status?.slice(1)) || "-"}
+                              <td style={{ padding: "12px", textAlign: "center" }}>
+                                <span className={`badge ${item?.clubPaidStatus === 'paid' ? 'bg-success' : 'bg-warning'}`} style={{ fontSize: "10px", padding: "4px 8px", borderRadius: "4px" }}>
+                                  {item?.clubPaidStatus?.toUpperCase() || "UNPAID"}
                                 </span>
+                              </td>
+                              <td style={{ padding: "12px" }}>
+                                <div>
+                                  <span className={`badge ${item?.paymentStatus === 'paid' ? 'bg-success' : item?.paymentStatus === 'pending' ? 'bg-warning' : 'bg-secondary'}`} style={{ fontSize: "10px", padding: "4px 8px", borderRadius: "4px" }}>
+                                    {item?.paymentStatus?.toUpperCase() || "N/A"}
+                                  </span>
+                                  <div className="text-muted" style={{ fontSize: "10px", marginTop: "2px" }}>
+                                    {item?.paymentMethod || "N/A"}
+                                  </div>
+                                </div>
                               </td>
                               <td style={{ padding: "12px", fontWeight: "600", color: "#28a745", fontSize: "14px" }}>
                                 ₹{paymentStatus === "unpaid" ? item?.totalAmount || 0 : item?.amount || 0}
                               </td>
                               <td style={{ padding: "12px", textAlign: "center" }}>
-                                <div
-                                  className="d-inline-flex align-items-center justify-content-center"
-                                  style={{ 
-                                    cursor: "pointer",
-                                    width: "36px",
-                                    height: "36px",
-                                    borderRadius: "8px",
-                                    backgroundColor: "#e7f3ff",
-                                    transition: "all 0.2s"
-                                  }}
-                                  onClick={() => handlePaymentDetails(item?._id)}
-                                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#cce5ff"}
-                                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#e7f3ff"}
-                                >
-                                  {loadingPaymentId === item?._id ? (
-                                    <ButtonLoading color="blue" size={7} />
+                                <div className="d-flex align-items-center justify-content-center gap-2">
+                                  {/* <div
+                                    className="d-inline-flex align-items-center justify-content-center"
+                                    style={{ 
+                                      cursor: "pointer",
+                                      width: "36px",
+                                      height: "36px",
+                                      borderRadius: "8px",
+                                      backgroundColor: "#e7f3ff",
+                                      transition: "all 0.2s"
+                                    }}
+                                    onClick={() => handlePaymentDetails(item?._id)}
+                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#cce5ff"}
+                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#e7f3ff"}
+                                  >
+                                    {loadingPaymentId === item?._id ? (
+                                      <ButtonLoading color="blue" size={7} />
+                                    ) : (
+                                      <FaEye className="text-primary" size={16} />
+                                    )}
+                                  </div> */}
+                                  {item?.invoiceUrl ? (
+                                    <div
+                                      className="d-inline-flex align-items-center justify-content-center"
+                                      style={{ 
+                                        cursor: "pointer",
+                                        width: "36px",
+                                        height: "36px",
+                                        borderRadius: "8px",
+                                        backgroundColor: "#e7ffe7",
+                                        transition: "all 0.2s"
+                                      }}
+                                      onClick={() => window.open(item.invoiceUrl, '_blank')}
+                                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#ccffcc"}
+                                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#e7ffe7"}
+                                      title="View Invoice"
+                                    >
+                                      <FaDownload className="text-success" size={14} />
+                                    </div>
                                   ) : (
-                                    <FaEye className="text-primary" size={16} />
+                                    <span className="text-muted" style={{ fontSize: "11px" }}>N/A</span>
                                   )}
                                 </div>
                               </td>
@@ -695,21 +923,37 @@ console.log(selectedPayments,'selectedPayments');
                     </div>
 
                     <div className="mobile-card-table d-block d-md-none">
-                      {filteredPayments?.map((item) => (
-                        <div key={item?._id} className="card mb-2">
+                      {filteredPayments?.map((item, index) => (
+                        <div key={item?._id || `mobile-payment-${index}`} className="card mb-2">
                           <div className="card-body">
                             <div className="mobile-card-item">
-                              <span className="mobile-card-label">Club:</span>
+                              <span className="mobile-card-label">User:</span>
                               <span className="mobile-card-value">
-                                {paymentStatus === "unpaid" ? item?.register_club_id?.clubName : item?.clubId?.clubName || "N/A"}
+                                {item?.userId?.name || "N/A"} ({item?.userId?.countryCode} {item?.userId?.phoneNumber})
                               </span>
                             </div>
                             <div className="mobile-card-item">
-                              <span className="mobile-card-label">Owner:</span>
+                              <span className="mobile-card-label">Club & Owner:</span>
                               <span className="mobile-card-value">
-                                {paymentStatus === "unpaid"
-                                  ? item?.ownerId?.name || item?.register_club_id?.ownerId?.name || "N/A"
-                                  : item?.ownerId?.name || item?.clubId?.ownerId?.name || "N/A"}
+                                {paymentStatus === "unpaid" ? item?.register_club_id?.clubName : item?.clubId?.clubName || "N/A"} • {item?.ownerId?.name}
+                              </span>
+                            </div>
+                            <div className="mobile-card-item">
+                              <span className="mobile-card-label">Court & Time:</span>
+                              <span className="mobile-card-value">
+                                {item?.slot?.[0]?.courtName || "N/A"} • {item?.slot?.[0]?.slotTimes?.[0]?.time || item?.startTime || "N/A"} - {item?.slot?.[0]?.slotTimes?.[item?.slot?.[0]?.slotTimes?.length - 1]?.time || item?.endTime || "N/A"} ({item?.duration}min)
+                              </span>
+                            </div>
+                            <div className="mobile-card-item">
+                              <span className="mobile-card-label">Booking Info:</span>
+                              <span className="mobile-card-value">
+                                {item?.bookingType?.toUpperCase()} • {item?.matchType}
+                              </span>
+                            </div>
+                            <div className="mobile-card-item">
+                              <span className="mobile-card-label">Club Payment:</span>
+                              <span className="mobile-card-value">
+                                {item?.clubPaidStatus?.toUpperCase() || "UNPAID"}
                               </span>
                             </div>
                             <div className="mobile-card-item">
@@ -719,9 +963,9 @@ console.log(selectedPayments,'selectedPayments');
                               </span>
                             </div>
                             <div className="mobile-card-item">
-                              <span className="mobile-card-label">Status:</span>
+                              <span className="mobile-card-label">Payment:</span>
                               <span className="mobile-card-value">
-                                {paymentStatus === "unpaid" ? item?.bookingStatus || "-" : item?.status || "-"}
+                                {item?.paymentStatus?.toUpperCase() || "N/A"} • {item?.paymentMethod || "N/A"}
                               </span>
                             </div>
                             <div className="mobile-card-item">
@@ -732,7 +976,7 @@ console.log(selectedPayments,'selectedPayments');
                             </div>
                             <div className="mobile-card-item">
                               <span className="mobile-card-label">Action:</span>
-                              <div className="mobile-card-value">
+                              <div className="mobile-card-value d-flex align-items-center gap-2">
                                 {loadingPaymentId === item?._id ? (
                                   <ButtonLoading color="blue" size={7} />
                                 ) : (
@@ -744,6 +988,17 @@ console.log(selectedPayments,'selectedPayments');
                                     size={18}
                                     style={{ cursor: "pointer" }}
                                   />
+                                )}
+                                {item?.invoiceUrl ? (
+                                  <FaDownload
+                                    className="text-success"
+                                    onClick={() => window.open(item.invoiceUrl, '_blank')}
+                                    size={16}
+                                    style={{ cursor: "pointer" }}
+                                    title="View Invoice"
+                                  />
+                                ) : (
+                                  <span className="text-muted" style={{ fontSize: "11px" }}>N/A</span>
                                 )}
                               </div>
                             </div>
