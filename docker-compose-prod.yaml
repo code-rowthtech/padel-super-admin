@@ -1,0 +1,7 @@
+services:
+  sudper-admin-prod:
+    build: ./
+    container_name: sudper-admin-prod
+    ports:
+      - "5004:80"
+    restart: always

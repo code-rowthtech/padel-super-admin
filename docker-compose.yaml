@@ -1,7 +1,7 @@
 services:
-  padal_fe:
+  sudper-admin-dev:
     build: ./
-    container_name: padal_fe_container
+    container_name: sudper-admin-dev
     ports:
       - "5003:80"
     restart: always
