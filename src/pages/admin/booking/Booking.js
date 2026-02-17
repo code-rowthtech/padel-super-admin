@@ -470,7 +470,8 @@ const Booking = () => {
                         )}
                         <th className="d-lg-none">User</th>
                         <th className="d-none d-md-table-cell">Contact</th>
-                        <th>Date</th>
+                        <th>Booking Date</th>
+                        <th>Club Name</th>
                         <th className="d-none d-lg-table-cell">Court No</th>
                         <th className="d-lg-none">Court</th>
                         <th>Status</th>
@@ -552,7 +553,14 @@ const Booking = () => {
                             style={{ maxWidth: "80px" }}
                           >
                             {/* ✅ SUPER ADMIN: Handle both old format and new format */}
-                            {item?.slot?.[0]?.courtName || item?.club?.clubName || item?.clubName || "-"}
+                            { item?.club?.clubName || item?.clubName || "-"}
+                          </td>
+                          <td
+                            className="text-truncate"
+                            style={{ maxWidth: "80px" }}
+                          >
+                            {/* ✅ SUPER ADMIN: Handle both old format and new format */}
+                            {item?.slot?.[0]?.courtName ||"-"}
                           </td>
                           <td className="text-truncate">
                             {item?.bookingStatus === "in-progress" ? (

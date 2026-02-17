@@ -133,6 +133,7 @@ export const SUPER_ADMIN_GET_CLUB_PAYMENTS = "/api/super-admin/club-payments";
 export const SUPER_ADMIN_CREATE_CLUB_PAYMENT = "/api/super-admin/club-payments";
 export const SUPER_ADMIN_GET_CLUB_PAYMENT_BY_ID = "/api/super-admin/club-payments";
 export const SUPER_ADMIN_GET_UNPAID_BOOKINGS = "/api/super-admin/club-payments-unpaid-bookings";
+export const SUPER_ADMIN_UPDATE_PAYMENT_STATUS = "/api/super-admin/update-payment-status";
 
 // Wallet (Customer)
 export const SUPER_ADMIN_GET_WALLET_USERS = "/api/super-admin/wallet-users";
