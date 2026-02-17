@@ -22,6 +22,7 @@ import {
   SUPER_ADMIN_PAYMENT_DASHBOARD_COUNTS,
   SUPER_ADMIN_GET_UNPAID_BOOKINGS,
   GET_BOOKING_DETAILS_BY_ID,
+  SUPER_ADMIN_UPDATE_PAYMENT_STATUS,
 } from "../../../helpers/api/apiEndpoint";
 import { ownerApi } from "../../../helpers/api/apiCore";
 import { PaymentDetailsModal } from "./modals/PaymentDetailModal";
@@ -59,6 +60,8 @@ const Payments = () => {
   const [exportLoading, setExportLoading] = useState(false);
   const [exportSearchTerm, setExportSearchTerm] = useState("");
   const exportDropdownRef = useRef(null);
+  const [updatingPaymentStatus, setUpdatingPaymentStatus] = useState(false);
+  const [activePayableFilter, setActivePayableFilter] = useState(null);
 
   const setDateRange = (update) => {
     setStartDate(update[0]);
@@ -387,6 +390,47 @@ const Payments = () => {
     }
   };
 
+  const handleUpdatePaymentStatus = async (isPaid) => {
+    try {
+      setPaymentsLoading(true);
+      setActivePayableFilter(isPaid);
+      
+      // Call GET API to refresh data with payableStatus
+      const payload = {
+        ...(ownerId ? { ownerId } : {}),
+        ...(selectedClubId ? { clubId: selectedClubId } : {}),
+        ...(paymentStatus ? { status: paymentStatus } : {}),
+        payableStatus: isPaid,
+        page: currentPage,
+        limit: 15,
+      };
+      if (sendDate) {
+        const formatToYYYYMMDD = (date) => {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, "0");
+          const day = String(date.getDate()).padStart(2, "0");
+          return `${year}-${month}-${day}`;
+        };
+        payload.startDate = formatToYYYYMMDD(startDate);
+        payload.endDate = formatToYYYYMMDD(endDate);
+      }
+      const query = new URLSearchParams(payload).toString();
+      const endpoint = paymentStatus === "unpaid" ? SUPER_ADMIN_GET_UNPAID_BOOKINGS : SUPER_ADMIN_GET_CLUB_PAYMENTS;
+      const res = await ownerApi.get(query ? `${endpoint}?${query}` : endpoint);
+      const data = res?.data?.data;
+      if (paymentStatus === "unpaid") {
+        setPayments(data?.bookings || []);
+      } else {
+        setPayments(data?.payments || []);
+      }
+      setTotalRecords(data?.pagination?.totalItems || 0);
+    } catch (error) {
+      console.error('Error fetching payments:', error);
+    } finally {
+      setPaymentsLoading(false);
+    }
+  };
+
   return (
     <Container fluid className="px-0 px-md-0 mt-md-0 mt-2">
       <style>
@@ -546,13 +590,35 @@ const Payments = () => {
         <Col lg={10} md={9} className="ps-0">
           <div className="bg-white rounded-3 shadow-sm p-3" style={{ border: "1px solid #e9ecef" }}>
             <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 pb-3 border-bottom gap-3">
-              <div>
-                <h5 className="mb-1 fw-bold" style={{ fontSize: "16px", color: "#1a1a1a" }}>
-                  {selectedClub ? `${selectedClub.clubName} - ` : ""}Transactions
-                </h5>
-                <p className="text-muted mb-0" style={{ fontSize: "12px" }}>
-                  {`Total ${filteredPayments.length} ${paymentStatus === "unpaid" ? "booking" : "payment"}${filteredPayments.length !== 1 ? "s" : ""}`}
-                </p>
+              <div className="d-flex align-items-center gap-3">
+                <div>
+                  <h5 className="mb-1 fw-bold" style={{ fontSize: "16px", color: "#1a1a1a" }}>
+                    {selectedClub ? `${selectedClub.clubName} - ` : ""}Transactions
+                  </h5>
+                  <p className="text-muted mb-0" style={{ fontSize: "12px" }}>
+                    {`Total ${filteredPayments.length} ${paymentStatus === "unpaid" ? "booking" : "payment"}${filteredPayments.length !== 1 ? "s" : ""}`}
+                  </p>
+                </div>
+                {paymentStatus === "unpaid" && (
+                  <div className="d-flex gap-2">
+                    <Button
+                      variant={activePayableFilter === true ? "success" : "outline-success"}
+                      size="sm"
+                      onClick={() => handleUpdatePaymentStatus(true)}
+                      style={{ fontSize: "12px", padding: "6px 12px" }}
+                    >
+                      Payable
+                    </Button>
+                    <Button
+                      variant={activePayableFilter === false ? "danger" : "outline-danger"}
+                      size="sm"
+                      onClick={() => handleUpdatePaymentStatus(false)}
+                      style={{ fontSize: "12px", padding: "6px 12px" }}
+                    >
+                      Non-Payable
+                    </Button>
+                  </div>
+                )}
               </div>
               <div className="d-flex align-items-center gap-2">
                 {!showDatePicker && !startDate && !endDate ? (
@@ -612,18 +678,19 @@ const Payments = () => {
                     )}
                   </div>
                 )}
-                <div className="position-relative" ref={exportDropdownRef}>
-                  <Button
-                    variant="outline-primary"
-                    size="sm"
-                    onClick={() => setShowExportDropdown(!showExportDropdown)}
-                    className="d-flex align-items-center gap-2"
-                    style={{ borderRadius: "6px", fontSize: "13px", padding: "8px 16px" }}
-                    disabled={exportLoading}
-                  >
-                    <FaDownload size={12} />
-                    <span>{exportLoading ? "Exporting..." : "Export"}</span>
-                  </Button>
+                {activePayableFilter !== false && (
+                  <div className="position-relative" ref={exportDropdownRef}>
+                    <Button
+                      variant="outline-primary"
+                      size="sm"
+                      onClick={() => setShowExportDropdown(!showExportDropdown)}
+                      className="d-flex align-items-center gap-2"
+                      style={{ borderRadius: "6px", fontSize: "13px", padding: "8px 16px" }}
+                      disabled={exportLoading}
+                    >
+                      <FaDownload size={12} />
+                      <span>{exportLoading ? "Exporting..." : "Export"}</span>
+                    </Button>
                   {showExportDropdown && (
                     <div 
                       className="position-absolute bg-white border rounded shadow-sm"
@@ -702,6 +769,7 @@ const Payments = () => {
                     </div>
                   )}
                 </div>
+                )}
                 <div className="position-relative">
                   <FaSearch 
                     className="position-absolute" 
@@ -771,11 +839,14 @@ const Payments = () => {
                             <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Club & Owner</th>
                             <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Court & Time</th>
                             <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Booking Info</th>
-                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                              {paymentStatus === "unpaid" ? "Booking Date" : "Paid Date"}
-                            </th>
-                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Club Payment</th>
-                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Payment Status</th>
+                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Booking Date</th>
+                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Payment Date</th>
+                            {(paymentStatus === "paid" || activePayableFilter === true) && (
+                              <>
+                                <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Club Payment</th>
+                                <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Payment Status</th>
+                              </>
+                            )}
                             <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Amount</th>
                             <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px", textAlign: "center", borderTopRightRadius: "6px" }}>Invoice</th>
                           </tr>
@@ -849,25 +920,44 @@ const Payments = () => {
                                 </div>
                               </td>
                               <td style={{ padding: "12px" }}>
-                                <span className="fw-medium" style={{ fontSize: "13px" }}>
-                                  {formatDate(paymentStatus === "unpaid" ? item?.bookingDate : item?.paidDate)}
-                                </span>
-                              </td>
-                              <td style={{ padding: "12px", textAlign: "center" }}>
-                                <span className={`badge ${item?.clubPaidStatus === 'paid' ? 'bg-success' : 'bg-warning'}`} style={{ fontSize: "10px", padding: "4px 8px", borderRadius: "4px" }}>
-                                  {item?.clubPaidStatus?.toUpperCase() || "UNPAID"}
-                                </span>
-                              </td>
-                              <td style={{ padding: "12px" }}>
                                 <div>
-                                  <span className={`badge ${item?.paymentStatus === 'paid' ? 'bg-success' : item?.paymentStatus === 'pending' ? 'bg-warning' : 'bg-secondary'}`} style={{ fontSize: "10px", padding: "4px 8px", borderRadius: "4px" }}>
-                                    {item?.paymentStatus?.toUpperCase() || "N/A"}
-                                  </span>
-                                  <div className="text-muted" style={{ fontSize: "10px", marginTop: "2px" }}>
-                                    {item?.paymentMethod || "N/A"}
+                                  <div className="fw-medium" style={{ fontSize: "12px" }}>
+                                    {formatDate(item?.bookingDate)}
+                                  </div>
+                                  <div className="text-muted" style={{ fontSize: "10px" }}>
+                                    {item?.createdAt ? new Date(item.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : "N/A"}
                                   </div>
                                 </div>
                               </td>
+                              <td style={{ padding: "12px" }}>
+                                <div>
+                                  <div className="fw-medium" style={{ fontSize: "12px" }}>
+                                    {item?.paidDate ? formatDate(item.paidDate) : item?.updatedAt ? formatDate(item.updatedAt) : "N/A"}
+                                  </div>
+                                  <div className="text-muted" style={{ fontSize: "10px" }}>
+                                    {item?.updatedAt ? new Date(item.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : "N/A"}
+                                  </div>
+                                </div>
+                              </td>
+                              {(paymentStatus === "paid" || activePayableFilter === true) && (
+                                <>
+                                  <td style={{ padding: "12px", textAlign: "center" }}>
+                                    <span className={`badge ${item?.clubPaidStatus === 'paid' ? 'bg-success' : 'bg-warning'}`} style={{ fontSize: "10px", padding: "4px 8px", borderRadius: "4px" }}>
+                                      {item?.clubPaidStatus?.toUpperCase() || "UNPAID"}
+                                    </span>
+                                  </td>
+                                  <td style={{ padding: "12px" }}>
+                                    <div>
+                                      <span className={`badge ${item?.paymentStatus === 'paid' ? 'bg-success' : item?.paymentStatus === 'pending' ? 'bg-warning' : 'bg-secondary'}`} style={{ fontSize: "10px", padding: "4px 8px", borderRadius: "4px" }}>
+                                        {item?.paymentStatus?.toUpperCase() || "N/A"}
+                                      </span>
+                                      <div className="text-muted" style={{ fontSize: "10px", marginTop: "2px" }}>
+                                        {item?.paymentMethod || "N/A"}
+                                      </div>
+                                    </div>
+                                  </td>
+                                </>
+                              )}
                               <td style={{ padding: "12px", fontWeight: "600", color: "#28a745", fontSize: "14px" }}>
                                 ₹{paymentStatus === "unpaid" ? item?.totalAmount || 0 : item?.amount || 0}
                               </td>
@@ -950,24 +1040,34 @@ const Payments = () => {
                                 {item?.bookingType?.toUpperCase()} • {item?.matchType}
                               </span>
                             </div>
+                            {(paymentStatus === "paid" || activePayableFilter === true) && (
+                              <div className="mobile-card-item">
+                                <span className="mobile-card-label">Club Payment:</span>
+                                <span className="mobile-card-value">
+                                  {item?.clubPaidStatus?.toUpperCase() || "UNPAID"}
+                                </span>
+                              </div>
+                            )}
                             <div className="mobile-card-item">
-                              <span className="mobile-card-label">Club Payment:</span>
+                              <span className="mobile-card-label">Booking Date:</span>
                               <span className="mobile-card-value">
-                                {item?.clubPaidStatus?.toUpperCase() || "UNPAID"}
+                                {formatDate(item?.bookingDate)} {item?.createdAt ? new Date(item.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : ""}
                               </span>
                             </div>
                             <div className="mobile-card-item">
-                              <span className="mobile-card-label">Date:</span>
+                              <span className="mobile-card-label">Payment Date:</span>
                               <span className="mobile-card-value">
-                                {formatDate(paymentStatus === "unpaid" ? item?.bookingDate : item?.paidDate)}
+                                {item?.paidDate ? formatDate(item.paidDate) : item?.updatedAt ? formatDate(item.updatedAt) : "N/A"} {item?.updatedAt ? new Date(item.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : ""}
                               </span>
                             </div>
-                            <div className="mobile-card-item">
-                              <span className="mobile-card-label">Payment:</span>
-                              <span className="mobile-card-value">
-                                {item?.paymentStatus?.toUpperCase() || "N/A"} • {item?.paymentMethod || "N/A"}
-                              </span>
-                            </div>
+                            {(paymentStatus === "paid" || activePayableFilter === true) && (
+                              <div className="mobile-card-item">
+                                <span className="mobile-card-label">Payment:</span>
+                                <span className="mobile-card-value">
+                                  {item?.paymentStatus?.toUpperCase() || "N/A"} • {item?.paymentMethod || "N/A"}
+                                </span>
+                              </div>
+                            )}
                             <div className="mobile-card-item">
                               <span className="mobile-card-label">Amount:</span>
                               <span className="mobile-card-value">
