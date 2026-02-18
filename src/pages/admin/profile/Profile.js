@@ -53,7 +53,6 @@ const Profile = () => {
       .unwrap()
       .catch((err) => {
         // Silently handle error - it's expected for users without registered courts
-        console.log('No registered club found - this is expected');
       });
   }, [dispatch, ownerId]);
 
