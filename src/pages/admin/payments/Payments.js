@@ -825,7 +825,7 @@ const Payments = () => {
                         <thead style={{ backgroundColor: "#4361ee", color: "white" }}>
                           <tr>
                             <th style={{ width: "50px", padding: "14px", borderTopLeftRadius: "6px" }}>
-                              {paymentStatus === "unpaid" && (
+                              {paymentStatus === "unpaid" && activePayableFilter !== false && (
                                 <Form.Check
                                   type="checkbox"
                                   checked={selectAll}
@@ -862,7 +862,7 @@ const Payments = () => {
                               }}
                             >
                               <td style={{ padding: "12px" }}>
-                                {paymentStatus === "unpaid" && (
+                                {paymentStatus === "unpaid" && activePayableFilter !== false && (
                                   <Form.Check
                                     type="checkbox"
                                     checked={selectedPayments.includes(item._id)}
@@ -900,7 +900,7 @@ const Payments = () => {
                                     {item?.slot?.[0]?.courtName || "N/A"}
                                   </div>
                                   <div className="text-muted" style={{ fontSize: "11px" }}>
-                                    {item?.slot?.[0]?.slotTimes?.[0]?.time || item?.startTime || "N/A"} - {item?.slot?.[0]?.slotTimes?.[item?.slot?.[0]?.slotTimes?.length - 1]?.time || item?.endTime || "N/A"}
+                                    {item?.startTime || "N/A"} - {item?.endTime || "N/A"}
                                   </div>
                                   <div className="text-muted" style={{ fontSize: "10px" }}>
                                     {item?.duration}min
@@ -1031,7 +1031,7 @@ const Payments = () => {
                             <div className="mobile-card-item">
                               <span className="mobile-card-label">Court & Time:</span>
                               <span className="mobile-card-value">
-                                {item?.slot?.[0]?.courtName || "N/A"} • {item?.slot?.[0]?.slotTimes?.[0]?.time || item?.startTime || "N/A"} - {item?.slot?.[0]?.slotTimes?.[item?.slot?.[0]?.slotTimes?.length - 1]?.time || item?.endTime || "N/A"} ({item?.duration}min)
+                                {item?.slot?.[0]?.courtName || "N/A"} • {item?.startTime || "N/A"} - {item?.endTime || "N/A"} ({item?.duration}min)
                               </span>
                             </div>
                             <div className="mobile-card-item">
