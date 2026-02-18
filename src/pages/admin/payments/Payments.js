@@ -1,11 +1,11 @@
 import React from "react";
 import { useEffect, useState, useMemo, useRef } from "react";
-import { Row, Col, Container, Table, Card, Form, Button, ListGroup, Badge } from "react-bootstrap";
+import { Row, Col, Container, Table, Card, Form, Button, ListGroup, Badge, Offcanvas } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { MdDateRange, MdOutlineDateRange } from "react-icons/md";
-import { FaTimes, FaSearch, FaFilter, FaCheckCircle, FaTimesCircle, FaBuilding, FaDownload } from "react-icons/fa";
+import { FaTimes, FaSearch, FaFilter, FaCheckCircle, FaTimesCircle, FaBuilding, FaDownload, FaFileExcel } from "react-icons/fa";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 import { useSuperAdminContext } from "../../../contexts/SuperAdminContext";
@@ -62,6 +62,14 @@ const Payments = () => {
   const exportDropdownRef = useRef(null);
   const [updatingPaymentStatus, setUpdatingPaymentStatus] = useState(false);
   const [activePayableFilter, setActivePayableFilter] = useState(null);
+  const [showPaymentDrawer, setShowPaymentDrawer] = useState(false);
+  const [paymentDate, setPaymentDate] = useState(new Date());
+  const [allBookings, setAllBookings] = useState([]);
+  const [paymentDocument, setPaymentDocument] = useState(null);
+  const [drawerPaymentStatus, setDrawerPaymentStatus] = useState("");
+  const [drawerCurrentPage, setDrawerCurrentPage] = useState(1);
+  const [generatingPayment, setGeneratingPayment] = useState(false);
+  const fileInputRef = useRef(null);
 
   const setDateRange = (update) => {
     setStartDate(update[0]);
@@ -96,43 +104,30 @@ const Payments = () => {
   const [loadingClubs, setLoadingClubs] = useState(false);
   const selectedClub = clubs.find((club) => club._id === selectedClubId);
 
-  // Filter payments by selected club and search term
+  // Filter payments by selected club only (search is handled by API)
   const filteredPayments = payments.filter((p) => {
     const matchesClub = selectedClubId
-      ? (paymentStatus === "unpaid" 
-          ? p?.register_club_id?._id === selectedClubId
-          : p?.clubId?._id === selectedClubId)
+      ? p?.register_club_id?._id === selectedClubId
       : true;
     
-    const matchesSearch = searchTerm
-      ? (paymentStatus === "unpaid" 
-          ? (p?.register_club_id?.clubName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-             p?.ownerId?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-             p?.register_club_id?.ownerId?.name?.toLowerCase().includes(searchTerm.toLowerCase()))
-          : (p?.clubId?.clubName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-             p?.ownerId?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-             p?.clubId?.ownerId?.name?.toLowerCase().includes(searchTerm.toLowerCase())))
-      : true;
-    
-    return matchesClub && matchesSearch;
+    return matchesClub;
   });
   
-  const sendDate = startDate && endDate;
+  const sendDate = startDate;
 
   useEffect(() => {
     const fetchPayments = async () => {
       try {
         setPaymentsLoading(true);
         const payload = {
-          // ✅ SUPER ADMIN: Only include ownerId if explicitly set (not null)
-          // If ownerId is null (All Owners selected), don't include it in payload
           ...(ownerId ? { ownerId } : {}),
           ...(selectedClubId ? { clubId: selectedClubId } : {}),
           ...(paymentStatus ? { status: paymentStatus } : {}),
+          ...(searchTerm ? { search: searchTerm } : {}),
           page: currentPage,
-          limit: 15,
+          limit: 20,
         };
-        if (sendDate) {
+        if (startDate) {
           const formatToYYYYMMDD = (date) => {
             const year = date.getFullYear();
             const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -140,25 +135,15 @@ const Payments = () => {
             return `${year}-${month}-${day}`;
           };
           payload.startDate = formatToYYYYMMDD(startDate);
-          payload.endDate = formatToYYYYMMDD(endDate);
+          payload.endDate = endDate ? formatToYYYYMMDD(endDate) : formatToYYYYMMDD(startDate);
         }
 
         const query = new URLSearchParams(payload).toString();
-        const endpoint =
-          paymentStatus === "unpaid"
-            ? SUPER_ADMIN_GET_UNPAID_BOOKINGS
-            : SUPER_ADMIN_GET_CLUB_PAYMENTS;
+        const endpoint = SUPER_ADMIN_GET_UNPAID_BOOKINGS;
         const res = await ownerApi.get(query ? `${endpoint}?${query}` : endpoint);
         const data = res?.data?.data;
-        console.log(data, 'data');
-        console.log('paymentStatus:', paymentStatus);
-        console.log('payments array:', paymentStatus === "unpaid" ? data?.bookings : data?.payments);
         
-        if (paymentStatus === "unpaid") {
-          setPayments(data?.bookings || []);
-        } else {
-          setPayments(data?.payments || []);
-        }
+        setPayments(data?.bookings || []);
         setTotalRecords(data?.pagination?.totalItems || 0);
       } catch (error) {
         console.error("Error fetching payments:", error);
@@ -170,7 +155,7 @@ const Payments = () => {
     };
 
     fetchPayments();
-  }, [tab, sendDate, currentPage, ownerId, selectedClubId, paymentStatus, refreshKey]);
+  }, [tab, startDate, endDate, currentPage, ownerId, selectedClubId, paymentStatus, refreshKey, searchTerm]);
   const [loadingPaymentId, setLoadingPaymentId] = useState(null);
 
   const handlePaymentDetails = async (id) => {
@@ -239,7 +224,16 @@ const Payments = () => {
           ? `${SUPER_ADMIN_GET_ALL_CLUBS}?ownerId=${ownerId}`
           : SUPER_ADMIN_GET_ALL_CLUBS;
         const res = await ownerApi.get(url);
-        setClubs(res?.data?.data || []);
+        const clubsData = res?.data?.data || [];
+        setClubs(clubsData);
+        
+        // Auto-select first club if available and no club is currently selected
+        if (clubsData.length > 0 && !selectedClubId) {
+          setSelectedClubId(clubsData[0]._id);
+          if (paymentStatus === "unpaid") {
+            setActivePayableFilter(true);
+          }
+        }
       } catch (error) {
         console.error("Error fetching clubs:", error);
         setClubs([]);
@@ -293,16 +287,47 @@ const Payments = () => {
   };
 
   // Handle checkbox selection
-  const handleSelectAll = (e) => {
-    setSelectAll(e.target.checked);
-    if (e.target.checked) {
-      setSelectedPayments(filteredPayments.map(p => p._id));
+  const handleSelectAll = async (e) => {
+    const isChecked = e.target.checked;
+    setSelectAll(isChecked);
+    
+    if (isChecked) {
+      try {
+        const payload = {
+          ...(ownerId ? { ownerId } : {}),
+          ...(selectedClubId ? { clubId: selectedClubId } : {}),
+          status: paymentStatus,
+          page: 1,
+          limit: totalRecords,
+        };
+        if (startDate) {
+          const formatToYYYYMMDD = (date) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            return `${year}-${month}-${day}`;
+          };
+          payload.startDate = formatToYYYYMMDD(startDate);
+          payload.endDate = endDate ? formatToYYYYMMDD(endDate) : formatToYYYYMMDD(startDate);
+        }
+        const query = new URLSearchParams(payload).toString();
+        const endpoint = SUPER_ADMIN_GET_UNPAID_BOOKINGS;
+        const res = await ownerApi.get(query ? `${endpoint}?${query}` : endpoint);
+        const data = res?.data?.data;
+        const allData = data?.bookings || [];
+        setAllBookings(allData);
+        setSelectedPayments(allData.map(p => p._id));
+      } catch (error) {
+        console.error("Error fetching all bookings:", error);
+      }
     } else {
       setSelectedPayments([]);
+      setAllBookings([]);
     }
   };
 
   const handleSelectPayment = (id) => {
+    setSelectAll(false);
     if (selectedPayments.includes(id)) {
       setSelectedPayments(selectedPayments.filter(p => p !== id));
     } else {
@@ -316,6 +341,7 @@ const Payments = () => {
         setSelectedPayments([]);
         setSelectAll(false);
         setSelectedTotal(0);
+        setAllBookings([]);
       }
       return;
     }
@@ -324,16 +350,18 @@ const Payments = () => {
         setSelectedPayments([]);
         setSelectAll(false);
         setSelectedTotal(0);
+        setAllBookings([]);
       }
       return;
     }
-    const total = payments
+    const dataSource = selectAll ? allBookings : payments;
+    const total = dataSource
       .filter((p) => selectedPayments.includes(p._id))
       .reduce((sum, p) => sum + (p.totalAmount || 0), 0);
     if (total !== selectedTotal) {
       setSelectedTotal(total);
     }
-  }, [selectedPayments, payments, paymentStatus, canSelectBookings, selectAll, selectedTotal]);
+  }, [selectedPayments, payments, paymentStatus, canSelectBookings, selectAll, selectedTotal, allBookings]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -362,16 +390,61 @@ const Payments = () => {
 
   const handleCreatePayment = (paymentId = null) => {
     setCurrentPaymentId(paymentId);
-    setShowCreatePayment(true);
+    setDrawerPaymentStatus("paid");
+    setShowPaymentDrawer(true);
+  };
+
+  const handleGenerateExcel = async () => {
+    if (!selectedClubId || selectedPayments.length === 0 || !drawerPaymentStatus) return;
+    try {
+      setGeneratingPayment(true);
+      const payload = new FormData();
+      payload.append("clubId", selectedClubId);
+      payload.append("amount", selectedTotal);
+      selectedPayments.forEach((id) => payload.append("bookingIds", id));
+      payload.append("status", drawerPaymentStatus);
+      payload.append("paidDate", paymentDate.toISOString());
+      if (paymentDocument) payload.append("document", paymentDocument);
+
+      const SUPER_ADMIN_CREATE_CLUB_PAYMENT = `${config.API_URL}api/super-admin/club-payments`;
+      await ownerApi.post(SUPER_ADMIN_CREATE_CLUB_PAYMENT, payload, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      
+      setShowPaymentDrawer(false);
+      setSelectedPayments([]);
+      setSelectAll(false);
+      setSelectedTotal(0);
+      setPaymentDocument(null);
+      setDrawerPaymentStatus("");
+      setRefreshKey((prev) => prev + 1);
+    } catch (error) {
+      console.error("Error creating payment:", error);
+    } finally {
+      setGeneratingPayment(false);
+    }
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setPaymentDocument(file);
+    }
   };
 
   const handleExport = async (clubId = null) => {
     try {
       setExportLoading(true);
       const params = new URLSearchParams();
-      if (startDate && endDate) {
-        params.append('startDate', startDate.toISOString().split('T')[0]);
-        params.append('endDate', endDate.toISOString().split('T')[0]);
+      if (startDate) {
+        const formatToYYYYMMDD = (date) => {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        };
+        params.append('startDate', formatToYYYYMMDD(startDate));
+        params.append('endDate', endDate ? formatToYYYYMMDD(endDate) : formatToYYYYMMDD(startDate));
       }
       if (ownerId) params.append('ownerId', ownerId);
       if (clubId) params.append('clubId', clubId);
@@ -402,9 +475,9 @@ const Payments = () => {
         ...(paymentStatus ? { status: paymentStatus } : {}),
         payableStatus: isPaid,
         page: currentPage,
-        limit: 15,
+        limit: 20,
       };
-      if (sendDate) {
+      if (startDate) {
         const formatToYYYYMMDD = (date) => {
           const year = date.getFullYear();
           const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -412,17 +485,13 @@ const Payments = () => {
           return `${year}-${month}-${day}`;
         };
         payload.startDate = formatToYYYYMMDD(startDate);
-        payload.endDate = formatToYYYYMMDD(endDate);
+        payload.endDate = endDate ? formatToYYYYMMDD(endDate) : formatToYYYYMMDD(startDate);
       }
       const query = new URLSearchParams(payload).toString();
-      const endpoint = paymentStatus === "unpaid" ? SUPER_ADMIN_GET_UNPAID_BOOKINGS : SUPER_ADMIN_GET_CLUB_PAYMENTS;
+      const endpoint = SUPER_ADMIN_GET_UNPAID_BOOKINGS;
       const res = await ownerApi.get(query ? `${endpoint}?${query}` : endpoint);
       const data = res?.data?.data;
-      if (paymentStatus === "unpaid") {
-        setPayments(data?.bookings || []);
-      } else {
-        setPayments(data?.payments || []);
-      }
+      setPayments(data?.bookings || []);
       setTotalRecords(data?.pagination?.totalItems || 0);
     } catch (error) {
       console.error('Error fetching payments:', error);
@@ -497,54 +566,93 @@ const Payments = () => {
             </div>
           )}
             
-            <Form.Group className="mb-2">
-              <Form.Label className="small fw-semibold mb-1" style={{ fontSize: "13px", color: "#6c757d" }}>Status</Form.Label>
-              <div className="btn-group w-100" role="group">
-                <button
-                  type="button"
-                  className={`btn btn-sm ${paymentStatus === "paid" ? "btn-success" : "btn-outline-success"}`}
-                  style={{ borderRadius: "4px 0 0 4px", fontSize: "12px", padding: "6px 8px" }}
-                  onClick={() => {
-                    setPaymentStatus("paid");
-                    setTab(1);
-                    setCurrentPage(1);
-                    setSelectedClubId(""); // Clear club selection when switching
-                  }}
-                >
-                  <FaCheckCircle size={10} className="me-1" />
-                  Paid
-                </button>
-                <button
-                  type="button"
-                  className={`btn btn-sm ${paymentStatus === "unpaid" ? "btn-danger" : "btn-outline-danger"}`}
-                  style={{ borderRadius: "0 4px 4px 0", fontSize: "12px", padding: "6px 8px" }}
-                  onClick={() => {
-                    setPaymentStatus("unpaid");
-                    setTab(0);
-                    setCurrentPage(1);
-                    setSelectedClubId(""); // Clear club selection when switching
-                  }}
-                >
-                  <FaTimesCircle size={10} className="me-1" />
-                  Unpaid
-                </button>
-              </div>
-            </Form.Group>
+            {activePayableFilter !== false && (
+              <Form.Group className="mb-2">
+                <Form.Label className="small fw-semibold mb-1" style={{ fontSize: "13px", color: "#6c757d" }}>Status</Form.Label>
+                <div className="btn-group w-100" role="group">
+                  <button
+                    type="button"
+                    className={`btn btn-sm ${paymentStatus === "paid" ? "btn-success" : "btn-outline-success"}`}
+                    style={{ borderRadius: "4px 0 0 4px", fontSize: "12px", padding: "6px 8px" }}
+                    onClick={() => {
+                      setPaymentStatus("paid");
+                      setTab(1);
+                      setCurrentPage(1);
+                    }}
+                  >
+                    <FaCheckCircle size={10} className="me-1" />
+                    Paid
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn btn-sm ${paymentStatus === "unpaid" ? "btn-danger" : "btn-outline-danger"}`}
+                    style={{ borderRadius: "0 4px 4px 0", fontSize: "12px", padding: "6px 8px" }}
+                    onClick={() => {
+                      setPaymentStatus("unpaid");
+                      setTab(0);
+                      setCurrentPage(1);
+                      if (selectedClubId) {
+                        setActivePayableFilter(true);
+                      }
+                    }}
+                  >
+                    <FaTimesCircle size={10} className="me-1" />
+                    Unpaid
+                  </button>
+                </div>
+              </Form.Group>
+            )}
 
             <div className="mt-2">
               <div className="d-flex justify-content-between align-items-center mb-2">
                 <span style={{ fontSize: "11px", color: "#6c757d", fontWeight: "600" }}>CLUBS</span>
                 <Badge bg="primary" style={{ fontSize: "10px" }}>{clubs.length}</Badge>
-                {console.log(clubs,'clubs.length')}
               </div>
-              <div style={{ maxHeight: "calc(100vh - 400px)", overflowY: "auto" }}>
+              <ListGroup variant="flush" className="mb-2">
+                <ListGroup.Item
+                  action
+                  active={selectedClubId === ""}
+                  onClick={() => {
+                    if (canSelectClubs) {
+                      setSelectedClubId("");
+                      setSelectedPayments([]);
+                      setSelectAll(false);
+                      if (paymentStatus === "unpaid") {
+                        setActivePayableFilter(true);
+                      }
+                    }
+                  }}
+                  className="px-2 py-2"
+                  style={{
+                    cursor: canSelectClubs ? "pointer" : "not-allowed",
+                    opacity: canSelectClubs ? 1 : 0.5,
+                    borderLeft: selectedClubId === "" ? "3px solid #4361ee" : "3px solid transparent",
+                    fontSize: "12px",
+                    transition: "all 0.2s",
+                    fontWeight: "600"
+                  }}
+                >
+                  All Clubs
+                </ListGroup.Item>
+              </ListGroup>
+              <div style={{ maxHeight: "calc(100vh - 450px)", overflowY: "auto" }}>
                 <ListGroup variant="flush">
                   {clubs.map((club, index) => (
                     <ListGroup.Item
                       key={club._id || `club-${index}`}
                       action
                       active={selectedClubId === club._id}
-                      onClick={() => canSelectClubs ? setSelectedClubId(selectedClubId === club._id ? "" : club._id) : null}
+                      onClick={() => {
+                        if (canSelectClubs) {
+                          const newClubId = selectedClubId === club._id ? "" : club._id;
+                          setSelectedClubId(newClubId);
+                          setSelectedPayments([]);
+                          setSelectAll(false);
+                          if (newClubId && paymentStatus === "unpaid") {
+                            setActivePayableFilter(true);
+                          }
+                        }
+                      }}
                       className="px-2 py-2"
                       style={{
                         cursor: canSelectClubs ? "pointer" : "not-allowed",
@@ -570,13 +678,15 @@ const Payments = () => {
                           <div className="fw-semibold" style={{ fontSize: "11px" }}>{club.clubName}</div>
                         </div>
                         <div className="text-end">
-                          <Badge 
-                            bg={selectedClubId === club._id ? "light" : "secondary"} 
-                            text={selectedClubId === club._id ? "primary" : "white"}
-                            style={{ fontSize: "9px" }}
-                          >
-                            {club.transactionCount || 0}
-                          </Badge>
+                          {paymentStatus === "unpaid" && (
+                            <Badge 
+                              bg={selectedClubId === club._id ? "light" : "secondary"} 
+                              text={selectedClubId === club._id ? "primary" : "white"}
+                              style={{ fontSize: "9px" }}
+                            >
+                              {club.transactionCount || 0}
+                            </Badge>
+                          )}
                         </div>
                       </div>
                     </ListGroup.Item>
@@ -596,7 +706,9 @@ const Payments = () => {
                     {selectedClub ? `${selectedClub.clubName} - ` : ""}Transactions
                   </h5>
                   <p className="text-muted mb-0" style={{ fontSize: "12px" }}>
-                    {`Total ${filteredPayments.length} ${paymentStatus === "unpaid" ? "booking" : "payment"}${filteredPayments.length !== 1 ? "s" : ""}`}
+                    {paymentStatus === "unpaid" 
+                      ? `Total ${filteredPayments.length} ${paymentStatus === "unpaid" ? "booking" : "payment"}${filteredPayments.length !== 1 ? "s" : ""}`
+                      : ""}
                   </p>
                 </div>
                 {paymentStatus === "unpaid" && (
@@ -630,7 +742,7 @@ const Payments = () => {
                     style={{ borderRadius: "6px", padding: "8px 16px", fontSize: "13px" }}
                   >
                     <MdOutlineDateRange size={16} />
-                    <span>Select Date</span>
+                    <span>Select Date <span className="text-danger">*</span></span>
                   </Button>
                 ) : (
                   <div
@@ -651,8 +763,9 @@ const Payments = () => {
                       startDate={startDate}
                       endDate={endDate}
                       onChange={(update) => {
-                        setDateRange(update);
                         const [start, end] = update;
+                        setStartDate(start);
+                        setEndDate(end);
                         if (start && end) {
                           setShowDatePicker(false);
                         }
@@ -663,6 +776,7 @@ const Payments = () => {
                       style={{ fontSize: "12px", width: "120px" }}
                       open={showDatePicker}
                       onClickOutside={() => setShowDatePicker(false)}
+                      maxDate={new Date()}
                     />
                     {(startDate || endDate) && (
                       <div
@@ -686,11 +800,26 @@ const Payments = () => {
                       onClick={() => setShowExportDropdown(!showExportDropdown)}
                       className="d-flex align-items-center gap-2"
                       style={{ borderRadius: "6px", fontSize: "13px", padding: "8px 16px" }}
-                      disabled={exportLoading}
+                      disabled={exportLoading || !startDate}
+                      title={!startDate ? "Please select date first" : ""}
                     >
                       <FaDownload size={12} />
                       <span>{exportLoading ? "Exporting..." : "Export"}</span>
                     </Button>
+                  {/* {!startDate && (
+                    <div 
+                      className="position-absolute text-danger" 
+                      style={{ 
+                        fontSize: "10px", 
+                        top: "100%", 
+                        left: "0", 
+                        marginTop: "2px",
+                        whiteSpace: "nowrap"
+                      }}
+                    >
+                      * Date required
+                    </div>
+                  )} */}
                   {showExportDropdown && (
                     <div 
                       className="position-absolute bg-white border rounded shadow-sm"
@@ -770,7 +899,7 @@ const Payments = () => {
                   )}
                 </div>
                 )}
-                <div className="position-relative">
+                {/* <div className="position-relative">
                   <FaSearch 
                     className="position-absolute" 
                     style={{ 
@@ -795,17 +924,19 @@ const Payments = () => {
                       width: "250px"
                     }}
                   />
-                </div>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() => handleCreatePayment()}
-                  disabled={paymentStatus !== "unpaid" || selectedPayments.length === 0 || !canSelectBookings}
-                  className="d-flex align-items-center gap-2"
-                  style={{ borderRadius: "6px", fontWeight: "500", fontSize: "13px", padding: "8px 16px" }}
-                >
-                  <span>Create Payment</span>
-                </Button>
+                </div> */}
+                {activePayableFilter !== false && paymentStatus === "unpaid" && (
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => handleCreatePayment()}
+                    disabled={paymentStatus !== "unpaid" || selectedPayments.length === 0 || !canSelectBookings}
+                    className="d-flex align-items-center gap-2"
+                    style={{ borderRadius: "6px", fontWeight: "500", fontSize: "13px", padding: "8px 16px" }}
+                  >
+                    <span>Create Payment</span>
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -825,7 +956,7 @@ const Payments = () => {
                         <thead style={{ backgroundColor: "#4361ee", color: "white" }}>
                           <tr>
                             <th style={{ width: "50px", padding: "14px", borderTopLeftRadius: "6px" }}>
-                              {paymentStatus === "unpaid" && (
+                              {paymentStatus === "unpaid" && activePayableFilter !== false && (
                                 <Form.Check
                                   type="checkbox"
                                   checked={selectAll}
@@ -862,7 +993,7 @@ const Payments = () => {
                               }}
                             >
                               <td style={{ padding: "12px" }}>
-                                {paymentStatus === "unpaid" && (
+                                {paymentStatus === "unpaid" && activePayableFilter !== false && (
                                   <Form.Check
                                     type="checkbox"
                                     checked={selectedPayments.includes(item._id)}
@@ -884,7 +1015,7 @@ const Payments = () => {
                               <td style={{ padding: "12px", fontWeight: "500" }}>
                                 <div>
                                   <div style={{ fontSize: "13px" }}>
-                                    {paymentStatus === "unpaid" ? item?.register_club_id?.clubName : item?.clubId?.clubName || "N/A"}
+                                    {item?.register_club_id?.clubName || "N/A"}
                                   </div>
                                   <div className="text-muted" style={{ fontSize: "11px" }}>
                                     {item?.ownerId?.name || "N/A"}
@@ -900,7 +1031,7 @@ const Payments = () => {
                                     {item?.slot?.[0]?.courtName || "N/A"}
                                   </div>
                                   <div className="text-muted" style={{ fontSize: "11px" }}>
-                                    {item?.slot?.[0]?.slotTimes?.[0]?.time || item?.startTime || "N/A"} - {item?.slot?.[0]?.slotTimes?.[item?.slot?.[0]?.slotTimes?.length - 1]?.time || item?.endTime || "N/A"}
+                                    {item?.startTime || "N/A"} - {item?.endTime || "N/A"}
                                   </div>
                                   <div className="text-muted" style={{ fontSize: "10px" }}>
                                     {item?.duration}min
@@ -959,7 +1090,7 @@ const Payments = () => {
                                 </>
                               )}
                               <td style={{ padding: "12px", fontWeight: "600", color: "#28a745", fontSize: "14px" }}>
-                                ₹{paymentStatus === "unpaid" ? item?.totalAmount || 0 : item?.amount || 0}
+                                ₹{item?.totalAmount || 0}
                               </td>
                               <td style={{ padding: "12px", textAlign: "center" }}>
                                 <div className="d-flex align-items-center justify-content-center gap-2">
@@ -1025,13 +1156,13 @@ const Payments = () => {
                             <div className="mobile-card-item">
                               <span className="mobile-card-label">Club & Owner:</span>
                               <span className="mobile-card-value">
-                                {paymentStatus === "unpaid" ? item?.register_club_id?.clubName : item?.clubId?.clubName || "N/A"} • {item?.ownerId?.name}
+                                {item?.register_club_id?.clubName || "N/A"} • {item?.ownerId?.name}
                               </span>
                             </div>
                             <div className="mobile-card-item">
                               <span className="mobile-card-label">Court & Time:</span>
                               <span className="mobile-card-value">
-                                {item?.slot?.[0]?.courtName || "N/A"} • {item?.slot?.[0]?.slotTimes?.[0]?.time || item?.startTime || "N/A"} - {item?.slot?.[0]?.slotTimes?.[item?.slot?.[0]?.slotTimes?.length - 1]?.time || item?.endTime || "N/A"} ({item?.duration}min)
+                                {item?.slot?.[0]?.courtName || "N/A"} • {item?.startTime || "N/A"} - {item?.endTime || "N/A"} ({item?.duration}min)
                               </span>
                             </div>
                             <div className="mobile-card-item">
@@ -1071,7 +1202,7 @@ const Payments = () => {
                             <div className="mobile-card-item">
                               <span className="mobile-card-label">Amount:</span>
                               <span className="mobile-card-value">
-                                ₹{paymentStatus === "unpaid" ? item?.totalAmount || 0 : item?.amount || 0}
+                                ₹{item?.totalAmount || 0}
                               </span>
                             </div>
                             <div className="mobile-card-item">
@@ -1129,7 +1260,7 @@ const Payments = () => {
         <Col className="d-flex justify-content-center">
           <Pagination
             totalRecords={totalRecordsCount}
-            defaultLimit={15}
+            defaultLimit={20}
             handlePageChange={handlePageChange}
             currentPage={currentPage}
           />
@@ -1154,6 +1285,142 @@ const Payments = () => {
           setRefreshKey((prev) => prev + 1);
         }}
       />
+
+      <Offcanvas show={showPaymentDrawer} onHide={() => setShowPaymentDrawer(false)} placement="end" style={{ width: "500px", zIndex: 1040 }} backdrop={false}>
+        <Offcanvas.Header closeButton style={{ borderBottom: "2px solid #e9ecef", padding: "16px 20px", backgroundColor: "#f8f9fa" }}>
+          <Offcanvas.Title style={{ fontSize: "18px", fontWeight: "700", color: "#1a1a1a" }}>
+            {selectedClub ? selectedClub.clubName : "Payment Details"}
+            <span style={{ fontSize: "14px", fontWeight: "500", color: "#6c757d", marginLeft: "8px" }}>({selectedPayments.length} bookings)</span>
+          </Offcanvas.Title>
+        </Offcanvas.Header>
+        <Offcanvas.Body style={{ padding: "16px", backgroundColor: "#ffffff", display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
+          <div className="alert alert-warning d-flex align-items-start" style={{ fontSize: "11px", padding: "8px", marginBottom: "10px", border: "1px solid #ffc107", borderRadius: "4px", flexShrink: 0 }}>
+            <div style={{ marginRight: "6px", fontSize: "14px" }}>⚠️</div>
+            <div>
+              <strong>Important:</strong> Please select the transaction for the club owner to mark it as Paid. 
+              Ensure the payment has been completed before confirming, as this action cannot be reversed and the transaction cannot be retrieved once marked as Paid.
+            </div>
+          </div>
+          <div className="mb-2 p-2 rounded" style={{ backgroundColor: "#f0f8ff", border: "1px solid #cce5ff", flexShrink: 0 }}>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <span style={{ fontSize: "13px", fontWeight: "600", color: "#495057" }}>Total Amount</span>
+              <span style={{ fontSize: "20px", fontWeight: "700", color: "#28a745" }}>₹{selectedTotal.toLocaleString()}</span>
+            </div>
+            <div className="d-flex justify-content-between align-items-center">
+              <span style={{ fontSize: "13px", fontWeight: "600", color: "#495057" }}>Payment Date <span className="text-danger">*</span></span>
+              <DatePicker
+                selected={paymentDate}
+                onChange={(date) => setPaymentDate(date)}
+                dateFormat="dd/MM/yyyy"
+                className="form-control text-end"
+                style={{ fontSize: "13px", width: "130px", padding: "4px 8px" }}
+                required disabled
+              />
+            </div>
+          </div>
+
+          <div className="mb-2" style={{ flexGrow: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
+            <h6 className="fw-bold mb-2" style={{ fontSize: "12px", color: "#1a1a1a", textTransform: "uppercase", letterSpacing: "0.5px", flexShrink: 0 }}>Selected Bookings</h6>
+            <div style={{ flexGrow: 1, overflowY: "auto", border: "1px solid #dee2e6", borderRadius: "4px" }}>
+              {selectedPayments.length === 0 ? (
+                <div className="text-center text-muted py-4" style={{ fontSize: "13px" }}>
+                  No bookings selected
+                </div>
+              ) : (
+                <table className="table table-sm table-hover mb-0" style={{ fontSize: "13px" }}>
+                  <thead style={{ backgroundColor: "#e9ecef", position: "sticky", top: 0, zIndex: 1 }}>
+                    <tr>
+                      <th style={{ padding: "12px 12px", fontWeight: "700", color: "#212529", borderBottom: "2px solid #dee2e6" }}>Booking Date</th>
+                      <th style={{ padding: "12px 12px", textAlign: "right", fontWeight: "700", color: "#212529", borderBottom: "2px solid #dee2e6" }}>Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(selectAll ? allBookings : payments)
+                      .filter(p => selectedPayments.includes(p._id))
+                      .slice((drawerCurrentPage - 1) * 20, drawerCurrentPage * 20)
+                      .map((item, index) => (
+                        <tr key={item._id} style={{ backgroundColor: index % 2 === 0 ? "#ffffff" : "#f9f9f9" }}>
+                          <td style={{ padding: "10px 12px", color: "#495057" }}>{formatDate(item?.bookingDate)}</td>
+                          <td style={{ padding: "10px 12px", textAlign: "right", fontWeight: "600", color: "#28a745" }}>
+                            ₹{item?.totalAmount || 0}
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+            {selectedPayments.length > 20 && (
+              <div className="d-flex justify-content-center mt-2" style={{ flexShrink: 0 }}>
+                <Pagination
+                  totalRecords={selectedPayments.length}
+                  defaultLimit={20}
+                  handlePageChange={(page) => setDrawerCurrentPage(page)}
+                  currentPage={drawerCurrentPage}
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="mb-2" style={{ flexShrink: 0 }}>
+            <Form.Label  style={{ fontSize: "11px", fontWeight: "600", color: "#495057", marginBottom: "4px" }}>
+              <b>Payment Status</b> <span className="text-danger">*</span>
+            </Form.Label>
+            <Form.Select
+              value={drawerPaymentStatus}
+              onChange={(e) => setDrawerPaymentStatus(e.target.value)}
+              size="sm"
+              style={{ fontSize: "12px", padding: "5px 8px" }}
+              required disabled
+            >
+              {/* <option value="">Select Status</option> */}
+              <option value="paid">Paid</option>
+              {/* <option value="unpaid">Unpaid</option> */}
+            </Form.Select>
+          </div>
+
+          <div className="mb-2" style={{ flexShrink: 0 }}>
+            <Form.Label style={{ fontSize: "11px", fontWeight: "600", color: "#495057", marginBottom: "4px" }}><b>{'Upload Document'}</b></Form.Label>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+              style={{ display: "none" }}
+            />
+            <Button
+              variant="outline-primary"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              className="w-100 d-flex align-items-center justify-content-center gap-2"
+              style={{ fontSize: "11px", padding: "5px 10px" }}
+            >
+              <FaDownload size={10} />
+              <span>{paymentDocument ? `✓ ${paymentDocument.name.substring(0, 20)}...` : "Upload Document"}</span>
+            </Button>
+          </div>
+
+          <Button
+            variant="success"
+            className="w-100 d-flex align-items-center justify-content-center gap-2"
+            style={{ padding: "8px", fontSize: "12px", fontWeight: "600", flexShrink: 0 }}
+            onClick={handleGenerateExcel}
+            disabled={selectedPayments.length === 0 || !drawerPaymentStatus || generatingPayment}
+          >
+            {generatingPayment ? (
+              <>
+                <ButtonLoading color="white" size={14} />
+                <span>Creating...</span>
+              </>
+            ) : (
+              <>
+                <FaFileExcel size={14} />
+                <span>Generate Excel</span>
+              </>
+            )}
+          </Button>
+        </Offcanvas.Body>
+      </Offcanvas>
     </Container>
   );
 };

@@ -581,7 +581,7 @@ const Booking = () => {
                               <ButtonLoading color="blue" size={8} />
                             ) : (
                               <div className="d-flex justify-content-center gap-1">
-                                {tab !== 2 &&
+                                {/* {tab !== 2 &&
                                   item?.bookingStatus !== "rejected" &&
                                   item?.bookingStatus !== "completed" &&
                                   item?.bookingStatus !== "in-progress" &&
@@ -603,7 +603,7 @@ const Booking = () => {
                                         size={16}
                                       />
                                     </OverlayTrigger>
-                                  )}
+                                  )} */}
 
                                 <OverlayTrigger
                                   placement="bottom"

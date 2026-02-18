@@ -24,6 +24,7 @@ const AdminLayout = () => {
             '/admin/package-details': 'Package Details',
             '/admin/users': 'Users',
             '/admin/payments': 'Payment',
+            '/admin/payment-reconciliation': 'Payment Reconciliation',
             '/admin/customer-reviews': 'Review & Rating',
             '/admin/help-support': 'Help & Support',
             '/admin/privacy': 'Privacy'

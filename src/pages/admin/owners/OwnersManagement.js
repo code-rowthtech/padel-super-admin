@@ -174,7 +174,7 @@ const OwnersManagement = () => {
 
   return (
     <Container fluid className="px-0 px-md-4 mt-md-0 mt-2">
-      <Row className="mb-3">
+      {/* <Row className="mb-3">
         <Col xs={12}>
           <div className="d-flex justify-content-between align-items-center">
             <h4 className="mb-0">Owners Management</h4>
@@ -184,7 +184,7 @@ const OwnersManagement = () => {
             </Button>
           </div>
         </Col>
-      </Row>
+      </Row> */}
 
       <Row>
         <Col xs={12}>
@@ -215,7 +215,7 @@ const OwnersManagement = () => {
                         <th>Phone</th>
                         <th>Domain</th>
                         <th>Status</th>
-                        <th>Actions</th>
+                        {/* <th>Actions</th> */}
                       </tr>
                     </thead>
                     <tbody>
@@ -252,7 +252,7 @@ const OwnersManagement = () => {
                               <Badge bg="secondary">Inactive</Badge>
                             )}
                           </td>
-                          <td style={{ cursor: "pointer" }}>
+                          {/* <td style={{ cursor: "pointer" }}>
                             <div className="d-flex gap-2 justify-content-center">
                               <Button
                                 size="sm"
@@ -301,7 +301,7 @@ const OwnersManagement = () => {
                                 <FaTrash size={14} />
                               </Button>
                             </div>
-                          </td>
+                          </td> */}
                         </tr>
                       ))}
                     </tbody>
