@@ -61,7 +61,7 @@ const Payments = () => {
   const [exportSearchTerm, setExportSearchTerm] = useState("");
   const exportDropdownRef = useRef(null);
   const [updatingPaymentStatus, setUpdatingPaymentStatus] = useState(false);
-  const [activePayableFilter, setActivePayableFilter] = useState(null);
+  const [activePayableFilter, setActivePayableFilter] = useState(true);
   const [showPaymentDrawer, setShowPaymentDrawer] = useState(false);
   const [paymentDate, setPaymentDate] = useState(new Date());
   const [allBookings, setAllBookings] = useState([]);
@@ -124,6 +124,7 @@ const Payments = () => {
           ...(selectedClubId ? { clubId: selectedClubId } : {}),
           ...(paymentStatus ? { status: paymentStatus } : {}),
           ...(searchTerm ? { search: searchTerm } : {}),
+          ...(activePayableFilter !== null && paymentStatus === "unpaid" ? { payableStatus: activePayableFilter } : {}),
           page: currentPage,
           limit: 20,
         };
@@ -230,9 +231,6 @@ const Payments = () => {
         // Auto-select first club if available and no club is currently selected
         if (clubsData.length > 0 && !selectedClubId) {
           setSelectedClubId(clubsData[0]._id);
-          if (paymentStatus === "unpaid") {
-            setActivePayableFilter(true);
-          }
         }
       } catch (error) {
         console.error("Error fetching clubs:", error);
