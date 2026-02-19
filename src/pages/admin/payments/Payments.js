@@ -156,7 +156,7 @@ const Payments = () => {
     };
 
     fetchPayments();
-  }, [tab, startDate, endDate, currentPage, ownerId, selectedClubId, paymentStatus, refreshKey, searchTerm]);
+  }, [tab, startDate, endDate, currentPage, ownerId, selectedClubId, paymentStatus, refreshKey, searchTerm, activePayableFilter]);
   const [loadingPaymentId, setLoadingPaymentId] = useState(null);
 
   const handlePaymentDetails = async (id) => {
@@ -295,8 +295,9 @@ const Payments = () => {
           ...(ownerId ? { ownerId } : {}),
           ...(selectedClubId ? { clubId: selectedClubId } : {}),
           status: paymentStatus,
+          ...(activePayableFilter !== null && paymentStatus === "unpaid" ? { payableStatus: activePayableFilter } : {}),
           page: 1,
-          limit: totalRecords,
+          limit: 10000,
         };
         if (startDate) {
           const formatToYYYYMMDD = (date) => {
@@ -326,10 +327,14 @@ const Payments = () => {
 
   const handleSelectPayment = (id) => {
     setSelectAll(false);
-    if (selectedPayments.includes(id)) {
-      setSelectedPayments(selectedPayments.filter(p => p !== id));
-    } else {
-      setSelectedPayments([...selectedPayments, id]);
+    const newSelectedPayments = selectedPayments.includes(id)
+      ? selectedPayments.filter(p => p !== id)
+      : [...selectedPayments, id];
+    
+    setSelectedPayments(newSelectedPayments);
+    
+    if (newSelectedPayments.length === 0) {
+      setShowPaymentDrawer(false);
     }
   };
 
@@ -747,7 +752,7 @@ const Payments = () => {
                     className="d-flex align-items-center justify-content-center rounded p-1"
                     style={{
                       backgroundColor: "#FAFBFF",
-                      maxWidth: "200px",
+                      maxWidth: "280px",
                       height: "36px",
                       border: "1px solid #dee2e6",
                       gap: "8px",
@@ -768,10 +773,10 @@ const Payments = () => {
                           setShowDatePicker(false);
                         }
                       }}
-                      dateFormat="dd/MM/yy"
-                      placeholderText="DD/MM/YY – DD/MM/YY"
+                      dateFormat="dd/MM/yyyy"
+                      placeholderText="DD/MM/YYYY – DD/MM/YYYY"
                       className="form-control border-0 bg-transparent shadow-none"
-                      style={{ fontSize: "12px", width: "120px" }}
+                      style={{ fontSize: "12px", width: "200px" }}
                       open={showDatePicker}
                       onClickOutside={() => setShowDatePicker(false)}
                       maxDate={new Date()}
@@ -1328,6 +1333,7 @@ const Payments = () => {
                 <table className="table table-sm table-hover mb-0" style={{ fontSize: "13px" }}>
                   <thead style={{ backgroundColor: "#e9ecef", position: "sticky", top: 0, zIndex: 1 }}>
                     <tr>
+                      <th style={{ padding: "12px 8px", fontWeight: "700", color: "#212529", borderBottom: "2px solid #dee2e6", width: "40px" }}></th>
                       <th style={{ padding: "12px 12px", fontWeight: "700", color: "#212529", borderBottom: "2px solid #dee2e6" }}>Booking Date</th>
                       <th style={{ padding: "12px 12px", textAlign: "right", fontWeight: "700", color: "#212529", borderBottom: "2px solid #dee2e6" }}>Amount</th>
                     </tr>
@@ -1338,6 +1344,13 @@ const Payments = () => {
                       .slice((drawerCurrentPage - 1) * 20, drawerCurrentPage * 20)
                       .map((item, index) => (
                         <tr key={item._id} style={{ backgroundColor: index % 2 === 0 ? "#ffffff" : "#f9f9f9" }}>
+                          <td style={{ padding: "10px 8px" }}>
+                            <Form.Check
+                              type="checkbox"
+                              checked={true}
+                              onChange={() => handleSelectPayment(item._id)}
+                            />
+                          </td>
                           <td style={{ padding: "10px 12px", color: "#495057" }}>{formatDate(item?.bookingDate)}</td>
                           <td style={{ padding: "10px 12px", textAlign: "right", fontWeight: "600", color: "#28a745" }}>
                             ₹{item?.totalAmount || 0}
