@@ -5,7 +5,7 @@ import { FiSettings, FiChevronRight } from 'react-icons/fi';
 import { RiMoneyRupeeCircleFill } from 'react-icons/ri';
 import { AiOutlinePlus } from 'react-icons/ai';
 
-const RuleSettings = () => {
+const RuleSettings = ({ onBack }) => {
     const [settings, setSettings] = useState({
         numberOfSets: 3,
         gamesToStartTiebreak: 3,
@@ -258,7 +258,7 @@ const RuleSettings = () => {
             </div>
 
             <div className="d-flex justify-content-end gap-3 mt-4">
-                <button className='border-0 rounded-pill' style={{ backgroundColor: '#E5E7EB', color: '#374151', padding: '12px 32px', fontSize: '16px', fontWeight: '600' }}>Back</button>
+                <button onClick={onBack} className='border-0 rounded-pill' style={{ backgroundColor: '#E5E7EB', color: '#374151', padding: '12px 32px', fontSize: '16px', fontWeight: '600' }}>Back</button>
                 <button className='border-0 rounded-pill text-white' style={{ backgroundColor: '#3DBE64', padding: '12px 32px', fontSize: '16px', fontWeight: '600' }}>Create League</button>
             </div>
         </>

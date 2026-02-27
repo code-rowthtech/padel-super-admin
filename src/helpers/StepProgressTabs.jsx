@@ -1,5 +1,6 @@
 import React from "react";
 import "./StepProgressTabs.css";
+import { MdOutlineArrowDropDown } from "react-icons/md";
 
 const StepProgressTabs = ({
     steps = [],
@@ -17,7 +18,7 @@ const StepProgressTabs = ({
     return (
         <div className="step-wrapper">
             {steps.map((step, index) => {
-                const isActive = index === activeStep;
+                const isActive = index <= activeStep;
                 const isCompleted = index < activeStep;
 
                 return (
@@ -30,6 +31,7 @@ const StepProgressTabs = ({
                         >
                             {isCompleted ? "✓" : index + 1}
                         </div>
+                        <MdOutlineArrowDropDown  className={`mb-0 ${isActive ? 'text-primary' : 'text-secondary'}`} size={20} />
 
                         <div
                             className={`step-label 

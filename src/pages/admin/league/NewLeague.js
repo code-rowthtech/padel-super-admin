@@ -10,7 +10,7 @@ import { LuPencilLine } from "react-icons/lu";
 
 
 const NewLeague = () => {
-    const [activeStep, setActiveStep] = useState(1);
+    const [activeStep, setActiveStep] = useState(2);
     const [clubs, setClubs] = useState([{ name: '', location: '' }]);
     const [sponsors, setSponsors] = useState([{ title: '', name: '', category: '', image: null }]);
     const [showBasicInfo, setShowBasicInfo] = useState(false);
@@ -370,7 +370,7 @@ const NewLeague = () => {
                                                 Upload File or drag and drop <span style={{ fontSize: '10px' }}>(PNG, JPEG up to 10 MB)</span>
                                             </div>
                                             {index > 0 && (
-                                                <RiDeleteBin6Fill className='text-danger ' style={{ cursor: "pointer" }} size={25} onClick={() => removeClub(index)} />
+                                                <RiDeleteBin6Fill className='text-danger ' style={{ cursor: "pointer" }} size={25} onClick={() => removeSponsor(index)} />
                                             )}
                                         </Col>
                                     </Row>
@@ -504,7 +504,7 @@ const NewLeague = () => {
                     )}
 
                     {activeStep === 2 && (
-                        <RuleSettings />
+                        <RuleSettings onBack={() => setActiveStep(1)} />
                     )}
                 </Col>
             </Row>
