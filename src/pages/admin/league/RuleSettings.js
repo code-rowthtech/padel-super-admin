@@ -15,11 +15,22 @@ const RuleSettings = () => {
         matchWinPoints: 2
     });
 
+    const [prizeDistribution, setPrizeDistribution] = useState([{ label: '1st Price', value: '' }, { label: '2nd Price', value: '' }, { label: '3rd Price', value: '' }]);
+    const [teamRewards, setTeamRewards] = useState([{ label: 'Bounty', value: '' }, { label: 'Team of the League', value: '' }]);
+
     const handleCounterChange = (field, increment) => {
         setSettings(prev => ({
             ...prev,
             [field]: increment ? prev[field] + 1 : Math.max(0, prev[field] - 1)
         }));
+    };
+
+    const addPrize = () => {
+        setPrizeDistribution([...prizeDistribution, { label: `${prizeDistribution.length + 1}th Price`, value: '' }]);
+    };
+
+    const addTeamReward = () => {
+        setTeamRewards([...teamRewards, { label: 'New Reward', value: '' }]);
     };
 
     return (
@@ -185,7 +196,7 @@ const RuleSettings = () => {
                     <h6 className='d-flex align-items-center gap-2 mb-0' style={{ fontSize: '16px', fontWeight: '600', color: '#1a1a1a' }}>
                         <RiMoneyRupeeCircleFill size={20} /> Prize Distribution
                     </h6>
-                    <button className="d-flex align-items-center position-relative p-0 border-0" style={{ borderRadius: "20px 10px 10px 20px", background: "none", overflow: "hidden", cursor: "pointer", transition: "all 0.3s ease", flexShrink: 0 }}>
+                    <button onClick={addPrize} className="d-flex align-items-center position-relative p-0 border-0" style={{ borderRadius: "20px 10px 10px 20px", background: "none", overflow: "hidden", cursor: "pointer", transition: "all 0.3s ease", flexShrink: 0 }}>
                         <div className="p-md-1 p-2 rounded-circle bg-light" style={{ position: "relative", left: "10px" }}>
                             <div className="d-flex justify-content-center align-items-center text-white fw-bold" style={{ backgroundColor: "#1F41BB", width: "36px", height: "36px", borderRadius: "50%", fontSize: "20px" }}>
                                 <span className="mb-1">+</span>
@@ -198,24 +209,18 @@ const RuleSettings = () => {
                 </div>
 
                 <Row className="mb-3">
-                    <Col md={4} className="mb-3">
-                        <Form.Group>
-                            <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '8px' }}>1st Price</Form.Label>
-                            <Form.Control type="text" placeholder="Enter Amount" style={{ borderRadius: '8px', padding: '10px', fontSize: '14px', backgroundColor: '#f8f9fa', border: '1px solid #e0e0e0', boxShadow: 'none' }} />
-                        </Form.Group>
-                    </Col>
-                    <Col md={4} className="mb-3">
-                        <Form.Group>
-                            <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '8px' }}>2nd Price</Form.Label>
-                            <Form.Control type="text" placeholder="Enter Amount" style={{ borderRadius: '8px', padding: '10px', fontSize: '14px', backgroundColor: '#f8f9fa', border: '1px solid #e0e0e0', boxShadow: 'none' }} />
-                        </Form.Group>
-                    </Col>
-                    <Col md={4} className="mb-3">
-                        <Form.Group>
-                            <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '8px' }}>3rd Price</Form.Label>
-                            <Form.Control type="text" placeholder="Enter Amount" style={{ borderRadius: '8px', padding: '10px', fontSize: '14px', backgroundColor: '#f8f9fa', border: '1px solid #e0e0e0', boxShadow: 'none' }} />
-                        </Form.Group>
-                    </Col>
+                    {prizeDistribution.map((prize, index) => (
+                        <Col md={4} className="mb-3" key={index}>
+                            <Form.Group>
+                                <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '8px' }}>{prize.label}</Form.Label>
+                                <Form.Control type="text" placeholder="Enter Amount" value={prize.value} onChange={(e) => {
+                                    const updated = [...prizeDistribution];
+                                    updated[index].value = e.target.value;
+                                    setPrizeDistribution(updated);
+                                }} style={{ borderRadius: '8px', padding: '10px', fontSize: '14px', backgroundColor: '#f8f9fa', border: '1px solid #e0e0e0', boxShadow: 'none' }} />
+                            </Form.Group>
+                        </Col>
+                    ))}
                 </Row>
             </div>
 
@@ -224,7 +229,7 @@ const RuleSettings = () => {
                     <h6 className='d-flex align-items-center gap-2 mb-0' style={{ fontSize: '16px', fontWeight: '600', color: '#1a1a1a' }}>
                         <IoTrophyOutline size={20} /> Team Rewards
                     </h6>
-                    <button className="d-flex align-items-center position-relative p-0 border-0" style={{ borderRadius: "20px 10px 10px 20px", background: "none", overflow: "hidden", cursor: "pointer", transition: "all 0.3s ease", flexShrink: 0 }}>
+                    <button onClick={addTeamReward} className="d-flex align-items-center position-relative p-0 border-0" style={{ borderRadius: "20px 10px 10px 20px", background: "none", overflow: "hidden", cursor: "pointer", transition: "all 0.3s ease", flexShrink: 0 }}>
                         <div className="p-md-1 p-2 rounded-circle bg-light" style={{ position: "relative", left: "10px" }}>
                             <div className="d-flex justify-content-center align-items-center text-white fw-bold" style={{ backgroundColor: "#1F41BB", width: "36px", height: "36px", borderRadius: "50%", fontSize: "20px" }}>
                                 <span className="mb-1">+</span>
@@ -237,18 +242,18 @@ const RuleSettings = () => {
                 </div>
 
                 <Row className="mb-3">
-                    <Col md={6} className="mb-3">
-                        <Form.Group>
-                            <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '8px' }}>Bounty</Form.Label>
-                            <Form.Control type="text" placeholder="Enter Amount" style={{ borderRadius: '8px', padding: '10px', fontSize: '14px', backgroundColor: '#f8f9fa', border: '1px solid #e0e0e0', boxShadow: 'none' }} />
-                        </Form.Group>
-                    </Col>
-                    <Col md={6} className="mb-3">
-                        <Form.Group>
-                            <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '8px' }}>Team of the League</Form.Label>
-                            <Form.Control type="text" placeholder="Enter Amount" style={{ borderRadius: '8px', padding: '10px', fontSize: '14px', backgroundColor: '#f8f9fa', border: '1px solid #e0e0e0', boxShadow: 'none' }} />
-                        </Form.Group>
-                    </Col>
+                    {teamRewards.map((reward, index) => (
+                        <Col md={6} className="mb-3" key={index}>
+                            <Form.Group>
+                                <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '8px' }}>{reward.label}</Form.Label>
+                                <Form.Control type="text" placeholder="Enter Amount" value={reward.value} onChange={(e) => {
+                                    const updated = [...teamRewards];
+                                    updated[index].value = e.target.value;
+                                    setTeamRewards(updated);
+                                }} style={{ borderRadius: '8px', padding: '10px', fontSize: '14px', backgroundColor: '#f8f9fa', border: '1px solid #e0e0e0', boxShadow: 'none' }} />
+                            </Form.Group>
+                        </Col>
+                    ))}
                 </Row>
             </div>
 
