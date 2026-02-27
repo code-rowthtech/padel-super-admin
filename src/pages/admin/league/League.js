@@ -4,8 +4,10 @@ import { FaUsers, FaEye, FaEdit, FaTrash } from "react-icons/fa";
 import { HiOutlineTrophy } from "react-icons/hi2";
 import { BsRecordCircle } from "react-icons/bs";
 import { IoCashOutline } from "react-icons/io5";
+import { useNavigate } from 'react-router-dom';
  
 const League = () => {
+    const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState("all");
  
   const statsCards = [
@@ -64,6 +66,7 @@ const League = () => {
             e.currentTarget.style.opacity = "1";
             e.currentTarget.style.transform = "translateY(0)";
           }}
+          onClick={()=>navigate('/admin/new-league')}
         >
           <div
             className="p-md-1 p-2 rounded-circle bg-light"
