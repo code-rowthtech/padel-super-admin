@@ -200,8 +200,8 @@ const AdminDashboard = () => {
       type === "details"
         ? setShowBookingDetails(true)
         : type === "cancel"
-        ? setShowBookingCancel(true)
-        : setShowCancellation(true);
+          ? setShowBookingCancel(true)
+          : setShowCancellation(true);
     } catch (error) {
     } finally {
       setLoadingById(null);
@@ -457,7 +457,7 @@ const AdminDashboard = () => {
                                     }}
                                   >
                                     {dataPoint?.Cancelation}
-                                </span>
+                                  </span>
                                 </div>
                                 <hr
                                   style={{
@@ -511,8 +511,8 @@ const AdminDashboard = () => {
                     <Link
                       to="/admin/cancellation"
                       className="text-decoration-none"
-                      style={{ 
-                        fontSize: "13px", 
+                      style={{
+                        fontSize: "13px",
                         fontWeight: "600",
                         color: "rgb(31, 65, 187)",
                         transition: "all 0.2s ease"
@@ -710,11 +710,11 @@ const AdminDashboard = () => {
                     <h5 className="mb-0 fw-bold" style={{ color: "#1f2937" }}>
                       Recent Bookings
                     </h5>
-                    <Link 
-                      to="/admin/booking" 
+                    <Link
+                      to="/admin/booking"
                       className="text-decoration-none"
-                      style={{ 
-                        fontSize: "13px", 
+                      style={{
+                        fontSize: "13px",
                         fontWeight: "600",
                         color: "rgb(31, 65, 187)",
                         transition: "all 0.2s ease"
@@ -725,13 +725,13 @@ const AdminDashboard = () => {
                   </div>
                   {dashboardRecentBookings?.length > 0 ? (
                     <>
-                      <div className=" d-none d-md-block" style={{height:"auto"}}>
+                      <div className=" d-none d-md-block" style={{ height: "auto" }}>
                         <Table
                           responsive
                           borderless
                           size="sm"
                           className="custom-table"
-                          
+
                         >
                           <thead>
                             <tr className="text-center">
