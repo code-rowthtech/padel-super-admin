@@ -20,6 +20,7 @@ const PaymentReconciliation = React.lazy(() => import("../pages/admin/payments/P
 const Wallet = React.lazy(() => import("../pages/admin/wallet/Wallet"));
 const Profile = React.lazy(() => import("../pages/admin/profile/Profile"));
 const OwnersManagement = React.lazy(() => import("../pages/admin/owners/OwnersManagement"));
+const League = React.lazy(() => import("../pages/admin/league/League"));
 const NotFound = React.lazy(() => import("../pages/error/NotFound"));
 const loading = <DataLoading  height={900} />;
 const LoadComponent = (Component) => (
@@ -77,6 +78,10 @@ const AllRoutes = () => {
             {
               path: "payment-reconciliation",
               element: LoadComponent(PaymentReconciliation),
+            },
+            {
+              path: "league",
+              element: LoadComponent(League),
             },
             {
               path: "wallet",
