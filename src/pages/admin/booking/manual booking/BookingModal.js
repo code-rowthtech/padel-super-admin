@@ -292,8 +292,7 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
                 fontSize: "14px",
                 fontWeight: "500",
                 fontFamily: "Poppins",
-              }}
-            >
+              }}>
               Name
             </p>
             <p
@@ -302,8 +301,7 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
                 fontSize: "14px",
                 fontWeight: "500",
                 fontFamily: "Poppins",
-              }}
-            >
+              }}>
               {bookingDetails?.userId?.name
                 ? bookingDetails.userId.name.charAt(0).toUpperCase() +
                 bookingDetails.userId.name.slice(1)
@@ -312,9 +310,7 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
           </div>
           <hr
             className="my-2 mx-0"
-            style={{ borderTop: "1px solid #E5E7EB" }}
-          />
-
+            style={{ borderTop: "1px solid #E5E7EB" }} />
           <div className="d-flex justify-content-between align-items-center">
             <p
               className="text-muted mb-0"
@@ -349,8 +345,7 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
                 fontSize: "14px",
                 fontWeight: "500",
                 fontFamily: "Poppins",
-              }}
-            >
+              }}>
               Slot Time
             </p>
             <p
@@ -359,29 +354,23 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
                 fontSize: "14px",
                 fontWeight: "500",
                 fontFamily: "Poppins",
-              }}
-            >
+              }}>
               {(() => {
                 const times = bookingDetails?.slot?.[0]?.slotTimes?.map((slot) =>
                   formatSlotTime(slot?.time)
                 )?.filter(Boolean) || [];
-                
                 if (times.length === 0) return "-";
-                
                 const startTime = times[0];
                 const endTime = times[times.length - 1];
                 const displayTime = times.length > 1 ? `${startTime} - ${endTime}` : startTime;
                 const day = bookingDetails?.slot?.[0]?.businessHours?.[0]?.day || "";
-                
                 return `${day} ${displayTime}`;
               })()}
             </p>
           </div>
           <hr
             className="my-2 mx-0"
-            style={{ borderTop: "1px solid #E5E7EB" }}
-          />
-
+            style={{ borderTop: "1px solid #E5E7EB" }} />
           <div className="d-flex justify-content-between align-items-center">
             <p
               className="text-muted mb-0"
@@ -389,8 +378,7 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
                 fontSize: "14px",
                 fontWeight: "500",
                 fontFamily: "Poppins",
-              }}
-            >
+              }}>
               Booking Date
             </p>
             <p
@@ -628,8 +616,7 @@ export const BookingDetailsModal = ({ show, handleClose, bookingDetails }) => (
             fontSize: "14px",
             fontWeight: "600",
             color: "#374151",
-          }}
-        >
+          }}>
           {bookingDetails?.totalAmount
             ? `₹ ${bookingDetails?.totalAmount}`
             : "N/A"}
@@ -806,9 +793,9 @@ export const BookingCancelModal = ({
                   const times = bookingDetails?.slot?.[0]?.slotTimes?.map((slot) =>
                     formatSlotTime(slot?.time)
                   )?.filter(Boolean) || [];
-                  
+
                   if (times.length === 0) return "-";
-                  
+
                   const startTime = times[0];
                   const endTime = times[times.length - 1];
                   return times.length > 1 ? `${startTime} - ${endTime}` : startTime;
