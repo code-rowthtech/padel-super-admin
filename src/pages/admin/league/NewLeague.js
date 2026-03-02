@@ -7,9 +7,11 @@ import StepProgressTabs from '../../../helpers/StepProgressTabs';
 import { RiDeleteBin6Fill } from 'react-icons/ri';
 import RuleSettings from './RuleSettings';
 import { LuPencilLine } from "react-icons/lu";
+import { useNavigate } from 'react-router-dom';
 
 
 const NewLeague = () => {
+    const navigate = useNavigate();
     const [activeStep, setActiveStep] = useState(2);
     const [clubs, setClubs] = useState([{ name: '', location: '' }]);
     const [sponsors, setSponsors] = useState([{ title: '', name: '', category: '', image: null }]);
@@ -35,7 +37,7 @@ const NewLeague = () => {
             <Row>
                 <Col>
                     <div className="d-flex align-items-center mb-0">
-                        <BsArrowLeft size={20} className="me-2" style={{ cursor: 'pointer' }} />
+                        <BsArrowLeft onClick={()=>navigate('/admin/league')} size={20} className="me-2" style={{ cursor: 'pointer' }} />
                         <h5 className="mb-0 fw-semibold">New League</h5>
                     </div>
 

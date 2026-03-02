@@ -31,7 +31,7 @@ const StepProgressTabs = ({
                         >
                             {isCompleted ? "✓" : index + 1}
                         </div>
-                        <MdOutlineArrowDropDown  className={`mb-0 ${isActive ? 'text-primary' : 'text-secondary'}`} size={20} />
+                        <MdOutlineArrowDropDown className={`mb-0 ${isActive ? 'text-primary' : 'text-secondary'}`} size={20} />
 
                         <div
                             className={`step-label 
