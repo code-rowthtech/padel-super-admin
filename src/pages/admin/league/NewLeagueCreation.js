@@ -37,7 +37,7 @@ const NewLeague = () => {
             <Row>
                 <Col>
                     <div className="d-flex align-items-center mb-0">
-                        <BsArrowLeft onClick={()=>navigate('/admin/league')} size={20} className="me-2" style={{ cursor: 'pointer' }} />
+                        <BsArrowLeft onClick={()=>navigate('/admin/league/creation')} size={20} className="me-2" style={{ cursor: 'pointer' }} />
                         <h5 className="mb-0 fw-semibold">New League</h5>
                     </div>
 
