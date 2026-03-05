@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Container, Row, Col, Button, Dropdown, Form, Nav } from 'react-bootstrap'
 import { FiEdit2, FiChevronDown } from 'react-icons/fi'
 import './LeagueScheduleMatch.css'
+import { vs_image } from '../../../assets/files'
 
 const LeagueScheduleMatch = () => {
     const [selectedClub, setSelectedClub] = useState('Terrakort')
@@ -50,8 +51,8 @@ const LeagueScheduleMatch = () => {
                 </Col>
             </Row>
 
-            <Row className='border-top '>
-                <Col md={3} className='p-0 border-end pe-1' style={{ backgroundColor: "#FBFCFE" }}>
+            <Row className='border-top ' style={{ minHeight: 'calc(100vh - 200px)' }}>
+                <Col md={3} className='p-0 border-end pe-1' style={{ backgroundColor: "#FBFCFE", display: 'flex', flexDirection: 'column' }}>
                     <div className="clubs-tabs">
                         <div className="d-flex pt-1 border-bottom py-3 justify-content-between align-items-center mb-3">
                             <span style={{ fontWeight: '600', color: '#1a1a1a' }}>Clubs</span>
@@ -92,7 +93,7 @@ const LeagueScheduleMatch = () => {
                     </Nav>
 
                     <div className="home-team-header mb-4">
-                        <span className='text-dark' style={{ fontSize: '14px' }}>Home Team: </span>
+                        <span className='text-dark' style={{ fontWeight: '600' }}>Home Team: </span>
                         <span style={{ color: '#4361EE', fontWeight: '600' }}>Terrakort</span>
                     </div>
 
@@ -100,30 +101,23 @@ const LeagueScheduleMatch = () => {
                         {matches.map((matchNum) => (
                             <div
                                 key={matchNum}
-                                className="match-card"
+                                className="ps-5 pe-5 pt-3 pb-3 py-5 d-flex justify-content-center align-items-center"
                                 style={{
-                                    background: 'linear-gradient(0deg, rgba(204, 210, 221, 0.43), rgba(204, 210, 221, 0.43)), linear-gradient(100.97deg, #FDFDFF 0%, #9EBAFF 317.27%)',
                                     borderRadius: '12px',
-                                    padding: '16px 20px',
-                                    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                                    boxShadow: '0px 0px 6px 0px rgba(0, 0, 0, 0.25)',
+                                    height:"134px"
                                 }}
                             >
-                                <div
-                                    style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'space-between',
-                                        position: 'relative',
-                                    }}
+                                <div className='w-100 ps-5 pe-5 d-flex justify-content-between align-items-center position-relative'
                                 >
                                     {/* Left - Home Team */}
                                     <div className="team-section home" style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
                                         <div className="team-logo-wrapper" style={{ position: 'relative', width: '56px', height: '56px' }}>
-                                            <div className='rounded-circle d-flex justify-content-center align-items-center text-white'
+                                            <div className='rounded-circle shadow d-flex justify-content-center align-items-center text-dark'
                                                 style={{
                                                     width: '56px',
                                                     height: '56px',
-                                                    background: '#3B82F6', // example blue - change to your real color
+                                                    border: '3px solid rgba(31, 65, 187, 1)',
                                                     fontWeight: 'bold',
                                                     fontSize: '20px',
                                                 }}
@@ -131,14 +125,13 @@ const LeagueScheduleMatch = () => {
                                                 TK
                                             </div>
                                             <span
-                                                className="team-badge home-badge"
+                                                className="team-badge text-white home-badge"
                                                 style={{
                                                     position: 'absolute',
                                                     bottom: '-6px',
                                                     left: '50%',
                                                     transform: 'translateX(-50%)',
-                                                    background: '#10B981',
-                                                    color: 'white',
+                                                    background: 'rgba(31, 65, 187, 1)',
                                                     fontSize: '10px',
                                                     fontWeight: 'bold',
                                                     padding: '2px 8px',
@@ -152,14 +145,14 @@ const LeagueScheduleMatch = () => {
 
                                         <div className="team-info">
                                             <div style={{ fontWeight: 600, fontSize: '16px', color: '#1F2937' }}>Terrakort</div>
-                                            <div style={{ fontSize: '13px', color: '#4B5563', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                Warriors <FiEdit2 size={12} style={{ color: '#6B7280' }} />
+                                            <div className='text-primary rounded-3 p-1' style={{ background: 'linear-gradient(270deg, rgba(0, 58, 255, 0.1) 0%, rgba(7, 40, 154, 0.1) 100%)', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: "500" }}>
+                                                Warriors <FiEdit2 size={12} />
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Center - Match number + VS */}
-                                    <div
+                                    <div className='py-3'
                                         style={{
                                             position: 'absolute',
                                             left: '50%',
@@ -169,40 +162,41 @@ const LeagueScheduleMatch = () => {
                                             pointerEvents: 'none',
                                         }}
                                     >
-                                        <div
+                                        <div className='text-white position-relative'
                                             style={{
-                                                fontSize: '11px',
-                                                fontWeight: 'bold',
-                                                color: '#6B7280',
-                                                background: 'rgba(255,255,255,0.7)',
+                                                fontSize: '17px',
+                                                fontWeight: '600',
+                                                background: 'rgba(31, 65, 187, 1)',
                                                 padding: '2px 10px',
-                                                borderRadius: '12px',
-                                                marginBottom: '4px',
+                                                borderRadius: '0px 0px 10px 10px',
+                                                top: "-12px"
+
                                             }}
                                         >
                                             Match {matchNum}
                                         </div>
-                                        <div style={{ fontSize: '22px', fontWeight: 'bold', color: '#4B5563' }}>VS</div>
+                                        <div className='vs-circle bg-light rounded-circle d-flex justify-content-center align-items-center' style={{ fontSize: '22px', fontWeight: 'bold', color: '#4B5563',background: 'linear-gradient(270deg, rgba(0, 58, 255, 0.1) 0%, rgba(7, 40, 154, 0.1) 100%)' }}>
+                                            <img src={vs_image} style={{width:"40px",height:"40px"}} alt="vs" />
+                                        </div>
                                     </div>
 
                                     {/* Right - Away Team (Add Club) */}
                                     <div className="team-section away" style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, justifyContent: 'flex-end' }}>
                                         <div className="team-info" style={{ textAlign: 'right' }}>
                                             <div style={{ fontWeight: 600, fontSize: '16px', color: '#1F2937' }}>Add Club</div>
-                                            <div style={{ fontSize: '13px', color: '#4B5563', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
-                                                Team A <FiEdit2 size={12} style={{ color: '#6B7280' }} />
+                                            <div className='text-primary rounded-3 p-1' style={{ background: 'linear-gradient(270deg, rgba(0, 58, 255, 0.1) 0%, rgba(7, 40, 154, 0.1) 100%)', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: "500" }}>
+                                                Team A <FiEdit2 size={12} />
                                             </div>
                                         </div>
 
                                         <div className="team-logo-wrapper add-club" style={{ position: 'relative', width: '56px', height: '56px' }}>
-                                            <div className='rounded-circle d-flex justify-content-center align-items-center text-white'
+                                            <div className='rounded-circle d-flex justify-content-center align-items-center'
                                                 style={{
                                                     width: '56px',
                                                     height: '56px',
-                                                    background: '#E5E7EB',
-                                                    border: '2px dashed #9CA3AF',
+                                                    border: '3px dashed rgba(31, 65, 187, 1)',
                                                     flexDirection: 'column',
-                                                    color: '#6B7280',
+                                                    color: 'rgba(31, 65, 187, 1)',
                                                     fontSize: '24px',
                                                     fontWeight: 'bold',
                                                 }}
@@ -216,7 +210,7 @@ const LeagueScheduleMatch = () => {
                                                     bottom: '-6px',
                                                     left: '50%',
                                                     transform: 'translateX(-50%)',
-                                                    background: '#EF4444',
+                                                    background: 'rgba(31, 65, 187, 1)',
                                                     color: 'white',
                                                     fontSize: '10px',
                                                     fontWeight: 'bold',
@@ -233,11 +227,20 @@ const LeagueScheduleMatch = () => {
                             </div>
                         ))}
                     </div>
+                    <Row className="mt-4">
+                        <Col className="d-flex justify-content-between">
+                            <Button variant="light" style={{ padding: '10px 30px', border: '1px solid #ddd' }}>Back</Button>
+                            <div className="d-flex gap-2">
+                                <Button variant="outline-primary" style={{ padding: '10px 24px' }}>Save and Next Date</Button>
+                                <Button variant="primary" style={{ padding: '10px 40px', backgroundColor: 'rgba(31, 65, 187, 1)', border: 'none',boxShadow: '0px 0px 20.9px 0px rgba(31, 65, 187, 0.5)' }}>Save</Button>
+                            </div>
+                        </Col>
+                    </Row>
                 </Col>
 
-                <Col md={2} className='d-flex justify-content-center' style={{ backgroundColor: "#FBFCFE" }}>
-                    <div className="">
-                        <div className="text-center mb-3" style={{ fontWeight: '600', color: '#1a1a1a' }}>Date</div>
+                <Col md={2} className='d-flex align-items-center' style={{ backgroundColor: "#FBFCFE", display: 'flex', flexDirection: 'column' }}>
+                    <div className="pt-1">
+                        <div className="text-center mb-2" style={{ fontWeight: '600', color: '#1a1a1a' }}>Date</div>
                         <div className="date-display mb-3 py-2 text-white rounded-3 text-center">
                             <div className="date-number">{selectedDate}</div>
                             <div className="date-month">{selectedMonth}</div>
@@ -250,16 +253,8 @@ const LeagueScheduleMatch = () => {
                 </Col>
             </Row>
 
-            <Row className="mt-4">
-                <Col className="d-flex justify-content-between">
-                    <Button variant="light" style={{ padding: '10px 30px', border: '1px solid #ddd' }}>Back</Button>
-                    <div className="d-flex gap-2">
-                        <Button variant="outline-primary" style={{ padding: '10px 24px' }}>Save and Next Date</Button>
-                        <Button variant="primary" style={{ padding: '10px 40px', backgroundColor: '#4361EE', border: 'none' }}>Save</Button>
-                    </div>
-                </Col>
-            </Row>
-        </Container>
+
+        </Container >
     )
 }
 

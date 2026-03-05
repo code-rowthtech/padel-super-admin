@@ -60,7 +60,7 @@
     padding: 12px 20px;
     border: none;
     background: transparent;
-    color: #666;
+    color: #666 !important;
     font-size: 14px;
     font-weight: 500;
     border-bottom: 3px solid transparent;
@@ -75,7 +75,8 @@
 .level-tabs .nav-link.active {
     color: white !important;
     background-color: #1F41BB !important;
-    border-bottom-color: #1F41BB !important;
+    border-top:1px solid #1F41BB !important;
+    border-radius:0px 0px 10px 10px  !important;
 }
 
 .level-tabs .nav-link span {
@@ -95,7 +96,7 @@
 }
 
 .match-card {
-    background: #E8EFFE;
+    background: rgba(255, 255, 255, 1);
     border-radius: 8px;
     overflow: hidden;
     border: 1px solid #D5DEFF;
@@ -246,4 +247,8 @@
 
 .add-date-btn span:first-child {
     font-size: 20px;
+}
+.vs-circle{
+    width: 80px;
+    height: 80px;
 }

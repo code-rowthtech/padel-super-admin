@@ -35,10 +35,11 @@ import booking_dropdown_img4 from './images/Untitled-1-01-01-01-01-01 1.png'
 import booking_logo_img from './images/bookingclublogoimage.png'
 import clearall from './images/clear_all.png'
 import bannerimg from './images/bannermobile.png'
+import vs_image from './images/leaguevs.png'
 export {
     bannerimg,
     clearall,
-    twoball,
+    twoball,vs_image,
     taness,
     logo,
     review,
