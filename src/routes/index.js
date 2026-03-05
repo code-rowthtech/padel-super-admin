@@ -85,8 +85,12 @@ const AllRoutes = () => {
               path: "league",
               element: LoadComponent(League),
             },
-             {
+            {
               path: "new-league",
+              element: LoadComponent(NewLeague),
+            },
+            {
+              path: "new-league/:id",
               element: LoadComponent(NewLeague),
             },
             {

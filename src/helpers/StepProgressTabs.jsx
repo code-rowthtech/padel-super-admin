@@ -10,9 +10,7 @@ const StepProgressTabs = ({
 }) => {
     const handleStepClick = (index) => {
         if (!allowStepClick) return;
-        if (index <= activeStep) {
-            onStepChange?.(index);
-        }
+        onStepChange?.(index);
     };
 
     return (

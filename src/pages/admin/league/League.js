@@ -1,45 +1,55 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Card, Table, Button, Dropdown } from "react-bootstrap";
 import { FaUsers, FaEye, FaEdit, FaTrash } from "react-icons/fa";
 import { HiOutlineTrophy } from "react-icons/hi2";
 import { BsRecordCircle } from "react-icons/bs";
 import { IoCashOutline } from "react-icons/io5";
 import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { getLeagues } from '../../../redux/admin/league/thunk';
  
 const League = () => {
     const navigate = useNavigate();
-  const [statusFilter, setStatusFilter] = useState("all");
+    const dispatch = useDispatch();
+    const { leagues, loading } = useSelector(state => state.league);
+    const [statusFilter, setStatusFilter] = useState("all");
+
+    useEffect(() => {
+        dispatch(getLeagues());
+    }, [dispatch]);
+
+    const leaguesData = Array.isArray(leagues) ? leagues : [];
+    const totalParticipants = leaguesData.reduce((sum, league) => sum + league.clubs.reduce((clubSum, club) => clubSum + club.totalRegistrations, 0), 0);
+    const activeLeagues = leaguesData.filter(l => l.status === 'active').length;
+    const totalRevenue = leaguesData.reduce((sum, league) => sum + league.totalPaymentReceived, 0);
  
   const statsCards = [
-    { title: "Total Leagues", cardBorder: "1px solid #1F41BB1A", value: "11", iconBg: '#1F41BB1A', icon: <HiOutlineTrophy style={{ color: '#1F41BB' }} size={20} />, bgColor: "#f3f4f6", tileBg: 'linear-gradient(113.4deg, #FFFFFF 42.44%, #E0E3F2 121.05%)' },
-    { title: "Active Leagues", cardBorder: "1px solid #0596691A", value: "02", iconBg: '#D1FAE5', icon: <BsRecordCircle style={{ color: '#059669' }} size={20} />, bgColor: "#d1fae5", tileBg: 'linear-gradient(113.4deg, #FFFFFF 42.44%, #D1FAE5 121.05%)' },
-    { title: "Total Participants", cardBorder: "1px solid #D977061A", value: "2400", iconBg: '#FEF3C7', icon: <FaUsers className="text-warning" size={20} />, bgColor: "#fef3c7", tileBg: 'linear-gradient(113.4deg, #FFFFFF 42.44%, #FEF3C7 121.05%)' },
-    { title: "Revenue (MTD)", cardBorder: "1px solid #9333EA1A", value: "₹ 40,000", iconBg: '#F3E8FF', icon: <IoCashOutline style={{ color: '#9333EA' }} size={20} />, bgColor: "#e0e7ff", tileBg: 'linear-gradient(113.4deg, #FFFFFF 42.44%, #F3E8FF 121.05%)' },
+    { title: "Total Leagues", cardBorder: "1px solid #1F41BB1A", value: leaguesData.length, iconBg: '#1F41BB1A', icon: <HiOutlineTrophy style={{ color: '#1F41BB' }} size={20} />, bgColor: "#f3f4f6", tileBg: 'linear-gradient(113.4deg, #FFFFFF 42.44%, #E0E3F2 121.05%)' },
+    { title: "Active Leagues", cardBorder: "1px solid #0596691A", value: activeLeagues, iconBg: '#D1FAE5', icon: <BsRecordCircle style={{ color: '#059669' }} size={20} />, bgColor: "#d1fae5", tileBg: 'linear-gradient(113.4deg, #FFFFFF 42.44%, #D1FAE5 121.05%)' },
+    { title: "Total Participants", cardBorder: "1px solid #D977061A", value: totalParticipants, iconBg: '#FEF3C7', icon: <FaUsers className="text-warning" size={20} />, bgColor: "#fef3c7", tileBg: 'linear-gradient(113.4deg, #FFFFFF 42.44%, #FEF3C7 121.05%)' },
+    { title: "Revenue (MTD)", cardBorder: "1px solid #9333EA1A", value: `₹ ${totalRevenue.toLocaleString()}`, iconBg: '#F3E8FF', icon: <IoCashOutline style={{ color: '#9333EA' }} size={20} />, bgColor: "#e0e7ff", tileBg: 'linear-gradient(113.4deg, #FFFFFF 42.44%, #F3E8FF 121.05%)' },
   ];
  
-  const leaguesData = [
-    { name: "Indian Premier League", startDate: "Jun 12, 2026", clubs: 20, participants: "Adams", status: "Ongoing" },
-    { name: "Indian Premier League", startDate: "Jun 12, 2026", clubs: 10, participants: "Ardelage", status: "Upcoming" },
-    { name: "Indian Premier League", startDate: "Jun 12, 2026", clubs: 45, participants: "Arthur", status: "Completed" },
-    { name: "Indian Premier League", startDate: "Jun 12, 2026", clubs: 5, participants: "Banner", status: "Ongoing" },
-  ];
+  const filteredLeagues = statusFilter === "all" ? leaguesData : leaguesData.filter(l => l.status === statusFilter.toLowerCase());
  
   const getStatusBadge = (status) => {
-    const colors = {
-      Ongoing: { bg: "#dcfce7", text: "#16a34a" },
-      Upcoming: { bg: "#fef3c7", text: "#ca8a04" },
-      Completed: { bg: "#dbeafe", text: "#2563eb" },
+    const statusMap = {
+      draft: { bg: "#f3f4f6", text: "#6b7280", label: "Draft" },
+      active: { bg: "#dcfce7", text: "#16a34a", label: "Active" },
+      completed: { bg: "#dbeafe", text: "#2563eb", label: "Completed" },
+      cancelled: { bg: "#fee2e2", text: "#dc2626", label: "Cancelled" },
     };
+    const config = statusMap[status] || statusMap.draft;
     return (
       <span style={{
-        backgroundColor: colors[status]?.bg,
-        color: colors[status]?.text,
+        backgroundColor: config.bg,
+        color: config.text,
         padding: "4px 12px",
         borderRadius: "12px",
         fontSize: "12px",
         fontWeight: "500"
       }}>
-        {status}
+        {config.label}
       </span>
     );
   };
@@ -126,9 +136,10 @@ const League = () => {
               </Dropdown.Toggle>
               <Dropdown.Menu>
                 <Dropdown.Item onClick={() => setStatusFilter("all")}>All</Dropdown.Item>
-                <Dropdown.Item onClick={() => setStatusFilter("Ongoing")}>Ongoing</Dropdown.Item>
-                <Dropdown.Item onClick={() => setStatusFilter("Upcoming")}>Upcoming</Dropdown.Item>
-                <Dropdown.Item onClick={() => setStatusFilter("Completed")}>Completed</Dropdown.Item>
+                <Dropdown.Item onClick={() => setStatusFilter("draft")}>Draft</Dropdown.Item>
+                <Dropdown.Item onClick={() => setStatusFilter("active")}>Active</Dropdown.Item>
+                <Dropdown.Item onClick={() => setStatusFilter("completed")}>Completed</Dropdown.Item>
+                <Dropdown.Item onClick={() => setStatusFilter("cancelled")}>Cancelled</Dropdown.Item>
               </Dropdown.Menu>
             </Dropdown>
           </div>
@@ -145,22 +156,38 @@ const League = () => {
               </tr>
             </thead>
             <tbody>
-              {leaguesData.map((league, idx) => (
-                <tr key={idx}>
-                  <td style={{ padding: "12px" }}>{league.name}</td>
-                  <td style={{ padding: "12px" }}>{league.startDate}</td>
-                  <td style={{ padding: "12px" }}>{league.clubs}</td>
-                  <td style={{ padding: "12px" }}>{league.participants}</td>
-                  <td style={{ padding: "12px" }}>{getStatusBadge(league.status)}</td>
-                  <td style={{ padding: "12px" }}>
-                    <div className="d-flex gap-2">
-                      <FaEye style={{ cursor: "pointer", color: "#6b7280" }} />
-                      <FaEdit style={{ cursor: "pointer", color: "#6b7280" }} />
-                      <FaTrash style={{ cursor: "pointer", color: "#6b7280" }} />
+              {loading ? (
+                <tr>
+                  <td colSpan="6" style={{ padding: "40px", textAlign: "center" }}>
+                    <div className="spinner-border text-primary" role="status">
+                      <span className="visually-hidden">Loading...</span>
                     </div>
                   </td>
                 </tr>
-              ))}
+              ) : filteredLeagues.length === 0 ? (
+                <tr>
+                  <td colSpan="6" style={{ padding: "40px", textAlign: "center", color: "#6b7280" }}>
+                    No leagues found
+                  </td>
+                </tr>
+              ) : (
+                filteredLeagues.map((league) => (
+                  <tr key={league._id}>
+                    <td style={{ padding: "12px" }}>{league.leagueName}</td>
+                    <td style={{ padding: "12px" }}>{new Date(league.startDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
+                    <td style={{ padding: "12px" }}>{league.clubs.length}</td>
+                    <td style={{ padding: "12px" }}>{league.clubs.reduce((sum, club) => sum + club.totalRegistrations, 0)}</td>
+                    <td style={{ padding: "12px" }}>{getStatusBadge(league.status)}</td>
+                    <td style={{ padding: "12px" }}>
+                      <div className="d-flex gap-2">
+                        <FaEye style={{ cursor: "pointer", color: "#6b7280" }} onClick={() => navigate(`/admin/new-league/${league._id}`)} />
+                        <FaEdit style={{ cursor: "pointer", color: "#6b7280" }} onClick={() => navigate(`/admin/new-league/${league._id}`)} />
+                        <FaTrash style={{ cursor: "pointer", color: "#6b7280" }} />
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </Table>
         </Card.Body>
