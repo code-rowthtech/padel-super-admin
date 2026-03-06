@@ -5,6 +5,9 @@ import {
   FaCalendarAlt,
   FaUsersCog,
   FaUser,
+  FaTrophy,
+  FaChevronDown,
+  FaChevronUp,
 } from "react-icons/fa";
 import { useDispatch } from "react-redux";
 import { RiWallet3Line, RiWalletLine } from "react-icons/ri";
@@ -26,6 +29,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   const [hoveredItem, setHoveredItem] = useState(null);
   const [owners, setOwners] = useState([]);
   const [loadingOwners, setLoadingOwners] = useState(false);
+  const [leagueExpanded, setLeagueExpanded] = useState(false);
 
   useEffect(() => {
     if (isSuperAdmin) {
@@ -55,6 +59,13 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   };
 
   const isActivePath = (path) => location.pathname === path;
+  const isLeagueActive = location.pathname.startsWith('/admin/league');
+
+  useEffect(() => {
+    if (isLeagueActive) {
+      setLeagueExpanded(true);
+    }
+  }, [isLeagueActive]);
 
   const linkClasses = (active) =>
     `d-flex align-items-center px-4 py-2 my-1 text-decoration-none mx-3 rounded-2 cursor-pointer ${active ? "active-parent-link" : "bg-transparent"
@@ -428,7 +439,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
           )}
         </div>
 
-          {/* league */}
+        {/* League with Submenu */}
         <div
           className="position-relative"
           onMouseEnter={() =>
@@ -436,32 +447,36 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
           }
           onMouseLeave={() => setHoveredItem(null)}
         >
-          <NavLink
-            to="/admin/league"
-            end
+          <div
             className={
               isCollapsed && window.innerWidth > 768
                 ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
-                : linkClasses(isActivePath("/admin/league"))
+                : linkClasses(isLeagueActive)
             }
-            style={() => ({
-              backgroundColor: isActivePath("/admin/league") ? "rgba(31, 65, 187, 0.15)" : "transparent",
+            style={{
+              backgroundColor: isLeagueActive ? "rgba(31, 65, 187, 0.15)" : "transparent",
               color: "#CCD2DD",
               fontSize: "15px",
               fontWeight: "500",
               fontFamily: "Poppins",
-              boxShadow: isActivePath("/admin/league") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
+              boxShadow: isLeagueActive ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
               minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
               width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-            })}
-            onClick={() => window.innerWidth <= 768 && onClose()}
+              cursor: "pointer"
+            }}
+            onClick={() => !isCollapsed && setLeagueExpanded(!leagueExpanded)}
           >
-            <RiWalletLine
+            <FaTrophy
               className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
               size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
             />
-            {(!isCollapsed || window.innerWidth <= 768) && "League"}
-          </NavLink>
+            {(!isCollapsed || window.innerWidth <= 768) && (
+              <>
+                <span className="flex-grow-1">League</span>
+                {leagueExpanded ? <FaChevronUp size={14} /> : <FaChevronDown size={14} />}
+              </>
+            )}
+          </div>
           {isCollapsed && window.innerWidth > 768 && hoveredItem === "league" && (
             <div
               className="position-absolute bg-dark px-2 py-1 rounded"
@@ -478,6 +493,53 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               }}
             >
               League
+            </div>
+          )}
+          {leagueExpanded && (!isCollapsed || window.innerWidth <= 768) && (
+            <div className="ms-4">
+              <NavLink
+                to="/admin/league"
+                end
+                className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
+                style={{
+                  backgroundColor: isActivePath("/admin/league") ? "rgba(31, 65, 187, 0.1)" : "transparent",
+                  color: "#CCD2DD",
+                  fontSize: "14px",
+                  fontWeight: "400",
+                  fontFamily: "Poppins",
+                }}
+                onClick={() => window.innerWidth <= 768 && onClose()}
+              >
+                League
+              </NavLink>
+              <NavLink
+                to="/admin/league/registration"
+                className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
+                style={{
+                  backgroundColor: isActivePath("/admin/league/registration") ? "rgba(31, 65, 187, 0.1)" : "transparent",
+                  color: "#CCD2DD",
+                  fontSize: "14px",
+                  fontWeight: "400",
+                  fontFamily: "Poppins",
+                }}
+                onClick={() => window.innerWidth <= 768 && onClose()}
+              >
+                Registration
+              </NavLink>
+              <NavLink
+                to="/admin/league/schedule"
+                className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
+                style={{
+                  backgroundColor: isActivePath("/admin/league/schedule") ? "rgba(31, 65, 187, 0.1)" : "transparent",
+                  color: "#CCD2DD",
+                  fontSize: "14px",
+                  fontWeight: "400",
+                  fontFamily: "Poppins",
+                }}
+                onClick={() => window.innerWidth <= 768 && onClose()}
+              >
+                Schedule
+              </NavLink>
             </div>
           )}
         </div>

@@ -22,6 +22,8 @@ const Profile = React.lazy(() => import("../pages/admin/profile/Profile"));
 const OwnersManagement = React.lazy(() => import("../pages/admin/owners/OwnersManagement"));
 const League = React.lazy(() => import("../pages/admin/league/League"));
 const NewLeague = React.lazy(() => import("../pages/admin/league/NewLeague"));
+const Registration = React.lazy(() => import("../pages/admin/league/Registration"));
+const Schedule = React.lazy(() => import("../pages/admin/league/Schedule"));
 
 const NotFound = React.lazy(() => import("../pages/error/NotFound"));
 const loading = <DataLoading  height={900} />;
@@ -84,6 +86,14 @@ const AllRoutes = () => {
             {
               path: "league",
               element: LoadComponent(League),
+            },
+            {
+              path: "league/registration",
+              element: LoadComponent(Registration),
+            },
+            {
+              path: "league/schedule",
+              element: LoadComponent(Schedule),
             },
             {
               path: "new-league",
