@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { CREATE_LEAGUE, GET_LEAGUES, UPDATE_LEAGUE, GET_STATES, GET_CLUB_WITH_STATE, GET_SPONSOR_CATEGORIES, GET_LEAGUE_BY_ID } from "../../../helpers/api/apiEndpoint";
+import { CREATE_LEAGUE, GET_LEAGUES, UPDATE_LEAGUE, GET_STATES, GET_CLUB_WITH_STATE, GET_SPONSOR_CATEGORIES, GET_LEAGUE_BY_ID, DELETE_LEAGUE } from "../../../helpers/api/apiEndpoint";
 import { ownerApi } from "../../../helpers/api/apiCore";
 import { showSuccess, showError } from "../../../helpers/Toast";
 
@@ -133,11 +133,11 @@ export const getClubsWithState = createAsyncThunk(
 
 export const getLeagues = createAsyncThunk(
   "league/getLeagues",
-  async (_, { rejectWithValue }) => {
+  async ({ page = 1, limit = 20 } = {}, { rejectWithValue }) => {
     try {
-      const response = await ownerApi.get(GET_LEAGUES);
+      const response = await ownerApi.get(GET_LEAGUES, { page, limit });
       if (response?.status === 200) {
-        return response.data?.data || [];
+        return response.data || { data: [], pagination: {} };
       }
       showError(response?.data?.message || "Failed to fetch leagues");
       return rejectWithValue(response?.data?.message);
@@ -168,12 +168,24 @@ export const createLeague = createAsyncThunk(
 
 export const updateLeague = createAsyncThunk(
   "league/updateLeague",
-  async ({ leagueData }, { rejectWithValue }) => {
+  async ({ leagueData }, { rejectWithValue, dispatch }) => {
     try {
       console.log('=== UPDATE LEAGUE THUNK ===');
       console.log('Received leagueData:', leagueData);
 
-      const formData = leagueData instanceof FormData ? leagueData : buildLeagueFormData(leagueData);
+      let formData;
+      if (leagueData instanceof FormData) {
+        formData = leagueData;
+      } else if (typeof leagueData === 'object' && Object.keys(leagueData).some(key => key.includes('['))) {
+        // Handle flattened bracket notation (from StructureCategories)
+        formData = new FormData();
+        Object.keys(leagueData).forEach(key => {
+          formData.append(key, leagueData[key]);
+        });
+      } else {
+        // Handle nested object structure (from BasicInformation)
+        formData = buildLeagueFormData(leagueData);
+      }
 
       console.log('FormData to send:');
       for (let pair of formData.entries()) {
@@ -183,8 +195,15 @@ export const updateLeague = createAsyncThunk(
       const response = await ownerApi.putFile(`${UPDATE_LEAGUE}`, formData);
       console.log('API Response:', response);
 
-      if (response?.status === 200) {
+      if (response?.status === 200 && response?.data?.success) {
         showSuccess(response?.data?.message || "League updated successfully");
+        
+        // Refresh league data
+        const leagueId = leagueData.id || formData.get('id');
+        if (leagueId) {
+          await dispatch(getLeagueById(leagueId));
+        }
+        
         return response.data;
       }
       showError(response?.data?.message || "Failed to update league");
@@ -192,6 +211,24 @@ export const updateLeague = createAsyncThunk(
     } catch (error) {
       console.error('Update error:', error);
       showError(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const deleteLeague = createAsyncThunk(
+  "league/deleteLeague",
+  async (leagueId, { rejectWithValue }) => {
+    try {
+      const response = await ownerApi.delete(DELETE_LEAGUE, { _id: leagueId });
+      if (response?.status === 200 && response?.data?.success) {
+        showSuccess(response?.data?.message || "League deleted successfully");
+        return leagueId;
+      }
+      showError(response?.data?.message || "Failed to delete league");
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      showError(error?.message || "Failed to delete league");
       return rejectWithValue(error);
     }
   }

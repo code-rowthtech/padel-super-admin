@@ -15,10 +15,10 @@ const StructureCategories = ({ onNext, onBack }) => {
     const [registrationFee, setRegistrationFee] = useState('');
     const [isFeeEnabled, setIsFeeEnabled] = useState(false);
     const [categories, setCategories] = useState([
-        { name: 'Level A', registeredCount: 2 },
-        { name: 'Level B', registeredCount: 2 },
-        { name: 'Mixed', registeredCount: 2 },
-        { name: 'Female', registeredCount: 2 }
+        { name: 'Level A', registeredCount: 2, isDefault: true },
+        { name: 'Level B', registeredCount: 2, isDefault: true },
+        { name: 'Mixed', registeredCount: 2, isDefault: true },
+        { name: 'Female', registeredCount: 2, isDefault: true }
     ]);
 
     useEffect(() => {
@@ -38,9 +38,10 @@ const StructureCategories = ({ onNext, onBack }) => {
             }
             if (currentLeague.clubs?.[0]?.participationLimit?.categoryLimits?.length > 0) {
                 const limits = currentLeague.clubs[0].participationLimit.categoryLimits;
-                setCategories(limits.map(limit => ({
+                setCategories(limits.map((limit, idx) => ({
                     name: limit.categoryType,
-                    registeredCount: limit.maxParticipants
+                    registeredCount: limit.maxParticipants,
+                    isDefault: idx < 4
                 })));
             }
         }
@@ -50,57 +51,60 @@ const StructureCategories = ({ onNext, onBack }) => {
 
     const updateCategoryValue = (index, value) => {
         const updated = [...categories];
-        const newValue = Math.max(0, value);
-        updated[index].registeredCount = newValue % 2 === 0 ? newValue : newValue + 1;
+        let newValue = Math.max(2, value);
+        if (newValue % 2 !== 0) {
+            newValue = value > updated[index].registeredCount ? newValue + 1 : newValue - 1;
+        }
+        updated[index].registeredCount = Math.max(2, newValue);
         setCategories(updated);
+    };
+
+    const updateCategoryName = (index, name) => {
+        const updated = [...categories];
+        updated[index].name = name;
+        setCategories(updated);
+    };
+
+    const deleteCategory = (index) => {
+        setCategories(categories.filter((_, i) => i !== index));
     };
 
     const handleSubmit = async () => {
         const leagueIdToUpdate = id || leagueId;
         if (!leagueIdToUpdate) return;
 
-        const clubs = currentLeague?.clubs || [];
-        const { priceDistribution, bounty, teamOfLeague, matchRules, ...restLeague } = currentLeague;
-        const updatePayload = {
-            ...restLeague,
-            id: leagueIdToUpdate,
-            stateId: currentLeague.stateId?._id || currentLeague.stateId,
-            clubs: clubs.filter(c => c.clubId).map(club => ({
-                ...club,
-                clubId: club.clubId?._id || club.clubId,
-                categories: categories.map(cat => ({
-                    name: cat.name,
-                    registeredCount: cat.registeredCount
-                })),
-                participationLimit: {
-                    maxParticipants: categories.reduce((sum, cat) => sum + cat.registeredCount, 0),
-                    categoryLimits: categories.map(cat => ({
-                        categoryType: cat.name,
-                        maxParticipants: cat.registeredCount
-                    }))
-                }
-            }))
-        };
+        const updatePayload = { id: leagueIdToUpdate };
 
-        if (registrationDates.startDate) {
-            updatePayload.registration = {};
-            if (registrationDates.startDate) updatePayload.registration.startDate = registrationDates.startDate;
-            if (registrationDates.endDate) updatePayload.registration.endDate = registrationDates.endDate;
-            if (isFeeEnabled && registrationFee) updatePayload.registration.fee = Number(registrationFee);
-            updatePayload.registration.isEnabled = isFeeEnabled;
+        if (registrationDates.startDate && registrationDates.endDate) {
+            updatePayload['registration[startDate]'] = registrationDates.startDate;
+            updatePayload['registration[endDate]'] = registrationDates.endDate;
+            updatePayload['registration[isEnabled]'] = isFeeEnabled;
+            if (isFeeEnabled && registrationFee) {
+                updatePayload['registration[fee]'] = Number(registrationFee);
+            }
         }
 
-        const cleanPayload = JSON.parse(JSON.stringify(updatePayload, (key, value) => 
-            (value === null || value === undefined || value === '' || (Array.isArray(value) && value.length === 0)) ? undefined : value
-        ));
+        // Participation limits for all clubs
+        const clubs = currentLeague?.clubs || [];
+        clubs.forEach((club, index) => {
+            const clubId = club.clubId?._id || club.clubId;
+            if (clubId) {
+                updatePayload[`clubs[${index}][clubId]`] = clubId;
+                if (club.ownerId) updatePayload[`clubs[${index}][ownerId]`] = club.ownerId;
+                categories.forEach((cat, catIndex) => {
+                    updatePayload[`clubs[${index}][participationLimit][categoryLimits][${catIndex}][categoryType]`] = cat.name;
+                    updatePayload[`clubs[${index}][participationLimit][categoryLimits][${catIndex}][maxParticipants]`] = cat.registeredCount;
+                });
+            } 
+        });
 
-        const result = await dispatch(updateLeague({ leagueData: cleanPayload }));
+        const result = await dispatch(updateLeague({ leagueData: updatePayload }));
         if (result.meta.requestStatus === 'fulfilled') onNext();
     };
 
     return (
-        <>
-            <div className='p-2 rounded' style={{ backgroundColor: "#F1F5F94D" }}>
+        <div className='h-100 overflow-hidden'> 
+            <div className='p-2 rounded' style={{ backgroundColor: "#F1F5F94D",height:'90%',overflowX:'hidden', }}>
                 <div className="d-flex align-items-center mb-4">
                     <BsInfoCircle size={20} className="me-2" />
                     <h5 className="mb-0 fw-semibold">Players Registration / Fee</h5>
@@ -156,7 +160,7 @@ const StructureCategories = ({ onNext, onBack }) => {
 
                 <div className="d-flex align-items-center justify-content-between mb-3">
                     <h5 className="mb-0 fw-semibold">Participation Limit</h5>
-                    <button type="button" className="d-flex align-items-center position-relative p-0 border-0" style={{ borderRadius: "20px 10px 10px 20px", background: "none", overflow: "hidden", cursor: "pointer", transition: "all 0.3s ease", flexShrink: 0 }} onClick={(e) => { e.preventDefault(); setCategories([...categories, { name: 'New Category', registeredCount: 2 }]); }}>
+                    <button type="button" className="d-flex align-items-center position-relative p-0 border-0" style={{ borderRadius: "20px 10px 10px 20px", background: "none", overflow: "hidden", cursor: "pointer", transition: "all 0.3s ease", flexShrink: 0 }} onClick={(e) => { e.preventDefault(); setCategories([...categories, { name: 'New Category', registeredCount: 2, isDefault: false }]); }}>
                         <div className="p-md-1 p-2 rounded-circle bg-light" style={{ position: "relative", left: "10px" }}>
                             <div className="d-flex justify-content-center align-items-center text-white fw-bold" style={{ backgroundColor: "#1F41BB", width: "36px", height: "36px", borderRadius: "50%", fontSize: "20px" }}>
                                 <span className="mb-1">+</span>
@@ -168,53 +172,46 @@ const StructureCategories = ({ onNext, onBack }) => {
                     </button>
                 </div>
 
-                <div style={{ border: '1px solid #E5E7EB', borderRadius: '8px', overflow: 'hidden' }}>
-                    <div className="d-flex align-items-center" style={{ backgroundColor: '#F9FAFB', borderBottom: '1px solid #E5E7EB' }}>
-                        <div style={{ flex: 1, padding: '12px 16px', fontWeight: '600', fontSize: '14px' }}>Game Category</div>
-                        <div style={{ width: '180px', padding: '12px 16px', fontWeight: '600', fontSize: '14px', textAlign: 'center', borderLeft: '1px solid #E5E7EB' }}>Level A</div>
-                        <div style={{ width: '180px', padding: '12px 16px', fontWeight: '600', fontSize: '14px', textAlign: 'center', borderLeft: '1px solid #E5E7EB' }}>Level B</div>
-                        <div style={{ width: '180px', padding: '12px 16px', fontWeight: '600', fontSize: '14px', textAlign: 'center', borderLeft: '1px solid #E5E7EB' }}>Mixed</div>
-                        <div style={{ width: '180px', padding: '12px 16px', fontWeight: '600', fontSize: '14px', textAlign: 'center', borderLeft: '1px solid #E5E7EB' }}>Female</div>
+                <div style={{ border: '1px solid #E5E7EB', borderRadius: '8px', overflow: 'auto' }}>
+                    <div className="d-flex align-items-center" style={{ backgroundColor: '#F9FAFB', borderBottom: '1px solid #E5E7EB', minWidth: 'fit-content' }}>
+                        <div style={{ minWidth: '200px', padding: '12px 16px', fontWeight: '600', fontSize: '14px' }}>Game Category</div>
+                        {categories.map((cat, index) => (
+                            <div key={index} style={{ width: '180px', padding: '8px 16px', borderLeft: '1px solid #E5E7EB', textAlign: 'center', position: 'relative' }}>
+                                <Form.Control
+                                    type="text"
+                                    value={cat.name}
+                                    onChange={(e) => updateCategoryName(index, e.target.value)}
+                                    style={{ fontSize: '14px', fontWeight: '600', textAlign: 'center', border: 'none', backgroundColor: 'transparent', padding: '4px' }}
+                                />
+                                {!cat.isDefault && (
+                                    <button
+                                        onClick={() => deleteCategory(index)}
+                                        style={{ position: 'absolute', top: '8px', right: '8px', background: '#EF4444', color: 'white', border: 'none', borderRadius: '50%', width: '20px', height: '20px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                    >×</button>
+                                )}
+                            </div>
+                        ))}
                     </div>
 
-                    <div className="d-flex align-items-center">
-                        <div style={{ flex: 1, padding: '12px 16px', fontSize: '14px' }}>Max Participants per club</div>
-                        <div style={{ width: '180px', padding: '12px 16px', textAlign: 'center', borderLeft: '1px solid #E5E7EB' }}>
-                            <div className="d-flex align-items-center justify-content-center shadow-sm gap-2 ps-0 pe-0 p-2 rounded-3" style={{ backgroundColor: "#F1F5F94D" }}>
-                                <Button size="sm" variant="light" style={{ width: '30px', height: '30px', padding: 0, border: '1px solid #E5E7EB' }} onClick={() => updateCategoryValue(0, categories[0].registeredCount - 1)}><AiOutlineMinus size={14} /></Button>
-                                <span style={{ minWidth: '30px', textAlign: 'center', fontWeight: '500' }}>{categories[0].registeredCount}</span>
-                                <Button size="sm" variant="light" style={{ width: '30px', height: '30px', padding: 0, border: '1px solid #E5E7EB' }} onClick={() => updateCategoryValue(0, categories[0].registeredCount + 1)}><AiOutlinePlus size={14} /></Button>
+                    <div className="d-flex align-items-center" style={{ minWidth: 'fit-content' }}>
+                        <div style={{ minWidth: '200px', padding: '12px 16px', fontSize: '14px' }}>Max Participants per club</div>
+                        {categories.map((cat, index) => (
+                            <div key={index} style={{ width: '180px', padding: '12px 16px', textAlign: 'center', borderLeft: '1px solid #E5E7EB' }}>
+                                <div className="d-flex align-items-center justify-content-center shadow-sm gap-2 ps-0 pe-0 p-2 rounded-3" style={{ backgroundColor: "#F1F5F94D" }}>
+                                    <Button size="sm" variant="light" style={{ width: '30px', height: '30px', padding: 0, border: '1px solid #E5E7EB' }} onClick={() => updateCategoryValue(index, cat.registeredCount - 1)}><AiOutlineMinus size={14} /></Button>
+                                    <span style={{ minWidth: '30px', textAlign: 'center', fontWeight: '500' }}>{cat.registeredCount}</span>
+                                    <Button size="sm" variant="light" style={{ width: '30px', height: '30px', padding: 0, border: '1px solid #E5E7EB' }} onClick={() => updateCategoryValue(index, cat.registeredCount + 1)}><AiOutlinePlus size={14} /></Button>
+                                </div>
                             </div>
-                        </div>
-                        <div style={{ width: '180px', padding: '12px 16px', textAlign: 'center', borderLeft: '1px solid #E5E7EB' }}>
-                            <div className="d-flex align-items-center justify-content-center shadow-sm gap-2 ps-0 pe-0 p-2 rounded-3" style={{ backgroundColor: "#F1F5F94D" }}>
-                                <Button size="sm" variant="light" style={{ width: '30px', height: '30px', padding: 0, border: '1px solid #E5E7EB' }} onClick={() => updateCategoryValue(1, categories[1].registeredCount - 1)}><AiOutlineMinus size={14} /></Button>
-                                <span style={{ minWidth: '30px', textAlign: 'center', fontWeight: '500' }}>{categories[1].registeredCount}</span>
-                                <Button size="sm" variant="light" style={{ width: '30px', height: '30px', padding: 0, border: '1px solid #E5E7EB' }} onClick={() => updateCategoryValue(1, categories[1].registeredCount + 1)}><AiOutlinePlus size={14} /></Button>
-                            </div>
-                        </div>
-                        <div style={{ width: '180px', padding: '12px 16px', textAlign: 'center', borderLeft: '1px solid #E5E7EB' }}>
-                            <div className="d-flex align-items-center justify-content-center shadow-sm gap-2 ps-0 pe-0 p-2 rounded-3" style={{ backgroundColor: "#F1F5F94D" }}>
-                                <Button size="sm" variant="light" style={{ width: '30px', height: '30px', padding: 0, border: '1px solid #E5E7EB' }} onClick={() => updateCategoryValue(2, categories[2].registeredCount - 1)}><AiOutlineMinus size={14} /></Button>
-                                <span style={{ minWidth: '30px', textAlign: 'center', fontWeight: '500' }}>{categories[2].registeredCount}</span>
-                                <Button size="sm" variant="light" style={{ width: '30px', height: '30px', padding: 0, border: '1px solid #E5E7EB' }} onClick={() => updateCategoryValue(2, categories[2].registeredCount + 1)}><AiOutlinePlus size={14} /></Button>
-                            </div>
-                        </div>
-                        <div style={{ width: '180px', padding: '12px 16px', textAlign: 'center', borderLeft: '1px solid #E5E7EB' }}>
-                            <div className="d-flex align-items-center justify-content-center shadow-sm gap-2 ps-0 pe-0 p-2 rounded-3" style={{ backgroundColor: "#F1F5F94D" }}>
-                                <Button size="sm" variant="light" style={{ width: '30px', height: '30px', padding: 0, border: '1px solid #E5E7EB' }} onClick={() => updateCategoryValue(3, categories[3].registeredCount - 1)}><AiOutlineMinus size={14} /></Button>
-                                <span style={{ minWidth: '30px', textAlign: 'center', fontWeight: '500' }}>{categories[3].registeredCount}</span>
-                                <Button size="sm" variant="light" style={{ width: '30px', height: '30px', padding: 0, border: '1px solid #E5E7EB' }} onClick={() => updateCategoryValue(3, categories[3].registeredCount + 1)}><AiOutlinePlus size={14} /></Button>
-                            </div>
-                        </div>
+                        ))}
                     </div>
                 </div>
             </div>
-            <div className="d-flex justify-content-end gap-3 mt-4">
-                <button className='border-0 rounded-pill' style={{ backgroundColor: '#E5E7EB', color: '#374151', padding: '12px 32px', fontSize: '16px', fontWeight: '600' }} onClick={onBack}>Back</button>
-                <button className='border-0 rounded-pill text-white' disabled={loading} style={{ backgroundColor: '#3DBE64', padding: '12px 32px', fontSize: '16px', fontWeight: '600' }} onClick={handleSubmit}>{loading ? 'Updating...' : 'Next'}</button>
+            <div style={{height:'10%'}} className="text-end overflow-hidden mt-4">
+                <button className='border-0 me-3 rounded-pill px-5 py-2' style={{ backgroundColor: '#E5E7EB', color: '#374151',  fontSize: '16px', fontWeight: '600' }} onClick={onBack}>Back</button>
+                <button className='border-0 rounded-pill py-2 text-white' disabled={loading} style={{ backgroundColor: '#3DBE64',width:'10rem',  fontSize: '16px', fontWeight: '600' }} onClick={handleSubmit}>{loading ? 'Updating...' : 'Next'}</button>
             </div>
-        </>
+        </div>
     );
 };
 

@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createLeague, getLeagues, updateLeague, getStates, getClubsWithState, getSponsorCategories, getLeagueById } from "./thunk";
+import { createLeague, getLeagues, updateLeague, getStates, getClubsWithState, getSponsorCategories, getLeagueById, deleteLeague } from "./thunk";
 
 const initialState = {
   leagues: [],
@@ -9,6 +9,7 @@ const initialState = {
   clubs: [],
   sponsorCategories: [],
   loading: false,
+  loadingLeague: false,
   error: null,
 };
 
@@ -29,9 +30,18 @@ const leagueSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      .addCase(getLeagueById.pending, (state) => {
+        state.loadingLeague = true;
+        state.error = null;
+      })
       .addCase(getLeagueById.fulfilled, (state, action) => {
+        state.loadingLeague = false;
         state.currentLeague = action.payload;
         state.leagueId = action.payload?._id;
+      })
+      .addCase(getLeagueById.rejected, (state, action) => {
+        state.loadingLeague = false;
+        state.error = action.payload;
       })
       .addCase(getSponsorCategories.fulfilled, (state, action) => {
         state.sponsorCategories = action.payload;
@@ -79,6 +89,18 @@ const leagueSlice = createSlice({
         if (index !== -1) state.leagues[index] = action.payload;
       })
       .addCase(updateLeague.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(deleteLeague.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteLeague.fulfilled, (state, action) => {
+        state.loading = false;
+        state.leagues = state.leagues.filter(l => l._id !== action.payload);
+      })
+      .addCase(deleteLeague.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

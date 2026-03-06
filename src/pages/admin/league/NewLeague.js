@@ -13,9 +13,8 @@ const NewLeague = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { id } = useParams();
-    const { loading, currentLeague } = useSelector(state => state.league);
+    const { loadingLeague, currentLeague } = useSelector(state => state.league);
     const [activeStep, setActiveStep] = useState(0);
-
     const steps = ['Basic Information', 'Structure & Categories', 'Rules & Settings'];
 
     useEffect(() => {
@@ -28,32 +27,36 @@ const NewLeague = () => {
     }, [dispatch, id]);
 
     return (
-        <Container fluid className="p-4 bg-white" style={{ minHeight: '100vh' }}>
-            {loading && id && !currentLeague ? (
+        <Container fluid className="p-4 pt-0 overflow-hidden bg-white" style={{ height: '90vh' }}>
+            {loadingLeague && id && !currentLeague ? (
                 <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
                     <div className="spinner-border text-primary" role="status">
                         <span className="visually-hidden">Loading...</span>
                     </div>
                 </div>
             ) : (
-                <Row>
-                    <Col>
-                        <div className="d-flex align-items-center mb-0">
+                <Row className='h-100'>
+                    <Col style={{height:'20%'}} sm={12} className='d-flex align-items-center'>
+                        {/* <div className="d-flex align-items-center mb-0">
                             <BsArrowLeft onClick={() => navigate('/admin/league')} size={20} className="me-2" style={{ cursor: 'pointer' }} />
                             <h5 className="mb-0 fw-semibold">{id ? 'Edit League' : 'New League'}</h5>
-                        </div>
+                        </div> */}
 
-                        <div className="mb-2">
                             <StepProgressTabs
                                 steps={steps}
                                 activeStep={activeStep}
                                 onStepChange={setActiveStep}
                                 allowStepClick={true}
                             />
-                        </div>
-
+                    </Col>
+                    <Col style={{height:'80%', overflowY:'scroll'}}  sm={12}>
                         {activeStep === 0 && <BasicInformation onNext={() => setActiveStep(1)} />}
-                        {activeStep === 1 && <StructureCategories onNext={() => setActiveStep(2)} onBack={() => setActiveStep(0)} />}
+                        {activeStep === 1 && <StructureCategories onNext={() => {
+                            if (id) {
+                                dispatch(getLeagueById(id));
+                            }
+                            setActiveStep(2);
+                        }} onBack={() => setActiveStep(0)} />}
                         {activeStep === 2 && <RuleSettings onBack={() => setActiveStep(1)} />}
                     </Col>
                 </Row>
