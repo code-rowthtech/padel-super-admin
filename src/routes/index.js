@@ -8,9 +8,6 @@ import { DataLoading, Loading } from "../helpers/loading/Loaders";
 import NoInternet from "../helpers/network/NoInternet";
 import AdminLayout from "../helpers/layout/AdminLayout";
 
-
-
-// ✅ SUPER ADMIN ONLY - Removed all user-facing pages
 const AdminLogin = React.lazy(() => import("../pages/admin/auth/Login"));
 // ✅ SUPER ADMIN ONLY - Keep only essential pages
 const AdminDashboard = React.lazy(() => import("../pages/admin/dashboard/Dashboard"));
@@ -24,7 +21,6 @@ const NewLeague = React.lazy(() => import("../pages/admin/league/NewLeagueCreati
 const LeagueCreation = React.lazy(() => import("../pages/admin/league/LeagueCreation"));
 const LeagueRegistration = React.lazy(() => import("../pages/admin/league/LeagueRegistration"));
 const LeagueSchedule = React.lazy(() => import("../pages/admin/league/LeagueSchedule"));
-const LeagueScheduleMatch = React.lazy(() => import("../pages/admin/league/LeagueScheduleMatch"));
 
 
 const NotFound = React.lazy(() => import("../pages/error/NotFound"));
@@ -97,10 +93,6 @@ const AllRoutes = () => {
             {
               path: "league/schedule",
               element: LoadComponent(LeagueSchedule),
-            },
-              {
-              path: "league/schedule-match",
-              element: LoadComponent(LeagueScheduleMatch),
             },
             {
               path: "new-league",

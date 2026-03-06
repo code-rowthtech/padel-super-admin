@@ -5,9 +5,9 @@ import {
   FaCalendarAlt,
   FaUsersCog,
   FaUser,
-  FaChevronDown,
-  FaChevronRight,
   FaTrophy,
+  FaChevronDown,
+  FaChevronUp,
 } from "react-icons/fa";
 import { useDispatch } from "react-redux";
 import { RiWallet3Line, RiWalletLine } from "react-icons/ri";
@@ -29,7 +29,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   const [hoveredItem, setHoveredItem] = useState(null);
   const [owners, setOwners] = useState([]);
   const [loadingOwners, setLoadingOwners] = useState(false);
-  const [leagueDropdownOpen, setLeagueDropdownOpen] = useState(false);
+  const [leagueExpanded, setLeagueExpanded] = useState(false);
 
   useEffect(() => {
     if (isSuperAdmin) {
@@ -59,8 +59,6 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   };
 
   const isActivePath = (path) => location.pathname === path;
-  
-
   const isLeagueActive = location.pathname.startsWith('/admin/league');
 
   useEffect(() => {
@@ -441,70 +439,60 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
           )}
         </div>
 
-        {/* League Dropdown */}
-        <div className="position-relative">
+        {/* League with Submenu */}
+        <div
+          className="position-relative"
+          onMouseEnter={() =>
+            isCollapsed && window.innerWidth > 768 && setHoveredItem("league")
+          }
+          onMouseLeave={() => setHoveredItem(null)}
+        >
           <div
-            className={linkClasses(location.pathname.includes("/admin/league"))}
-            onClick={() => setLeagueDropdownOpen(!leagueDropdownOpen)}
+            className={
+              isCollapsed && window.innerWidth > 768
+                ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
+                : linkClasses(isLeagueActive)
+            }
             style={{
-              backgroundColor: location.pathname.includes("/admin/league") ? "rgba(31, 65, 187, 0.15)" : "transparent",
+              backgroundColor: isLeagueActive ? "rgba(31, 65, 187, 0.15)" : "transparent",
               color: "#CCD2DD",
               fontSize: "15px",
               fontWeight: "500",
               fontFamily: "Poppins",
-              cursor: "pointer",
+              boxShadow: isLeagueActive ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
+              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              cursor: "pointer"
             }}
+            onClick={() => !isCollapsed && setLeagueExpanded(!leagueExpanded)}
           >
-            <FaTrophy className="me-4" size={20} />
-            {(!isCollapsed || window.innerWidth <= 768) && "League"}
+            <FaTrophy
+              className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
+              size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
+            />
             {(!isCollapsed || window.innerWidth <= 768) && (
-              <span className="ms-auto">
-                {leagueDropdownOpen ? <FaChevronDown size={14} /> : <FaChevronRight size={14} />}
-              </span>
+              <>
+                <span className="flex-grow-1">League</span>
+                {leagueExpanded ? <FaChevronUp size={14} /> : <FaChevronDown size={14} />}
+              </>
             )}
           </div>
-          
-          {leagueDropdownOpen && (!isCollapsed || window.innerWidth <= 768) && (
-            <div className="ms-4">
-              <NavLink
-                to="/admin/league/creation"
-                className={linkClasses(isActivePath("/admin/league/creation"))}
-                style={() => ({
-                  backgroundColor: isActivePath("/admin/league/creation") ? "rgba(31, 65, 187, 0.15)" : "transparent",
-                  color: "#CCD2DD",
-                  fontSize: "14px",
-                  paddingLeft: "2rem",
-                })}
-                onClick={() => window.innerWidth <= 768 }
-              >
-                Creation
-              </NavLink>
-              <NavLink
-                to="/admin/league/registration"
-                className={linkClasses(isActivePath("/admin/league/registration"))}
-                style={() => ({
-                  backgroundColor: isActivePath("/admin/league/registration") ? "rgba(31, 65, 187, 0.15)" : "transparent",
-                  color: "#CCD2DD",
-                  fontSize: "14px",
-                  paddingLeft: "2rem",
-                })}
-                onClick={() => window.innerWidth <= 768 }
-              >
-                Registration
-              </NavLink>
-              <NavLink
-                to="/admin/league/schedule"
-                className={linkClasses(isActivePath("/admin/league/schedule"))}
-                style={() => ({
-                  backgroundColor: isActivePath("/admin/league/schedule") ? "rgba(31, 65, 187, 0.15)" : "transparent",
-                  color: "#CCD2DD",
-                  fontSize: "14px",
-                  paddingLeft: "2rem",
-                })}
-                onClick={() => window.innerWidth <= 768}
-              >
-                Schedule
-              </NavLink>
+          {isCollapsed && window.innerWidth > 768 && hoveredItem === "league" && (
+            <div
+              className="position-absolute bg-dark px-2 py-1 rounded"
+              style={{
+                left: "75px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                zIndex: 1200,
+                fontSize: "15px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+                color: "#CCD2DD",
+                whiteSpace: "nowrap",
+              }}
+            >
+              League
             </div>
           )}
           {leagueExpanded && (!isCollapsed || window.innerWidth <= 768) && (
