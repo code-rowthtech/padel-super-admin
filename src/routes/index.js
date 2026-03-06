@@ -107,6 +107,10 @@ const AllRoutes = () => {
               element: LoadComponent(NewLeague),
             },
             {
+              path: "new-league/:id",
+              element: LoadComponent(NewLeague),
+            },
+            {
               path: "wallet",
               element: LoadComponent(Wallet),
             },

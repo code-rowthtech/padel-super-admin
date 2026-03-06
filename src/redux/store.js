@@ -6,6 +6,7 @@ import bookingReducer from "./admin/booking/slice";
 import dashboardReducer from "./admin/dashboard/slice";
 import logoReducer from "./admin/logo/slice";
 import notificationDataReducer from "./admin/notifiction/slice";
+import leagueReducer from "./admin/league/slice";
 
 const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ const store = configureStore({
     dashboard: dashboardReducer,
     logo: logoReducer,
     notificationData: notificationDataReducer,
+    league: leagueReducer,
   },
 });
 

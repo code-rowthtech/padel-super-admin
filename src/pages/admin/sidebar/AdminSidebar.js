@@ -59,6 +59,15 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   };
 
   const isActivePath = (path) => location.pathname === path;
+  
+
+  const isLeagueActive = location.pathname.startsWith('/admin/league');
+
+  useEffect(() => {
+    if (isLeagueActive) {
+      setLeagueExpanded(true);
+    }
+  }, [isLeagueActive]);
 
   const linkClasses = (active) =>
     `d-flex align-items-center px-4 py-2 my-1 text-decoration-none mx-3 rounded-2 cursor-pointer ${active ? "active-parent-link" : "bg-transparent"
@@ -493,6 +502,53 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
                   paddingLeft: "2rem",
                 })}
                 onClick={() => window.innerWidth <= 768}
+              >
+                Schedule
+              </NavLink>
+            </div>
+          )}
+          {leagueExpanded && (!isCollapsed || window.innerWidth <= 768) && (
+            <div className="ms-4">
+              <NavLink
+                to="/admin/league"
+                end
+                className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
+                style={{
+                  backgroundColor: isActivePath("/admin/league") ? "rgba(31, 65, 187, 0.1)" : "transparent",
+                  color: "#CCD2DD",
+                  fontSize: "14px",
+                  fontWeight: "400",
+                  fontFamily: "Poppins",
+                }}
+                onClick={() => window.innerWidth <= 768 && onClose()}
+              >
+                League
+              </NavLink>
+              <NavLink
+                to="/admin/league/registration"
+                className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
+                style={{
+                  backgroundColor: isActivePath("/admin/league/registration") ? "rgba(31, 65, 187, 0.1)" : "transparent",
+                  color: "#CCD2DD",
+                  fontSize: "14px",
+                  fontWeight: "400",
+                  fontFamily: "Poppins",
+                }}
+                onClick={() => window.innerWidth <= 768 && onClose()}
+              >
+                Registration
+              </NavLink>
+              <NavLink
+                to="/admin/league/schedule"
+                className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
+                style={{
+                  backgroundColor: isActivePath("/admin/league/schedule") ? "rgba(31, 65, 187, 0.1)" : "transparent",
+                  color: "#CCD2DD",
+                  fontSize: "14px",
+                  fontWeight: "400",
+                  fontFamily: "Poppins",
+                }}
+                onClick={() => window.innerWidth <= 768 && onClose()}
               >
                 Schedule
               </NavLink>

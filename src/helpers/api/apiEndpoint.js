@@ -6,6 +6,7 @@ export const Verify_Otp = "/api/customer/verifyOtp";
 export const GET_MATCH_API = "";
 export const API = "";
 export const GET_CLUB_API = "/api/club/getAllRegisteredCourts";
+export const GET_CLUB_WITH_STATE = "/api/club/getClubsWithState";
 export const GET_SLOT_API = "/api/slot/getAllActiveCourts";
 export const GET_SLOT_BOOKING_API = "/api/slot/getAllActiveCourtsForSlotWise";
 export const GET_SLOT_PRICES = "/api/price/prices";
@@ -99,7 +100,7 @@ export const CREATE_OPEN_MATCH = "/api/openmatch/createOpenMatch ";
 
 export const SEARCH_USER_BY_PHONE_NUMBER =
   "/api/booking/getCustomerDataByPhoneNumber";
-export const MAP_API = "/api/googleMap/GetgoogleMap"; 
+export const MAP_API = "/api/googleMap/GetgoogleMap";
 
 
 // help and support
@@ -138,3 +139,11 @@ export const SUPER_ADMIN_UPDATE_PAYMENT_STATUS = "/api/super-admin/update-paymen
 // Wallet (Customer)
 export const SUPER_ADMIN_GET_WALLET_USERS = "/api/super-admin/wallet-users";
 export const SUPER_ADMIN_GET_WALLET_TRANSACTIONS = "/api/super-admin/wallet-transactions";
+
+// League Management
+export const CREATE_LEAGUE = "/api/leagues/createLeague";
+export const GET_LEAGUES = "/api/leagues/getAllLeagues";
+export const UPDATE_LEAGUE = "/api/leagues/updateLeague";
+export const GET_LEAGUE_BY_ID = "/api/leagues/getLeagueById";
+export const DELETE_LEAGUE = "/api/leagues/deleteLeague";
+export const GET_SPONSOR_CATEGORIES = "/api/sponsor-categories";

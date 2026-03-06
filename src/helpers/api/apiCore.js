@@ -167,15 +167,26 @@ const createApi = (axiosInstance) => ({
   delete: (url, params = {}) =>
     axiosInstance.delete(url, { params }),
 
-  postFile: (url, data) =>
-    axiosInstance.post(url, buildFormData(data), {
+  postFile: (url, data) => {
+    const formData = data instanceof FormData ? data : buildFormData(data);
+    return axiosInstance.post(url, formData, {
       headers: { "Content-Type": "multipart/form-data" },
-    }),
+    });
+  },
 
-  patchFile: (url, data) =>
-    axiosInstance.patch(url, buildFormData(data), {
+  patchFile: (url, data) => {
+    const formData = data instanceof FormData ? data : buildFormData(data);
+    return axiosInstance.patch(url, formData, {
       headers: { "Content-Type": "multipart/form-data" },
-    }),
+    });
+  },
+
+  putFile: (url, data) => {
+    const formData = data instanceof FormData ? data : buildFormData(data);
+    return axiosInstance.put(url, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
 });
 
 export const userApi = createApi(userAxios);
