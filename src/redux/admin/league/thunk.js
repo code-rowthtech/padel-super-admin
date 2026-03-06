@@ -1,0 +1,235 @@
+import { createAsyncThunk } from "@reduxjs/toolkit";
+import { CREATE_LEAGUE, GET_LEAGUES, UPDATE_LEAGUE, GET_STATES, GET_CLUB_WITH_STATE, GET_SPONSOR_CATEGORIES, GET_LEAGUE_BY_ID, DELETE_LEAGUE } from "../../../helpers/api/apiEndpoint";
+import { ownerApi } from "../../../helpers/api/apiCore";
+import { showSuccess, showError } from "../../../helpers/Toast";
+
+const buildLeagueFormData = (data) => {
+  const formData = new FormData();
+
+  // Basic fields
+  if (data.id) formData.append('id', data.id);
+  if (data.leagueName) formData.append('leagueName', data.leagueName);
+  if (data.stateId) formData.append('stateId', data.stateId);
+  if (data.startDate) formData.append('startDate', data.startDate);
+  if (data.ownerId) formData.append('ownerId', data.ownerId);
+  if (data.status) formData.append('status', data.status);
+
+  // Banner Files
+  if (data.mobileBanner instanceof File) formData.append('mobileBanner', data.mobileBanner);
+  if (data.webBanner instanceof File) formData.append('webBanner', data.webBanner);
+
+  // Clubs array
+  if (data.clubs && data.clubs.length > 0) {
+    data.clubs.forEach((club, index) => {
+      formData.append(`clubs[${index}][clubId]`, club.clubId);
+      if (club.ownerId) formData.append(`clubs[${index}][ownerId]`, club.ownerId);
+      if (club.categories) {
+        club.categories.forEach((cat, catIndex) => {
+          formData.append(`clubs[${index}][categories][${catIndex}][name]`, cat.name);
+          formData.append(`clubs[${index}][categories][${catIndex}][type]`, cat.type);
+        });
+      }
+      if (club.participationLimit) {
+        // if (club.participationLimit.maxParticipants) {
+        //   formData.append(`clubs[${index}][participationLimit][maxParticipants]`, club.participationLimit.maxParticipants);
+        // }
+        if (club.participationLimit.categoryLimits) {
+          club.participationLimit.categoryLimits.forEach((limit, limitIndex) => {
+            formData.append(`clubs[${index}][participationLimit][categoryLimits][${limitIndex}][categoryType]`, limit.categoryType);
+            formData.append(`clubs[${index}][participationLimit][categoryLimits][${limitIndex}][maxParticipants]`, limit.maxParticipants);
+          });
+        }
+      }
+    });
+  }
+
+  // Title Sponsor
+  if (data.titleSponsor) {
+    const { logo, ...titleSponsorData } = data.titleSponsor;
+    formData.append('titleSponsor', JSON.stringify(titleSponsorData));
+    if (logo instanceof File) formData.append('titleSponsorLogo', logo);
+  }
+
+  // Sponsors array
+  if (data.sponsors && data.sponsors.length > 0) {
+    const sponsorsData = data.sponsors.map(({ logo, ...rest }) => rest);
+    formData.append('sponsors', JSON.stringify(sponsorsData));
+
+    data.sponsors.forEach((sponsor, index) => {
+      if (sponsor.logo instanceof File) {
+        formData.append(`sponsorLogo_${index}`, sponsor.logo);
+      }
+    });
+  }
+
+  // Step 2 & 3 fields
+  if (data.matchRules) formData.append('matchRules', JSON.stringify(data.matchRules));
+  if (data.priceDistribution) formData.append('priceDistribution', JSON.stringify(data.priceDistribution));
+  if (data.bounty !== undefined) formData.append('bounty', data.bounty);
+  if (data.teamOfLeague !== undefined) formData.append('teamOfLeague', data.teamOfLeague);
+
+  return formData;
+};
+
+export const getLeagueById = createAsyncThunk(
+  "league/getLeagueById",
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await ownerApi.get(`${GET_LEAGUE_BY_ID}?id=${id}`);
+      if (response?.status === 200) {
+        return response.data?.data;
+      }
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const getSponsorCategories = createAsyncThunk(
+  "league/getSponsorCategories",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await ownerApi.get(GET_SPONSOR_CATEGORIES);
+      if (response?.status === 200) {
+        return response.data?.data || [];
+      }
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const getStates = createAsyncThunk(
+  "league/getStates",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await ownerApi.get(GET_STATES);
+      if (response?.status === 200) {
+        return response.data?.data || [];
+      }
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const getClubsWithState = createAsyncThunk(
+  "league/getClubsWithState",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await ownerApi.get(GET_CLUB_WITH_STATE);
+      if (response?.status === 200) {
+        return response.data?.data || [];
+      }
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const getLeagues = createAsyncThunk(
+  "league/getLeagues",
+  async ({ page = 1, limit = 20 } = {}, { rejectWithValue }) => {
+    try {
+      const response = await ownerApi.get(GET_LEAGUES, { page, limit });
+      if (response?.status === 200) {
+        return response.data || { data: [], pagination: {} };
+      }
+      showError(response?.data?.message || "Failed to fetch leagues");
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      showError(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const createLeague = createAsyncThunk(
+  "league/createLeague",
+  async (formData, { rejectWithValue }) => {
+    try {
+      const response = await ownerApi.postFile(CREATE_LEAGUE, formData);
+      if (response?.status === 200 || response?.status === 201) {
+        showSuccess(response?.data?.message || "League created successfully");
+        return response.data;
+      }
+      showError(response?.data?.message || "Failed to create league");
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      showError(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const updateLeague = createAsyncThunk(
+  "league/updateLeague",
+  async ({ leagueData }, { rejectWithValue, dispatch }) => {
+    try {
+      console.log('=== UPDATE LEAGUE THUNK ===');
+      console.log('Received leagueData:', leagueData);
+
+      let formData;
+      if (leagueData instanceof FormData) {
+        formData = leagueData;
+      } else if (typeof leagueData === 'object' && Object.keys(leagueData).some(key => key.includes('['))) {
+        // Handle flattened bracket notation (from StructureCategories)
+        formData = new FormData();
+        Object.keys(leagueData).forEach(key => {
+          formData.append(key, leagueData[key]);
+        });
+      } else {
+        // Handle nested object structure (from BasicInformation)
+        formData = buildLeagueFormData(leagueData);
+      }
+
+      console.log('FormData to send:');
+      for (let pair of formData.entries()) {
+        console.log(pair[0], pair[1]);
+      }
+
+      const response = await ownerApi.putFile(`${UPDATE_LEAGUE}`, formData);
+      console.log('API Response:', response);
+
+      if (response?.status === 200 && response?.data?.success) {
+        showSuccess(response?.data?.message || "League updated successfully");
+        
+        // Refresh league data
+        const leagueId = leagueData.id || formData.get('id');
+        if (leagueId) {
+          await dispatch(getLeagueById(leagueId));
+        }
+        
+        return response.data;
+      }
+      showError(response?.data?.message || "Failed to update league");
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      console.error('Update error:', error);
+      showError(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const deleteLeague = createAsyncThunk(
+  "league/deleteLeague",
+  async (leagueId, { rejectWithValue }) => {
+    try {
+      const response = await ownerApi.delete(DELETE_LEAGUE, { _id: leagueId });
+      if (response?.status === 200 && response?.data?.success) {
+        showSuccess(response?.data?.message || "League deleted successfully");
+        return leagueId;
+      }
+      showError(response?.data?.message || "Failed to delete league");
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      showError(error?.message || "Failed to delete league");
+      return rejectWithValue(error);
+    }
+  }
+);
