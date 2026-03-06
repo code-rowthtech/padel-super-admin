@@ -255,61 +255,6 @@ const Schedule = () => {
           </div>
         </Col>
       </Row>
-                            {match.home.charAt(0)}
-                          </div>
-                          <div className="text-start">
-                            <div style={{ fontSize: "13px", fontWeight: "600" }}>{match.home}</div>
-                            <div style={{ fontSize: "11px", color: "#6b7280" }}>{match.homeVenue}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td style={{ padding: "12px", textAlign: "center" }}>
-                        <div style={{
-                          width: "32px",
-                          height: "32px",
-                          borderRadius: "50%",
-                          backgroundColor: "#f3f4f6",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          margin: "0 auto"
-                        }}>
-                          <span style={{ fontSize: "12px", fontWeight: "bold", color: "#6b7280" }}>VS</span>
-                        </div>
-                      </td>
-                      <td style={{ padding: "12px" }}>
-                        <div className="d-flex align-items-center gap-2">
-                          <div style={{
-                            width: "32px",
-                            height: "32px",
-                            borderRadius: "50%",
-                            backgroundColor: "#059669",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            color: "white",
-                            fontSize: "12px",
-                            fontWeight: "bold"
-                          }}>
-                            {match.away.charAt(0)}
-                          </div>
-                          <div className="text-start">
-                            <div style={{ fontSize: "13px", fontWeight: "600" }}>{match.away}</div>
-                            <div style={{ fontSize: "11px", color: "#6b7280" }}>{match.awayVenue}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td style={{ padding: "12px" }}>
-                        <span style={{ fontSize: "13px", color: "#6b7280" }}>{match.time}</span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Table>
-            </div>
-          </div>
-        </Col>
-      </Row>
 
       {/* Date Modal */}
       <Modal show={showDateModal} onHide={() => setShowDateModal(false)} centered>
