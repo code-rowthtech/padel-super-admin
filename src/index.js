@@ -1,0 +1,33 @@
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './index.css';
+import './styles/modern-admin.css';
+import App from './App';
+import reportWebVitals from './reportWebVitals';
+import { Provider } from 'react-redux';
+import store from './redux/store';
+import { SuperAdminProvider } from './contexts/SuperAdminContext';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/js/bootstrap.bundle.min';
+import "react-datepicker/dist/react-datepicker.css";
+import * as serviceWorkerRegistration from './serviceWorkerRegistration';
+
+// Ensure React is available globally for code-split chunks and third-party libraries
+if (typeof window !== 'undefined') {
+  window.React = React;
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <Provider store={store}>
+      <SuperAdminProvider>
+        <App />
+      </SuperAdminProvider>
+    </Provider>
+  </React.StrictMode>
+);
+
+serviceWorkerRegistration.register();
+
+reportWebVitals();

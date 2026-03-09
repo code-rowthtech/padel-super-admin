@@ -1,0 +1,394 @@
+import React, { useEffect, useState } from "react";
+import { Row, Col, Form, Button, InputGroup } from "react-bootstrap";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { authImg, flag } from "../../../assets/files";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { signupOwner } from "../../../redux/thunks";
+import { useDispatch, useSelector } from "react-redux";
+import Layout from "./AuthLayout";
+import { ButtonLoading } from "../../../helpers/loading/Loaders";
+
+const SignUpPage = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const [form, setForm] = useState({
+    name: "",
+    phoneNumber: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+
+  const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const { authLoading } = useSelector((state) => state.ownerAuth);
+
+  const capitalizeFirst = (str) =>
+    str
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
+
+  const validate = () => {
+    const newErrors = {};
+    const name = form.name.trim();
+
+    if (!name) newErrors.name = "Please enter your name";
+    else if (name.length < 2)
+      newErrors.name = "Name must be at least 2 characters";
+
+    if (!form.phoneNumber)
+      newErrors.phoneNumber = "Please enter your phone number";
+    else if (!/^\+91 [6-9]\d{9}$/.test(form.phoneNumber))
+      newErrors.phoneNumber =
+        "Enter a valid 10-digit phone number starting with 6-9";
+
+    if (!form.email.trim()) newErrors.email = "Please enter your email";
+    else if (!/^\S+@\S+\.\S+$/.test(form.email))
+      newErrors.email = "Enter a valid email";
+
+    if (!form.password) newErrors.password = "Please create your password";
+    else if (form.password.length < 6)
+      newErrors.password = "Password must be at least 6 characters";
+
+    if (!form.confirmPassword)
+      newErrors.confirmPassword = "Please confirm your password";
+    else if (form.password !== form.confirmPassword)
+      newErrors.confirmPassword = "Passwords do not match";
+
+    return newErrors;
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    let val = value;
+
+    if (name === "name") {
+      val = capitalizeFirst(val.replace(/[^\p{L}\p{N} ]+/gu, ""));
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: val,
+    }));
+
+    if (errors[name]) {
+      setErrors((prev) => {
+        const copy = { ...prev };
+        delete copy[name];
+        return copy;
+      });
+    }
+  };
+
+  const handlePhoneChange = (e) => {
+    let input = e.target.value.replace(/[^0-9]/g, "");
+
+    if (input.length === 0) {
+      setForm((prev) => ({ ...prev, phoneNumber: "" }));
+      return;
+    }
+
+    if (!/^[6-9]/.test(input)) {
+      return;
+    }
+
+    if (input.length > 10) {
+      input = input.slice(0, 10);
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      phoneNumber: `+91 ${input}`,
+    }));
+
+    if (errors.phoneNumber) {
+      setErrors((prev) => {
+        const copy = { ...prev };
+        delete copy.phoneNumber;
+        return copy;
+      });
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const validationErrors = validate();
+    setErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length === 0) {
+      try {
+        const payload = {
+          name: form.name,
+          phoneNumber: form.phoneNumber.replace("+91 ", ""),
+          email: form.email,
+          password: form.password,
+        };
+        await dispatch(signupOwner(payload)).unwrap();
+        localStorage.setItem("userEmail", form.email);
+        navigate("/admin/login");
+      } catch (err) {
+        setErrors({ api: err || "Signup failed. Try again." });
+      }
+    }
+  };
+
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    if (pathname === "/admin/login" || pathname === "/admin/sign-up") {
+      localStorage.removeItem("clubFormData");
+      sessionStorage.removeItem("registerId");
+    } else if (pathname === "/admin/dashboard") {
+      localStorage.removeItem("clubFormData");
+    }
+  }, [pathname]);
+
+  return (
+    <Layout>
+      <style>
+        {`
+          .btn-outline-secondary:hover:not(:disabled) {
+            background-color: transparent !important;
+            color: inherit !important;
+          }
+        `}
+      </style>
+      <div className="w-100">
+        <div className="mx-auto" style={{ maxWidth: "500px", width: "100%" }}>
+          <h2
+            className="mb-0"
+            style={{
+              fontFamily: "Poppins",
+              fontWeight: 500,
+              fontSize: "34px",
+            }}
+          >
+            WELCOME
+          </h2>
+          <p
+            className="text-muted mb-1"
+            style={{
+              fontFamily: "Poppins",
+              fontWeight: 400,
+              fontSize: "14px",
+              paddingTop: "12px",
+            }}
+          >
+            Please enter your details to sign up.
+          </p>
+
+          <Form onSubmit={handleSubmit} noValidate className="small">
+
+            <Form.Group controlId="name" className="mb-2">
+              <Form.Label>Name</Form.Label>
+              <Form.Control
+                type="text"
+                name="name"
+                placeholder="Enter your name"
+                value={form.name}
+                disabled={authLoading}
+                onChange={handleChange}
+                isInvalid={!!errors.name}
+                style={{
+                  paddingRight: "40px",
+                  borderRadius: "8px",
+                  height: "50px",
+                  boxShadow: "none",
+                }}
+              />
+              <Form.Control.Feedback type="invalid">
+                {errors.name}
+              </Form.Control.Feedback>
+            </Form.Group>
+
+            <Form.Group controlId="phoneNumber" className="mb-2">
+              <Form.Label>Phone Number</Form.Label>
+              <InputGroup>
+                <InputGroup.Text
+                  style={{
+                    borderRadius: "8px 0 0 8px",
+                    height: "50px",
+                    backgroundColor: "#f8f9fa",
+                    border: "1px solid #ced4da",
+                    borderRight: "none",
+                    boxShadow: "none",
+                    display: "flex",
+                    alignItems: "center",
+                    padding: "0 12px",
+                    fontSize: "16px",
+                    fontFamily: "Poppins",
+                  }}
+                >
+                  <img
+                    src={flag}
+                    style={{
+                      width: "20px",
+                      height: "20px",
+                      marginRight: "8px",
+                    }}
+                  />{" "}
+                  +91
+                </InputGroup.Text>
+                <Form.Control
+                  type="text"
+                  placeholder="Enter 10-digit phone number"
+                  value={form.phoneNumber.replace("+91 ", "")}
+                  disabled={authLoading}
+                  onChange={handlePhoneChange}
+                  isInvalid={!!errors.phoneNumber}
+                  style={{
+                    borderRadius: "0 8px 8px 0",
+                    height: "50px",
+                    boxShadow: "none",
+                    borderLeft: "none",
+                  }}
+                  maxLength={10}
+                  autoComplete="tel"
+                  inputMode="numeric"
+                />
+                <Form.Control.Feedback type="invalid">
+                  {errors.phoneNumber}
+                </Form.Control.Feedback>
+              </InputGroup>
+            </Form.Group>
+
+            <Form.Group controlId="email" className="mb-2">
+              <Form.Label>Email</Form.Label>
+              <Form.Control
+                type="email"
+                name="email"
+                placeholder="Enter your email"
+                value={form.email}
+                disabled={authLoading}
+                onChange={handleChange}
+                isInvalid={!!errors.email}
+                style={{
+                  paddingRight: "40px",
+                  borderRadius: "8px",
+                  height: "50px",
+                  boxShadow: "none",
+                }}
+              />
+              <Form.Control.Feedback type="invalid">
+                {errors.email}
+              </Form.Control.Feedback>
+            </Form.Group>
+
+            <Form.Group controlId="password" className="mb-2">
+              <Form.Label>Password</Form.Label>
+              <InputGroup>
+                <Form.Control
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="******"
+                  value={form.password}
+                  disabled={authLoading}
+                  onChange={handleChange}
+                  isInvalid={!!errors.password}
+                  style={{
+                    paddingRight: "40px",
+                    borderRadius: "8px 0px 0px 8px",
+                    height: "50px",
+                    boxShadow: "none",
+                  }}
+                />
+                <Button
+                  variant="outline-secondary border"
+                  type="button"
+                  style={{
+                    borderRadius: "0px 8px 8px 0px",
+                    boxShadow: "none",
+                    backgroundColor: "transparent",
+                  }}
+                  onClick={() => setShowPassword(!showPassword)}
+                  disabled={form.password.length === 0}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </Button>
+                <Form.Control.Feedback type="invalid">
+                  {errors.password}
+                </Form.Control.Feedback>
+              </InputGroup>
+            </Form.Group>
+
+            <Form.Group controlId="confirmPassword" className="mb-3">
+              <Form.Label>Confirm Password</Form.Label>
+              <InputGroup>
+                <Form.Control
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  placeholder="******"
+                  value={form.confirmPassword}
+                  disabled={authLoading}
+                  onChange={handleChange}
+                  isInvalid={!!errors.confirmPassword}
+                  style={{
+                    paddingRight: "40px",
+                    borderRadius: "8px 0px 0px 8px",
+                    height: "50px",
+                    boxShadow: "none",
+                  }}
+                />
+                <Button
+                  variant="outline-secondary border"
+                  type="button"
+                  style={{
+                    borderRadius: "0px 8px 8px 0px",
+                    boxShadow: "none",
+                    backgroundColor: "transparent",
+                  }}
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  disabled={form.confirmPassword.length === 0}
+                >
+                  {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                </Button>
+                <Form.Control.Feedback type="invalid">
+                  {errors.confirmPassword}
+                </Form.Control.Feedback>
+              </InputGroup>
+            </Form.Group>
+
+            <Button
+              type="submit"
+              disabled={authLoading}
+              className="w-100 fw-semibold shadow"
+              style={{
+                height: "50px",
+                padding: "12px",
+                borderRadius: "30px",
+                background: "linear-gradient(to right, #4caf50, #3f51b5)",
+                border: "none",
+                fontSize: "16px",
+                boxShadow: "none",
+              }}
+            >
+              {authLoading ? (
+                <ButtonLoading color="white" size={12} />
+              ) : (
+                "Create Account"
+              )}
+            </Button>
+          </Form>
+
+          <div className="text-center mt-3">
+            <p style={{ fontSize: "14px" }}>
+              Already have an account?{" "}
+              <Link
+                to="/admin/login"
+                className="fw-bold"
+                style={{ color: "#3f51b5" }}
+              >
+                Login!
+              </Link>
+            </p>
+          </div>
+        </div>
+      </div>
+    </Layout>
+  );
+};
+
+export default SignUpPage;

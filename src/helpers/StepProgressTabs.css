@@ -1,0 +1,72 @@
+.step-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  width: 100%;
+  margin: 40px 0;
+}
+
+.step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  flex: 1;
+}
+
+.step-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #e0e0e0;
+  color: #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  cursor: pointer;
+  z-index: 2;
+  transition: 0.3s ease;
+}
+
+.step-circle.active {
+  border: 6px solid #2f49d1;
+  background-color: white;
+  color: #2f49d1;
+}
+
+.step-circle.completed {
+  background-color: white;
+  color: #2f49d1;
+  border: 6px solid #2f49d1;
+}
+
+.step-label {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-family: 'Poppins';
+  background-color: #e0e0e0;
+  color: #555;
+  transition: 0.3s ease;
+}
+
+.step-label.active-label {
+  background-color: #2f49d1;
+  color: white;
+}
+
+.step-line {
+  position: absolute;
+  top: 20px;
+  right: -50%;
+  width: 100%;
+  height: 6px;
+  background-color: #e0e0e0;
+  z-index: 1;
+}
+
+.step-line.line-completed {
+  background-color: #2f49d1;
+}
