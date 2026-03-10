@@ -197,13 +197,13 @@ export const updateLeague = createAsyncThunk(
 
       if (response?.status === 200 && response?.data?.success) {
         showSuccess(response?.data?.message || "League updated successfully");
-        
+
         // Refresh league data
         const leagueId = leagueData.id || formData.get('id');
         if (leagueId) {
           await dispatch(getLeagueById(leagueId));
         }
-        
+
         return response.data;
       }
       showError(response?.data?.message || "Failed to update league");
@@ -236,7 +236,7 @@ export const getClubTeams = createAsyncThunk(
   async ({ leagueId, clubId, categoryType }, { rejectWithValue }) => {
     try {
       const response = await ownerApi.get(`${GET_CLUB_TEAMS}?leagueId=${leagueId}&clubId=${clubId}&categoryType=${categoryType}`);
-      console.log(response,'response in thunk')
+      console.log(response, 'response in thunk')
       if (response?.status === 200) {
         return response.data?.data || [];
       }
@@ -252,18 +252,45 @@ export const saveSchedule = createAsyncThunk(
   async (scheduleData, { rejectWithValue }) => {
     try {
       const response = await ownerApi.post('/api/league-schedules/saveSchedule', scheduleData);
-      if (response?.status === 200) {
-        showSuccess(response?.data?.message || "Schedule saved successfully");
-        return response.data;
+      if (response?.status === 200 || response?.status === 201) {
+        if (response?.data?.success) {
+          showSuccess(response?.data?.message || "Schedule saved successfully");
+          return response.data;
+        }
       }
       showError(response?.data?.message || "Failed to save schedule");
       return rejectWithValue(response?.data?.message);
     } catch (error) {
-      showError(error?.message || "Error saving schedule");
+      showError(error || error?.message || "Error saving schedule");
       return rejectWithValue(error);
     }
   }
 );
+export const getAllSchedules = createAsyncThunk(
+  "league/getAllSchedules",
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const queryParams = new URLSearchParams();
+      
+      // Add all non-empty parameters to query string
+      Object.keys(params).forEach(key => {
+        if (params[key]) {
+          queryParams.append(key, params[key]);
+        }
+      });
+      
+      const url = `/api/league-schedules/getAllSchedules${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+      const response = await ownerApi.get(url);
+      if (response?.status === 200) {
+        return response.data?.data || [];
+      }
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
 export const deleteLeague = createAsyncThunk(
   "league/deleteLeague",
   async (leagueId, { rejectWithValue }) => {

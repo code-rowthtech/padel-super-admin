@@ -1,0 +1,415 @@
+import React, { useState, useEffect } from 'react';
+import { Container, Row, Col, Card, Badge, Form } from 'react-bootstrap';
+import { AppBar, Tabs, Tab } from '@mui/material';
+import { useDispatch, useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
+import { getAllSchedules } from '../../../redux/admin/league/thunk';
+import { IoLocationOutline } from 'react-icons/io5';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+
+const VSMatchCard = ({ match }) => {
+  const getTeamInitials = (team) => {
+    if (team?.clubId?.clubName) {
+      return team.clubId.clubName.substring(0, 2).toUpperCase();
+    }
+    if (team?.teamName) {
+      return team.teamName.substring(0, 2).toUpperCase();
+    }
+    return '?';
+  };
+
+  const getTeamName = (team) => {
+    return team?.teamName || team?.clubId?.clubName || 'TBD';
+  };
+
+  const getPlayerNames = (team) => {
+    if (!team?.players?.length) return 'Players TBD';
+    return team.players.map(p => p.playerName || p.name || 'Player').join(', ');
+  };
+
+  return (
+    <div 
+      className="mb-2 shadow-sm p-2 rounded-2 position-relative overflow-hidden"
+      style={{
+        border: '1px solid #e9ecef',
+        backgroundColor: '#fff',
+      }}
+    >
+      {/* Time */}
+      <div className="text-center mb-2">
+       
+        <div className="fw-bold" style={{ fontSize: '14px', color: '#495057' }}>
+          {match.time || 'Time TBD'}
+        </div>
+      </div>
+
+      {/* Teams */}
+      <Row className="align-items-center text-center g-1">
+        {/* Team A */}
+        <Col xs={5}>
+          <div 
+            className="mx-auto mb-1 d-flex align-items-center justify-content-center fw-bold"
+            style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '50%',
+              backgroundColor: '#f8f9fa',
+              fontSize: '12px',
+              border: '2px solid #dee2e6',
+              color: '#495057'
+            }}
+          >
+            {getTeamInitials(match.teamA)}
+          </div>
+          <div className="fw-semibold mb-1" style={{ fontSize: '12px', lineHeight: '1.2' }}>
+            {getTeamName(match.teamA)}
+          </div>
+          <div style={{ fontSize: '9px', color: '#6c757d', lineHeight: '1.1' }}>
+            {getPlayerNames(match.teamA)}
+          </div>
+        </Col>
+
+        <Col xs={2}>
+          <div 
+            className="fw-bold d-flex align-items-center justify-content-center"
+            style={{
+              width: '24px',
+              height: '24px',
+              borderRadius: '50%',
+              backgroundColor: '#e9ecef',
+              fontSize: '10px',
+              margin: '0 auto',
+              color: '#6c757d'
+            }}
+          >
+            VS
+          </div>
+        </Col>
+
+        {/* Team B */}
+        <Col xs={5}>
+          <div 
+            className="mx-auto mb-1 d-flex align-items-center justify-content-center fw-bold"
+            style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '50%',
+              backgroundColor: '#f8f9fa',
+              fontSize: '12px',
+              border: '2px solid #dee2e6',
+              color: '#495057'
+            }}
+          >
+            {getTeamInitials(match.teamB)}
+          </div>
+          <div className="fw-semibold mb-1" style={{ fontSize: '12px', lineHeight: '1.2' }}>
+            {getTeamName(match.teamB)}
+          </div>
+          <div style={{ fontSize: '9px', color: '#6c757d', lineHeight: '1.1' }}>
+            {getPlayerNames(match.teamB)}
+          </div>
+        </Col>
+      </Row>
+
+      {/* Match Info */}
+      <div className="text-center mt-2 pt-2" style={{ borderTop: '1px solid #f1f3f4' }}>
+        <div style={{ fontSize: '9px', color: '#6c757d' }}>
+          Match #{match.matchNo || 'N/A'} • {match.duration || 60} min
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+
+const DateSection = ({ schedule }) => {
+  const formatDate = (dateString) => {
+    // Parse as UTC to avoid timezone issues
+    const date = new Date(dateString + (dateString.includes('T') ? '' : 'T00:00:00.000Z'));
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    // Compare using UTC dates to avoid timezone issues
+    const dateUTC = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+    const todayUTC = new Date(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+    const tomorrowUTC = new Date(tomorrow.getUTCFullYear(), tomorrow.getUTCMonth(), tomorrow.getUTCDate());
+    
+    if (dateUTC.getTime() === todayUTC.getTime()) return 'Today';
+    if (dateUTC.getTime() === tomorrowUTC.getTime()) return 'Tomorrow';
+    
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      timeZone: 'UTC'
+    });
+  };
+
+  return (
+    <div className="mb-3">
+      {/* Date Header */}
+      <div className="mb-2">
+        <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-1">
+          <div className="d-flex flex-wrap align-items-center gap-2">
+            <h6 className="mb-0 fw-bold" style={{ color: '#2c3e50', fontSize: '16px' }}>
+              {formatDate(schedule.date)}
+            </h6>
+            <span className="fw-medium text-muted d-none d-sm-inline" style={{ fontSize: '12px' }}>
+              {schedule.leagueId?.leagueName}
+            </span>
+            <Badge bg="primary" style={{ fontSize: '9px', padding: '4px 8px' }}>
+              {schedule.categoryType}
+            </Badge>
+          </div>
+          <div className="d-flex align-items-center gap-1 text-muted">
+            <IoLocationOutline size={12} />
+            <span style={{ fontSize: '11px' }}>{schedule.venue}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Matches */}
+      <div>
+        <Row className="g-2">
+          {schedule.matches?.map((match) => (
+            <Col key={match._id} xs={12} sm={6} md={4} lg={3} xl={3}>
+              <VSMatchCard match={match} />
+            </Col>
+          ))}
+        </Row>
+      </div>
+    </div>
+  );
+};
+
+const TournamentBracket = () => {
+  return (
+    <Card className="border-0 shadow-sm">
+      <Card.Body className="p-4">
+        <div className="text-center py-5">
+          <div style={{ fontSize: '48px', color: '#dee2e6', marginBottom: '16px' }}>
+            🏆
+          </div>
+          <h5 className="mb-2">Tournament Bracket</h5>
+          <p className="text-muted mb-0">
+            Tournament bracket visualization coming soon...
+          </p>
+        </div>
+      </Card.Body>
+    </Card>
+  );
+};
+
+const ViewLeagueSchedule = () => {
+  const dispatch = useDispatch();
+  const { leagueId } = useParams();
+  const { schedules, loadingSchedules } = useSelector(state => state.league);
+  const [activeTab, setActiveTab] = useState(0);
+  const [filters, setFilters] = useState({
+    categoryType: '',
+    roundType: '',
+    startDate: null,
+    endDate: null
+  });
+
+  const categoryOptions = ['Level A', 'Level B', 'Mixed', 'Female'];
+  const roundTypeOptions = ['regular', 'quarterfinal', 'semifinal', 'final'];
+
+  useEffect(() => {
+    const params = { leagueId };
+    
+    if (filters.categoryType) params.categoryType = filters.categoryType;
+    if (filters.roundType) params.roundType = filters.roundType;
+    
+    // Only add date filters if both dates are selected or neither is selected
+    const hasStartDate = filters.startDate;
+    const hasEndDate = filters.endDate;
+    
+    if (hasStartDate && hasEndDate) {
+      // Both dates selected - add both to params
+      const startYear = filters.startDate.getFullYear();
+      const startMonth = String(filters.startDate.getMonth() + 1).padStart(2, '0');
+      const startDay = String(filters.startDate.getDate()).padStart(2, '0');
+      params.startDate = `${startYear}-${startMonth}-${startDay}`;
+      
+      const endYear = filters.endDate.getFullYear();
+      const endMonth = String(filters.endDate.getMonth() + 1).padStart(2, '0');
+      const endDay = String(filters.endDate.getDate()).padStart(2, '0');
+      params.endDate = `${endYear}-${endMonth}-${endDay}`;
+      
+      dispatch(getAllSchedules(params));
+    } else if (!hasStartDate && !hasEndDate) {
+      // Neither date selected - call API without date filters
+      dispatch(getAllSchedules(params));
+    }
+    // If only one date is selected, don't call API
+  }, [dispatch, leagueId, filters]);
+
+  const handleFilterChange = (key, value) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const hasActiveFilters = filters.categoryType || filters.roundType || filters.startDate || filters.endDate;
+
+  const schedulesData = schedules?.data || schedules || [];
+
+  return (
+    <div style={{ backgroundColor: 'white', height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <Container fluid className="p-3 p-md-4" style={{ flex: '0 0 auto' }}>
+        {/* Header with Tabs and Filters - Fixed */}
+        <Row className="mb-4">
+          <Col>
+            <div className="border-0 ">
+              <div className="p-0">
+                {/* Tabs and Filters in same row */}
+                <div className="d-flex justify-content-between align-items-center p-0">
+                  {/* Tabs Section */}
+                  <div>
+                    <Tabs
+                      value={activeTab}
+                      onChange={(_, v) => setActiveTab(v)}
+                      indicatorColor="primary"
+                      textColor="primary"
+                      sx={{
+                        "& .MuiTab-root": {
+                          fontSize: { xs: "13px", sm: "14px", md: "15px" },
+                          fontWeight: "600",
+                          textTransform: "none",
+                          padding: { xs: "8px 16px", md: "12px 24px" },
+                          minHeight: "auto"
+                        },
+                      }}
+                    >
+                      <Tab label={`Schedules (${schedulesData.length})`} />
+                      <Tab label="Points Table" />
+                      <Tab label="Bracket" />
+                    </Tabs>
+                  </div>
+                  
+                  {/* Filters Section - Only show on Schedules tab */}
+                  {activeTab === 0 && (
+                    <div className="d-flex gap-2 align-items-center">
+                      <Form.Select 
+                        size="sm" 
+                        value={filters.categoryType}
+                        onChange={(e) => handleFilterChange('categoryType', e.target.value)}
+                        style={{ width: '140px', fontSize: '12px' }}
+                      >
+                        <option value="">All Categories</option>
+                        {categoryOptions.map(cat => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                      </Form.Select>
+                      
+                      <Form.Select 
+                        size="sm" 
+                        value={filters.roundType}
+                        onChange={(e) => handleFilterChange('roundType', e.target.value)}
+                        style={{ width: '120px', fontSize: '12px' }}
+                      >
+                        <option value="">All Rounds</option>
+                        {roundTypeOptions.map(round => (
+                          <option key={round} value={round}>
+                            {round.charAt(0).toUpperCase() + round.slice(1)}
+                          </option>
+                        ))}
+                      </Form.Select>
+                      
+                      <DatePicker
+                        selected={filters.startDate}
+                        onChange={(dates) => {
+                          const [start, end] = dates;
+                          setFilters(prev => ({ ...prev, startDate: start, endDate: end }));
+                        }}
+                        startDate={filters.startDate}
+                        endDate={filters.endDate}
+                        selectsRange
+                        placeholderText="Select date range"
+                        className="form-control form-control-sm"
+                        style={{ fontSize: '12px', width: '180px' }}
+                        dateFormat="yyyy-MM-dd"
+                      />
+                      
+                      {hasActiveFilters && (
+                        <button 
+                          className="btn btn-outline-danger text-danger fw-semibold btn-sm"
+                          onClick={() => setFilters({ categoryType: '', roundType: '', startDate: null, endDate: null })}
+                          style={{ fontSize: '12px' }}
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </Col>
+        </Row>
+      </Container>
+
+      {/* Scrollable Content */}
+      <div style={{ flex: '1 1 auto', overflow: 'auto' }}>
+        <Container fluid className="px-3 px-md-4">
+          <Row>
+            <Col>
+              {activeTab === 0 && (
+                <div>
+                  {loadingSchedules ? (
+                    <Card className="text-center py-5 border-0 shadow-sm">
+                      <Card.Body>
+                        <div className="spinner-border text-primary" role="status">
+                          <span className="visually-hidden">Loading...</span>
+                        </div>
+                        <div className="mt-3 text-muted">Loading match schedules...</div>
+                      </Card.Body>
+                    </Card>
+                  ) : schedulesData.length > 0 ? (
+                    <div>
+                      {schedulesData.map((schedule) => (
+                        <DateSection 
+                          key={schedule._id} 
+                          schedule={schedule}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <Card className="text-center py-5 shadow-none">
+                      <Card.Body>
+                        <h5 className="mb-2">No Matches Scheduled</h5>
+                        <p className="text-muted mb-0">
+                          There are no match schedules available for this league yet.
+                        </p>
+                      </Card.Body>
+                    </Card>
+                  )}
+                </div>
+              )}  
+              
+              {activeTab === 1 && (
+                <Card className="text-center py-5 border-0 shadow-sm">
+                  <Card.Body>
+                    <div style={{ fontSize: '48px', color: '#dee2e6', marginBottom: '16px' }}>
+                      🏆
+                    </div>
+                    <h5 className="mb-2">Points Table</h5>
+                    <p className="text-muted mb-0">
+                      Points table functionality coming soon...
+                    </p>
+                  </Card.Body>
+                </Card>
+              )}
+
+              {activeTab === 2 && <TournamentBracket />}
+            </Col>
+          </Row>
+        </Container>
+      </div>
+    </div>
+  );
+};
+
+export default ViewLeagueSchedule;

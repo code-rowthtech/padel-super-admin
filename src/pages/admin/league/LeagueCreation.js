@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getLeagues, deleteLeague } from '../../../redux/admin/league/thunk';
 import { DataLoading } from '../../../helpers/loading/Loaders';
 import Pagination from '../../../helpers/Pagination';
+import { GrSchedules } from "react-icons/gr";
 
 const League = () => {
   const navigate = useNavigate();
@@ -249,6 +250,7 @@ const League = () => {
                         <td>{getStatusBadge(league.status)}</td>
                         <td>
                           <div className="d-flex justify-content-center gap-2">
+                            <GrSchedules style={{ cursor: "pointer", color: "#6b7280" }} onClick={() => navigate(`/admin/view-league-schedule/${league._id}`)} size={16}/>
                             {/* <FaEye style={{ cursor: "pointer", color: "#6b7280" }} onClick={() => navigate(`/admin/new-league/${league._id}`)} size={16} /> */}
                             <FaEdit style={{ cursor: "pointer", color: "#6b7280" }} onClick={() => navigate(`/admin/new-league/${league._id}`)} size={16} />
                             <FaTrash style={{ cursor: "pointer", color: "#6b7280" }} onClick={() => handleDeleteClick(league)} size={16} />

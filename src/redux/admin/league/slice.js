@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createLeague, getLeagues, updateLeague, getStates, getClubsWithState, getSponsorCategories, getLeagueById, deleteLeague, getLeagueClubs, getClubTeams } from "./thunk";
+import { createLeague, getLeagues, updateLeague, getStates, getClubsWithState, getSponsorCategories, getLeagueById, deleteLeague, getLeagueClubs, getClubTeams, getAllSchedules, saveSchedule } from "./thunk";
 
 const initialState = {
   leagues: [],
@@ -14,6 +14,8 @@ const initialState = {
   loadingLeague: false,
   loadingClubs: false,
   loadingTeams: false,
+  schedules: [],
+  loadingSchedules: false,
   error: null,
 };
 
@@ -138,6 +140,29 @@ const leagueSlice = createSlice({
       })
       .addCase(getClubTeams.rejected, (state, action) => {
         state.loadingTeams = false;
+        state.error = action.payload;
+      })
+      .addCase(getAllSchedules.pending, (state) => {
+        state.loadingSchedules = true;
+        state.error = null;
+      })
+      .addCase(getAllSchedules.fulfilled, (state, action) => {
+        state.loadingSchedules = false;
+        state.schedules = action.payload;
+      })
+      .addCase(getAllSchedules.rejected, (state, action) => {
+        state.loadingSchedules = false;
+        state.error = action.payload;
+      })
+      .addCase(saveSchedule.pending, (state) => {
+        state.loadingSchedules = true;
+        state.error = null;
+      })
+      .addCase(saveSchedule.fulfilled, (state, action) => {
+        state.loadingSchedules = false;
+      })
+      .addCase(saveSchedule.rejected, (state, action) => {
+        state.loadingSchedules = false;
         state.error = action.payload;
       });
   },

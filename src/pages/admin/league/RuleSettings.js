@@ -257,15 +257,22 @@ const RuleSettings = ({ onBack }) => {
         };
 
         addMatchRuleToPayload('regularRound', matchRules.regularRound);
-        if (matchRules.quarterfinal.status) {
-            addMatchRuleToPayload('quarterfinal', useRegularSettings.quarterfinal ? matchRules.regularRound : matchRules.quarterfinal);
-        }
-        if (matchRules.semifinal.status) {
-            addMatchRuleToPayload('semifinal', useRegularSettings.semifinal ? matchRules.regularRound : matchRules.semifinal);
-        }
-        if (matchRules.final.status) {
-            addMatchRuleToPayload('final', useRegularSettings.final ? matchRules.regularRound : matchRules.final);
-        }
+        
+        // Always include all rounds with their current status
+        addMatchRuleToPayload('quarterfinal', matchRules.quarterfinal.status ? 
+            (useRegularSettings.quarterfinal ? matchRules.regularRound : matchRules.quarterfinal) : 
+            { ...matchRules.quarterfinal, status: false }
+        );
+        
+        addMatchRuleToPayload('semifinal', matchRules.semifinal.status ? 
+            (useRegularSettings.semifinal ? matchRules.regularRound : matchRules.semifinal) : 
+            { ...matchRules.semifinal, status: false }
+        );
+        
+        addMatchRuleToPayload('final', matchRules.final.status ? 
+            (useRegularSettings.final ? matchRules.regularRound : matchRules.final) : 
+            { ...matchRules.final, status: false }
+        );
 
         // Prize Distribution
         prizeDistribution.filter(p => p.amount > 0).forEach((prize, index) => {

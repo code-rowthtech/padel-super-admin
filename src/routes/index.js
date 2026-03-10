@@ -21,6 +21,7 @@ const NewLeague = React.lazy(() => import("../pages/admin/league/NewLeagueCreati
 const LeagueCreation = React.lazy(() => import("../pages/admin/league/LeagueCreation"));
 const LeagueRegistration = React.lazy(() => import("../pages/admin/league/LeagueRegistration"));
 const LeagueSchedule = React.lazy(() => import("../pages/admin/league/LeagueSchedule"));
+const ViewLeagueSchedule = React.lazy(() => import("../pages/admin/league/ViewLeagueSchedule"));
 
 
 const NotFound = React.lazy(() => import("../pages/error/NotFound"));
@@ -93,6 +94,10 @@ const AllRoutes = () => {
             {
               path: "league/schedule",
               element: LoadComponent(LeagueSchedule),
+            },
+            {
+              path: "view-league-schedule/:leagueId",
+              element: LoadComponent(ViewLeagueSchedule),
             },
             {
               path: "new-league",
