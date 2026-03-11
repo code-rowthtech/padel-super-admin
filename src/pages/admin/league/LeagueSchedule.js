@@ -458,7 +458,7 @@ const LeagueSchedule = () => {
         venue: formVenue,
         venueClubId: venueClub?.id,
         homeVenue: selectedRound === 'regularRound' && isHomeVenue ? formVenue : null,
-        awayVenue: selectedRound === 'regularRound' && !isHomeVenue ? formVenue : null,
+        awayVenue: null,
         time: startTime,
         duration: duration,
         endTime: calculateEndTime(startTime, duration),

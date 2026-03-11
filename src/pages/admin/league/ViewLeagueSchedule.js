@@ -9,78 +9,71 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
 const VSMatchCard = ({ match }) => {
-  const getTeamInitials = (team) => {
-    if (team?.clubId?.clubName) {
-      return team.clubId.clubName.substring(0, 2).toUpperCase();
-    }
-    if (team?.teamName) {
-      return team.teamName.substring(0, 2).toUpperCase();
-    }
-    return '?';
+  const getPlayerAvatar = (player) => {
+    if (player?.avatar) return player.avatar;
+    const name = player?.playerName || player?.name || 'P';
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&size=32&background=e3f2fd&color=1976d2`;
   };
 
-  const getTeamName = (team) => {
-    return team?.teamName || team?.clubId?.clubName || 'TBD';
-  };
-
-  const getPlayerNames = (team) => {
-    if (!team?.players?.length) return 'Players TBD';
-    return team.players.map(p => p.playerName || p.name || 'Player').join(', ');
+  const getTeamPlayers = (team) => {
+    if (!team?.players?.length) return [];
+    return team.players.slice(0, 2); // Show max 2 players
   };
 
   return (
     <div
-      className="mb-2 shadow-sm p-2 rounded-2 position-relative overflow-hidden"
+      className="mb-3 shadow-sm rounded-3 position-relative overflow-hidden"
       style={{
-        border: '1px solid #e9ecef',
-        backgroundColor: '#fff',
+        background: 'linear-gradient(100.97deg, rgb(253, 253, 255) 0%, rgb(158, 186, 255) 317.27%)',
+        padding: '16px',
+        border: '1px solid #1F41BB1A'
       }}
     >
-      {/* Time */}
-      <div className="text-center mb-2">
-
-        <div className="fw-bold" style={{ fontSize: '14px', color: '#495057' }}>
-          {match.time || 'Time TBD'}
-        </div>
-      </div>
-
-      {/* Teams */}
-      <Row className="align-items-center text-center g-1">
+      <Row className="align-items-center">
         {/* Team A */}
-        <Col xs={5}>
-          <div
-            className="mx-auto mb-1 d-flex align-items-center justify-content-center fw-bold"
-            style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '50%',
-              backgroundColor: '#f8f9fa',
-              fontSize: '12px',
-              border: '2px solid #dee2e6',
-              color: '#495057'
-            }}
-          >
-            {getTeamInitials(match.teamA)}
+        <Col xs={4} className="text-start">
+          <div className="fw-bold mb-1" style={{ fontSize: '14px', color: '#1F41BB' }}>
+            Team A
           </div>
-          <div className="fw-semibold mb-1" style={{ fontSize: '12px', lineHeight: '1.2' }}>
-            {getTeamName(match.teamA)}
-          </div>
-          <div style={{ fontSize: '9px', color: '#6c757d', lineHeight: '1.1' }}>
-            {getPlayerNames(match.teamA)}
+          <div className="d-flex flex-column gap-1">
+            {getTeamPlayers(match.teamA).map((player, index) => (
+              <div key={index} className="d-flex align-items-center gap-2">
+                <img
+                  src={getPlayerAvatar(player)}
+                  alt={player?.playerName || player?.name || 'Player'}
+                  className="rounded-circle"
+                  style={{ width: '24px', height: '24px' }}
+                />
+                <span style={{ fontSize: '12px' }}>
+                  {player?.playerName || player?.name || 'Player'}
+                </span>
+              </div>
+            ))}
           </div>
         </Col>
 
-        <Col xs={2}>
-          <div
-            className="fw-bold d-flex align-items-center justify-content-center"
+        {/* Center - Date and VS */}
+        <Col xs={4} className="text-center">
+          {/* <div
+            className="mx-auto mb-2 px-3 py-1 rounded-pill"
             style={{
-              width: '24px',
-              height: '24px',
-              borderRadius: '50%',
-              backgroundColor: '#e9ecef',
-              fontSize: '10px',
-              margin: '0 auto',
-              color: '#6c757d'
+              backgroundColor: 'rgba(255,255,255,0.2)',
+              fontSize: '11px',
+              fontWeight: '500'
+            }}
+          >
+            {formatDate(match.date)}
+          </div> */}
+          <div
+            className="d-flex align-items-center justify-content-center mx-auto"
+            style={{
+              width: "40px",
+              height: "40px",
+              fontWeight: 700,
+              fontSize: "20px",
+              letterSpacing: "2px",
+              color: "transparent",
+              WebkitTextStroke: "1.5px #1F41BB",
             }}
           >
             VS
@@ -88,36 +81,27 @@ const VSMatchCard = ({ match }) => {
         </Col>
 
         {/* Team B */}
-        <Col xs={5}>
-          <div
-            className="mx-auto mb-1 d-flex align-items-center justify-content-center fw-bold"
-            style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '50%',
-              backgroundColor: '#f8f9fa',
-              fontSize: '12px',
-              border: '2px solid #dee2e6',
-              color: '#495057'
-            }}
-          >
-            {getTeamInitials(match.teamB)}
+        <Col xs={4} className="text-end">
+          <div className="fw-bold mb-1" style={{ fontSize: '14px', color: '#1F41BB' }}>
+            Team B
           </div>
-          <div className="fw-semibold mb-1" style={{ fontSize: '12px', lineHeight: '1.2' }}>
-            {getTeamName(match.teamB)}
-          </div>
-          <div style={{ fontSize: '9px', color: '#6c757d', lineHeight: '1.1' }}>
-            {getPlayerNames(match.teamB)}
+          <div className="d-flex flex-column gap-1 align-items-end">
+            {getTeamPlayers(match.teamB).map((player, index) => (
+              <div key={index} className="d-flex align-items-center gap-2">
+                <span style={{ fontSize: '12px' }}>
+                  {player?.playerName || player?.name || 'Player'}
+                </span>
+                <img
+                  src={getPlayerAvatar(player)}
+                  alt={player?.playerName || player?.name || 'Player'}
+                  className="rounded-circle"
+                  style={{ width: '24px', height: '24px' }}
+                />
+              </div>
+            ))}
           </div>
         </Col>
       </Row>
-
-      {/* Match Info */}
-      <div className="text-center mt-2 pt-2" style={{ borderTop: '1px solid #f1f3f4' }}>
-        <div style={{ fontSize: '9px', color: '#6c757d' }}>
-          Match #{match.matchNo || 'N/A'} • {match.duration || 60} min
-        </div>
-      </div>
     </div>
   );
 };
