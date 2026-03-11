@@ -440,7 +440,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
         </div>
 
         {/* League with Submenu */}
-        <div
+        {/* <div
           className="position-relative"
           onMouseEnter={() =>
             isCollapsed && window.innerWidth > 768 && setHoveredItem("league")
@@ -542,7 +542,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               </NavLink>
             </div>
           )}
-        </div>
+        </div> */}
 
         {/* Wallet */}
         <div
