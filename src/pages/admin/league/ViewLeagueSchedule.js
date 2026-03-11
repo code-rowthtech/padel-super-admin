@@ -193,7 +193,7 @@ const TournamentBracket = () => {
 const ViewLeagueSchedule = () => {
   const dispatch = useDispatch();
   const { leagueId } = useParams();
-  const { schedules, loadingSchedules, loadingExport, leagueClubs } = useSelector(state => state.league);
+  const { schedules, loadingSchedules, loadingExport, currentLeague } = useSelector(state => state.league);
   const [activeTab, setActiveTab] = useState(0);
   const [filters, setFilters] = useState({
     categoryType: '',
@@ -375,9 +375,15 @@ const ViewLeagueSchedule = () => {
                                 style={{ fontSize: '12px' }}
                               >
                                 <option value="">Select Venue Club</option>
-                                {leagueClubs?.map(club => (
-                                  <option key={club.clubId} value={club.clubId}>{club.clubName}</option>
-                                ))}
+                                {currentLeague?.clubs?.map(club => {
+                                  // Handle both data structures: nested clubId object or direct club object
+                                  const clubData = club?.clubId || club;
+                                  const clubId = clubData?._id || clubData?.clubId;
+                                  const clubName = clubData?.clubName || clubData?.name;
+                                  return (
+                                    <option key={clubId} value={clubId}>{clubName}</option>
+                                  );
+                                })}
                               </select>
                             </div>
                             <div className="mb-2">
@@ -389,9 +395,15 @@ const ViewLeagueSchedule = () => {
                                 style={{ fontSize: '12px' }}
                               >
                                 <option value="">Select Club</option>
-                                {leagueClubs?.map(club => (
-                                  <option key={club.clubId} value={club.clubId}>{club.clubName}</option>
-                                ))}
+                                {currentLeague?.clubs?.map(club => {
+                                  // Handle both data structures: nested clubId object or direct club object
+                                  const clubData = club?.clubId || club;
+                                  const clubId = clubData?._id || clubData?.clubId;
+                                  const clubName = clubData?.clubName || clubData?.name;
+                                  return (
+                                    <option key={clubId} value={clubId}>{clubName}</option>
+                                  );
+                                })}
                               </select>
                             </div>
                             <div className="mb-2">
