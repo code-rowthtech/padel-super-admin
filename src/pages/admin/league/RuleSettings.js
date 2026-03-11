@@ -193,15 +193,11 @@ const RuleSettings = ({ onBack }) => {
         const validateRound = (round, settings, prefix = '') => {
             if (!settings || typeof settings !== 'object') return;
 
-            console.log(`Validating ${prefix}:`, settings);
-
             const numSets = parseInt(settings.numberOfSets, 10);
             const numGames = parseInt(settings.numberOfGames, 10);
             const gamesToTiebreak = parseInt(settings.gamesToStartTiebreak, 10);
             const pointsTiebreak = parseInt(settings.pointsInTiebreak, 10);
             const matchWinPts = parseInt(settings.matchWinPoints, 10);
-
-            console.log(`Parsed values - Sets: ${numSets}, Games: ${numGames}, Tiebreak: ${gamesToTiebreak}, Points: ${pointsTiebreak}, Win: ${matchWinPts}`);
 
             if (!numSets || numSets < 3) {
                 newErrors[`${prefix}numberOfSets`] = true;
@@ -233,8 +229,6 @@ const RuleSettings = ({ onBack }) => {
         if (matchRules.final.status && !useRegularSettings.final) {
             validateRound('final', matchRules.final?.settings, 'final_');
         }
-
-        console.log('Validation errors:', newErrors);
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
@@ -284,7 +278,6 @@ const RuleSettings = ({ onBack }) => {
         updatePayload.bounty = bounty;
         updatePayload.teamOfLeague = teamOfLeague;
 
-        console.log('Final Payload:', updatePayload);
         const result = await dispatch(updateLeague({ leagueData: updatePayload }));
         if (result.meta.requestStatus === 'fulfilled') {
             navigate('/admin/league/creation');

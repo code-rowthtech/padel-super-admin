@@ -1,6 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { CREATE_LEAGUE, GET_LEAGUES, UPDATE_LEAGUE, GET_STATES, GET_CLUB_WITH_STATE, GET_SPONSOR_CATEGORIES, GET_LEAGUE_BY_ID, DELETE_LEAGUE, GET_LEAGUE_CLUBS, GET_CLUB_TEAMS } from "../../../helpers/api/apiEndpoint";
-import { ownerApi } from "../../../helpers/api/apiCore";
+import { CREATE_LEAGUE, GET_LEAGUES, UPDATE_LEAGUE, GET_STATES, GET_CLUB_WITH_STATE, GET_SPONSOR_CATEGORIES, GET_LEAGUE_BY_ID, DELETE_LEAGUE, GET_LEAGUE_CLUBS, GET_CLUB_TEAMS, EXPORT_LEAGUE_SCHEDULES_CSV } from "../../../helpers/api/apiEndpoint";
+import { ownerApi, ownerAxios, getOwnerFromSession } from "../../../helpers/api/apiCore";
 import { showSuccess, showError } from "../../../helpers/Toast";
 
 const buildLeagueFormData = (data) => {
@@ -170,9 +170,6 @@ export const updateLeague = createAsyncThunk(
   "league/updateLeague",
   async ({ leagueData }, { rejectWithValue, dispatch }) => {
     try {
-      console.log('=== UPDATE LEAGUE THUNK ===');
-      console.log('Received leagueData:', leagueData);
-
       let formData;
       if (leagueData instanceof FormData) {
         formData = leagueData;
@@ -186,14 +183,7 @@ export const updateLeague = createAsyncThunk(
         // Handle nested object structure (from BasicInformation)
         formData = buildLeagueFormData(leagueData);
       }
-
-      console.log('FormData to send:');
-      for (let pair of formData.entries()) {
-        console.log(pair[0], pair[1]);
-      }
-
       const response = await ownerApi.putFile(`${UPDATE_LEAGUE}`, formData);
-      console.log('API Response:', response);
 
       if (response?.status === 200 && response?.data?.success) {
         showSuccess(response?.data?.message || "League updated successfully");
@@ -236,7 +226,6 @@ export const getClubTeams = createAsyncThunk(
   async ({ leagueId, clubId, categoryType }, { rejectWithValue }) => {
     try {
       const response = await ownerApi.get(`${GET_CLUB_TEAMS}?leagueId=${leagueId}&clubId=${clubId}&categoryType=${categoryType}`);
-      console.log(response, 'response in thunk')
       if (response?.status === 200) {
         return response.data?.data || [];
       }
@@ -286,6 +275,111 @@ export const getAllSchedules = createAsyncThunk(
       }
       return rejectWithValue(response?.data?.message);
     } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const exportLeagueSchedulesCSV = createAsyncThunk(
+  "league/exportLeagueSchedulesCSV",
+  async ({ leagueId, clubId }, { rejectWithValue }) => {
+    try {
+      const owner = getOwnerFromSession();
+      const token = owner?.token;
+      
+      const response = await ownerAxios.get(`${EXPORT_LEAGUE_SCHEDULES_CSV}?leagueId=${leagueId}&clubId=${clubId}`, {
+        responseType: 'text',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response?.status === 200) {
+        // Parse CSV and remove object ID columns
+        const csvText = response.data;
+        const lines = csvText.split('\n');
+        
+        if (lines.length > 0) {
+          // Get headers and find columns to exclude (object IDs)
+          const headers = lines[0].split(',').map(h => h.replace(/"/g, ''));
+          const excludeColumns = ['leagueId', 'teamA_clubId', 'teamB_clubId'];
+          
+          // Find indices of columns to keep
+          const keepIndices = headers.map((header, index) => 
+            !excludeColumns.includes(header) ? index : -1
+          ).filter(index => index !== -1);
+          
+          // Find date columns for normalization
+          const dateColumns = ['date', 'createdAt', 'updatedAt', 'startTime', 'endTime'];
+          const dateColumnIndices = headers.map((header, index) => 
+            dateColumns.some(dateCol => header.toLowerCase().includes(dateCol.toLowerCase())) ? index : -1
+          ).filter(index => index !== -1);
+          
+          // Function to normalize date
+          const normalizeDate = (dateString) => {
+            if (!dateString || dateString === '""' || dateString === '') return dateString;
+            
+            try {
+              // Remove quotes if present
+              const cleanDate = dateString.replace(/"/g, '');
+              
+              // Check if it's an ISO date string
+              if (cleanDate.includes('T') && cleanDate.includes('Z')) {
+                const date = new Date(cleanDate);
+                // Use UTC methods to avoid timezone conversion issues
+                const year = date.getUTCFullYear();
+                const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+                const day = String(date.getUTCDate()).padStart(2, '0');
+                return `"${month}/${day}/${year}"`;
+              }
+              
+              return dateString; // Return as-is if not ISO format
+            } catch (error) {
+              return dateString; // Return original if parsing fails
+            }
+          };
+          
+          // Filter headers
+          const filteredHeaders = keepIndices.map(index => `"${headers[index]}"`);
+          
+          // Filter data rows
+          const filteredLines = [filteredHeaders.join(',')];
+          
+          for (let i = 1; i < lines.length; i++) {
+            if (lines[i].trim()) {
+              const columns = lines[i].split(',');
+              const filteredColumns = keepIndices.map(index => {
+                const value = columns[index] || '';
+                // Normalize date if this column is a date column
+                if (dateColumnIndices.includes(index)) {
+                  return normalizeDate(value);
+                }
+                return value;
+              });
+              filteredLines.push(filteredColumns.join(','));
+            }
+          }
+          
+          const filteredCSV = filteredLines.join('\n');
+          
+          // Create and download the filtered CSV
+          const blob = new Blob([filteredCSV], { type: 'text/csv' });
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `league-schedules-export-${new Date().toISOString().split('T')[0]}.csv`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          
+          showSuccess("CSV exported successfully");
+          return { success: true };
+        }
+      }
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      showError("Failed to export CSV");
       return rejectWithValue(error);
     }
   }

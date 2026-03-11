@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createLeague, getLeagues, updateLeague, getStates, getClubsWithState, getSponsorCategories, getLeagueById, deleteLeague, getLeagueClubs, getClubTeams, getAllSchedules, saveSchedule } from "./thunk";
+import { createLeague, getLeagues, updateLeague, getStates, getClubsWithState, getSponsorCategories, getLeagueById, deleteLeague, getLeagueClubs, getClubTeams, getAllSchedules, saveSchedule, exportLeagueSchedulesCSV } from "./thunk";
 
 const initialState = {
   leagues: [],
@@ -16,6 +16,7 @@ const initialState = {
   loadingTeams: false,
   schedules: [],
   loadingSchedules: false,
+  loadingExport: false,
   error: null,
 };
 
@@ -163,6 +164,17 @@ const leagueSlice = createSlice({
       })
       .addCase(saveSchedule.rejected, (state, action) => {
         state.loadingSchedules = false;
+        state.error = action.payload;
+      })
+      .addCase(exportLeagueSchedulesCSV.pending, (state) => {
+        state.loadingExport = true;
+        state.error = null;
+      })
+      .addCase(exportLeagueSchedulesCSV.fulfilled, (state) => {
+        state.loadingExport = false;
+      })
+      .addCase(exportLeagueSchedulesCSV.rejected, (state, action) => {
+        state.loadingExport = false;
         state.error = action.payload;
       });
   },
