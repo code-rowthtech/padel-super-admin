@@ -246,7 +246,7 @@ const LeagueRegistration = () => {
                               <th style={{ fontSize: "13px", fontWeight: "600", padding: "12px" }}>Player Name</th>
                               <th style={{ fontSize: "13px", fontWeight: "600", padding: "12px" }}>Phone Number</th>
                               <th style={{ fontSize: "13px", fontWeight: "600", padding: "12px" }}>Email</th>
-                              <th style={{ fontSize: "13px", fontWeight: "600", padding: "12px" }}>Status</th>
+                              {/* <th style={{ fontSize: "13px", fontWeight: "600", padding: "12px" }}>Status</th> */}
                             </tr>
                           </thead>
                           <tbody>
@@ -255,7 +255,7 @@ const LeagueRegistration = () => {
                                 <td style={{ fontSize: "13px", padding: "12px" }}>{reg.name}</td>
                                 <td style={{ fontSize: "13px", padding: "12px" }}>{reg.phone}</td>
                                 <td style={{ fontSize: "13px", padding: "12px" }}>{reg.email}</td>
-                                <td style={{ padding: "12px" }}>{getStatusBadge(reg.status)}</td>
+                                {/* <td style={{ padding: "12px" }}>{getStatusBadge(reg.status)}</td> */}
                               </tr>
                             ))}
                           </tbody>
