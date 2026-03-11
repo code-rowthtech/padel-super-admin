@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Badge, Form } from 'react-bootstrap';
+import { Container, Row, Col, Card, Badge, Form, Button } from 'react-bootstrap';
 import { AppBar, Tabs, Tab } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
@@ -29,7 +29,7 @@ const VSMatchCard = ({ match }) => {
   };
 
   return (
-    <div 
+    <div
       className="mb-2 shadow-sm p-2 rounded-2 position-relative overflow-hidden"
       style={{
         border: '1px solid #e9ecef',
@@ -38,7 +38,7 @@ const VSMatchCard = ({ match }) => {
     >
       {/* Time */}
       <div className="text-center mb-2">
-       
+
         <div className="fw-bold" style={{ fontSize: '14px', color: '#495057' }}>
           {match.time || 'Time TBD'}
         </div>
@@ -48,7 +48,7 @@ const VSMatchCard = ({ match }) => {
       <Row className="align-items-center text-center g-1">
         {/* Team A */}
         <Col xs={5}>
-          <div 
+          <div
             className="mx-auto mb-1 d-flex align-items-center justify-content-center fw-bold"
             style={{
               width: '36px',
@@ -71,7 +71,7 @@ const VSMatchCard = ({ match }) => {
         </Col>
 
         <Col xs={2}>
-          <div 
+          <div
             className="fw-bold d-flex align-items-center justify-content-center"
             style={{
               width: '24px',
@@ -89,7 +89,7 @@ const VSMatchCard = ({ match }) => {
 
         {/* Team B */}
         <Col xs={5}>
-          <div 
+          <div
             className="mx-auto mb-1 d-flex align-items-center justify-content-center fw-bold"
             style={{
               width: '36px',
@@ -131,15 +131,15 @@ const DateSection = ({ schedule }) => {
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
-    
+
     // Compare using UTC dates to avoid timezone issues
     const dateUTC = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
     const todayUTC = new Date(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
     const tomorrowUTC = new Date(tomorrow.getUTCFullYear(), tomorrow.getUTCMonth(), tomorrow.getUTCDate());
-    
+
     if (dateUTC.getTime() === todayUTC.getTime()) return 'Today';
     if (dateUTC.getTime() === tomorrowUTC.getTime()) return 'Tomorrow';
-    
+
     return date.toLocaleDateString('en-US', {
       weekday: 'short',
       month: 'short',
@@ -220,26 +220,26 @@ const ViewLeagueSchedule = () => {
 
   useEffect(() => {
     const params = { leagueId };
-    
+
     if (filters.categoryType) params.categoryType = filters.categoryType;
     if (filters.roundType) params.roundType = filters.roundType;
-    
+
     // Only add date filters if both dates are selected or neither is selected
     const hasStartDate = filters.startDate;
     const hasEndDate = filters.endDate;
-    
+
     if (hasStartDate && hasEndDate) {
       // Both dates selected - add both to params
       const startYear = filters.startDate.getFullYear();
       const startMonth = String(filters.startDate.getMonth() + 1).padStart(2, '0');
       const startDay = String(filters.startDate.getDate()).padStart(2, '0');
       params.startDate = `${startYear}-${startMonth}-${startDay}`;
-      
+
       const endYear = filters.endDate.getFullYear();
       const endMonth = String(filters.endDate.getMonth() + 1).padStart(2, '0');
       const endDay = String(filters.endDate.getDate()).padStart(2, '0');
       params.endDate = `${endYear}-${endMonth}-${endDay}`;
-      
+
       dispatch(getAllSchedules(params));
     } else if (!hasStartDate && !hasEndDate) {
       // Neither date selected - call API without date filters
@@ -288,12 +288,12 @@ const ViewLeagueSchedule = () => {
                       <Tab label="Bracket" />
                     </Tabs>
                   </div>
-                  
+
                   {/* Filters Section - Only show on Schedules tab */}
                   {activeTab === 0 && (
                     <div className="d-flex gap-2 align-items-center">
-                      <Form.Select 
-                        size="sm" 
+                      <Form.Select
+                        size="sm"
                         value={filters.categoryType}
                         onChange={(e) => handleFilterChange('categoryType', e.target.value)}
                         style={{ width: '140px', fontSize: '12px' }}
@@ -303,9 +303,9 @@ const ViewLeagueSchedule = () => {
                           <option key={cat} value={cat}>{cat}</option>
                         ))}
                       </Form.Select>
-                      
-                      <Form.Select 
-                        size="sm" 
+
+                      <Form.Select
+                        size="sm"
                         value={filters.roundType}
                         onChange={(e) => handleFilterChange('roundType', e.target.value)}
                         style={{ width: '120px', fontSize: '12px' }}
@@ -317,7 +317,7 @@ const ViewLeagueSchedule = () => {
                           </option>
                         ))}
                       </Form.Select>
-                      
+
                       <DatePicker
                         selected={filters.startDate}
                         onChange={(dates) => {
@@ -332,9 +332,9 @@ const ViewLeagueSchedule = () => {
                         style={{ fontSize: '12px', width: '180px' }}
                         dateFormat="yyyy-MM-dd"
                       />
-                      
+
                       {hasActiveFilters && (
-                        <button 
+                        <button
                           className="btn btn-outline-danger text-danger fw-semibold btn-sm"
                           onClick={() => setFilters({ categoryType: '', roundType: '', startDate: null, endDate: null })}
                           style={{ fontSize: '12px' }}
@@ -342,6 +342,7 @@ const ViewLeagueSchedule = () => {
                           Clear
                         </button>
                       )}
+                      {/* <Button className='export-btn'>Export Schedule</Button> */}
                     </div>
                   )}
                 </div>
@@ -370,8 +371,8 @@ const ViewLeagueSchedule = () => {
                   ) : schedulesData.length > 0 ? (
                     <div>
                       {schedulesData.map((schedule) => (
-                        <DateSection 
-                          key={schedule._id} 
+                        <DateSection
+                          key={schedule._id}
                           schedule={schedule}
                         />
                       ))}
@@ -387,8 +388,8 @@ const ViewLeagueSchedule = () => {
                     </Card>
                   )}
                 </div>
-              )}  
-              
+              )}
+
               {activeTab === 1 && (
                 <Card className="text-center py-5 border-0 shadow-sm">
                   <Card.Body>

@@ -15,8 +15,6 @@ import { getLeagues, getLeagueClubs, getClubTeams, saveSchedule, getLeagueById }
 import { showError } from '../../../helpers/Toast';
 import { FaAngleRight } from 'react-icons/fa'
 
-
-
 const LeagueSchedule = () => {
   const dispatch = useDispatch();
   const { leagues, leagueClubs, loadingClubs, loadingSchedules, currentLeague } = useSelector(state => state.league);
@@ -102,7 +100,7 @@ const LeagueSchedule = () => {
 
   // Get available categories from selected league data
   const selectedLeague = leaguesData.find(league => league._id === selectedLeagueId);
-  console.log(selectedLeague,'selectedLeagueselectedLeagueselectedLeague')
+  console.log(selectedLeague, 'selectedLeagueselectedLeagueselectedLeague')
   const availableCategories = selectedLeague?.clubs?.[0]?.participationLimit?.categoryLimits || [];
   // Get current matches - if 'all' tab, combine all categories
   const currentMatches = activeTab === 'all'
@@ -300,7 +298,7 @@ const LeagueSchedule = () => {
     return (
       <div style={{ position: 'relative' }}>
         <div onClick={handleDropdownClick} style={{ cursor: 'pointer', marginLeft: '8px' }}>
-          <FaAngleRight size={17} color='rgba(31, 65, 187, 1)'/>
+          <FaAngleRight size={17} color='rgba(31, 65, 187, 1)' />
         </div>
         {isOpen && (
           <div style={{
@@ -453,17 +451,18 @@ const LeagueSchedule = () => {
       const duration = 60;
       const currentMatches = matchesByCategory[activeTab] || [];
       const venueClub = clubs.find(club => club.name === formVenue);
+      const newMatchId = currentMatches.length > 0 ? Math.max(...currentMatches.map(m => m.id)) + 1 : 1;
       const newMatch = {
-        id: currentMatches.length + 1,
+        id: newMatchId,
         date: formDate,
         venue: formVenue,
         venueClubId: venueClub?.id,
-        homeVenue: isHomeVenue ? formVenue : null,
-        awayVenue: null,
+        homeVenue: selectedRound === 'regularRound' && isHomeVenue ? formVenue : null,
+        awayVenue: selectedRound === 'regularRound' && !isHomeVenue ? formVenue : null,
         time: startTime,
         duration: duration,
         endTime: calculateEndTime(startTime, duration),
-        isAwayMatch: !isHomeVenue
+        isAwayMatch: selectedRound === 'regularRound' && !isHomeVenue
       };
       setMatchesByCategory(prev => ({
         ...prev,
@@ -476,6 +475,19 @@ const LeagueSchedule = () => {
       setCurrentScheduleType(isHomeVenue);
 
       setShowModal(false);
+
+      if (selectedRound === 'regularRound') {
+        const categoryType = {
+          'levelA': 'Level A',
+          'levelB': 'Level B',
+          'mixed': 'Mixed',
+          'female': 'Female'
+        }[activeTab];
+        const venueType = isHomeVenue ? 'home' : 'away';
+        fetchTeamsForClub(formVenue, categoryType);
+        setOpenDropdown(`team_${newMatchId}_${venueType}`);
+      }
+
       // Reset form
       setFormDate('');
       setFormVenue('');
@@ -514,6 +526,15 @@ const LeagueSchedule = () => {
       ...prev,
       [activeTab]: updatedMatches
     }));
+
+    const categoryType = {
+      'levelA': 'Level A',
+      'levelB': 'Level B',
+      'mixed': 'Mixed',
+      'female': 'Female'
+    }[activeTab];
+    fetchTeamsForClub(awayVenue, categoryType);
+    setOpenDropdown(`team_${matchId}_away`);
   }
 
   const handleHomeVenueChange = (matchId, homeVenue) => {
@@ -525,21 +546,30 @@ const LeagueSchedule = () => {
       ...prev,
       [activeTab]: updatedMatches
     }));
+
+    const categoryType = {
+      'levelA': 'Level A',
+      'levelB': 'Level B',
+      'mixed': 'Mixed',
+      'female': 'Female'
+    }[activeTab];
+    fetchTeamsForClub(homeVenue, categoryType);
+    setOpenDropdown(`team_${matchId}_home`);
   }
 
   const handleSaveSchedule = async () => {
     const currentMatches = matchesByCategory[activeTab] || [];
-    
+
     // Map selectedRound to roundType enum values
     const roundTypeMap = {
       'regularRound': 'regular',
-      'quarterfinal': 'quarterfinal', 
+      'quarterfinal': 'quarterfinal',
       'semifinal': 'semifinal',
       'final': 'final'
     };
-    
+
     const roundType = roundTypeMap[selectedRound];
-    
+
     // For regular rounds, require matches and teams
     if (roundType === 'regular') {
       if (!selectedLeagueId || currentMatches.length === 0) {
@@ -581,14 +611,14 @@ const LeagueSchedule = () => {
     };
 
     const currentCategoryType = categoryTypeMap[activeTab];
-    
+
     // Base payload structure
     const payload = {
       leagueId: selectedLeagueId,
       categoryType: currentCategoryType,
       roundType: roundType
     };
-    
+
     // Add match-specific fields when matches exist
     if (currentMatches.length > 0) {
       const firstMatch = currentMatches[0];
@@ -598,7 +628,7 @@ const LeagueSchedule = () => {
         showError('Venue club not found.');
         return;
       }
-      
+
       payload.venueClubId = venueClub.id;
       payload.date = new Date(firstMatch.date).toISOString();
       payload.venue = firstMatch.venue;
@@ -612,7 +642,7 @@ const LeagueSchedule = () => {
           matchNo: index + 1,
           teamA: selectedHomeTeam ? {
             clubId: homeClubData?.id,
-            clubType: match.homeVenue === match.venue ? 'home' : 'away',
+            ...(selectedRound === 'regularRound' ? { clubType: match.homeVenue === match.venue ? 'home' : 'away' } : {}),
             teamName: selectedHomeTeam.teamName,
             players: selectedHomeTeam.players?.map(player => ({
               playerId: player.playerId,
@@ -621,7 +651,7 @@ const LeagueSchedule = () => {
           } : null,
           teamB: selectedAwayTeam ? {
             clubId: awayClubData?.id,
-            clubType: match.awayVenue === match.venue ? 'home' : 'away',
+            ...(selectedRound === 'regularRound' ? { clubType: match.awayVenue === match.venue ? 'home' : 'away' } : {}),
             teamName: selectedAwayTeam.teamName,
             players: selectedAwayTeam.players?.map(player => ({
               playerId: player.playerId,
@@ -636,7 +666,7 @@ const LeagueSchedule = () => {
         };
       });
     }
-    
+
     console.log(payload, 'payloadpayloadpayload')
 
     const result = await dispatch(saveSchedule(payload));
@@ -700,63 +730,48 @@ const LeagueSchedule = () => {
 
   return (
     <Container fluid className="p-4 bg-white" style={{ minHeight: '100vh' }}>
-      <Row className="mb-4">
+      {/* <Row className="mb-4">
         <Col>
           <div className="d-flex justify-content-between align-items-center">
-           <div className='d-flex gap-2'>
-            {currentLeague?.matchRules && (
-              <>
-                {currentLeague.matchRules.regularRound?.status && (
-                  <Button 
-                    variant={selectedRound === 'regularRound' ? 'primary' : 'outline-primary'}
-                    onClick={() => setSelectedRound('regularRound')}
-                  >
-                    League
-                  </Button>
-                )}
-                {currentLeague.matchRules.quarterfinal?.status && (
-                  <Button 
-                    variant={selectedRound === 'quarterfinal' ? 'primary' : 'outline-primary'}
-                    onClick={() => setSelectedRound('quarterfinal')}
-                  >
-                    Quarter-Final
-                  </Button>
-                )}
-                {currentLeague.matchRules.semifinal?.status && (
-                  <Button 
-                    variant={selectedRound === 'semifinal' ? 'primary' : 'outline-primary'}
-                    onClick={() => setSelectedRound('semifinal')}
-                  >
-                    Semi-Final
-                  </Button>
-                )}
-                {currentLeague.matchRules.final?.status && (
-                  <Button 
-                    variant={selectedRound === 'final' ? 'primary' : 'outline-primary'}
-                    onClick={() => setSelectedRound('final')}
-                  >
-                    Final
-                  </Button>
-                )}
-              </>
-            )}
-           </div>
+            <div className='d-flex gap-2'>
+              {currentLeague?.matchRules && (
+                <>
+                  {currentLeague.matchRules.regularRound?.status && (
+                    <Button
+                      variant={selectedRound === 'regularRound' ? 'primary' : 'outline-primary'}
+                      onClick={() => setSelectedRound('regularRound')}
+                    >
+                      League
+                    </Button>
+                  )}
+                  {currentLeague.matchRules.quarterfinal?.status && (
+                    <Button
+                      variant={selectedRound === 'quarterfinal' ? 'primary' : 'outline-primary'}
+                      onClick={() => setSelectedRound('quarterfinal')}
+                    >
+                      Quarter-Final
+                    </Button>
+                  )}
+                  {currentLeague.matchRules.semifinal?.status && (
+                    <Button
+                      variant={selectedRound === 'semifinal' ? 'primary' : 'outline-primary'}
+                      onClick={() => setSelectedRound('semifinal')}
+                    >
+                      Semi-Final
+                    </Button>
+                  )}
+                  {currentLeague.matchRules.final?.status && (
+                    <Button
+                      variant={selectedRound === 'final' ? 'primary' : 'outline-primary'}
+                      onClick={() => setSelectedRound('final')}
+                    >
+                      Final
+                    </Button>
+                  )}
+                </>
+              )}
+            </div>
             <div className="d-flex align-items-center gap-3">
-              <button onClick={() => setShowModal(true)} className='btn' style={{ padding: '8px 18px', border: '1px dashed rgba(37, 37, 37, 1)', color: "rgba(37, 37, 37, 1)", background: "transparent" }}><FiPlus size={18} /> Add Date</button>
-              <Button variant="primary" style={{ padding: '8px 20px', backgroundColor: 'rgba(31, 65, 187, 1)', border: 'none' }}>Export Schedule</Button>
-            </div>
-          </div>
-        </Col>
-      </Row>
-
-      <Row className='border-top' style={{ minHeight: 'calc(100vh - 200px)' }}>
-        <Col md={2} className='p-0 border-end pe-1' style={{ backgroundColor: "#FBFCFE", display: 'flex', flexDirection: 'column', padding: '16px !important' }}>
-          <div className="clubs-tabs">
-            <div className="d-flex pt-1 border-bottom py-3 justify-content-between align-items-center mb-3">
-              <span style={{ fontWeight: '600', color: '#1a1a1a', fontSize: '14px' }}>Clubs</span>
-              <span style={{ color: '#666', fontSize: '12px' }}>({clubs.length})</span>
-            </div>
-            <div className="mb-3">
               <select
                 className="form-select form-select-sm"
                 value={selectedLeagueId}
@@ -769,6 +784,96 @@ const LeagueSchedule = () => {
                   </option>
                 ))}
               </select>
+              <button onClick={() => setShowModal(true)} className='btn' style={{ border: '1px dashed rgba(37, 37, 37, 1)', color: "rgba(37, 37, 37, 1)", background: "transparent" }}><FiPlus size={18} /> Add Date</button>
+              <Button variant="primary" style={{ backgroundColor: 'rgba(31, 65, 187, 1)', border: 'none' }}>Export Schedule</Button>
+            </div>
+          </div>
+        </Col>
+      </Row> */}
+      <Row className="mb-4">
+        <Col>
+          <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+            {/* Round Tabs */}
+            <div className="d-flex gap-2 flex-wrap">
+              {currentLeague?.matchRules && (
+                <>
+                  {currentLeague.matchRules.regularRound?.status && (
+                    <button
+                      className={`round-tab ${selectedRound === "regularRound" ? "active" : ""}`}
+                      onClick={() => setSelectedRound("regularRound")}
+                    >
+                      Regular Match
+                    </button>
+                  )}
+
+                  {currentLeague.matchRules.quarterfinal?.status && (
+                    <button
+                      className={`round-tab ${selectedRound === "quarterfinal" ? "active" : ""}`}
+                      onClick={() => setSelectedRound("quarterfinal")}
+                    >
+                      Quarter-Final
+                    </button>
+                  )}
+
+                  {currentLeague.matchRules.semifinal?.status && (
+                    <button
+                      className={`round-tab ${selectedRound === "semifinal" ? "active" : ""}`}
+                      onClick={() => setSelectedRound("semifinal")}
+                    >
+                      Semi-Final
+                    </button>
+                  )}
+
+                  {currentLeague.matchRules.final?.status && (
+                    <button
+                      className={`round-tab ${selectedRound === "final" ? "active" : ""}`}
+                      onClick={() => setSelectedRound("final")}
+                    >
+                      Final
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Right Controls */}
+            <div className="d-flex align-items-center gap-2 flex-nowrap">
+
+              <select
+                className="form-select form-select-sm league-select"
+                value={selectedLeagueId}
+                onChange={handleLeagueChange}
+              >
+                <option value="">Select League</option>
+                {leaguesData.map((league) => (
+                  <option key={league._id} value={league._id}>
+                    {league.leagueName}
+                  </option>
+                ))}
+              </select>
+
+              <button
+                onClick={() => setShowModal(true)}
+                className="export-btn"
+              >
+                <FiPlus size={16} /> Add Date
+              </button>
+
+              {/* <button className="export-btn">
+                Export
+              </button> */}
+
+            </div>
+          </div>
+        </Col>
+      </Row>
+      <Row className='border-top' style={{ minHeight: 'calc(100vh - 200px)' }}>
+        <Col md={2} className='p-0 border-end pe-1' style={{ backgroundColor: "#FBFCFE", display: 'flex', flexDirection: 'column', padding: '16px !important' }}>
+          <div className="clubs-tabs">
+            <div className="d-flex pt-1 border-bottom py-3 justify-content-between align-items-center mb-3">
+              <span style={{ fontWeight: '600', color: '#1a1a1a', fontSize: '14px' }}>Clubs</span>
+              <span style={{ color: '#666', fontSize: '12px' }}>({clubs.length})</span>
             </div>
             <div className="clubs-list" style={{ gap: '0' }}>
               {loadingClubs ? (
@@ -1008,21 +1113,20 @@ const LeagueSchedule = () => {
               </div>
             </>
           ) : (
-            <div style={{height:'50vh'}} className="text-center text-muted py-5">
+            <div style={{ height: '50vh' }} className="text-center text-muted py-5">
               <p>Please add a match to create schedule</p>
             </div>
           )}
-
-          <Row className="mt-4">
-            <Col className="d-flex justify-content-between">
-            <div></div>
-              {/* <Button variant="light" style={{ padding: '10px 30px', border: '1px solid #ddd' }}>Back</Button> */}
-              <div className="d-flex gap-2">
-                <Button 
-                  variant="outline-primary" 
-                  onClick={handleSaveAndNextDate} 
+          {currentMatches.length > 0 && (
+            <Row className="mt-4">
+              <Col className="d-flex justify-content-between">
+                <div></div>
+                {/* <Button variant="light" style={{ padding: '10px 30px', border: '1px solid #ddd' }}>Back</Button> */}
+                <div className="d-flex gap-2">
+                  {/* <Button
+                  onClick={handleSaveAndNextDate}
                   disabled={loadingSchedules}
-                  style={{ padding: '10px 24px', color: "rgba(31, 65, 187, 1)", border: "1px solid rgba(31, 65, 187, 1)", fontWeight: "600" }}
+                  className='export-btn'
                 >
                   {loadingSchedules ? (
                     <>
@@ -1032,25 +1136,26 @@ const LeagueSchedule = () => {
                   ) : (
                     'Save and Next Date'
                   )}
-                </Button>
-                <Button 
-                  variant="primary" 
-                  disabled={loadingSchedules}
-                  style={{ padding: '10px 40px', backgroundColor: 'rgba(31, 65, 187, 1)', border: 'none', boxShadow: '0px 0px 20.9px 0px rgba(31, 65, 187, 0.5)', fontWeight: "600" }} 
-                  onClick={handleSaveSchedule}
-                >
-                  {loadingSchedules ? (
-                    <>
-                      <div className="spinner-border spinner-border-sm me-2" role="status"></div>
-                      Saving...
-                    </>
-                  ) : (
-                    'Save'
-                  )}
-                </Button>
-              </div>
-            </Col>
-          </Row>
+                </Button> */}
+                  <Button
+                    className='export-btn'
+                    disabled={loadingSchedules}
+                    onClick={handleSaveSchedule}
+                    style={{ width: '8rem' }}
+                  >
+                    {loadingSchedules ? (
+                      <>
+                        <div className="spinner-border spinner-border-sm me-2" role="status"></div>
+                        Saving...
+                      </>
+                    ) : (
+                      'Save Schedule'
+                    )}
+                  </Button>
+                </div>
+              </Col>
+            </Row>
+          )}
         </Col>
 
         <Col md={2} className='d-flex flex-column' style={{ backgroundColor: "#FBFCFE", padding: '16px', gap: '12px' }}>
@@ -1119,29 +1224,31 @@ const LeagueSchedule = () => {
                 ))}
               </Form.Select>
             </Form.Group>
-            <Form.Group className="mb-4">
-              <Form.Label style={{ fontWeight: '600', color: '#1a1a1a', marginBottom: '8px' }}>Venue Type</Form.Label>
-              <div className="d-flex gap-3">
-                <Form.Check
-                  type="radio"
-                  id="home-venue"
-                  name="venueType"
-                  label="Home"
-                  checked={isHomeVenue}
-                  onChange={() => setIsHomeVenue(true)}
-                  style={{ fontSize: '14px' }}
-                />
-                <Form.Check
-                  type="radio"
-                  id="away-venue"
-                  name="venueType"
-                  label="Away"
-                  checked={!isHomeVenue}
-                  onChange={() => setIsHomeVenue(false)}
-                  style={{ fontSize: '14px' }}
-                />
-              </div>
-            </Form.Group>
+            {selectedRound === 'regularRound' && (
+              <Form.Group className="mb-4">
+                <Form.Label style={{ fontWeight: '600', color: '#1a1a1a', marginBottom: '8px' }}>Venue Type</Form.Label>
+                <div className="d-flex gap-3">
+                  <Form.Check
+                    type="radio"
+                    id="home-venue"
+                    name="venueType"
+                    label="Home"
+                    checked={isHomeVenue}
+                    onChange={() => setIsHomeVenue(true)}
+                    style={{ fontSize: '14px' }}
+                  />
+                  <Form.Check
+                    type="radio"
+                    id="away-venue"
+                    name="venueType"
+                    label="Away"
+                    checked={!isHomeVenue}
+                    onChange={() => setIsHomeVenue(false)}
+                    style={{ fontSize: '14px' }}
+                  />
+                </div>
+              </Form.Group>
+            )}
 
 
             <Button

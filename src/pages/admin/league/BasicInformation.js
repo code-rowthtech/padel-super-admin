@@ -89,7 +89,25 @@ const BasicInformation = ({ onNext }) => {
             formDataPayload.append('id', id);
             Object.keys(currentLeague).forEach(key => {
                 const value = currentLeague[key];
-                if (!['_id', '__v', 'createdAt', 'updatedAt', 'clubs', 'titleSponsor', 'sponsors', 'stateId', 'leagueName', 'startDate', 'registration', 'priceDistribution', 'bounty', 'teamOfLeague', 'matchRules'].includes(key)) {
+                if (![
+                    '_id',
+                    '__v',
+                    'createdAt',
+                    'updatedAt',
+                    'clubs',
+                    'titleSponsor',
+                    'sponsors',
+                    'stateId',
+                    'leagueName',
+                    'startDate',
+                    'sportType',
+                    'seasonType',
+                    'registration',
+                    'priceDistribution',
+                    'bounty',
+                    'teamOfLeague',
+                    'matchRules'
+                ].includes(key)) {
                     if (value !== null && value !== undefined && value !== '' && !(Array.isArray(value) && value.length === 0)) {
                         if (typeof value === 'object' && !Array.isArray(value)) {
                             Object.keys(value).forEach(subKey => {
@@ -157,16 +175,19 @@ const BasicInformation = ({ onNext }) => {
             formDataPayload.append('status', 'draft');
             const result = await dispatch(createLeague(formDataPayload));
             if (result.meta.requestStatus === 'fulfilled') {
-                const newLeagueId = result.payload?.data?._id;
-                if (newLeagueId) navigate(`/admin/new-league/${newLeagueId}`);
-                onNext();
+                const newLeagueId = result.payload?.data?._id || result.payload?.id;
+                if (newLeagueId) {
+                    navigate(`/admin/new-league/${newLeagueId}`, { state: { step: 1 }, replace: true });
+                } else {
+                    onNext();
+                }
             }
         }
     };
 
     return (
         <div className='h-100 overflow-hidden'>
-            <div style={{height:'90%',overflowX:'hidden', overflowY:'scroll'}}>
+            <div className='px-1' style={{ height: '90%', overflowX: 'hidden', overflowY: 'scroll' }}>
                 <div className="d-flex align-items-center mb-4">
                     <BsInfoCircle size={20} className="me-2" />
                     <h5 className="mb-0 fw-semibold">League Information</h5>
@@ -175,7 +196,7 @@ const BasicInformation = ({ onNext }) => {
                 <Row className="mb-0">
                     <Col md={6} className="mb-3">
                         <Form.Group className='mb-3'>
-                            <Form.Label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>League Name</Form.Label>
+                            <Form.Label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>League Name <span className="text-danger">*</span></Form.Label>
                             <Form.Control
                                 type="text"
                                 placeholder="Enter League Name"
@@ -187,7 +208,7 @@ const BasicInformation = ({ onNext }) => {
                         <Row className="mb-4">
                             <Col md={6} className="mb-3">
                                 <Form.Group>
-                                    <Form.Label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>Location</Form.Label>
+                                    <Form.Label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>Location <span className="text-danger">*</span></Form.Label>
                                     <Form.Select
                                         value={formData.stateId}
                                         onChange={(e) => setFormData({ ...formData, stateId: e.target.value })}
@@ -202,7 +223,7 @@ const BasicInformation = ({ onNext }) => {
                             </Col>
                             <Col md={6} className="mb-3">
                                 <Form.Group>
-                                    <Form.Label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>Start Date</Form.Label>
+                                    <Form.Label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>Start Date <span className="text-danger">*</span></Form.Label>
                                     <Form.Control
                                         type="date"
                                         value={formData.startDate}
@@ -374,7 +395,7 @@ const BasicInformation = ({ onNext }) => {
                 ))}
             </div>
 
-            <div style={{height:'10%'}} className="text-end overflow-hidden mt-4">
+            <div style={{ height: '10%' }} className="text-end overflow-hidden mt-4">
                 <button className='border-0 rounded-pill text-white py-2' disabled={loading} onClick={handleSubmit} style={{ backgroundColor: '#3DBE64', border: 'none', width: '10rem', fontSize: '16px', fontWeight: '600' }}>
                     {loading ? (id ? 'Updating...' : 'Creating...') : (id ? 'Update' : 'Next')}
                 </button>
