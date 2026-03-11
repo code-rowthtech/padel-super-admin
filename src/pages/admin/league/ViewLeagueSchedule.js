@@ -3,7 +3,7 @@ import { Container, Row, Col, Card, Badge, Form, Button } from 'react-bootstrap'
 import { AppBar, Tabs, Tab } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import { getAllSchedules } from '../../../redux/admin/league/thunk';
+import { getAllSchedules, exportLeagueSchedulesCSV } from '../../../redux/admin/league/thunk';
 import { IoLocationOutline } from 'react-icons/io5';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -29,6 +29,9 @@ const VSMatchCard = ({ match }) => {
         border: '1px solid #1F41BB1A'
       }}
     >
+      <div className="vs-date-badge">
+        {match?.time}
+      </div>
       <Row className="align-items-center">
         {/* Team A */}
         <Col xs={4} className="text-start">
@@ -190,7 +193,7 @@ const TournamentBracket = () => {
 const ViewLeagueSchedule = () => {
   const dispatch = useDispatch();
   const { leagueId } = useParams();
-  const { schedules, loadingSchedules } = useSelector(state => state.league);
+  const { schedules, loadingSchedules, loadingExport } = useSelector(state => state.league);
   const [activeTab, setActiveTab] = useState(0);
   const [filters, setFilters] = useState({
     categoryType: '',
@@ -234,6 +237,13 @@ const ViewLeagueSchedule = () => {
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleExport = () => {
+    dispatch(exportLeagueSchedulesCSV({
+      leagueId: leagueId,
+      clubId: ''
+    }));
   };
 
   const hasActiveFilters = filters.categoryType || filters.roundType || filters.startDate || filters.endDate;
@@ -326,7 +336,15 @@ const ViewLeagueSchedule = () => {
                           Clear
                         </button>
                       )}
-                      {/* <Button className='export-btn'>Export Schedule</Button> */}
+
+                      <Button
+                        className="export-btn btn-primary btn-sm"
+                        onClick={handleExport}
+                        disabled={loadingExport}
+                        style={{ fontSize: '12px' }}
+                      >
+                        {loadingExport ? 'Exporting...' : 'Export'}
+                      </Button>
                     </div>
                   )}
                 </div>

@@ -2919,3 +2919,17 @@ button:focus .book-now-arrow {
   border-radius: 6px;
   white-space: nowrap;
 }
+
+.vs-date-badge {
+  position: absolute;
+  top: -9%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1F41BB;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 22px;
+  border-radius: 20px;
+  padding-top: 10px;
+}

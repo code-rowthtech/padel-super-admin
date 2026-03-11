@@ -149,4 +149,5 @@ export const DELETE_LEAGUE = "/api/leagues/deleteLeague";
 // League Schedule API endpoints
 export const GET_LEAGUE_CLUBS = "/api/league-schedules/clubs";
 export const GET_CLUB_TEAMS = "/api/league-schedules/teams";
+export const EXPORT_LEAGUE_SCHEDULES_CSV = "/api/league-schedules/export/csv";
 export const GET_SPONSOR_CATEGORIES = "/api/sponsor-categories";

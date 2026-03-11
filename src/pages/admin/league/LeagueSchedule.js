@@ -94,13 +94,12 @@ const LeagueSchedule = () => {
     id: club.clubId || index + 1,
     name: club.clubName || 'Unknown Club',
     logo: club.clubName ? club.clubName.substring(0, 2).toUpperCase() : 'UC',
-    location: 'Unknown Location',
+    location: club?.clubId?.locations?.[0]?.city,
     categories: club.categories || []
   }));
 
   // Get available categories from selected league data
   const selectedLeague = leaguesData.find(league => league._id === selectedLeagueId);
-  console.log(selectedLeague, 'selectedLeagueselectedLeagueselectedLeague')
   const availableCategories = selectedLeague?.clubs?.[0]?.participationLimit?.categoryLimits || [];
   // Get current matches - if 'all' tab, combine all categories
   const currentMatches = activeTab === 'all'
@@ -672,9 +671,6 @@ const LeagueSchedule = () => {
         };
       });
     }
-
-    console.log(payload, 'payloadpayloadpayload')
-
     const result = await dispatch(saveSchedule(payload));
     if (result.type === 'league/saveSchedule/fulfilled') {
       // Clear everything on successful save

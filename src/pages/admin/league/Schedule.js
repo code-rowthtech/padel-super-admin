@@ -41,7 +41,6 @@ const Schedule = () => {
   };
 
   const handleCreateDate = () => {
-    console.log("Creating date:", dateForm);
     setShowDateModal(false);
     setDateForm({ date: "", venue: "", selectType: "" });
   };
