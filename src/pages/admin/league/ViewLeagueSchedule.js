@@ -3,7 +3,7 @@ import { Container, Row, Col, Card, Badge, Form, Button } from 'react-bootstrap'
 import { AppBar, Tabs, Tab } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import { getAllSchedules, exportLeagueSchedulesCSV } from '../../../redux/admin/league/thunk';
+import { getAllSchedules, exportLeagueSchedulesCSV, getLeagueById } from '../../../redux/admin/league/thunk';
 import { IoLocationOutline } from 'react-icons/io5';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -193,7 +193,7 @@ const TournamentBracket = () => {
 const ViewLeagueSchedule = () => {
   const dispatch = useDispatch();
   const { leagueId } = useParams();
-  const { schedules, loadingSchedules, loadingExport } = useSelector(state => state.league);
+  const { schedules, loadingSchedules, loadingExport, leagueClubs } = useSelector(state => state.league);
   const [activeTab, setActiveTab] = useState(0);
   const [filters, setFilters] = useState({
     categoryType: '',
@@ -201,9 +201,24 @@ const ViewLeagueSchedule = () => {
     startDate: null,
     endDate: null
   });
+  const [showExportDropdown, setShowExportDropdown] = useState(false);
+  const [exportFilters, setExportFilters] = useState({
+    leagueId: leagueId,
+    venueClubId: '',
+    clubId: '',
+    startDate: '',
+    endDate: ''
+  });
 
   const categoryOptions = ['Level A', 'Level B', 'Mixed', 'Female'];
   const roundTypeOptions = ['regular', 'quarterfinal', 'semifinal', 'final'];
+
+
+  useEffect(() => {
+    if (leagueId) {
+      dispatch(getLeagueById(leagueId));
+    }
+  }, [leagueId, dispatch])
 
   useEffect(() => {
     const params = { leagueId };
@@ -240,10 +255,12 @@ const ViewLeagueSchedule = () => {
   };
 
   const handleExport = () => {
-    dispatch(exportLeagueSchedulesCSV({
-      leagueId: leagueId,
-      clubId: ''
-    }));
+    setShowExportDropdown(!showExportDropdown);
+  };
+
+  const handleExportSubmit = () => {
+    dispatch(exportLeagueSchedulesCSV(exportFilters));
+    setShowExportDropdown(false);
   };
 
   const hasActiveFilters = filters.categoryType || filters.roundType || filters.startDate || filters.endDate;
@@ -252,7 +269,7 @@ const ViewLeagueSchedule = () => {
 
   return (
     <div style={{ backgroundColor: 'white', height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Container fluid className="p-3 p-md-4" style={{ flex: '0 0 auto' }}>
+      <Container fluid className="p-3 p-md-4 pb-md-0" style={{ flex: '0 0 auto' }}>
         {/* Header with Tabs and Filters - Fixed */}
         <Row className="mb-4">
           <Col>
@@ -337,14 +354,86 @@ const ViewLeagueSchedule = () => {
                         </button>
                       )}
 
-                      <Button
-                        className="export-btn btn-primary btn-sm"
-                        onClick={handleExport}
-                        disabled={loadingExport}
-                        style={{ fontSize: '12px' }}
-                      >
-                        {loadingExport ? 'Exporting...' : 'Export'}
-                      </Button>
+                      <div className="position-relative">
+                        <Button
+                          className="export-btn btn-primary btn-sm"
+                          onClick={handleExport}
+                          disabled={loadingExport}
+                          style={{ fontSize: '12px' }}
+                        >
+                          {loadingExport ? 'Exporting...' : 'Export Schedule'}
+                        </Button>
+
+                        {showExportDropdown && (
+                          <div className="position-absolute bg-white border rounded shadow-sm p-3" style={{ top: '100%', right: 0, zIndex: 1000, minWidth: '300px' }}>
+                            <div className="mb-2">
+                              <label className="form-label" style={{ fontSize: '12px' }}>Venue Club ID</label>
+                              <select
+                                className="form-control form-control-sm"
+                                value={exportFilters.venueClubId}
+                                onChange={(e) => setExportFilters(prev => ({ ...prev, venueClubId: e.target.value }))}
+                                style={{ fontSize: '12px' }}
+                              >
+                                <option value="">Select Venue Club</option>
+                                {leagueClubs?.map(club => (
+                                  <option key={club.clubId} value={club.clubId}>{club.clubName}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <div className="mb-2">
+                              <label className="form-label" style={{ fontSize: '12px' }}>Club ID</label>
+                              <select
+                                className="form-control form-control-sm"
+                                value={exportFilters.clubId}
+                                onChange={(e) => setExportFilters(prev => ({ ...prev, clubId: e.target.value }))}
+                                style={{ fontSize: '12px' }}
+                              >
+                                <option value="">Select Club</option>
+                                {leagueClubs?.map(club => (
+                                  <option key={club.clubId} value={club.clubId}>{club.clubName}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <div className="mb-2">
+                              <label className="form-label" style={{ fontSize: '12px' }}>Start Date</label>
+                              <input
+                                type="date"
+                                className="form-control form-control-sm"
+                                value={exportFilters.startDate}
+                                onChange={(e) => setExportFilters(prev => ({ ...prev, startDate: e.target.value }))}
+                                style={{ fontSize: '12px' }}
+                              />
+                            </div>
+                            <div className="mb-3">
+                              <label className="form-label" style={{ fontSize: '12px' }}>End Date</label>
+                              <input
+                                type="date"
+                                className="form-control form-control-sm"
+                                value={exportFilters.endDate}
+                                onChange={(e) => setExportFilters(prev => ({ ...prev, endDate: e.target.value }))}
+                                style={{ fontSize: '12px' }}
+                              />
+                            </div>
+                            <div className="d-flex gap-2">
+                              <button
+                                className="btn btn-primary btn-sm"
+                                onClick={handleExportSubmit}
+                                disabled={loadingExport}
+                                style={{ fontSize: '12px' }}
+                              >
+                                Export
+                              </button>
+                              <button
+                                className="btn btn-secondary btn-sm"
+                                onClick={() => setShowExportDropdown(false)}
+                                style={{ fontSize: '12px' }}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>

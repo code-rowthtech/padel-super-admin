@@ -31,7 +31,7 @@ import Pagination from "../../../helpers/Pagination";
 import config from "../../../config";
 
 // Add export endpoints
-const SUPER_ADMIN_EXPORT_TRANSACTIONS = `${config.API_URL}/api/super-admin/export-transactions`;
+const SUPER_ADMIN_EXPORT_TRANSACTIONS = `${config.API_URL}api/super-admin/export-transactions`;
 
 const Payments = () => {
   const { selectedOwnerId } = useSuperAdminContext();

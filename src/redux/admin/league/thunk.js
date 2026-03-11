@@ -282,12 +282,19 @@ export const getAllSchedules = createAsyncThunk(
 
 export const exportLeagueSchedulesCSV = createAsyncThunk(
   "league/exportLeagueSchedulesCSV",
-  async ({ leagueId, clubId }, { rejectWithValue }) => {
+  async ({ leagueId, clubId, venueClubId, startDate, endDate }, { rejectWithValue }) => {
     try {
       const owner = getOwnerFromSession();
       const token = owner?.token;
       
-      const response = await ownerAxios.get(`${EXPORT_LEAGUE_SCHEDULES_CSV}?leagueId=${leagueId}&clubId=${clubId}`, {
+      const queryParams = new URLSearchParams();
+      if (leagueId) queryParams.append('leagueId', leagueId);
+      if (clubId) queryParams.append('clubId', clubId);
+      if (venueClubId) queryParams.append('venueClubId', venueClubId);
+      if (startDate) queryParams.append('startDate', startDate);
+      if (endDate) queryParams.append('endDate', endDate);
+      
+      const response = await ownerAxios.get(`${EXPORT_LEAGUE_SCHEDULES_CSV}?${queryParams.toString()}`, {
         responseType: 'text',
         headers: {
           'Authorization': `Bearer ${token}`
