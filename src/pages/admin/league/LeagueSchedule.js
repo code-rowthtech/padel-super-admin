@@ -871,7 +871,7 @@ const LeagueSchedule = () => {
         </Col>
       </Row>
       <Row className='border-top' style={{ minHeight: 'calc(100vh - 200px)' }}>
-        <Col md={2} className='p-0 border-end pe-1' style={{ backgroundColor: "#FBFCFE", display: 'flex', flexDirection: 'column', padding: '16px !important' }}>
+        {/* <Col md={2} className='p-0 border-end pe-1' style={{ backgroundColor: "#FBFCFE", display: 'flex', flexDirection: 'column', padding: '16px !important' }}>
           <div className="clubs-tabs">
             <div className="d-flex pt-1 border-bottom py-3 justify-content-between align-items-center mb-3">
               <span style={{ fontWeight: '600', color: '#1a1a1a', fontSize: '14px' }}>Clubs</span>
@@ -925,9 +925,9 @@ const LeagueSchedule = () => {
               )}
             </div>
           </div>
-        </Col>
+        </Col> */}
 
-        <Col md={8} style={{ overflowY: 'auto' }}>
+        <Col md={12} style={{ overflowY: 'auto' }}>
           <Nav variant="tabs" activeKey={activeTab} onSelect={(k) => setActiveTab(k)} className="level-tabs border-0 mb-3">
             {availableCategories.map((category) => {
               const tabKey = {
@@ -1160,7 +1160,7 @@ const LeagueSchedule = () => {
           )}
         </Col>
 
-        <Col md={2} className='d-flex flex-column' style={{ backgroundColor: "#FBFCFE", padding: '16px', gap: '12px' }}>
+        {/* <Col md={2} className='d-flex flex-column' style={{ backgroundColor: "#FBFCFE", padding: '16px', gap: '12px' }}>
           <div className='border rounded-3' style={{ background: 'rgba(251, 252, 254, 1)', borderRadius: '8px', padding: '16px', textAlign: 'center' }}>
             <div className='d-flex justify-content-between align-items-center gap-2 mb-2'>
               <span style={{ fontSize: '14px', fontWeight: '600', color: '#1a1a1a' }}>10 Aug, 2026</span>
@@ -1178,7 +1178,7 @@ const LeagueSchedule = () => {
               </div>
             </div>
           </div>
-        </Col>
+        </Col> */}
       </Row>
 
       <Modal show={showModal} onHide={() => setShowModal(false)} centered>

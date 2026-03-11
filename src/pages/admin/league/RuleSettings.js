@@ -195,24 +195,12 @@ const RuleSettings = ({ onBack }) => {
 
             const numSets = parseInt(settings.numberOfSets, 10);
             const numGames = parseInt(settings.numberOfGames, 10);
-            const gamesToTiebreak = parseInt(settings.gamesToStartTiebreak, 10);
-            const pointsTiebreak = parseInt(settings.pointsInTiebreak, 10);
-            const matchWinPts = parseInt(settings.matchWinPoints, 10);
 
             if (!numSets || numSets < 3) {
                 newErrors[`${prefix}numberOfSets`] = true;
             }
             if (!numGames || numGames < 1) {
                 newErrors[`${prefix}numberOfGames`] = true;
-            }
-            if (!gamesToTiebreak || gamesToTiebreak < 1) {
-                newErrors[`${prefix}gamesToStartTiebreak`] = true;
-            }
-            if (!pointsTiebreak || pointsTiebreak < 1) {
-                newErrors[`${prefix}pointsInTiebreak`] = true;
-            }
-            if (!matchWinPts || matchWinPts < 1) {
-                newErrors[`${prefix}matchWinPoints`] = true;
             }
         };
 
@@ -299,26 +287,24 @@ const RuleSettings = ({ onBack }) => {
                     {errors[`${round}_numberOfSets`] && <small className="text-danger">Must be at least 3</small>}
                 </Col>
                 <Col md={4} className="mb-3">
-                    <div className='d-flex justify-content-between rounded align-items-center p-2' style={{ backgroundColor: '#E7EAF070', minHeight: '48px', border: errors[`${round}_gamesToStartTiebreak`] ? '1px solid #dc3545' : 'none' }}>
-                        <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '0' }}>Games to Start Tiebreak <span className="text-danger">*</span></Form.Label>
+                    <div className='d-flex justify-content-between rounded align-items-center p-2' style={{ backgroundColor: '#E7EAF070', minHeight: '48px' }}>
+                        <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '0' }}>Games to Start Tiebreak</Form.Label>
                         <div className='d-flex align-items-center gap-2'>
                             <Button variant="light" size="sm" onClick={() => handleCounterChange('gamesToStartTiebreak', false, round)} style={{ borderRadius: '6px', border: '1px solid #e0e0e0', backgroundColor: '#fff', color: '#666', padding: '4px 12px' }}>-</Button>
                             <span style={{ fontSize: '14px', fontWeight: '500', minWidth: '20px', textAlign: 'center' }}>{settings?.gamesToStartTiebreak || 1}</span>
                             <Button variant="light" size="sm" onClick={() => handleCounterChange('gamesToStartTiebreak', true, round)} style={{ borderRadius: '6px', border: '1px solid #e0e0e0', backgroundColor: '#fff', color: '#666', padding: '4px 12px' }}>+</Button>
                         </div>
                     </div>
-                    {errors[`${round}_gamesToStartTiebreak`] && <small className="text-danger">Must be at least 1</small>}
                 </Col>
                 <Col md={4} className="mb-3">
-                    <div className='d-flex justify-content-between rounded align-items-center p-2' style={{ backgroundColor: '#E7EAF070', minHeight: '48px', border: errors[`${round}_pointsInTiebreak`] ? '1px solid #dc3545' : 'none' }}>
-                        <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '0' }}>Point in Tiebreak <span className="text-danger">*</span></Form.Label>
+                    <div className='d-flex justify-content-between rounded align-items-center p-2' style={{ backgroundColor: '#E7EAF070', minHeight: '48px' }}>
+                        <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '0' }}>Point in Tiebreak</Form.Label>
                         <div className='d-flex align-items-center gap-2'>
                             <Button variant="light" size="sm" onClick={() => handleCounterChange('pointsInTiebreak', false, round)} style={{ borderRadius: '6px', border: '1px solid #e0e0e0', backgroundColor: '#fff', color: '#666', padding: '4px 12px' }}>-</Button>
                             <span style={{ fontSize: '14px', fontWeight: '500', minWidth: '20px', textAlign: 'center' }}>{settings?.pointsInTiebreak || 1}</span>
                             <Button variant="light" size="sm" onClick={() => handleCounterChange('pointsInTiebreak', true, round)} style={{ borderRadius: '6px', border: '1px solid #e0e0e0', backgroundColor: '#fff', color: '#666', padding: '4px 12px' }}>+</Button>
                         </div>
                     </div>
-                    {errors[`${round}_pointsInTiebreak`] && <small className="text-danger">Must be at least 1</small>}
                 </Col>
             </Row>
             <Row className="mb-3">
@@ -360,15 +346,14 @@ const RuleSettings = ({ onBack }) => {
                     </div>
                 </Col>
                 <Col md={4} className="mb-3">
-                    <div className='d-flex justify-content-between rounded align-items-center p-2' style={{ backgroundColor: '#E7EAF070', minHeight: '48px', border: errors[`${round}_matchWinPoints`] ? '1px solid #dc3545' : 'none' }}>
-                        <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '0' }}>Match Win Points <span className="text-danger">*</span></Form.Label>
+                    <div className='d-flex justify-content-between rounded align-items-center p-2' style={{ backgroundColor: '#E7EAF070', minHeight: '48px' }}>
+                        <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '0' }}>Match Win Points</Form.Label>
                         <div className='d-flex align-items-center gap-2'>
                             <Button variant="light" size="sm" onClick={() => handleCounterChange('matchWinPoints', false, round)} style={{ borderRadius: '6px', border: '1px solid #e0e0e0', backgroundColor: '#fff', color: '#666', padding: '4px 12px' }}>-</Button>
                             <span style={{ fontSize: '14px', fontWeight: '500', minWidth: '20px', textAlign: 'center' }}>{settings?.matchWinPoints || 1}</span>
                             <Button variant="light" size="sm" onClick={() => handleCounterChange('matchWinPoints', true, round)} style={{ borderRadius: '6px', border: '1px solid #e0e0e0', backgroundColor: '#fff', color: '#666', padding: '4px 12px' }}>+</Button>
                         </div>
                     </div>
-                    {errors[`${round}_matchWinPoints`] && <small className="text-danger">Must be at least 1</small>}
                 </Col>
             </Row>
         </>
