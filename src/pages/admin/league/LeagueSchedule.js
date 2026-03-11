@@ -423,11 +423,13 @@ const LeagueSchedule = () => {
   ]
 
   const handleDateChange = (e) => {
-    const date = new Date(e.target.value)
-    const formatted = (date.getMonth() + 1).toString().padStart(2, '0') + '/' +
-      date.getDate().toString().padStart(2, '0') + '/' +
-      date.getFullYear().toString().slice(-2)
-    setFormDate(formatted)
+    // Get the date value directly from input (YYYY-MM-DD format)
+    const dateValue = e.target.value; // e.g., "2026-03-25"
+    if (dateValue) {
+      const [year, month, day] = dateValue.split('-');
+      const formatted = month + '/' + day + '/' + year.slice(-2);
+      setFormDate(formatted);
+    }
   }
 
   const convertTo12Hour = (time24) => {
@@ -630,7 +632,11 @@ const LeagueSchedule = () => {
       }
 
       payload.venueClubId = venueClub.id;
-      payload.date = new Date(firstMatch.date).toISOString();
+        // Parse MM/DD/YY format and create UTC date to prevent timezone issues
+      const [month, day, year] = firstMatch.date.split('/');
+      const fullYear = year.length === 2 ? `20${year}` : year;
+      const utcDate = new Date(Date.UTC(fullYear, month - 1, day));
+      payload.date = utcDate.toISOString();
       payload.venue = firstMatch.venue;
       payload.matches = currentMatches.map((match, index) => {
         const selectedHomeTeam = getSelectedTeam(match.id, 'home');
