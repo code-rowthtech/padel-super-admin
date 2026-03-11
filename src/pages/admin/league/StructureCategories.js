@@ -10,15 +10,15 @@ const StructureCategories = ({ onNext, onBack }) => {
     const dispatch = useDispatch();
     const { id } = useParams();
     const { loading, leagueId, currentLeague } = useSelector(state => state.league);
-    
+
     const [registrationDates, setRegistrationDates] = useState({ startDate: '', endDate: '' });
     const [registrationFee, setRegistrationFee] = useState('');
     const [isFeeEnabled, setIsFeeEnabled] = useState(false);
     const [categories, setCategories] = useState([
         { name: 'Level A', registeredCount: 2, isDefault: true },
         { name: 'Level B', registeredCount: 2, isDefault: true },
-        { name: 'Mixed', registeredCount: 2, isDefault: true },
-        { name: 'Female', registeredCount: 2, isDefault: true }
+        { name: 'Female', registeredCount: 2, isDefault: true },
+        { name: 'Mixed', registeredCount: 2, isDefault: true }
     ]);
 
     useEffect(() => {
@@ -46,7 +46,7 @@ const StructureCategories = ({ onNext, onBack }) => {
             }
         }
     }, [currentLeague]);
-    
+
     const today = new Date().toISOString().split('T')[0];
 
     const updateCategoryValue = (index, value) => {
@@ -95,7 +95,7 @@ const StructureCategories = ({ onNext, onBack }) => {
                     updatePayload[`clubs[${index}][participationLimit][categoryLimits][${catIndex}][categoryType]`] = cat.name;
                     updatePayload[`clubs[${index}][participationLimit][categoryLimits][${catIndex}][maxParticipants]`] = cat.registeredCount;
                 });
-            } 
+            }
         });
 
         const result = await dispatch(updateLeague({ leagueData: updatePayload }));
@@ -103,8 +103,8 @@ const StructureCategories = ({ onNext, onBack }) => {
     };
 
     return (
-        <div className='h-100 overflow-hidden'> 
-            <div className='p-2 rounded' style={{ backgroundColor: "#F1F5F94D",height:'90%',overflowX:'hidden', }}>
+        <div className='h-100 overflow-hidden'>
+            <div className='p-2 rounded' style={{ backgroundColor: "#F1F5F94D", height: '90%', overflowX: 'hidden', }}>
                 <div className="d-flex align-items-center mb-4">
                     <BsInfoCircle size={20} className="me-2" />
                     <h5 className="mb-0 fw-semibold">Players Registration / Fee</h5>
@@ -113,7 +113,7 @@ const StructureCategories = ({ onNext, onBack }) => {
                 <Row className="mb-4">
                     <Col md={4} className="mb-3">
                         <Form.Group>
-                            <Form.Label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>Start Date</Form.Label>
+                            <Form.Label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>Start Date <span className="text-danger">*</span></Form.Label>
                             <Form.Control
                                 type="date"
                                 min={today}
@@ -125,7 +125,7 @@ const StructureCategories = ({ onNext, onBack }) => {
                     </Col>
                     <Col md={4} className="mb-3">
                         <Form.Group>
-                            <Form.Label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>End Date</Form.Label>
+                            <Form.Label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>End Date <span className="text-danger">*</span></Form.Label>
                             <Form.Control
                                 type="date"
                                 min={registrationDates.startDate || today}
@@ -138,7 +138,7 @@ const StructureCategories = ({ onNext, onBack }) => {
                     <Col md={4} className="mb-3">
                         <Form.Group>
                             <div className="d-flex align-items-center justify-content-between mb-2">
-                                <Form.Label style={{ fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: 0 }}>Registration fee</Form.Label>
+                                <Form.Label style={{ fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: 0 }}>Registration fee {isFeeEnabled && <span className="text-danger">*</span>}</Form.Label>
                                 <style>
                                     {`
                                     .form-check-input:checked {
@@ -153,7 +153,7 @@ const StructureCategories = ({ onNext, onBack }) => {
                                 </style>
                                 <Form.Check type="switch" id="registration-fee-switch" checked={isFeeEnabled} onChange={(e) => setIsFeeEnabled(e.target.checked)} style={{ transform: 'scale(1.2)' }} />
                             </div>
-                            <Form.Control type="number" placeholder="₹ 300" value={registrationFee} onChange={(e) => setRegistrationFee(e.target.value)} disabled={!isFeeEnabled} style={{ backgroundColor: '#F3F4F6', border: 'none', borderRadius: '8px', padding: '12px', fontSize: '14px' }} />
+                            <Form.Control type="number" placeholder="₹ 0" value={registrationFee} onChange={(e) => setRegistrationFee(e.target.value)} disabled={!isFeeEnabled} style={{ backgroundColor: '#F3F4F6', border: 'none', borderRadius: '8px', padding: '12px', fontSize: '14px' }} />
                         </Form.Group>
                     </Col>
                 </Row>
@@ -207,9 +207,9 @@ const StructureCategories = ({ onNext, onBack }) => {
                     </div>
                 </div>
             </div>
-            <div style={{height:'10%'}} className="text-end overflow-hidden mt-4">
-                <button className='border-0 me-3 rounded-pill px-5 py-2' style={{ backgroundColor: '#E5E7EB', color: '#374151',  fontSize: '16px', fontWeight: '600' }} onClick={onBack}>Back</button>
-                <button className='border-0 rounded-pill py-2 text-white' disabled={loading} style={{ backgroundColor: '#3DBE64',width:'10rem',  fontSize: '16px', fontWeight: '600' }} onClick={handleSubmit}>{loading ? 'Updating...' : 'Next'}</button>
+            <div style={{ height: '10%' }} className="text-end overflow-hidden mt-4">
+                <button className='border-0 me-3 rounded-pill px-5 py-2' style={{ backgroundColor: '#E5E7EB', color: '#374151', fontSize: '16px', fontWeight: '600' }} onClick={onBack}>Back</button>
+                <button className='border-0 rounded-pill py-2 text-white' disabled={loading} style={{ backgroundColor: '#3DBE64', width: '10rem', fontSize: '16px', fontWeight: '600' }} onClick={handleSubmit}>{loading ? 'Updating...' : 'Next'}</button>
             </div>
         </div>
     );

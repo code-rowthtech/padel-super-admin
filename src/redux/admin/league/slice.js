@@ -94,10 +94,10 @@ const leagueSlice = createSlice({
       })
       .addCase(updateLeague.fulfilled, (state, action) => {
         state.loading = false;
-        state.currentLeague = action.payload;
-        if (Array.isArray(state.leagues)) {
-          const index = state.leagues.findIndex(l => l._id === action.payload._id || l.id === action.payload.id);
-          if (index !== -1) state.leagues[index] = action.payload;
+        // Removed: state.currentLeague = action.payload; // getLeagueById handles updating currentLeague
+        if (Array.isArray(state.leagues) && action.payload?.data) {
+          const index = state.leagues.findIndex(l => l._id === action.payload.data._id || l.id === action.payload.data.id);
+          if (index !== -1) state.leagues[index] = action.payload.data;
         }
       })
       .addCase(updateLeague.rejected, (state, action) => {

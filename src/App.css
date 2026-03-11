@@ -10,9 +10,11 @@ body {
   height: 40vmin;
   pointer-events: none;
 }
+
 .active-court {
   background-color: red !important;
-  border-radius: 50rem; /* same as rounded-pill */
+  border-radius: 50rem;
+  /* same as rounded-pill */
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -44,6 +46,7 @@ body {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -57,6 +60,7 @@ h1.display-5 {
   font-size: 70px;
   line-height: 80px;
 }
+
 .icon-button {
   width: 70px;
   text-align: center;
@@ -83,6 +87,7 @@ h1.display-5 {
   color: white !important;
   font-weight: 500;
 }
+
 .react-datepicker__current-month {
   margin-bottom: 15px !important;
 }
@@ -121,6 +126,7 @@ h1.display-5 {
   border-radius: 8px;
   transition: 0.3s;
 }
+
 .calendar-day-btn.selected {
   background-color: #0d6efd;
   color: white;
@@ -128,13 +134,15 @@ h1.display-5 {
 
 /* Hide scrollbar for all browsers */
 .no-scrollbar {
-  scrollbar-width: none; /* Firefox */
+  scrollbar-width: none;
+  /* Firefox */
   -ms-overflow-style: none;
   /* max-width: 700px !important;  */
 }
 
 .no-scrollbar::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
+  display: none;
+  /* Chrome, Safari, Opera */
 }
 
 .icon-circle {
@@ -160,6 +168,7 @@ h1.display-5 {
   color: white;
   border-color: #2e3a4e;
 }
+
 .image-zoom-container {
   overflow: hidden !important;
   position: relative !important;
@@ -172,6 +181,7 @@ h1.display-5 {
 .image-zoom-container:hover img {
   transform: scale(1.1) !important;
 }
+
 .image-zoom-hover img {
   transition: transform 0.5s ease;
 }
@@ -184,6 +194,7 @@ h1.display-5 {
   width: 90px !important;
   height: 92px !important;
 }
+
 .court-row .delete-btn {
   visibility: hidden;
   opacity: 0;
@@ -194,6 +205,7 @@ h1.display-5 {
   visibility: visible;
   opacity: 1;
 }
+
 .create-match-btn {
   background-color: #3dbe64 !important;
 }

@@ -2882,3 +2882,40 @@ button:focus .book-now-arrow {
     background-position: -200% 0;
   }
 }
+
+.round-tab {
+  border: 1px solid #d1d5db;
+  background: #fff;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.round-tab:hover {
+  background: #f3f4f6;
+}
+
+.round-tab.active {
+  background: #1F41BB;
+  color: white;
+  border-color: #1F41BB;
+}
+
+.league-select {
+  width: 160px;
+  min-width: 160px;
+}
+
+
+.export-btn {
+  background: #1F41BB;
+  color: #fff;
+  border: none;
+  padding: 6px 14px;
+  font-size: 13px;
+  border-radius: 6px;
+  white-space: nowrap;
+}

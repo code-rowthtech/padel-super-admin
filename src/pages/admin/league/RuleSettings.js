@@ -147,7 +147,7 @@ const RuleSettings = ({ onBack }) => {
                 }
             }
         }));
-        
+
         // Clear error for this field when user changes it
         if (errors[`${round}_${field}`]) {
             setErrors(prev => {
@@ -189,20 +189,20 @@ const RuleSettings = ({ onBack }) => {
 
         // Validation
         const newErrors = {};
-        
+
         const validateRound = (round, settings, prefix = '') => {
             if (!settings || typeof settings !== 'object') return;
-            
+
             console.log(`Validating ${prefix}:`, settings);
-            
+
             const numSets = parseInt(settings.numberOfSets, 10);
             const numGames = parseInt(settings.numberOfGames, 10);
             const gamesToTiebreak = parseInt(settings.gamesToStartTiebreak, 10);
             const pointsTiebreak = parseInt(settings.pointsInTiebreak, 10);
             const matchWinPts = parseInt(settings.matchWinPoints, 10);
-            
+
             console.log(`Parsed values - Sets: ${numSets}, Games: ${numGames}, Tiebreak: ${gamesToTiebreak}, Points: ${pointsTiebreak}, Win: ${matchWinPts}`);
-            
+
             if (!numSets || numSets < 3) {
                 newErrors[`${prefix}numberOfSets`] = true;
             }
@@ -240,7 +240,7 @@ const RuleSettings = ({ onBack }) => {
             setErrors(newErrors);
             return;
         }
-        
+
         setErrors({});
 
         const updatePayload = { id: leagueIdToUpdate };
@@ -257,20 +257,20 @@ const RuleSettings = ({ onBack }) => {
         };
 
         addMatchRuleToPayload('regularRound', matchRules.regularRound);
-        
+
         // Always include all rounds with their current status
-        addMatchRuleToPayload('quarterfinal', matchRules.quarterfinal.status ? 
-            (useRegularSettings.quarterfinal ? matchRules.regularRound : matchRules.quarterfinal) : 
+        addMatchRuleToPayload('quarterfinal', matchRules.quarterfinal.status ?
+            (useRegularSettings.quarterfinal ? matchRules.regularRound : matchRules.quarterfinal) :
             { ...matchRules.quarterfinal, status: false }
         );
-        
-        addMatchRuleToPayload('semifinal', matchRules.semifinal.status ? 
-            (useRegularSettings.semifinal ? matchRules.regularRound : matchRules.semifinal) : 
+
+        addMatchRuleToPayload('semifinal', matchRules.semifinal.status ?
+            (useRegularSettings.semifinal ? matchRules.regularRound : matchRules.semifinal) :
             { ...matchRules.semifinal, status: false }
         );
-        
-        addMatchRuleToPayload('final', matchRules.final.status ? 
-            (useRegularSettings.final ? matchRules.regularRound : matchRules.final) : 
+
+        addMatchRuleToPayload('final', matchRules.final.status ?
+            (useRegularSettings.final ? matchRules.regularRound : matchRules.final) :
             { ...matchRules.final, status: false }
         );
 
@@ -287,7 +287,7 @@ const RuleSettings = ({ onBack }) => {
         console.log('Final Payload:', updatePayload);
         const result = await dispatch(updateLeague({ leagueData: updatePayload }));
         if (result.meta.requestStatus === 'fulfilled') {
-            navigate('/admin/league');
+            navigate('/admin/league/creation');
         }
     };
 
@@ -296,7 +296,7 @@ const RuleSettings = ({ onBack }) => {
             <Row className="mb-3">
                 <Col md={4} className="mb-3">
                     <div className='d-flex justify-content-between rounded align-items-center p-2' style={{ backgroundColor: '#E7EAF070', minHeight: '48px', border: errors[`${round}_numberOfSets`] ? '1px solid #dc3545' : 'none' }}>
-                        <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '0' }}>Number Of Sets</Form.Label>
+                        <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '0' }}>Number Of Sets <span className="text-danger">*</span></Form.Label>
                         <div className='d-flex align-items-center gap-2'>
                             <Button variant="light" size="sm" onClick={() => handleCounterChange('numberOfSets', false, round)} style={{ borderRadius: '6px', border: '1px solid #e0e0e0', backgroundColor: '#fff', color: '#666', padding: '4px 12px' }}>-</Button>
                             <span style={{ fontSize: '14px', fontWeight: '500', minWidth: '20px', textAlign: 'center' }}>{settings?.numberOfSets || 3}</span>
@@ -307,7 +307,7 @@ const RuleSettings = ({ onBack }) => {
                 </Col>
                 <Col md={4} className="mb-3">
                     <div className='d-flex justify-content-between rounded align-items-center p-2' style={{ backgroundColor: '#E7EAF070', minHeight: '48px', border: errors[`${round}_gamesToStartTiebreak`] ? '1px solid #dc3545' : 'none' }}>
-                        <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '0' }}>Games to Start Tiebreak</Form.Label>
+                        <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '0' }}>Games to Start Tiebreak <span className="text-danger">*</span></Form.Label>
                         <div className='d-flex align-items-center gap-2'>
                             <Button variant="light" size="sm" onClick={() => handleCounterChange('gamesToStartTiebreak', false, round)} style={{ borderRadius: '6px', border: '1px solid #e0e0e0', backgroundColor: '#fff', color: '#666', padding: '4px 12px' }}>-</Button>
                             <span style={{ fontSize: '14px', fontWeight: '500', minWidth: '20px', textAlign: 'center' }}>{settings?.gamesToStartTiebreak || 1}</span>
@@ -318,7 +318,7 @@ const RuleSettings = ({ onBack }) => {
                 </Col>
                 <Col md={4} className="mb-3">
                     <div className='d-flex justify-content-between rounded align-items-center p-2' style={{ backgroundColor: '#E7EAF070', minHeight: '48px', border: errors[`${round}_pointsInTiebreak`] ? '1px solid #dc3545' : 'none' }}>
-                        <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '0' }}>Point in Tiebreak</Form.Label>
+                        <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '0' }}>Point in Tiebreak <span className="text-danger">*</span></Form.Label>
                         <div className='d-flex align-items-center gap-2'>
                             <Button variant="light" size="sm" onClick={() => handleCounterChange('pointsInTiebreak', false, round)} style={{ borderRadius: '6px', border: '1px solid #e0e0e0', backgroundColor: '#fff', color: '#666', padding: '4px 12px' }}>-</Button>
                             <span style={{ fontSize: '14px', fontWeight: '500', minWidth: '20px', textAlign: 'center' }}>{settings?.pointsInTiebreak || 1}</span>
@@ -331,7 +331,7 @@ const RuleSettings = ({ onBack }) => {
             <Row className="mb-3">
                 <Col md={4} className="mb-3">
                     <div className='d-flex justify-content-between rounded align-items-center p-2' style={{ backgroundColor: '#E7EAF070', minHeight: '48px', border: errors[`${round}_numberOfGames`] ? '1px solid #dc3545' : 'none' }}>
-                        <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '0' }}>Number of Games</Form.Label>
+                        <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '0' }}>Number of Games <span className="text-danger">*</span></Form.Label>
                         <div className='d-flex align-items-center gap-2'>
                             <Button variant="light" size="sm" onClick={() => handleCounterChange('numberOfGames', false, round)} style={{ borderRadius: '6px', border: '1px solid #e0e0e0', backgroundColor: '#fff', color: '#666', padding: '4px 12px' }}>-</Button>
                             <span style={{ fontSize: '14px', fontWeight: '500', minWidth: '20px', textAlign: 'center' }}>{settings?.numberOfGames || 1}</span>
@@ -368,7 +368,7 @@ const RuleSettings = ({ onBack }) => {
                 </Col>
                 <Col md={4} className="mb-3">
                     <div className='d-flex justify-content-between rounded align-items-center p-2' style={{ backgroundColor: '#E7EAF070', minHeight: '48px', border: errors[`${round}_matchWinPoints`] ? '1px solid #dc3545' : 'none' }}>
-                        <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '0' }}>Match Win Points</Form.Label>
+                        <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '0' }}>Match Win Points <span className="text-danger">*</span></Form.Label>
                         <div className='d-flex align-items-center gap-2'>
                             <Button variant="light" size="sm" onClick={() => handleCounterChange('matchWinPoints', false, round)} style={{ borderRadius: '6px', border: '1px solid #e0e0e0', backgroundColor: '#fff', color: '#666', padding: '4px 12px' }}>-</Button>
                             <span style={{ fontSize: '14px', fontWeight: '500', minWidth: '20px', textAlign: 'center' }}>{settings?.matchWinPoints || 1}</span>
@@ -522,7 +522,7 @@ const RuleSettings = ({ onBack }) => {
                             <Col md={4} className="mb-3" key={index}>
                                 <Form.Group>
                                     <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '8px' }}>{prize.position} Prize</Form.Label>
-                                    <Form.Control type="number" placeholder="Enter Amount" value={prize.amount || ''} onChange={(e) => handlePrizeChange(index, e.target.value)} style={{ borderRadius: '8px', padding: '10px', fontSize: '14px', backgroundColor: '#f8f9fa', border: '1px solid #e0e0e0', boxShadow: 'none' }} />
+                                    <Form.Control type="text" placeholder="Enter Amount" value={prize.amount ? Number(prize.amount).toLocaleString('en-IN') : ''} onChange={(e) => handlePrizeChange(index, e.target.value.replace(/,/g, ''))} style={{ borderRadius: '8px', padding: '10px', fontSize: '14px', backgroundColor: '#f8f9fa', border: '1px solid #e0e0e0', boxShadow: 'none' }} />
                                 </Form.Group>
                             </Col>
                         ))}
@@ -538,13 +538,13 @@ const RuleSettings = ({ onBack }) => {
                         <Col md={6} className="mb-3">
                             <Form.Group>
                                 <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '8px' }}>Bounty</Form.Label>
-                                <Form.Control type="number" placeholder="Enter Amount" value={bounty || ''} onChange={(e) => setBounty(Number(e.target.value) || 0)} style={{ borderRadius: '8px', padding: '10px', fontSize: '14px', backgroundColor: '#f8f9fa', border: '1px solid #e0e0e0', boxShadow: 'none' }} />
+                                <Form.Control type="text" placeholder="Enter Amount" value={bounty ? Number(bounty).toLocaleString('en-IN') : ''} onChange={(e) => setBounty(Number(e.target.value.replace(/,/g, '')) || 0)} style={{ borderRadius: '8px', padding: '10px', fontSize: '14px', backgroundColor: '#f8f9fa', border: '1px solid #e0e0e0', boxShadow: 'none' }} />
                             </Form.Group>
                         </Col>
                         <Col md={6} className="mb-3">
                             <Form.Group>
                                 <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '8px' }}>Team of the League</Form.Label>
-                                <Form.Control type="number" placeholder="Enter Amount" value={teamOfLeague || ''} onChange={(e) => setTeamOfLeague(Number(e.target.value) || 0)} style={{ borderRadius: '8px', padding: '10px', fontSize: '14px', backgroundColor: '#f8f9fa', border: '1px solid #e0e0e0', boxShadow: 'none' }} />
+                                <Form.Control type="text" placeholder="Enter Amount" value={teamOfLeague ? Number(teamOfLeague).toLocaleString('en-IN') : ''} onChange={(e) => setTeamOfLeague(Number(e.target.value.replace(/,/g, '')) || 0)} style={{ borderRadius: '8px', padding: '10px', fontSize: '14px', backgroundColor: '#f8f9fa', border: '1px solid #e0e0e0', boxShadow: 'none' }} />
                             </Form.Group>
                         </Col>
                     </Row>
