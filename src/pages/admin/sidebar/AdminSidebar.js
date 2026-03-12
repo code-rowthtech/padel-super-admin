@@ -9,6 +9,8 @@ import {
   FaChevronDown,
   FaChevronUp,
 } from "react-icons/fa";
+import { MdNotificationsActive } from "react-icons/md";
+
 import { useDispatch } from "react-redux";
 import { RiWallet3Line, RiWalletLine } from "react-icons/ri";
 import { getOwnerFromSession, ownerApi } from "../../../helpers/api/apiCore";
@@ -94,7 +96,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
         onClick={() => navigate('/admin/dashboard')}
       >
         <div className={`position-relative ${isCollapsed ? "" : "me-3"}`}>
-          <div 
+          <div
             className="rounded-circle p-3"
             style={{
               background: 'rgb(31, 65, 187)',
@@ -112,10 +114,10 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
       {/* Super Admin Badge */}
       {isSuperAdmin && !isCollapsed && (
         <div className="px-3 mb-3">
-          <div 
+          <div
             className="text-white p-2 rounded text-center small fw-bold"
             onClick={() => navigate('/admin/dashboard')}
-            style={{ 
+            style={{
               cursor: 'pointer',
               background: 'rgb(31, 65, 187)',
               boxShadow: '0 2px 8px rgba(31, 65, 187, 0.3)'
@@ -440,7 +442,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
         </div>
 
         {/* League with Submenu */}
-        {/* <div
+        <div
           className="position-relative"
           onMouseEnter={() =>
             isCollapsed && window.innerWidth > 768 && setHoveredItem("league")
@@ -542,7 +544,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               </NavLink>
             </div>
           )}
-        </div> */}
+        </div>
 
         {/* Wallet */}
         <div
@@ -597,7 +599,59 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             </div>
           )}
         </div>
-
+        {/* Notifications */}
+        <div
+          className="position-relative"
+          onMouseEnter={() =>
+            isCollapsed && window.innerWidth > 768 && setHoveredItem("notifications")
+          }
+          onMouseLeave={() => setHoveredItem(null)}
+        >
+          <NavLink
+            to="/admin/notifications"
+            end
+            className={
+              isCollapsed && window.innerWidth > 768
+                ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
+                : linkClasses(isActivePath("/admin/notifications"))
+            }
+            style={() => ({
+              backgroundColor: isActivePath("/admin/notifications") ? "rgba(31, 65, 187, 0.15)" : "transparent",
+              color: "#CCD2DD",
+              fontSize: "15px",
+              fontWeight: "500",
+              fontFamily: "Poppins",
+              boxShadow: isActivePath("/admin/notifications") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
+              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+            })}
+            onClick={() => window.innerWidth <= 768 && onClose()}
+          >
+            <MdNotificationsActive
+              className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
+              size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
+            />
+            {(!isCollapsed || window.innerWidth <= 768) && "Notifications"}
+          </NavLink>
+          {isCollapsed && window.innerWidth > 768 && hoveredItem === "notifications" && (
+            <div
+              className="position-absolute bg-dark px-2 py-1 rounded"
+              style={{
+                left: "75px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                zIndex: 1200,
+                fontSize: "15px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+                color: "#CCD2DD",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Notifications
+            </div>
+          )}
+        </div>
         {/* Profile */}
         <div
           className="position-relative"

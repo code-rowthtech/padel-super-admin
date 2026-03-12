@@ -7,6 +7,18 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
 import { updateLeague } from '../../../redux/admin/league/thunk';
 
+const DEFAULT_SETTINGS = {
+    numberOfSets: 3,
+    numberOfGames: 1,
+    advantagesWithGoldenPoint: true,
+    gamesToStartTiebreak: 1,
+    goldenPoint: true,
+    pointsInTiebreak: 1,
+    tiebreakOnFinalSet: true,
+    goldenPointInTiebreak: false,
+    matchWinPoints: 1
+};
+
 const RuleSettings = ({ onBack }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -16,56 +28,22 @@ const RuleSettings = ({ onBack }) => {
         regularRound: {
             status: true,
             setsFormat: '',
-            settings: {
-                numberOfSets: 3,
-                numberOfGames: 3,
-                advantagesWithGoldenPoint: true,
-                gamesToStartTiebreak: 3,
-                goldenPoint: true,
-                pointsInTiebreak: 3,
-                tiebreakOnFinalSet: true,
-                goldenPointInTiebreak: false,
-                matchWinPoints: 2
-            }
+            settings: { ...DEFAULT_SETTINGS }
         },
         quarterfinal: {
-            status: false, setsFormat: '', settings: {
-                numberOfSets: 3,
-                numberOfGames: 3,
-                advantagesWithGoldenPoint: true,
-                gamesToStartTiebreak: 3,
-                goldenPoint: true,
-                pointsInTiebreak: 3,
-                tiebreakOnFinalSet: true,
-                goldenPointInTiebreak: false,
-                matchWinPoints: 2
-            }
+            status: false,
+            setsFormat: '',
+            settings: { ...DEFAULT_SETTINGS }
         },
         semifinal: {
-            status: false, setsFormat: '', settings: {
-                numberOfSets: 3,
-                numberOfGames: 3,
-                advantagesWithGoldenPoint: true,
-                gamesToStartTiebreak: 3,
-                goldenPoint: true,
-                pointsInTiebreak: 3,
-                tiebreakOnFinalSet: true,
-                goldenPointInTiebreak: false,
-                matchWinPoints: 2
-            }
+            status: false,
+            setsFormat: '',
+            settings: { ...DEFAULT_SETTINGS }
         },
         final: {
-            status: false, setsFormat: '', settings: {
-                numberOfSets: 3,
-                numberOfGames: 3,
-                advantagesWithGoldenPoint: true,
-                gamesToStartTiebreak: 3,
-                goldenPoint: true,
-                pointsInTiebreak: 3,
-                tiebreakOnFinalSet: true,
-                goldenPointInTiebreak: false,
-                matchWinPoints: 2
-            }
+            status: false,
+            setsFormat: '',
+            settings: { ...DEFAULT_SETTINGS }
         }
     });
 
@@ -87,13 +65,26 @@ const RuleSettings = ({ onBack }) => {
 
     useEffect(() => {
         if (currentLeague && Object.keys(currentLeague).length > 0) {
-            if (currentLeague.matchRules?.regularRound) {
+            if (currentLeague.matchRules) {
                 const rules = currentLeague.matchRules;
+                const mergeSettings = (roundData) => ({
+                    ...roundData,
+                    settings: {
+                        ...DEFAULT_SETTINGS,
+                        ...(roundData?.settings || {})
+                    }
+                });
+
+                const regularRound = mergeSettings(rules.regularRound || { status: true, setsFormat: '' });
+                const quarterfinal = rules.quarterfinal ? mergeSettings(rules.quarterfinal) : { status: false, setsFormat: '', settings: { ...regularRound.settings } };
+                const semifinal = rules.semifinal ? mergeSettings(rules.semifinal) : { status: false, setsFormat: '', settings: { ...regularRound.settings } };
+                const final = rules.final ? mergeSettings(rules.final) : { status: false, setsFormat: '', settings: { ...regularRound.settings } };
+
                 setMatchRules({
-                    regularRound: rules.regularRound,
-                    quarterfinal: rules.quarterfinal || { status: false, setsFormat: '', settings: { ...rules.regularRound.settings } },
-                    semifinal: rules.semifinal || { status: false, setsFormat: '', settings: { ...rules.regularRound.settings } },
-                    final: rules.final || { status: false, setsFormat: '', settings: { ...rules.regularRound.settings } }
+                    regularRound,
+                    quarterfinal,
+                    semifinal,
+                    final
                 });
 
                 // Check if rounds have custom settings
@@ -128,21 +119,14 @@ const RuleSettings = ({ onBack }) => {
     };
 
     const handleCounterChange = (field, increment, round = 'regularRound') => {
-        const minValues = {
-            numberOfSets: 3,
-            numberOfGames: 1,
-            gamesToStartTiebreak: 1,
-            pointsInTiebreak: 1,
-            matchWinPoints: 1
-        };
-        const minValue = minValues[field] || 1;
+        const minValue = DEFAULT_SETTINGS[field] || 1;
 
         setMatchRules(prev => ({
             ...prev,
             [round]: {
                 ...prev[round],
                 settings: {
-                    ...prev[round]?.settings || {},
+                    ...prev[round]?.settings || { ...DEFAULT_SETTINGS },
                     [field]: increment ? (prev[round]?.settings?.[field] || minValue) + 1 : Math.max(minValue, (prev[round]?.settings?.[field] || minValue) - 1)
                 }
             }
@@ -191,15 +175,19 @@ const RuleSettings = ({ onBack }) => {
         const newErrors = {};
 
         const validateRound = (round, settings, prefix = '') => {
-            if (!settings || typeof settings !== 'object') return;
+            if (!settings || typeof settings !== 'object') {
+                newErrors[`${prefix}numberOfSets`] = true;
+                newErrors[`${prefix}numberOfGames`] = true;
+                return;
+            }
 
             const numSets = parseInt(settings.numberOfSets, 10);
             const numGames = parseInt(settings.numberOfGames, 10);
 
-            if (!numSets || numSets < 3) {
+            if (isNaN(numSets) || numSets < 3) {
                 newErrors[`${prefix}numberOfSets`] = true;
             }
-            if (!numGames || numGames < 1) {
+            if (isNaN(numGames) || numGames < 1) {
                 newErrors[`${prefix}numberOfGames`] = true;
             }
         };
@@ -280,7 +268,7 @@ const RuleSettings = ({ onBack }) => {
                         <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '0' }}>Number Of Sets <span className="text-danger">*</span></Form.Label>
                         <div className='d-flex align-items-center gap-2'>
                             <Button variant="light" size="sm" onClick={() => handleCounterChange('numberOfSets', false, round)} style={{ borderRadius: '6px', border: '1px solid #e0e0e0', backgroundColor: '#fff', color: '#666', padding: '4px 12px' }}>-</Button>
-                            <span style={{ fontSize: '14px', fontWeight: '500', minWidth: '20px', textAlign: 'center' }}>{settings?.numberOfSets || 3}</span>
+                            <span style={{ fontSize: '14px', fontWeight: '500', minWidth: '20px', textAlign: 'center' }}>{settings?.numberOfSets ?? DEFAULT_SETTINGS.numberOfSets}</span>
                             <Button variant="light" size="sm" onClick={() => handleCounterChange('numberOfSets', true, round)} style={{ borderRadius: '6px', border: '1px solid #e0e0e0', backgroundColor: '#fff', color: '#666', padding: '4px 12px' }}>+</Button>
                         </div>
                     </div>
@@ -291,7 +279,7 @@ const RuleSettings = ({ onBack }) => {
                         <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '0' }}>Games to Start Tiebreak</Form.Label>
                         <div className='d-flex align-items-center gap-2'>
                             <Button variant="light" size="sm" onClick={() => handleCounterChange('gamesToStartTiebreak', false, round)} style={{ borderRadius: '6px', border: '1px solid #e0e0e0', backgroundColor: '#fff', color: '#666', padding: '4px 12px' }}>-</Button>
-                            <span style={{ fontSize: '14px', fontWeight: '500', minWidth: '20px', textAlign: 'center' }}>{settings?.gamesToStartTiebreak || 1}</span>
+                            <span style={{ fontSize: '14px', fontWeight: '500', minWidth: '20px', textAlign: 'center' }}>{settings?.gamesToStartTiebreak ?? DEFAULT_SETTINGS.gamesToStartTiebreak}</span>
                             <Button variant="light" size="sm" onClick={() => handleCounterChange('gamesToStartTiebreak', true, round)} style={{ borderRadius: '6px', border: '1px solid #e0e0e0', backgroundColor: '#fff', color: '#666', padding: '4px 12px' }}>+</Button>
                         </div>
                     </div>
@@ -301,7 +289,7 @@ const RuleSettings = ({ onBack }) => {
                         <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '0' }}>Point in Tiebreak</Form.Label>
                         <div className='d-flex align-items-center gap-2'>
                             <Button variant="light" size="sm" onClick={() => handleCounterChange('pointsInTiebreak', false, round)} style={{ borderRadius: '6px', border: '1px solid #e0e0e0', backgroundColor: '#fff', color: '#666', padding: '4px 12px' }}>-</Button>
-                            <span style={{ fontSize: '14px', fontWeight: '500', minWidth: '20px', textAlign: 'center' }}>{settings?.pointsInTiebreak || 1}</span>
+                            <span style={{ fontSize: '14px', fontWeight: '500', minWidth: '20px', textAlign: 'center' }}>{settings?.pointsInTiebreak ?? DEFAULT_SETTINGS.pointsInTiebreak}</span>
                             <Button variant="light" size="sm" onClick={() => handleCounterChange('pointsInTiebreak', true, round)} style={{ borderRadius: '6px', border: '1px solid #e0e0e0', backgroundColor: '#fff', color: '#666', padding: '4px 12px' }}>+</Button>
                         </div>
                     </div>
@@ -313,7 +301,7 @@ const RuleSettings = ({ onBack }) => {
                         <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '0' }}>Number of Games <span className="text-danger">*</span></Form.Label>
                         <div className='d-flex align-items-center gap-2'>
                             <Button variant="light" size="sm" onClick={() => handleCounterChange('numberOfGames', false, round)} style={{ borderRadius: '6px', border: '1px solid #e0e0e0', backgroundColor: '#fff', color: '#666', padding: '4px 12px' }}>-</Button>
-                            <span style={{ fontSize: '14px', fontWeight: '500', minWidth: '20px', textAlign: 'center' }}>{settings?.numberOfGames || 1}</span>
+                            <span style={{ fontSize: '14px', fontWeight: '500', minWidth: '20px', textAlign: 'center' }}>{settings?.numberOfGames ?? DEFAULT_SETTINGS.numberOfGames}</span>
                             <Button variant="light" size="sm" onClick={() => handleCounterChange('numberOfGames', true, round)} style={{ borderRadius: '6px', border: '1px solid #e0e0e0', backgroundColor: '#fff', color: '#666', padding: '4px 12px' }}>+</Button>
                         </div>
                     </div>
@@ -350,7 +338,7 @@ const RuleSettings = ({ onBack }) => {
                         <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '0' }}>Match Win Points</Form.Label>
                         <div className='d-flex align-items-center gap-2'>
                             <Button variant="light" size="sm" onClick={() => handleCounterChange('matchWinPoints', false, round)} style={{ borderRadius: '6px', border: '1px solid #e0e0e0', backgroundColor: '#fff', color: '#666', padding: '4px 12px' }}>-</Button>
-                            <span style={{ fontSize: '14px', fontWeight: '500', minWidth: '20px', textAlign: 'center' }}>{settings?.matchWinPoints || 1}</span>
+                            <span style={{ fontSize: '14px', fontWeight: '500', minWidth: '20px', textAlign: 'center' }}>{settings?.matchWinPoints ?? DEFAULT_SETTINGS.matchWinPoints}</span>
                             <Button variant="light" size="sm" onClick={() => handleCounterChange('matchWinPoints', true, round)} style={{ borderRadius: '6px', border: '1px solid #e0e0e0', backgroundColor: '#fff', color: '#666', padding: '4px 12px' }}>+</Button>
                         </div>
                     </div>

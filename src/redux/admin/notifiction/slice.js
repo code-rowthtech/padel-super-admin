@@ -1,11 +1,16 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getLogo, createLogo, updateLogo, getNotificationCount, getNotificationData, getNotificationView, readAllNotification } from "./thunk";
+import { getNotificationCount, getNotificationData, getNotificationView, readAllNotification, sendBulkNotification, getAdminBulkNotifications } from "./thunk";
 
 const initialState = {
   getCount: null,
   getNotificationData: null,
   getCountLoading: false,
   getCountError: null,
+  sendBulkLoading: false,
+  sendBulkError: null,
+  bulkNotifications: [],
+  bulkNotificationsLoading: false,
+  bulkNotificationsError: null,
 };
 
 const NotificationSlice = createSlice({
@@ -74,6 +79,31 @@ const NotificationSlice = createSlice({
       .addCase(readAllNotification.rejected, (state, action) => {
         state.getCountLoading = false;
         state.getCountError = action.payload;
+      })
+
+      .addCase(sendBulkNotification.pending, (state) => {
+        state.sendBulkLoading = true;
+        state.sendBulkError = null;
+      })
+      .addCase(sendBulkNotification.fulfilled, (state) => {
+        state.sendBulkLoading = false;
+      })
+      .addCase(sendBulkNotification.rejected, (state, action) => {
+        state.sendBulkLoading = false;
+        state.sendBulkError = action.payload;
+      })
+
+      .addCase(getAdminBulkNotifications.pending, (state) => {
+        state.bulkNotificationsLoading = true;
+        state.bulkNotificationsError = null;
+      })
+      .addCase(getAdminBulkNotifications.fulfilled, (state, action) => {
+        state.bulkNotificationsLoading = false;
+        state.bulkNotifications = action.payload;
+      })
+      .addCase(getAdminBulkNotifications.rejected, (state, action) => {
+        state.bulkNotificationsLoading = false;
+        state.bulkNotificationsError = action.payload;
       })
 
   },

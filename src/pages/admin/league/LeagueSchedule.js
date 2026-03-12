@@ -18,7 +18,7 @@ import { FaAngleRight } from 'react-icons/fa'
 const LeagueSchedule = () => {
   const dispatch = useDispatch();
   const { leagues, leagueClubs, loadingClubs, loadingSchedules, currentLeague } = useSelector(state => state.league);
-  const [activeTab, setActiveTab] = useState('levelA')
+  const [activeTab, setActiveTab] = useState('')
   const [selectedRound, setSelectedRound] = useState('regularRound')
   const [showModal, setShowModal] = useState(false)
   const [formDate, setFormDate] = useState('')
@@ -31,31 +31,12 @@ const LeagueSchedule = () => {
   const [currentPage] = useState(1)
   const defaultLimit = 15
   const [matchesByCategory, setMatchesByCategory] = useState({
-    all: [],
-    levelA: [],
-    levelB: [],
-    mixed: [],
-    female: []
+    all: []
   })
   const [matchTimes, setMatchTimes] = useState({})
-  const [clubTeamsData, setClubTeamsData] = useState({
-    levelA: {},
-    levelB: {},
-    mixed: {},
-    female: {}
-  })
-  const [selectedTeams, setSelectedTeams] = useState({
-    levelA: {},
-    levelB: {},
-    mixed: {},
-    female: {}
-  })
-  const [loadingTeamsState, setLoadingTeamsState] = useState({
-    levelA: {},
-    levelB: {},
-    mixed: {},
-    female: {}
-  })
+  const [clubTeamsData, setClubTeamsData] = useState({})
+  const [selectedTeams, setSelectedTeams] = useState({})
+  const [loadingTeamsState, setLoadingTeamsState] = useState({})
   const [openDropdown, setOpenDropdown] = useState(null)
   const [currentScheduleDate, setCurrentScheduleDate] = useState('')
   const [currentScheduleVenue, setCurrentScheduleVenue] = useState('')
@@ -101,9 +82,18 @@ const LeagueSchedule = () => {
   // Get available categories from selected league data
   const selectedLeague = leaguesData.find(league => league._id === selectedLeagueId);
   const availableCategories = selectedLeague?.clubs?.[0]?.participationLimit?.categoryLimits || [];
+
+  useEffect(() => {
+    if (availableCategories.length > 0) {
+      setActiveTab(availableCategories[0]._id);
+    } else {
+      setActiveTab('');
+    }
+  }, [availableCategories]);
+
   // Get current matches - if 'all' tab, combine all categories
   const currentMatches = activeTab === 'all'
-    ? [...matchesByCategory.levelA, ...matchesByCategory.levelB, ...matchesByCategory.mixed, ...matchesByCategory.female]
+    ? Object.keys(matchesByCategory).filter(key => key !== 'all').flatMap(key => matchesByCategory[key] || [])
     : matchesByCategory[activeTab] || [];
 
   const fetchTeamsForClub = useCallback(async (clubName, categoryType) => {
@@ -114,12 +104,7 @@ const LeagueSchedule = () => {
     }
 
     const key = `${club.id}_${categoryType}`;
-    const categoryKey = {
-      'Level A': 'levelA',
-      'Level B': 'levelB',
-      'Mixed': 'mixed',
-      'Female': 'female'
-    }[categoryType] || activeTab;
+    const categoryKey = activeTab;
 
     if (loadingTeamsState[categoryKey]?.[key] || clubTeamsData[categoryKey]?.[key]) {
       return;
@@ -478,12 +463,7 @@ const LeagueSchedule = () => {
       setShowModal(false);
 
       if (selectedRound === 'regularRound') {
-        const categoryType = {
-          'levelA': 'Level A',
-          'levelB': 'Level B',
-          'mixed': 'Mixed',
-          'female': 'Female'
-        }[activeTab];
+        const categoryType = availableCategories.find(c => c._id === activeTab)?.categoryType;
         const venueType = isHomeVenue ? 'home' : 'away';
         fetchTeamsForClub(formVenue, categoryType);
         setOpenDropdown(`team_${newMatchId}_${venueType}`);
@@ -528,12 +508,7 @@ const LeagueSchedule = () => {
       [activeTab]: updatedMatches
     }));
 
-    const categoryType = {
-      'levelA': 'Level A',
-      'levelB': 'Level B',
-      'mixed': 'Mixed',
-      'female': 'Female'
-    }[activeTab];
+    const categoryType = availableCategories.find(c => c._id === activeTab)?.categoryType;
     fetchTeamsForClub(awayVenue, categoryType);
     setOpenDropdown(`team_${matchId}_away`);
   }
@@ -548,12 +523,7 @@ const LeagueSchedule = () => {
       [activeTab]: updatedMatches
     }));
 
-    const categoryType = {
-      'levelA': 'Level A',
-      'levelB': 'Level B',
-      'mixed': 'Mixed',
-      'female': 'Female'
-    }[activeTab];
+    const categoryType = availableCategories.find(c => c._id === activeTab)?.categoryType;
     fetchTeamsForClub(homeVenue, categoryType);
     setOpenDropdown(`team_${matchId}_home`);
   }
@@ -604,14 +574,7 @@ const LeagueSchedule = () => {
       }
     }
 
-    const categoryTypeMap = {
-      'levelA': 'Level A',
-      'levelB': 'Level B',
-      'mixed': 'Mixed',
-      'female': 'Female'
-    };
-
-    const currentCategoryType = categoryTypeMap[activeTab];
+    const currentCategoryType = availableCategories.find(c => c._id === activeTab)?.categoryType;
 
     // Base payload structure
     const payload = {
@@ -930,28 +893,24 @@ const LeagueSchedule = () => {
         <Col md={12} style={{ overflowY: 'auto' }}>
           <Nav variant="tabs" activeKey={activeTab} onSelect={(k) => setActiveTab(k)} className="level-tabs border-0 mb-3">
             {availableCategories.map((category) => {
-              const tabKey = {
-                'Level A': 'levelA',
-                'Level B': 'levelB',
-                'Mixed': 'mixed',
-                'Female': 'female'
-              }[category.categoryType];
+              const tabKey = category._id;
 
               if (!tabKey) return null;
               return (
                 <Nav.Item key={tabKey}>
                   <Nav.Link eventKey={tabKey} className={activeTab === tabKey ? 'active' : ''}>
                     {category.categoryType}
-                    {/* <span>({category.maxParticipants})</span> */}
                   </Nav.Link>
                 </Nav.Item>
               );
             })}
-            <Nav.Item>
-              <Nav.Link eventKey="all" className={activeTab === 'all' ? 'active' : ''}>
-                All
-              </Nav.Link>
-            </Nav.Item>
+            {availableCategories.length > 0 && (
+              <Nav.Item>
+                <Nav.Link eventKey="all" className={activeTab === 'all' ? 'active' : ''}>
+                  All
+                </Nav.Link>
+              </Nav.Item>
+            )}
           </Nav>
 
           {currentMatches.length > 0 ? (
@@ -1003,12 +962,7 @@ const LeagueSchedule = () => {
                                   matchId={match.id}
                                   venue="home"
                                   clubName={match.homeVenue}
-                                  categoryType={{
-                                    'levelA': 'Level A',
-                                    'levelB': 'Level B',
-                                    'mixed': 'Mixed',
-                                    'female': 'Female'
-                                  }[activeTab]}
+                                  categoryType={availableCategories.find(c => c._id === activeTab)?.categoryType}
                                   selectedTeam={selectedHomeTeam}
                                   onTeamSelect={(teamId) => handleTeamSelection(match.id, 'home', teamId)}
                                 />
@@ -1033,12 +987,7 @@ const LeagueSchedule = () => {
                                 </div>
                                 <div style={{ cursor: 'pointer' }} onClick={() => {
                                   if (!selectedAwayTeam) {
-                                    const categoryType = {
-                                      'levelA': 'Level A',
-                                      'levelB': 'Level B',
-                                      'mixed': 'Mixed',
-                                      'female': 'Female'
-                                    }[activeTab];
+                                    const categoryType = availableCategories.find(c => c._id === activeTab)?.categoryType;
                                     fetchTeamsForClub(match.awayVenue, categoryType);
                                   }
                                 }}>
@@ -1053,12 +1002,7 @@ const LeagueSchedule = () => {
                                   matchId={match.id}
                                   venue="away"
                                   clubName={match.awayVenue}
-                                  categoryType={{
-                                    'levelA': 'Level A',
-                                    'levelB': 'Level B',
-                                    'mixed': 'Mixed',
-                                    'female': 'Female'
-                                  }[activeTab]}
+                                  categoryType={availableCategories.find(c => c._id === activeTab)?.categoryType}
                                   selectedTeam={selectedAwayTeam}
                                   onTeamSelect={(teamId) => handleTeamSelection(match.id, 'away', teamId)}
                                 />

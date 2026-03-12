@@ -13,6 +13,7 @@ const BasicInformation = ({ onNext }) => {
     const navigate = useNavigate();
     const { id } = useParams();
     const { states, clubs: clubsList, loading, sponsorCategories, currentLeague } = useSelector(state => state.league);
+    console.log({ currentLeague })
 
     const [formData, setFormData] = useState({ leagueName: '', stateId: '', startDate: '', sportType: 'padel', seasonType: '' });
     const [clubs, setClubs] = useState([{ name: '', location: '' }]);
@@ -141,11 +142,37 @@ const BasicInformation = ({ onNext }) => {
         if (mobileBanner instanceof File) formDataPayload.append('mobileBanner', mobileBanner);
         if (webBanner instanceof File) formDataPayload.append('webBanner', webBanner);
 
+        // clubs.filter(c => c.name).forEach((club, index) => {
+        //     formDataPayload.append(`clubs[${index}][clubId]`, club.name);
+        //     if (club.ownerId) formDataPayload.append(`clubs[${index}][ownerId]`, club.ownerId);
+        // });
         clubs.filter(c => c.name).forEach((club, index) => {
             formDataPayload.append(`clubs[${index}][clubId]`, club.name);
-            if (club.ownerId) formDataPayload.append(`clubs[${index}][ownerId]`, club.ownerId);
-        });
 
+            if (club.ownerId) {
+                formDataPayload.append(`clubs[${index}][ownerId]`, club.ownerId);
+            }
+
+            // Preserve existing participation limits
+            const existingClub = currentLeague?.clubs?.[index];
+
+            if (
+                existingClub?.participationLimit?.categoryLimits &&
+                existingClub.participationLimit.categoryLimits.length > 0
+            ) {
+                existingClub.participationLimit.categoryLimits.forEach((limit, catIndex) => {
+                    formDataPayload.append(
+                        `clubs[${index}][participationLimit][categoryLimits][${catIndex}][categoryType]`,
+                        limit.categoryType
+                    );
+
+                    formDataPayload.append(
+                        `clubs[${index}][participationLimit][categoryLimits][${catIndex}][maxParticipants]`,
+                        limit.maxParticipants
+                    );
+                });
+            }
+        });
         if (sponsors[0]?.name) {
             formDataPayload.append('titleSponsor[name]', sponsors[0].name);
             if (sponsors[0].category) formDataPayload.append('titleSponsor[categoryId]', sponsors[0].category);

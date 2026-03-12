@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { CREATE_LEAGUE, GET_LEAGUES, UPDATE_LEAGUE, GET_STATES, GET_CLUB_WITH_STATE, GET_SPONSOR_CATEGORIES, GET_LEAGUE_BY_ID, DELETE_LEAGUE, GET_LEAGUE_CLUBS, GET_CLUB_TEAMS, EXPORT_LEAGUE_SCHEDULES_CSV } from "../../../helpers/api/apiEndpoint";
+import { CREATE_LEAGUE, GET_LEAGUES, UPDATE_LEAGUE, GET_STATES, GET_CLUB_WITH_STATE, GET_SPONSOR_CATEGORIES, GET_LEAGUE_BY_ID, DELETE_LEAGUE, GET_LEAGUE_CLUBS, GET_CLUB_TEAMS, EXPORT_LEAGUE_SCHEDULES_PDF } from "../../../helpers/api/apiEndpoint";
 import { ownerApi, ownerAxios, getOwnerFromSession } from "../../../helpers/api/apiCore";
 import { showSuccess, showError } from "../../../helpers/Toast";
 
@@ -280,8 +280,8 @@ export const getAllSchedules = createAsyncThunk(
   }
 );
 
-export const exportLeagueSchedulesCSV = createAsyncThunk(
-  "league/exportLeagueSchedulesCSV",
+export const exportLeagueSchedulesPDF = createAsyncThunk(
+  "league/exportLeagueSchedulesPDF",
   async ({ leagueId, clubId, venueClubId, startDate, endDate }, { rejectWithValue }) => {
     try {
       const owner = getOwnerFromSession();
@@ -294,99 +294,30 @@ export const exportLeagueSchedulesCSV = createAsyncThunk(
       if (startDate) queryParams.append('startDate', startDate);
       if (endDate) queryParams.append('endDate', endDate);
       
-      const response = await ownerAxios.get(`${EXPORT_LEAGUE_SCHEDULES_CSV}?${queryParams.toString()}`, {
-        responseType: 'text',
+      const response = await ownerAxios.get(`${EXPORT_LEAGUE_SCHEDULES_PDF}?${queryParams.toString()}`, {
+        responseType: 'blob',
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
       
       if (response?.status === 200) {
-        // Parse CSV and remove object ID columns
-        const csvText = response.data;
-        const lines = csvText.split('\n');
+        const blob = new Blob([response.data], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `league-schedules-export-${new Date().toISOString().split('T')[0]}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
         
-        if (lines.length > 0) {
-          // Get headers and find columns to exclude (object IDs)
-          const headers = lines[0].split(',').map(h => h.replace(/"/g, ''));
-          const excludeColumns = ['leagueId', 'teamA_clubId', 'teamB_clubId'];
-          
-          // Find indices of columns to keep
-          const keepIndices = headers.map((header, index) => 
-            !excludeColumns.includes(header) ? index : -1
-          ).filter(index => index !== -1);
-          
-          // Find date columns for normalization
-          const dateColumns = ['date', 'createdAt', 'updatedAt', 'startTime', 'endTime'];
-          const dateColumnIndices = headers.map((header, index) => 
-            dateColumns.some(dateCol => header.toLowerCase().includes(dateCol.toLowerCase())) ? index : -1
-          ).filter(index => index !== -1);
-          
-          // Function to normalize date
-          const normalizeDate = (dateString) => {
-            if (!dateString || dateString === '""' || dateString === '') return dateString;
-            
-            try {
-              // Remove quotes if present
-              const cleanDate = dateString.replace(/"/g, '');
-              
-              // Check if it's an ISO date string
-              if (cleanDate.includes('T') && cleanDate.includes('Z')) {
-                const date = new Date(cleanDate);
-                // Use UTC methods to avoid timezone conversion issues
-                const year = date.getUTCFullYear();
-                const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-                const day = String(date.getUTCDate()).padStart(2, '0');
-                return `"${month}/${day}/${year}"`;
-              }
-              
-              return dateString; // Return as-is if not ISO format
-            } catch (error) {
-              return dateString; // Return original if parsing fails
-            }
-          };
-          
-          // Filter headers
-          const filteredHeaders = keepIndices.map(index => `"${headers[index]}"`);
-          
-          // Filter data rows
-          const filteredLines = [filteredHeaders.join(',')];
-          
-          for (let i = 1; i < lines.length; i++) {
-            if (lines[i].trim()) {
-              const columns = lines[i].split(',');
-              const filteredColumns = keepIndices.map(index => {
-                const value = columns[index] || '';
-                // Normalize date if this column is a date column
-                if (dateColumnIndices.includes(index)) {
-                  return normalizeDate(value);
-                }
-                return value;
-              });
-              filteredLines.push(filteredColumns.join(','));
-            }
-          }
-          
-          const filteredCSV = filteredLines.join('\n');
-          
-          // Create and download the filtered CSV
-          const blob = new Blob([filteredCSV], { type: 'text/csv' });
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `league-schedules-export-${new Date().toISOString().split('T')[0]}.csv`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          window.URL.revokeObjectURL(url);
-          
-          showSuccess("CSV exported successfully");
-          return { success: true };
-        }
+        showSuccess("PDF exported successfully");
+        return { success: true };
       }
       return rejectWithValue(response?.data?.message);
     } catch (error) {
-      showError("Failed to export CSV");
+      showError("Failed to export PDF");
       return rejectWithValue(error);
     }
   }

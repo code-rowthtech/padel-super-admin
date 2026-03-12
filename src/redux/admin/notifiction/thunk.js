@@ -79,3 +79,40 @@ export const readAllNotification = createAsyncThunk(
   }
 );
 
+export const sendBulkNotification = createAsyncThunk(
+  "notification/sendBulkNotification",
+  async (params, { rejectWithValue }) => {
+    try {
+      const res = await ownerApi.post(`${Url.SEND_BULK_NOTIFICATION}`, {
+        title: params.title,
+        message: params.message,
+        createdBy: params.createdBy,
+      });
+      const { status, data, message } = res || {};
+      if (status === 200 || status === 201) {
+        showSuccess(message || "Notification sent successfully!");
+        return data;
+      }
+      return rejectWithValue(message);
+    } catch (error) {
+      showError(error || error?.response?.data?.message || error.message);
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+export const getAdminBulkNotifications = createAsyncThunk(
+  "notification/getAdminBulkNotifications",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await ownerApi.get(`${Url.GET_ADMIN_BULK_NOTIFICATIONS}`);
+      const { status, data, message } = res || {};
+      if (status === 200 || status === 201) {
+        return data;
+      }
+      return rejectWithValue(message);
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);

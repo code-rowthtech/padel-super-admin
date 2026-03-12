@@ -15,8 +15,8 @@ const StructureCategories = ({ onNext, onBack }) => {
     const [registrationFee, setRegistrationFee] = useState('');
     const [isFeeEnabled, setIsFeeEnabled] = useState(false);
     const [categories, setCategories] = useState([
-        { name: 'Level A', registeredCount: 2, isDefault: true },
-        { name: 'Level B', registeredCount: 2, isDefault: true },
+        { name: 'Level A (Male)', registeredCount: 2, isDefault: true },
+        { name: 'Level B (Male)', registeredCount: 2, isDefault: true },
         { name: 'Female', registeredCount: 2, isDefault: true },
         { name: 'Mixed', registeredCount: 2, isDefault: true }
     ]);
@@ -181,7 +181,8 @@ const StructureCategories = ({ onNext, onBack }) => {
                                     type="text"
                                     value={cat.name}
                                     onChange={(e) => updateCategoryName(index, e.target.value)}
-                                    style={{ fontSize: '14px', fontWeight: '600', textAlign: 'center', border: 'none', backgroundColor: 'transparent', padding: '4px' }}
+                                    disabled={cat.isDefault}
+                                    style={{ fontSize: '14px', fontWeight: '600', textAlign: 'center', border: 'none', backgroundColor: 'transparent', padding: '4px', cursor: cat.isDefault ? 'not-allowed' : 'text' }}
                                 />
                                 {!cat.isDefault && (
                                     <button

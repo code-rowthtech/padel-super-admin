@@ -85,6 +85,10 @@ export const GET_NOTIFICATION_DATA = "/api/adminNotification/readNotification";
 export const GET_NOTIFICATION_COUNT = "/api/adminNotification/ureadCount";
 export const READ_ALL_NOTIFICATION_ADMIN =
   "/api/adminNotification/markAsAllAsRead";
+export const SEND_BULK_NOTIFICATION =
+  "/api/adminNotification/sendBulkNotification";
+export const GET_ADMIN_BULK_NOTIFICATIONS =
+  "/api/adminNotification/getAdminBulkNotifications";
 
 export const GET_SUBOWNER = "/api/owners/getusers";
 export const UPDATE_SUBOWNER = "/api/owners/updatesubowner";
@@ -149,5 +153,5 @@ export const DELETE_LEAGUE = "/api/leagues/deleteLeague";
 // League Schedule API endpoints
 export const GET_LEAGUE_CLUBS = "/api/league-schedules/clubs";
 export const GET_CLUB_TEAMS = "/api/league-schedules/teams";
-export const EXPORT_LEAGUE_SCHEDULES_CSV = "/api/league-schedules/export/csv";
+export const EXPORT_LEAGUE_SCHEDULES_PDF = "/api/league-schedules/export/pdf";
 export const GET_SPONSOR_CATEGORIES = "/api/sponsor-categories";
