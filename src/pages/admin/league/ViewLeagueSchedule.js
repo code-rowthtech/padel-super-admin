@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Container, Row, Col, Card, Badge, Form, Button } from 'react-bootstrap';
 import { AppBar, Tabs, Tab } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import { getAllSchedules, exportLeagueSchedulesCSV, getLeagueById } from '../../../redux/admin/league/thunk';
+import { getAllSchedules, exportLeagueSchedulesPDF, getLeagueById } from '../../../redux/admin/league/thunk';
 import { IoLocationOutline } from 'react-icons/io5';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
-const VSMatchCard = ({ match }) => {
+const VSMatchCard = ({ match, category }) => {
   const getPlayerAvatar = (player) => {
     if (player?.avatar) return player.avatar;
     const name = player?.playerName || player?.name || 'P';
@@ -25,8 +25,9 @@ const VSMatchCard = ({ match }) => {
       className="mb-3 shadow-sm rounded-3 position-relative overflow-hidden"
       style={{
         background: 'linear-gradient(100.97deg, rgb(253, 253, 255) 0%, rgb(158, 186, 255) 317.27%)',
-        padding: '16px',
-        border: '1px solid #1F41BB1A'
+        padding: '30px 16px 16px 16px',
+        border: '1px solid #1F41BB1A',
+        minHeight: '110px'
       }}
     >
       <div className="vs-date-badge">
@@ -81,6 +82,7 @@ const VSMatchCard = ({ match }) => {
           >
             VS
           </div>
+          <small className='fw-semibold' style={{ fontSize: '0.7rem' }}>{category}</small>
         </Col>
 
         {/* Team B */}
@@ -147,9 +149,9 @@ const DateSection = ({ schedule }) => {
             <span className="fw-medium text-muted d-none d-sm-inline" style={{ fontSize: '12px' }}>
               {schedule.leagueId?.leagueName}
             </span>
-            <Badge bg="primary" style={{ fontSize: '9px', padding: '4px 8px' }}>
+            {/* <Badge bg="primary" style={{ fontSize: '9px', padding: '4px 8px' }}>
               {schedule.categoryType}
-            </Badge>
+            </Badge> */}
           </div>
           <div className="d-flex align-items-center gap-1 text-muted">
             <IoLocationOutline size={12} />
@@ -163,7 +165,7 @@ const DateSection = ({ schedule }) => {
         <Row className="g-2">
           {schedule.matches?.map((match) => (
             <Col key={match._id} xs={12} sm={6} md={4} lg={3} xl={3}>
-              <VSMatchCard match={match} />
+              <VSMatchCard match={match} category={schedule.categoryType} />
             </Col>
           ))}
         </Row>
@@ -210,8 +212,34 @@ const ViewLeagueSchedule = () => {
     endDate: ''
   });
 
-  const categoryOptions = ['Level A', 'Level B', 'Mixed', 'Female'];
-  const roundTypeOptions = ['regular', 'quarterfinal', 'semifinal', 'final'];
+  const categoryOptions = useMemo(() => {
+    if (!currentLeague?.clubs?.length) return [];
+
+    const categories = new Set();
+    currentLeague.clubs.forEach(club => {
+      // Handle both nested clubId and direct club structure
+      const clubData = club?.clubId || club;
+      clubData?.participationLimit?.categoryLimits?.forEach(limit => {
+        if (limit.categoryType) categories.add(limit.categoryType);
+      });
+
+      // Also check if participationLimit is directly on the club object in currentLeague scope
+      club.participationLimit?.categoryLimits?.forEach(limit => {
+        if (limit.categoryType) categories.add(limit.categoryType);
+      });
+    });
+    return Array.from(categories);
+  }, [currentLeague?.clubs]);
+
+  const roundTypeOptions = useMemo(() => {
+    if (!currentLeague?.matchRules) return [];
+    const rounds = [];
+    if (currentLeague.matchRules.regularRound?.status) rounds.push('regular');
+    if (currentLeague.matchRules.quarterfinal?.status) rounds.push('quarterfinal');
+    if (currentLeague.matchRules.semifinal?.status) rounds.push('semifinal');
+    if (currentLeague.matchRules.final?.status) rounds.push('final');
+    return rounds;
+  }, [currentLeague?.matchRules]);
 
 
   useEffect(() => {
@@ -259,7 +287,7 @@ const ViewLeagueSchedule = () => {
   };
 
   const handleExportSubmit = () => {
-    dispatch(exportLeagueSchedulesCSV(exportFilters));
+    dispatch(exportLeagueSchedulesPDF(exportFilters));
     setShowExportDropdown(false);
   };
 
@@ -296,7 +324,7 @@ const ViewLeagueSchedule = () => {
                     >
                       <Tab label={`Schedules (${schedulesData.length})`} />
                       <Tab label="Points Table" />
-                      <Tab label="Bracket" />
+                      {/* <Tab label="Bracket" /> */}
                     </Tabs>
                   </div>
 
