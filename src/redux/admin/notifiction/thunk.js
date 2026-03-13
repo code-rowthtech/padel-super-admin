@@ -83,11 +83,20 @@ export const sendBulkNotification = createAsyncThunk(
   "notification/sendBulkNotification",
   async (params, { rejectWithValue }) => {
     try {
-      const res = await ownerApi.post(`${Url.SEND_BULK_NOTIFICATION}`, {
+      const payload = {
         title: params.title,
         message: params.message,
         createdBy: params.createdBy,
-      });
+      };
+      
+      // Add type for all users or leagueId for specific league
+      if (params.type === 'all') {
+        payload.type = 'all';
+      } else if (params.leagueId) {
+        payload.leagueId = params.leagueId;
+      }
+      
+      const res = await ownerApi.post(`${Url.SEND_BULK_NOTIFICATION}`, payload);
       const { status, data, message } = res || {};
       if (status === 200 || status === 201) {
         showSuccess(message || "Notification sent successfully!");

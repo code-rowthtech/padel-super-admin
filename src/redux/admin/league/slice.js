@@ -1,8 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createLeague, getLeagues, updateLeague, getStates, getClubsWithState, getSponsorCategories, getLeagueById, deleteLeague, getLeagueClubs, getClubTeams, getAllSchedules, saveSchedule, exportLeagueSchedulesPDF } from "./thunk";
+import { createLeague, getLeagues, getLeaguesIDS, updateLeague, getStates, getClubsWithState, getSponsorCategories, getLeagueById, deleteLeague, getLeagueClubs, getClubTeams, getAllSchedules, saveSchedule, exportLeagueSchedulesPDF } from "./thunk";
 
 const initialState = {
   leagues: [],
+  leaguesIDS: [],
   currentLeague: null,
   leagueId: null,
   states: [],
@@ -31,6 +32,10 @@ const leagueSlice = createSlice({
       state.loading = false;
       state.error = null;
     },
+    clearCurrentLeague: (state) => {
+      state.currentLeague = null;
+      state.leagueId = null;
+    },
     setLeagueId: (state, action) => {
       state.leagueId = action.payload;
     },
@@ -52,6 +57,9 @@ const leagueSlice = createSlice({
       })
       .addCase(getSponsorCategories.fulfilled, (state, action) => {
         state.sponsorCategories = action.payload;
+      })
+      .addCase(getLeaguesIDS.fulfilled, (state, action) => {
+        state.leaguesIDS = action.payload;
       })
       .addCase(getStates.fulfilled, (state, action) => {
         state.states = action.payload;
@@ -180,5 +188,5 @@ const leagueSlice = createSlice({
   },
 });
 
-export const { resetLeague, setLeagueId } = leagueSlice.actions;
+export const { resetLeague, clearCurrentLeague, setLeagueId } = leagueSlice.actions;
 export default leagueSlice.reducer;

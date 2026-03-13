@@ -63,8 +63,51 @@ const RuleSettings = ({ onBack }) => {
         final: true
     });
 
+    // Reset form when switching between create/update modes
     useEffect(() => {
-        if (currentLeague && Object.keys(currentLeague).length > 0) {
+        if (!id) {
+            // Reset to initial state for create mode
+            setMatchRules({
+                regularRound: {
+                    status: true,
+                    setsFormat: '',
+                    settings: { ...DEFAULT_SETTINGS }
+                },
+                quarterfinal: {
+                    status: false,
+                    setsFormat: '',
+                    settings: { ...DEFAULT_SETTINGS }
+                },
+                semifinal: {
+                    status: false,
+                    setsFormat: '',
+                    settings: { ...DEFAULT_SETTINGS }
+                },
+                final: {
+                    status: false,
+                    setsFormat: '',
+                    settings: { ...DEFAULT_SETTINGS }
+                }
+            });
+            setPrizeDistribution([
+                { position: '1st', amount: 0 },
+                { position: '2nd', amount: 0 },
+                { position: '3rd', amount: 0 }
+            ]);
+            setBounty(0);
+            setTeamOfLeague(0);
+            setSetsConfigEnabled(true);
+            setErrors({});
+            setUseRegularSettings({
+                quarterfinal: true,
+                semifinal: true,
+                final: true
+            });
+        }
+    }, [id]);
+
+    useEffect(() => {
+        if (currentLeague && Object.keys(currentLeague).length > 0 && id) {
             if (currentLeague.matchRules) {
                 const rules = currentLeague.matchRules;
                 const mergeSettings = (roundData) => ({
@@ -101,8 +144,46 @@ const RuleSettings = ({ onBack }) => {
             }
             setBounty(currentLeague.bounty || 0);
             setTeamOfLeague(currentLeague.teamOfLeague || 0);
+        } else if (!id) {
+            // Ensure clean state for create mode
+            setMatchRules({
+                regularRound: {
+                    status: true,
+                    setsFormat: '',
+                    settings: { ...DEFAULT_SETTINGS }
+                },
+                quarterfinal: {
+                    status: false,
+                    setsFormat: '',
+                    settings: { ...DEFAULT_SETTINGS }
+                },
+                semifinal: {
+                    status: false,
+                    setsFormat: '',
+                    settings: { ...DEFAULT_SETTINGS }
+                },
+                final: {
+                    status: false,
+                    setsFormat: '',
+                    settings: { ...DEFAULT_SETTINGS }
+                }
+            });
+            setPrizeDistribution([
+                { position: '1st', amount: 0 },
+                { position: '2nd', amount: 0 },
+                { position: '3rd', amount: 0 }
+            ]);
+            setBounty(0);
+            setTeamOfLeague(0);
+            setSetsConfigEnabled(true);
+            setErrors({});
+            setUseRegularSettings({
+                quarterfinal: true,
+                semifinal: true,
+                final: true
+            });
         }
-    }, [currentLeague]);
+    }, [currentLeague, id]);
 
     const toggleRoundSettings = (round) => {
         setUseRegularSettings(prev => ({ ...prev, [round]: !prev[round] }));

@@ -37,16 +37,16 @@ const LeagueRegistration = () => {
   const handleLeagueChange = (e) => {
     setSelectedLeagueId(e.target.value);
   };
-  
+
   const clubs = (currentLeague?.clubs || []).map(club => {
     const categoryLimits = club.participationLimit?.categoryLimits || [];
     const registeredPlayers = club.registeredPlayers || [];
-    
+
     const categories = categoryLimits.map(limit => {
       const categoryRegistrations = registeredPlayers.find(
         reg => reg.categoryType === limit.categoryType
       );
-      
+
       return {
         name: limit.categoryType,
         registrations: (categoryRegistrations?.players || []).map(player => ({
@@ -57,13 +57,13 @@ const LeagueRegistration = () => {
         }))
       };
     });
-    
+
     const levels = categoryLimits.reduce((acc, limit) => {
       const registered = registeredPlayers.find(r => r.categoryType === limit.categoryType)?.players?.length || 0;
       acc[limit.categoryType] = `${registered}/${limit.maxParticipants}`;
       return acc;
     }, {});
-    
+
     return {
       name: club.clubId?.clubName || 'Unknown Club',
       levels,
@@ -102,8 +102,8 @@ const LeagueRegistration = () => {
               <span>
                 Clubs (0)
               </span>
-              <select 
-                className="form-select form-select-sm" 
+              <select
+                className="form-select form-select-sm"
                 style={{ width: "auto" }}
                 value={selectedLeagueId}
                 onChange={handleLeagueChange}
@@ -138,8 +138,8 @@ const LeagueRegistration = () => {
             <span>
               Clubs ({clubs.length})
             </span>
-            <select 
-              className="form-select form-select-sm" 
+            <select
+              className="form-select form-select-sm"
               style={{ width: "auto" }}
               value={selectedLeagueId}
               onChange={handleLeagueChange}
@@ -168,16 +168,7 @@ const LeagueRegistration = () => {
                 }}
               >
                 <Card.Body className="p-3">
-                  <div className="fw-semibold mb-2" style={{ color: selectedClub === idx ? "white" : "#1F41BB" }}>{club.name}</div>
-                  <div className="d-flex flex-wrap gap-2 small" style={{ fontSize: "12px" }}>
-                    {Object.entries(club.levels).map(([levelName, levelValue]) => (
-                      <p key={levelName} className="d-flex gap-1 flex-fill align-items-center flex-column">
-                        <span> {levelName}</span>
-                        <span style={{ background: selectedClub === idx ? '#FFFFFF1A' : '' }}
-                          className={`py-1 rounded-1 fw-semibold px-3 ${selectedClub === idx ? '' : 'border border-1'}`}>{levelValue}</span>
-                      </p>
-                    ))}
-                  </div>
+                  <div className="fw-semibold mb-0" style={{ color: selectedClub === idx ? "white" : "#1F41BB" }}>{club.name}</div>
                 </Card.Body>
                 {selectedClub === idx && (
                   <BsFillCaretRightFill
@@ -213,64 +204,69 @@ const LeagueRegistration = () => {
               <p>No clubs found for this league</p>
             </div>
           ) : (
-          <div className="d-flex flex-column gap-3">
-            {clubs[selectedClub].categories.map((category, catIdx) => (
-              <Card key={catIdx} className="border rounded shadow-sm" style={{ overflow: "hidden" }}>
-                <div
-                  onClick={() => toggleCategory(catIdx)}
-                  style={{
-                    backgroundColor: "#FBFCFE",
-                    padding: "14px 20px",
-                    cursor: "pointer",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    borderBottom: expandedCategory[catIdx] ? "1px solid #e5e7eb" : "none"
-                  }}
-                >
-                  <small className="fw-semibold rounded-2 px-3" style={{ color: "#1F41BB", background: 'linear-gradient(270deg, rgba(0, 58, 255, 0.1) 0%, rgba(7, 40, 154, 0.1) 100%)' }}>
-                    Game Category: {category.name}
-                  </small>
-                  {expandedCategory[catIdx] ?
-                    <FaChevronUp size={14} style={{ color: "#6b7280" }} /> :
-                    <FaChevronDown size={14} style={{ color: "#6b7280" }} />
-                  }
-                </div>
-                {expandedCategory[catIdx] && (
-                  <div className="p-3">
-                    {category.registrations.length > 0 ? (
-                      <div className="table-responsive">
-                        <table className="table table-borderless mb-0">
-                          <thead>
-                            <tr style={{ backgroundColor: "#f9fafb", borderBottom: "1px solid #e5e7eb" }}>
-                              <th style={{ fontSize: "13px", fontWeight: "600", padding: "12px" }}>Player Name</th>
-                              <th style={{ fontSize: "13px", fontWeight: "600", padding: "12px" }}>Phone Number</th>
-                              <th style={{ fontSize: "13px", fontWeight: "600", padding: "12px" }}>Email</th>
-                              {/* <th style={{ fontSize: "13px", fontWeight: "600", padding: "12px" }}>Status</th> */}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {category.registrations.map((reg, idx) => (
-                              <tr key={idx} style={{ borderBottom: "1px solid #f3f4f6" }}>
-                                <td style={{ fontSize: "13px", padding: "12px" }}>{reg.name}</td>
-                                <td style={{ fontSize: "13px", padding: "12px" }}>{reg.phone}</td>
-                                <td style={{ fontSize: "13px", padding: "12px" }}>{reg.email}</td>
-                                {/* <td style={{ padding: "12px" }}>{getStatusBadge(reg.status)}</td> */}
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    ) : (
-                      <div className="text-center text-muted py-4" style={{ fontSize: "14px" }}>
-                        No registrations yet
-                      </div>
-                    )}
+            <div className="d-flex flex-column gap-3">
+              {clubs[selectedClub].categories.map((category, catIdx) => (
+                <Card key={catIdx} className="border rounded shadow-sm" style={{ overflow: "hidden" }}>
+                  <div
+                    onClick={() => toggleCategory(catIdx)}
+                    style={{
+                      backgroundColor: "#FBFCFE",
+                      padding: "14px 20px",
+                      cursor: "pointer",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      borderBottom: expandedCategory[catIdx] ? "1px solid #e5e7eb" : "none"
+                    }}
+                  >
+                    <div className="d-flex align-items-center gap-3">
+                      <small className="fw-semibold rounded-2 px-3" style={{ color: "#1F41BB", background: 'linear-gradient(270deg, rgba(0, 58, 255, 0.1) 0%, rgba(7, 40, 154, 0.1) 100%)' }}>
+                        Game Category: {category.name} ({category.registrations.length})
+                      </small>
+                    </div>
+                    <div className='d-flex align-items-center gap-3'>
+                      {clubs[selectedClub].levels[category.name] && (
+                        <span className="fw-semibold" style={{ fontSize: '1rem', color: '#1F41BB' }}>{clubs[selectedClub].levels[category.name]}</span>
+                      )}
+                      {expandedCategory[catIdx] ?
+                        <FaChevronUp size={14} style={{ color: "#6b7280" }} /> :
+                        <FaChevronDown size={14} style={{ color: "#6b7280" }} />
+                      }
+                    </div>
                   </div>
-                )}
-              </Card>
-            ))}
-          </div>
+                  {expandedCategory[catIdx] && (
+                    <div className="p-3">
+                      {category.registrations.length > 0 ? (
+                        <div className="table-responsive">
+                          <table className="table table-borderless mb-0">
+                            <thead>
+                              <tr style={{ backgroundColor: "#f9fafb", borderBottom: "1px solid #e5e7eb" }}>
+                                <th style={{ fontSize: "13px", fontWeight: "600", padding: "12px" }}>Player Name</th>
+                                <th style={{ fontSize: "13px", fontWeight: "600", padding: "12px" }}>Phone Number</th>
+                                <th style={{ fontSize: "13px", fontWeight: "600", padding: "12px" }}>Email</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {category.registrations.map((reg, idx) => (
+                                <tr key={idx} style={{ borderBottom: "1px solid #f3f4f6" }}>
+                                  <td style={{ fontSize: "13px", padding: "12px" }}>{reg.name}</td>
+                                  <td style={{ fontSize: "13px", padding: "12px" }}>{reg.phone}</td>
+                                  <td style={{ fontSize: "13px", padding: "12px" }}>{reg.email}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : (
+                        <div className="text-center text-muted py-4" style={{ fontSize: "14px" }}>
+                          No registrations yet
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </Card>
+              ))}
+            </div>
           )}
         </Col>
       </Row>
