@@ -250,7 +250,7 @@ const League = () => {
                         <td>{getStatusBadge(league.status)}</td>
                         <td>
                           <div className="d-flex justify-content-center gap-2">
-                            <GrSchedules style={{ cursor: "pointer", color: "#6b7280" }} onClick={() => navigate(`/admin/view-league-schedule/${league._id}`)} size={16}/>
+                            <GrSchedules style={{ cursor: "pointer", color: "#6b7280" }} onClick={() => navigate(`/admin/view-league-schedule/${league._id}`)} size={16} />
                             {/* <FaEye style={{ cursor: "pointer", color: "#6b7280" }} onClick={() => navigate(`/admin/new-league/${league._id}`)} size={16} /> */}
                             <FaEdit style={{ cursor: "pointer", color: "#6b7280" }} onClick={() => navigate(`/admin/new-league/${league._id}`)} size={16} />
                             <FaTrash style={{ cursor: "pointer", color: "#6b7280" }} onClick={() => handleDeleteClick(league)} size={16} />
@@ -264,7 +264,7 @@ const League = () => {
             )}
 
             {totalItems > defaultLimit && (
-              <div className="pt-3 d-flex justify-content-center align-items-center border-top" style={{  backgroundColor: "white" }}>
+              <div className="pt-3 d-flex justify-content-center align-items-center border-top" style={{ backgroundColor: "white" }}>
                 <Pagination
                   totalRecords={totalItems}
                   defaultLimit={defaultLimit}

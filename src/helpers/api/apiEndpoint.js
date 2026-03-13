@@ -147,6 +147,7 @@ export const SUPER_ADMIN_GET_WALLET_TRANSACTIONS = "/api/super-admin/wallet-tran
 // League Management
 export const CREATE_LEAGUE = "/api/leagues/createLeague";
 export const GET_LEAGUES = "/api/leagues/getAllLeagues";
+export const GET_LEAGUES_IDS = "/api/leagues/getLeaguesIDS";
 export const UPDATE_LEAGUE = "/api/leagues/updateLeague";
 export const GET_LEAGUE_BY_ID = "/api/leagues/getLeagueById";
 export const DELETE_LEAGUE = "/api/leagues/deleteLeague";

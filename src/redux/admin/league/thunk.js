@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { CREATE_LEAGUE, GET_LEAGUES, UPDATE_LEAGUE, GET_STATES, GET_CLUB_WITH_STATE, GET_SPONSOR_CATEGORIES, GET_LEAGUE_BY_ID, DELETE_LEAGUE, GET_LEAGUE_CLUBS, GET_CLUB_TEAMS, EXPORT_LEAGUE_SCHEDULES_PDF } from "../../../helpers/api/apiEndpoint";
+import { CREATE_LEAGUE, GET_LEAGUES, GET_LEAGUES_IDS, UPDATE_LEAGUE, GET_STATES, GET_CLUB_WITH_STATE, GET_SPONSOR_CATEGORIES, GET_LEAGUE_BY_ID, DELETE_LEAGUE, GET_LEAGUE_CLUBS, GET_CLUB_TEAMS, EXPORT_LEAGUE_SCHEDULES_PDF } from "../../../helpers/api/apiEndpoint";
 import { ownerApi, ownerAxios, getOwnerFromSession } from "../../../helpers/api/apiCore";
 import { showSuccess, showError } from "../../../helpers/Toast";
 
@@ -121,6 +121,21 @@ export const getClubsWithState = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await ownerApi.get(GET_CLUB_WITH_STATE);
+      if (response?.status === 200) {
+        return response.data?.data || [];
+      }
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const getLeaguesIDS = createAsyncThunk(
+  "league/getLeaguesIDS",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await ownerApi.get(GET_LEAGUES_IDS);
       if (response?.status === 200) {
         return response.data?.data || [];
       }

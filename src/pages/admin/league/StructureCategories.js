@@ -12,6 +12,7 @@ const StructureCategories = ({ onNext, onBack }) => {
     const { loading, leagueId, currentLeague } = useSelector(state => state.league);
 
     const [registrationDates, setRegistrationDates] = useState({ startDate: '', endDate: '' });
+    const [dateErrors, setDateErrors] = useState({ startDate: '', endDate: '' });
     const [registrationFee, setRegistrationFee] = useState('');
     const [isFeeEnabled, setIsFeeEnabled] = useState(false);
     const [categories, setCategories] = useState([
@@ -21,8 +22,25 @@ const StructureCategories = ({ onNext, onBack }) => {
         { name: 'Mixed', registeredCount: 2, isDefault: true }
     ]);
 
+    // Reset form when switching between create/update modes
     useEffect(() => {
-        if (currentLeague && Object.keys(currentLeague).length > 0) {
+        if (!id) {
+            // Reset to initial state for create mode
+            setRegistrationDates({ startDate: '', endDate: '' });
+            setDateErrors({ startDate: '', endDate: '' });
+            setRegistrationFee('');
+            setIsFeeEnabled(false);
+            setCategories([
+                { name: 'Level A (Male)', registeredCount: 2, isDefault: true },
+                { name: 'Level B (Male)', registeredCount: 2, isDefault: true },
+                { name: 'Female', registeredCount: 2, isDefault: true },
+                { name: 'Mixed', registeredCount: 2, isDefault: true }
+            ]);
+        }
+    }, [id]);
+
+    useEffect(() => {
+        if (currentLeague && Object.keys(currentLeague).length > 0 && id) {
             if (currentLeague.registration) {
                 const reg = currentLeague.registration;
                 setRegistrationDates({
@@ -44,8 +62,20 @@ const StructureCategories = ({ onNext, onBack }) => {
                     isDefault: idx < 4
                 })));
             }
+        } else if (!id) {
+            // Ensure clean state for create mode
+            setRegistrationDates({ startDate: '', endDate: '' });
+            setDateErrors({ startDate: '', endDate: '' });
+            setRegistrationFee('');
+            setIsFeeEnabled(false);
+            setCategories([
+                { name: 'Level A (Male)', registeredCount: 2, isDefault: true },
+                { name: 'Level B (Male)', registeredCount: 2, isDefault: true },
+                { name: 'Female', registeredCount: 2, isDefault: true },
+                { name: 'Mixed', registeredCount: 2, isDefault: true }
+            ]);
         }
-    }, [currentLeague]);
+    }, [currentLeague, id]);
 
     const today = new Date().toISOString().split('T')[0];
 
@@ -72,6 +102,20 @@ const StructureCategories = ({ onNext, onBack }) => {
     const handleSubmit = async () => {
         const leagueIdToUpdate = id || leagueId;
         if (!leagueIdToUpdate) return;
+
+        // Validate required fields
+        const errors = { startDate: '', endDate: '' };
+        if (!registrationDates.startDate) {
+            errors.startDate = 'Start date is required';
+        }
+        if (!registrationDates.endDate) {
+            errors.endDate = 'End date is required';
+        }
+        
+        setDateErrors(errors);
+        if (errors.startDate || errors.endDate) {
+            return;
+        }
 
         const updatePayload = { id: leagueIdToUpdate };
 
@@ -118,9 +162,14 @@ const StructureCategories = ({ onNext, onBack }) => {
                                 type="date"
                                 min={today}
                                 value={registrationDates.startDate}
-                                onChange={(e) => setRegistrationDates({ ...registrationDates, startDate: e.target.value })}
+                                onChange={(e) => {
+                                    setRegistrationDates({ ...registrationDates, startDate: e.target.value });
+                                    if (dateErrors.startDate) setDateErrors({ ...dateErrors, startDate: '' });
+                                }}
                                 style={{ backgroundColor: '#F3F4F6', border: 'none', borderRadius: '8px', padding: '12px', fontSize: '14px' }}
+                                isInvalid={!!dateErrors.startDate}
                             />
+                            {dateErrors.startDate && <Form.Control.Feedback type="invalid">{dateErrors.startDate}</Form.Control.Feedback>}
                         </Form.Group>
                     </Col>
                     <Col md={4} className="mb-3">
@@ -130,9 +179,14 @@ const StructureCategories = ({ onNext, onBack }) => {
                                 type="date"
                                 min={registrationDates.startDate || today}
                                 value={registrationDates.endDate}
-                                onChange={(e) => setRegistrationDates({ ...registrationDates, endDate: e.target.value })}
+                                onChange={(e) => {
+                                    setRegistrationDates({ ...registrationDates, endDate: e.target.value });
+                                    if (dateErrors.endDate) setDateErrors({ ...dateErrors, endDate: '' });
+                                }}
                                 style={{ backgroundColor: '#F3F4F6', border: 'none', borderRadius: '8px', padding: '12px', fontSize: '14px' }}
+                                isInvalid={!!dateErrors.endDate}
                             />
+                            {dateErrors.endDate && <Form.Control.Feedback type="invalid">{dateErrors.endDate}</Form.Control.Feedback>}
                         </Form.Group>
                     </Col>
                     <Col md={4} className="mb-3">

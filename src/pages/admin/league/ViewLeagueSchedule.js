@@ -4,9 +4,11 @@ import { AppBar, Tabs, Tab } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { getAllSchedules, exportLeagueSchedulesPDF, getLeagueById } from '../../../redux/admin/league/thunk';
+import { clearCurrentLeague } from '../../../redux/admin/league/slice';
 import { IoLocationOutline } from 'react-icons/io5';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import { DataLoading } from '../../../helpers/loading/Loaders';
 
 const VSMatchCard = ({ match, category }) => {
   const getPlayerAvatar = (player) => {
@@ -212,6 +214,32 @@ const ViewLeagueSchedule = () => {
     endDate: ''
   });
 
+  // Reset state when leagueId changes
+  useEffect(() => {
+    setActiveTab(0);
+    setFilters({
+      categoryType: '',
+      roundType: '',
+      startDate: null,
+      endDate: null
+    });
+    setShowExportDropdown(false);
+    setExportFilters({
+      leagueId: leagueId,
+      venueClubId: '',
+      clubId: '',
+      startDate: '',
+      endDate: ''
+    });
+  }, [leagueId]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      dispatch(clearCurrentLeague());
+    };
+  }, [dispatch]);
+
   const categoryOptions = useMemo(() => {
     if (!currentLeague?.clubs?.length) return [];
 
@@ -244,6 +272,8 @@ const ViewLeagueSchedule = () => {
 
   useEffect(() => {
     if (leagueId) {
+      // Clear previous league data before loading new one
+      dispatch(clearCurrentLeague());
       dispatch(getLeagueById(leagueId));
     }
   }, [leagueId, dispatch])
@@ -493,9 +523,7 @@ const ViewLeagueSchedule = () => {
                   {loadingSchedules ? (
                     <Card className="text-center py-5 border-0 shadow-sm">
                       <Card.Body>
-                        <div className="spinner-border text-primary" role="status">
-                          <span className="visually-hidden">Loading...</span>
-                        </div>
+                        <DataLoading />
                         <div className="mt-3 text-muted">Loading match schedules...</div>
                       </Card.Body>
                     </Card>

@@ -1,20 +1,29 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Modal, Form, Button, Spinner } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { sendBulkNotification } from "../../../redux/admin/notifiction/thunk";
+import { getLeaguesIDS } from "../../../redux/admin/league/thunk";
 import { MdNotificationsActive } from "react-icons/md";
 
 const NotificationModal = ({ show, onClose }) => {
   const dispatch = useDispatch();
   const { sendBulkLoading } = useSelector((state) => state.notificationData);
+  const { leaguesIDS } = useSelector((state) => state.league);
 
-  const [form, setForm] = useState({ title: "", message: "" });
+  const [form, setForm] = useState({ title: "", message: "", notificationType: "all", leagueId: "" });
   const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    if (show) {
+      dispatch(getLeaguesIDS());
+    }
+  }, [show, dispatch]);
 
   const validate = () => {
     const newErrors = {};
     if (!form.title.trim()) newErrors.title = "Title is required.";
     if (!form.message.trim()) newErrors.message = "Message is required.";
+    if (form.notificationType === "league" && !form.leagueId) newErrors.leagueId = "League selection is required.";
     return newErrors;
   };
 
@@ -44,16 +53,22 @@ const NotificationModal = ({ show, onClose }) => {
       createdBy = null;
     }
 
-    const result = await dispatch(
-      sendBulkNotification({
-        title: form.title.trim(),
-        message: form.message.trim(),
-        createdBy,
-      })
-    );
+    const payload = {
+      title: form.title.trim(),
+      message: form.message.trim(),
+      createdBy,
+    };
+
+    if (form.notificationType === "all") {
+      payload.type = "all";
+    } else {
+      payload.leagueId = form.leagueId;
+    }
+
+    const result = await dispatch(sendBulkNotification(payload));
 
     if (sendBulkNotification.fulfilled.match(result)) {
-      setForm({ title: "", message: "" });
+      setForm({ title: "", message: "", notificationType: "all", leagueId: "" });
       setErrors({});
       onClose(true); // pass true to trigger list refresh
     }
@@ -61,7 +76,7 @@ const NotificationModal = ({ show, onClose }) => {
 
   const handleClose = () => {
     if (!sendBulkLoading) {
-      setForm({ title: "", message: "" });
+      setForm({ title: "", message: "", notificationType: "all", leagueId: "" });
       setErrors({});
       onClose(false);
     }
@@ -104,6 +119,68 @@ const NotificationModal = ({ show, onClose }) => {
 
       <Modal.Body style={{ padding: "24px" }}>
         <Form onSubmit={handleSubmit}>
+          <Form.Group className="mb-3">
+            <Form.Label
+              style={{
+                fontSize: "13px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+                color: "#374151",
+              }}
+            >
+              Notification For <span className="text-danger">*</span>
+            </Form.Label>
+            <div className="d-flex gap-3 mb-2">
+              <Form.Check
+                type="radio"
+                id="all-users"
+                name="notificationType"
+                value="all"
+                checked={form.notificationType === "all"}
+                onChange={handleChange}
+                label="All Users"
+                style={{ fontSize: "14px", fontFamily: "Poppins" }}
+              />
+              <Form.Check
+                type="radio"
+                id="specific-league"
+                name="notificationType"
+                value="league"
+                checked={form.notificationType === "league"}
+                onChange={handleChange}
+                label="Specific League"
+                style={{ fontSize: "14px", fontFamily: "Poppins" }}
+              />
+            </div>
+            {form.notificationType === "league" && (
+              <Form.Select
+                name="leagueId"
+                value={form.leagueId}
+                onChange={handleChange}
+                isInvalid={!!errors.leagueId}
+                style={{
+                  fontSize: "14px",
+                  fontFamily: "Poppins",
+                  borderRadius: "8px",
+                  padding: "10px 14px",
+                  border: errors.leagueId
+                    ? "1px solid #dc3545"
+                    : "1px solid #dee2e6",
+                }}
+              >
+                <option value="">Select League</option>
+                {leaguesIDS.map((league) => (
+                  <option key={league._id} value={league._id}>
+                    {league.leagueName}
+                  </option>
+                ))}
+              </Form.Select>
+            )}
+            {errors.leagueId && (
+              <div className="invalid-feedback d-block">{errors.leagueId}</div>
+            )}
+          </Form.Group>
+
           <Form.Group className="mb-3">
             <Form.Label
               style={{

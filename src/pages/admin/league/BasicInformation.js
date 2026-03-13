@@ -13,13 +13,28 @@ const BasicInformation = ({ onNext }) => {
     const navigate = useNavigate();
     const { id } = useParams();
     const { states, clubs: clubsList, loading, sponsorCategories, currentLeague } = useSelector(state => state.league);
-    console.log({ currentLeague })
 
     const [formData, setFormData] = useState({ leagueName: '', stateId: '', startDate: '', sportType: 'padel', seasonType: '' });
     const [clubs, setClubs] = useState([{ name: '', location: '' }]);
     const [sponsors, setSponsors] = useState([{ title: '', name: '', category: '', image: null }]);
+    const [titleSponsorBanner, setTitleSponsorBanner] = useState(null);
     const [mobileBanner, setMobileBanner] = useState(null);
     const [webBanner, setWebBanner] = useState(null);
+    const [errors, setErrors] = useState({});
+
+    // Reset form when switching between create/update modes
+    useEffect(() => {
+        if (!id) {
+            // Reset to initial state for create mode
+            setFormData({ leagueName: '', stateId: '', startDate: '', sportType: 'padel', seasonType: '' });
+            setClubs([{ name: '', location: '' }]);
+            setSponsors([{ title: '', name: '', category: '', image: null }]);
+            setTitleSponsorBanner(null);
+            setMobileBanner(null);
+            setWebBanner(null);
+            setErrors({});
+        }
+    }, [id]);
 
     useEffect(() => {
         if (currentLeague && id) {
@@ -33,6 +48,7 @@ const BasicInformation = ({ onNext }) => {
 
             if (currentLeague.mobileBanner) setMobileBanner(currentLeague.mobileBanner);
             if (currentLeague.webBanner) setWebBanner(currentLeague.webBanner);
+            if (currentLeague.titleSponsor?.titleSponsorBanner) setTitleSponsorBanner(currentLeague.titleSponsor.titleSponsorBanner);
 
             if (currentLeague.clubs?.length > 0) {
                 setClubs(currentLeague.clubs.map(club => ({
@@ -62,6 +78,15 @@ const BasicInformation = ({ onNext }) => {
                 });
             }
             if (allSponsors.length > 0) setSponsors(allSponsors);
+        } else if (!id) {
+            // Ensure clean state for create mode
+            setFormData({ leagueName: '', stateId: '', startDate: '', sportType: 'padel', seasonType: '' });
+            setClubs([{ name: '', location: '' }]);
+            setSponsors([{ title: '', name: '', category: '', image: null }]);
+            setTitleSponsorBanner(null);
+            setMobileBanner(null);
+            setWebBanner(null);
+            setErrors({});
         }
     }, [currentLeague, id]);
 
@@ -82,8 +107,60 @@ const BasicInformation = ({ onNext }) => {
         setSponsors(updated);
     };
 
+    const validateForm = () => {
+        const newErrors = {};
+
+        // Basic form validation
+        if (!formData.leagueName.trim()) {
+            newErrors.leagueName = 'League name is required';
+        }
+        if (!formData.stateId) {
+            newErrors.stateId = 'Location is required';
+        }
+        if (!formData.startDate) {
+            newErrors.startDate = 'Start date is required';
+        }
+
+        // Club validation - at least one club is required
+        const validClubs = clubs.filter(club => club.name.trim());
+        if (validClubs.length === 0) {
+            newErrors.clubs = 'At least one club is required';
+        }
+
+        // Sponsor validation
+        const tier1Sponsors = [];
+        sponsors.forEach((sponsor, index) => {
+            if (sponsor.name.trim()) {
+                if (!sponsor.category) {
+                    newErrors[`sponsor_${index}_category`] = 'Category is required when sponsor name is entered';
+                }
+                if (!sponsor.image) {
+                    newErrors[`sponsor_${index}_image`] = 'Logo is required when sponsor name is entered';
+                }
+
+                // Check for Tier 1 sponsors
+                if (sponsor.category) {
+                    const selectedCategory = sponsorCategories.find(cat => cat._id === sponsor.category);
+                    if (selectedCategory && selectedCategory.name === 'Tier 1') {
+                        tier1Sponsors.push(index);
+                    }
+                }
+            }
+        });
+
+        // Validate only one Tier 1 sponsor is allowed
+        if (tier1Sponsors.length > 1) {
+            tier1Sponsors.forEach(index => {
+                newErrors[`sponsor_${index}_tier1`] = 'Only one Tier 1 sponsor is allowed';
+            });
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleSubmit = async () => {
-        if (!formData.leagueName || !formData.stateId || !formData.startDate) return;
+        if (!validateForm()) return;
 
         const formDataPayload = new FormData();
         if (id) {
@@ -141,6 +218,7 @@ const BasicInformation = ({ onNext }) => {
 
         if (mobileBanner instanceof File) formDataPayload.append('mobileBanner', mobileBanner);
         if (webBanner instanceof File) formDataPayload.append('webBanner', webBanner);
+        if (titleSponsorBanner instanceof File) formDataPayload.append('titleSponsorBanner', titleSponsorBanner);
 
         // clubs.filter(c => c.name).forEach((club, index) => {
         //     formDataPayload.append(`clubs[${index}][clubId]`, club.name);
@@ -180,6 +258,11 @@ const BasicInformation = ({ onNext }) => {
                 formDataPayload.append('titleSponsorLogo', sponsors[0].image);
             } else if (sponsors[0].image && typeof sponsors[0].image === 'string') {
                 formDataPayload.append('titleSponsor[logo]', sponsors[0].image);
+            }
+            if (titleSponsorBanner instanceof File) {
+                formDataPayload.append('titleSponsorBanner', titleSponsorBanner);
+            } else if (titleSponsorBanner && typeof titleSponsorBanner === 'string') {
+                formDataPayload.append('titleSponsor[banner]', titleSponsorBanner);
             }
         }
 
@@ -228,9 +311,23 @@ const BasicInformation = ({ onNext }) => {
                                 type="text"
                                 placeholder="Enter League Name"
                                 value={formData.leagueName}
-                                onChange={(e) => setFormData({ ...formData, leagueName: e.target.value })}
-                                style={{ backgroundColor: '#F3F4F6', border: 'none', borderRadius: '8px', padding: '12px', fontSize: '14px' }}
+                                onChange={(e) => {
+                                    setFormData({ ...formData, leagueName: e.target.value });
+                                    if (errors.leagueName) {
+                                        setErrors({ ...errors, leagueName: '' });
+                                    }
+                                }}
+                                style={{
+                                    backgroundColor: '#F3F4F6',
+                                    border: errors.leagueName ? '1px solid #dc3545' : 'none',
+                                    borderRadius: '8px',
+                                    padding: '12px',
+                                    fontSize: '14px'
+                                }}
                             />
+                            <div style={{ minHeight: '16px', marginTop: '2px' }}>
+                                {errors.leagueName && <div className="text-danger" style={{ fontSize: '12px' }}>{errors.leagueName}</div>}
+                            </div>
                         </Form.Group>
                         <Row className="mb-4">
                             <Col md={6} className="mb-3">
@@ -238,14 +335,28 @@ const BasicInformation = ({ onNext }) => {
                                     <Form.Label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>Location <span className="text-danger">*</span></Form.Label>
                                     <Form.Select
                                         value={formData.stateId}
-                                        onChange={(e) => setFormData({ ...formData, stateId: e.target.value })}
-                                        style={{ backgroundColor: '#F3F4F6', border: 'none', borderRadius: '8px', padding: '12px', fontSize: '14px' }}
+                                        onChange={(e) => {
+                                            setFormData({ ...formData, stateId: e.target.value });
+                                            if (errors.stateId) {
+                                                setErrors({ ...errors, stateId: '' });
+                                            }
+                                        }}
+                                        style={{
+                                            backgroundColor: '#F3F4F6',
+                                            border: errors.stateId ? '1px solid #dc3545' : 'none',
+                                            borderRadius: '8px',
+                                            padding: '12px',
+                                            fontSize: '14px'
+                                        }}
                                     >
                                         <option>Select Location</option>
                                         {Array.isArray(states) && states.map(state => (
                                             <option key={state._id} value={state._id}>{state.name}</option>
                                         ))}
                                     </Form.Select>
+                                    <div style={{ minHeight: '16px', marginTop: '2px' }}>
+                                        {errors.stateId && <div className="text-danger" style={{ fontSize: '12px' }}>{errors.stateId}</div>}
+                                    </div>
                                 </Form.Group>
                             </Col>
                             <Col md={6} className="mb-3">
@@ -254,9 +365,23 @@ const BasicInformation = ({ onNext }) => {
                                     <Form.Control
                                         type="date"
                                         value={formData.startDate}
-                                        onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                                        style={{ backgroundColor: '#F3F4F6', border: 'none', borderRadius: '8px', padding: '12px', fontSize: '14px' }}
+                                        onChange={(e) => {
+                                            setFormData({ ...formData, startDate: e.target.value });
+                                            if (errors.startDate) {
+                                                setErrors({ ...errors, startDate: '' });
+                                            }
+                                        }}
+                                        style={{
+                                            backgroundColor: '#F3F4F6',
+                                            border: errors.startDate ? '1px solid #dc3545' : 'none',
+                                            borderRadius: '8px',
+                                            padding: '12px',
+                                            fontSize: '14px'
+                                        }}
                                     />
+                                    <div style={{ minHeight: '16px', marginTop: '2px' }}>
+                                        {errors.startDate && <div className="text-danger" style={{ fontSize: '12px' }}>{errors.startDate}</div>}
+                                    </div>
                                 </Form.Group>
                             </Col>
                         </Row>
@@ -332,7 +457,7 @@ const BasicInformation = ({ onNext }) => {
                 <hr />
 
                 <div className="d-flex align-items-center justify-content-between mb-3">
-                    <h5 className="mb-0 fw-semibold">Club Selection</h5>
+                    <h5 className="mb-0 fw-semibold">Club Selection <span className="text-danger">*</span></h5>
                     <button className="d-flex align-items-center position-relative p-0 border-0" style={{ borderRadius: "20px 10px 10px 20px", background: "none", overflow: "hidden", cursor: "pointer", transition: "all 0.3s ease", flexShrink: 0 }} onClick={() => setClubs([...clubs, { name: '', location: '' }])}>
                         <div className="p-md-1 p-2 rounded-circle bg-light" style={{ position: "relative", left: "10px" }}>
                             <div className="d-flex justify-content-center align-items-center text-white fw-bold" style={{ backgroundColor: "#1F41BB", width: "36px", height: "36px", borderRadius: "50%", fontSize: "20px" }}>
@@ -342,17 +467,38 @@ const BasicInformation = ({ onNext }) => {
                         <div className="d-flex align-items-center fw-medium rounded-end-3" style={{ padding: "0 16px", height: "36px", fontSize: "14px", fontFamily: "Nunito, sans-serif", color: "#1F41BB", border: "1px solid #1F41BB" }}>Club</div>
                     </button>
                 </div>
+                {errors.clubs && <div className="text-danger" style={{ fontSize: '12px', marginBottom: '12px' }}>{errors.clubs}</div>}
 
                 {clubs.map((club, index) => (
                     <Row key={index} className="mb-3 align-items-end">
                         <Col md={6}>
                             <Form.Group>
-                                <Form.Label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>Club Name</Form.Label>
-                                <Form.Select value={club.name} onChange={(e) => handleClubChange(index, e.target.value)} style={{ backgroundColor: '#F3F4F6', border: 'none', borderRadius: '8px', padding: '12px', fontSize: '14px' }}>
+                                <Form.Label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>Club Name <span className="text-danger">*</span></Form.Label>
+                                <Form.Select
+                                    value={club.name}
+                                    onChange={(e) => {
+                                        handleClubChange(index, e.target.value);
+                                        if (errors.clubs) {
+                                            setErrors({ ...errors, clubs: '' });
+                                        }
+                                    }}
+                                    style={{
+                                        backgroundColor: '#F3F4F6',
+                                        border: errors.clubs ? '1px solid #dc3545' : 'none',
+                                        borderRadius: '8px',
+                                        padding: '12px',
+                                        fontSize: '14px'
+                                    }}
+                                >
                                     <option>Select Club</option>
-                                    {Array.isArray(clubsList) && clubsList.map(club => (
-                                        <option key={club._id} value={club._id}>{club.clubName}</option>
-                                    ))}
+                                    {Array.isArray(clubsList) && clubsList.map(clubItem => {
+                                        const isSelected = clubs.some((c, i) => i !== index && c.name === clubItem._id);
+                                        return (
+                                            <option key={clubItem._id} value={clubItem._id} disabled={isSelected}>
+                                                {clubItem.clubName} {isSelected ? '(Already Selected)' : ''}
+                                            </option>
+                                        );
+                                    })}
                                 </Form.Select>
                             </Form.Group>
                         </Col>
@@ -372,7 +518,7 @@ const BasicInformation = ({ onNext }) => {
                     <div className="d-flex align-items-center">
                         <span style={{ fontSize: '18px', marginRight: '8px' }}>🏆</span>
                         <h5 className="mb-0 fw-semibold">Sponsors</h5>
-                        <span style={{ backgroundColor: '#E0E7FF', color: '#1F41BB', borderRadius: '12px', padding: '2px 12px', fontSize: '12px', fontWeight: '600', marginLeft: '12px' }}>UPTO: 20</span>
+                        <span style={{ backgroundColor: '#E0E7FF', color: '#1F41BB', borderRadius: '12px', padding: '2px 12px', fontSize: '12px', fontWeight: '600', marginLeft: '12px' }}>Tier 1: Max 1 | Tier 2 & 3: Multiple</span>
                     </div>
                     <button className="d-flex align-items-center position-relative p-0 border-0" style={{ borderRadius: "20px 10px 10px 20px", background: "none", overflow: "hidden", cursor: "pointer", transition: "all 0.3s ease", flexShrink: 0 }} onClick={() => setSponsors([...sponsors, { title: '', name: '', category: '', image: null }])}>
                         <div className="p-md-1 p-2 rounded-circle bg-light" style={{ position: "relative", left: "10px" }}>
@@ -386,37 +532,264 @@ const BasicInformation = ({ onNext }) => {
 
                 {sponsors.map((sponsor, index) => (
                     <div key={index}>
-                        <Form.Label style={{ fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '12px' }}>
-                            {index === 0 ? 'Title Sponsor Name' : `Sponsor Name ${index}`}
-                        </Form.Label>
-                        <Row className="mb-3 align-items-end">
-                            <Col md={4}>
-                                <Form.Control type="text" placeholder="Enter Name" value={sponsor.name} onChange={(e) => handleSponsorChange(index, 'name', e.target.value)} style={{ backgroundColor: '#F3F4F6', border: 'none', borderRadius: '8px', padding: '12px', fontSize: '14px' }} />
+                        <Row
+                            className="mb-3"
+                            style={{
+                                display: "flex",
+                                alignItems: "flex-start",
+                            }}
+                        >
+                            {/* Sponsor Name */}
+                            <Col md={index === 0 ? 3 : 4}>
+                                <Form.Control
+                                    type="text"
+                                    placeholder="Enter Name"
+                                    value={sponsor.name}
+                                    onChange={(e) => {
+                                        handleSponsorChange(index, "name", e.target.value);
+
+                                        if (!e.target.value.trim()) {
+                                            const newErrors = { ...errors };
+                                            delete newErrors[`sponsor_${index}_category`];
+                                            delete newErrors[`sponsor_${index}_image`];
+                                            setErrors(newErrors);
+                                        }
+                                    }}
+                                    style={{
+                                        backgroundColor: "#F3F4F6",
+                                        border: "none",
+                                        borderRadius: "8px",
+                                        padding: "10px",
+                                        fontSize: "14px",
+                                        height: "44px",
+                                    }}
+                                />
+
+                                <div style={{ minHeight: "16px", marginTop: "4px" }}></div>
                             </Col>
-                            <Col md={4}>
-                                <Form.Select value={sponsor.category} onChange={(e) => handleSponsorChange(index, 'category', e.target.value)} style={{ backgroundColor: '#F3F4F6', border: 'none', borderRadius: '8px', padding: '12px', fontSize: '14px' }}>
+
+                            {/* Sponsor Category */}
+                            <Col md={index === 0 ? 3 : 4}>
+                                <Form.Select
+                                    value={sponsor.category}
+                                    onChange={(e) => {
+                                        handleSponsorChange(index, "category", e.target.value);
+
+                                        const newErrors = { ...errors };
+                                        delete newErrors[`sponsor_${index}_category`];
+                                        delete newErrors[`sponsor_${index}_tier1`];
+                                        setErrors(newErrors);
+                                    }}
+                                    style={{
+                                        backgroundColor: "#F3F4F6",
+                                        border:
+                                            errors[`sponsor_${index}_category`] ||
+                                                errors[`sponsor_${index}_tier1`]
+                                                ? "1px solid #dc3545"
+                                                : "none",
+                                        borderRadius: "8px",
+                                        padding: "10px",
+                                        fontSize: "14px",
+                                        height: "44px",
+                                    }}
+                                >
                                     <option value="">Select Category</option>
-                                    {Array.isArray(sponsorCategories) && sponsorCategories.map(cat => (
-                                        <option key={cat?._id} value={cat?._id}>{cat?.name}</option>
-                                    ))}
+                                    {Array.isArray(sponsorCategories) &&
+                                        sponsorCategories.map((cat) => (
+                                            <option key={cat?._id} value={cat?._id}>
+                                                {cat?.name}
+                                            </option>
+                                        ))}
                                 </Form.Select>
-                            </Col>
-                            <Col md={4} className='d-flex align-items-center gap-2'>
-                                <input type="file" id={`sponsorFile_${index}`} accept="image/png,image/jpeg" style={{ display: 'none' }} onChange={(e) => handleSponsorChange(index, 'image', e.target.files[0])} />
-                                <div className='w-100' style={{ position: 'relative' }}>
-                                    <div onClick={() => document.getElementById(`sponsorFile_${index}`).click()} style={{ border: '2px dashed #D1D5DB', borderRadius: '8px', padding: '12px', textAlign: 'center', backgroundColor: '#FAFAFA', cursor: 'pointer', minHeight: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                        <div style={{ fontSize: '12px', color: '#6B7280' }}>
-                                            <FiUpload size={16} color="#6B7280" style={{ marginBottom: '4px' }} />
-                                            <div>{sponsor.image ? (sponsor.image.name || 'Sponsor Logo') : 'Upload File or drag and drop'}</div>
-                                            <div style={{ fontSize: '10px', marginTop: '4px' }}>(PNG, JPEG up to 10 MB)</div>
+
+                                <div style={{ minHeight: "16px", marginTop: "4px" }}>
+                                    {errors[`sponsor_${index}_category`] && (
+                                        <div className="text-danger" style={{ fontSize: "12px" }}>
+                                            {errors[`sponsor_${index}_category`]}
                                         </div>
-                                    </div>
-                                    {sponsor.image && (
-                                        <FiEye size={24} color="#1F41BB" style={{ position: 'absolute', top: '8px', right: '8px', cursor: 'pointer', background: '#2b449c1e', borderRadius: '50%', padding: '4px' }} onClick={(e) => { e.stopPropagation(); window.open(sponsor.image instanceof File ? URL.createObjectURL(sponsor.image) : sponsor.image, '_blank'); }} />
+                                    )}
+
+                                    {errors[`sponsor_${index}_tier1`] && (
+                                        <div className="text-danger" style={{ fontSize: "12px" }}>
+                                            {errors[`sponsor_${index}_tier1`]}
+                                        </div>
                                     )}
                                 </div>
-                                {index > 0 && <RiDeleteBin6Fill className='text-danger' style={{ cursor: "pointer" }} size={20} onClick={() => setSponsors(sponsors.filter((_, i) => i !== index))} />}
                             </Col>
+
+                            {/* Sponsor Image */}
+                            <Col
+                                md={index === 0 ? 3 : 4}
+                                style={{
+                                    display: "flex",
+                                    alignItems: "flex-start",
+                                    gap: "8px",
+                                }}
+                            >
+                                <input
+                                    type="file"
+                                    id={`sponsorFile_${index}`}
+                                    accept="image/png,image/jpeg"
+                                    style={{ display: "none" }}
+                                    onChange={(e) => {
+                                        handleSponsorChange(index, "image", e.target.files[0]);
+
+                                        if (errors[`sponsor_${index}_image`]) {
+                                            const newErrors = { ...errors };
+                                            delete newErrors[`sponsor_${index}_image`];
+                                            setErrors(newErrors);
+                                        }
+                                    }}
+                                />
+
+                                <div style={{ width: "100%", position: "relative" }}>
+                                    <div
+                                        onClick={() =>
+                                            document.getElementById(`sponsorFile_${index}`).click()
+                                        }
+                                        style={{
+                                            border: errors[`sponsor_${index}_image`]
+                                                ? "2px dashed #dc3545"
+                                                : "2px dashed #D1D5DB",
+                                            borderRadius: "8px",
+                                            padding: "8px",
+                                            textAlign: "center",
+                                            backgroundColor: "#FAFAFA",
+                                            cursor: "pointer",
+                                            height: "44px",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            fontSize: "12px",
+                                            color: "#6B7280",
+                                        }}
+                                    >
+                                        {sponsor.image
+                                            ? sponsor.image.name || "Sponsor Logo"
+                                            : "Upload Logo"}
+                                    </div>
+
+                                    {/* Preview Icon */}
+                                    {sponsor.image && (
+                                        <FiEye
+                                            size={20}
+                                            color="#1F41BB"
+                                            style={{
+                                                position: "absolute",
+                                                top: "-8px",
+                                                right: "-8px",
+                                                cursor: "pointer",
+                                                background: "#e8edff",
+                                                borderRadius: "50%",
+                                                padding: "4px",
+                                            }}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                window.open(
+                                                    sponsor.image instanceof File
+                                                        ? URL.createObjectURL(sponsor.image)
+                                                        : sponsor.image,
+                                                    "_blank"
+                                                );
+                                            }}
+                                        />
+                                    )}
+
+                                    <div style={{ minHeight: "16px", marginTop: "4px" }}>
+                                        {errors[`sponsor_${index}_image`] && (
+                                            <div className="text-danger" style={{ fontSize: "12px" }}>
+                                                {errors[`sponsor_${index}_image`]}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Delete Icon */}
+                                <div
+                                    style={{
+                                        width: "30px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        marginTop: "8px",
+                                    }}
+                                >
+                                    {index > 0 && (
+                                        <RiDeleteBin6Fill
+                                            className="text-danger"
+                                            style={{ cursor: "pointer" }}
+                                            size={20}
+                                            onClick={() =>
+                                                setSponsors(sponsors.filter((_, i) => i !== index))
+                                            }
+                                        />
+                                    )}
+                                </div>
+                            </Col>
+                            
+                            {/* Title Sponsor Banner - Only for first sponsor */}
+                            {index === 0 && (
+                                <Col md={3}>
+                                    <input
+                                        type="file"
+                                        id="titleSponsorBanner"
+                                        accept="image/png,image/jpeg"
+                                        style={{ display: "none" }}
+                                        onChange={(e) => setTitleSponsorBanner(e.target.files[0])}
+                                    />
+                                    <div style={{ width: "100%", position: "relative" }}>
+                                        <div
+                                            onClick={() => document.getElementById('titleSponsorBanner').click()}
+                                            style={{
+                                                border: "2px dashed #D1D5DB",
+                                                borderRadius: "8px",
+                                                padding: "8px",
+                                                textAlign: "center",
+                                                backgroundColor: "#FAFAFA",
+                                                cursor: "pointer",
+                                                height: "44px",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                fontSize: "12px",
+                                                color: "#6B7280",
+                                            }}
+                                        >
+                                            {titleSponsorBanner
+                                                ? titleSponsorBanner.name || "Sponsor Banner"
+                                                : "Upload Banner"}
+                                        </div>
+
+                                        {/* Preview Icon */}
+                                        {titleSponsorBanner && (
+                                            <FiEye
+                                                size={20}
+                                                color="#1F41BB"
+                                                style={{
+                                                    position: "absolute",
+                                                    top: "-8px",
+                                                    right: "-8px",
+                                                    cursor: "pointer",
+                                                    background: "#e8edff",
+                                                    borderRadius: "50%",
+                                                    padding: "4px",
+                                                }}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    window.open(
+                                                        titleSponsorBanner instanceof File
+                                                            ? URL.createObjectURL(titleSponsorBanner)
+                                                            : titleSponsorBanner,
+                                                        "_blank"
+                                                    );
+                                                }}
+                                            />
+                                        )}
+
+                                        <div style={{ minHeight: "16px", marginTop: "4px" }}></div>
+                                    </div>
+                                </Col>
+                            )}
                         </Row>
                     </div>
                 ))}
