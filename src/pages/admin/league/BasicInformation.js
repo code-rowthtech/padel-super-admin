@@ -532,6 +532,9 @@ const BasicInformation = ({ onNext }) => {
 
                 {sponsors.map((sponsor, index) => (
                     <div key={index}>
+                        <Form.Label style={{ fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '12px' }}>
+                            {index === 0 ? 'Title Sponsor Name' : `Sponsor Name ${index}`}
+                        </Form.Label>
                         <Row
                             className="mb-3"
                             style={{
@@ -595,11 +598,21 @@ const BasicInformation = ({ onNext }) => {
                                 >
                                     <option value="">Select Category</option>
                                     {Array.isArray(sponsorCategories) &&
-                                        sponsorCategories.map((cat) => (
-                                            <option key={cat?._id} value={cat?._id}>
-                                                {cat?.name}
-                                            </option>
-                                        ))}
+                                        sponsorCategories.map((cat) => {
+                                            // For title sponsor (index 0), only show Tier 1
+                                            if (index === 0 && cat?.name !== 'Tier 1') {
+                                                return null;
+                                            }
+                                            // For other sponsors, show Tier 2 and Tier 3 only
+                                            if (index > 0 && cat?.name === 'Tier 1') {
+                                                return null;
+                                            }
+                                            return (
+                                                <option key={cat?._id} value={cat?._id}>
+                                                    {cat?.name}
+                                                </option>
+                                            );
+                                        })}
                                 </Form.Select>
 
                                 <div style={{ minHeight: "16px", marginTop: "4px" }}>
