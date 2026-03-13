@@ -54,6 +54,7 @@ const RuleSettings = ({ onBack }) => {
     ]);
 
     const [bounty, setBounty] = useState(0);
+    const [bountyCondition, setBountyCondition] = useState('');
     const [teamOfLeague, setTeamOfLeague] = useState(0);
     const [setsConfigEnabled, setSetsConfigEnabled] = useState(true);
     const [errors, setErrors] = useState({});
@@ -143,6 +144,7 @@ const RuleSettings = ({ onBack }) => {
                 setPrizeDistribution(currentLeague.prizeDistribution);
             }
             setBounty(currentLeague.bounty || 0);
+            setBountyCondition(currentLeague.bountyCondition || '');
             setTeamOfLeague(currentLeague.teamOfLeague || 0);
         } else if (!id) {
             // Ensure clean state for create mode
@@ -333,6 +335,7 @@ const RuleSettings = ({ onBack }) => {
 
         // Team Rewards
         updatePayload.bounty = bounty;
+        updatePayload.bountyCondition = bountyCondition;
         updatePayload.teamOfLeague = teamOfLeague;
 
         const result = await dispatch(updateLeague({ leagueData: updatePayload }));
@@ -582,13 +585,55 @@ const RuleSettings = ({ onBack }) => {
                     </h6>
 
                     <Row className="mb-3">
-                        <Col md={6} className="mb-3">
+                        <Col md={4} className="mb-3">
                             <Form.Group>
                                 <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '8px' }}>Bounty</Form.Label>
                                 <Form.Control type="text" placeholder="Enter Amount" value={bounty ? Number(bounty).toLocaleString('en-IN') : ''} onChange={(e) => setBounty(Number(e.target.value.replace(/,/g, '')) || 0)} style={{ borderRadius: '8px', padding: '10px', fontSize: '14px', backgroundColor: '#f8f9fa', border: '1px solid #e0e0e0', boxShadow: 'none' }} />
                             </Form.Group>
                         </Col>
-                        <Col md={6} className="mb-3">
+                        <Col md={4} className="mb-3">
+                            <Form.Group>
+                                <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '8px' }}>Bounty Criteria</Form.Label>
+                                <Form.Control 
+                                    type="text" 
+                                    placeholder="e.g., 6-0" 
+                                    value={bountyCondition} 
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        // Allow empty value
+                                        if (value === '') {
+                                            setBountyCondition('');
+                                            return;
+                                        }
+                                        // Allow single digit (will auto-add hyphen)
+                                        if (/^[0-9]$/.test(value)) {
+                                            setBountyCondition(value + '-');
+                                            return;
+                                        }
+                                        // Allow X- format
+                                        if (/^[0-9]-$/.test(value)) {
+                                            setBountyCondition(value);
+                                            return;
+                                        }
+                                        // Allow complete X-Y format
+                                        if (/^[0-9]-[0-9]$/.test(value)) {
+                                            setBountyCondition(value);
+                                            return;
+                                        }
+                                    }}
+                                    onKeyDown={(e) => {
+                                        // Allow backspace to work properly
+                                        if (e.key === 'Backspace' && bountyCondition.length === 2 && bountyCondition.endsWith('-')) {
+                                            setBountyCondition('');
+                                            e.preventDefault();
+                                        }
+                                    }}
+                                    maxLength={3}
+                                    style={{ borderRadius: '8px', padding: '10px', fontSize: '14px', backgroundColor: '#f8f9fa', border: '1px solid #e0e0e0', boxShadow: 'none' }} 
+                                />
+                            </Form.Group>
+                        </Col>
+                        <Col md={4} className="mb-3">
                             <Form.Group>
                                 <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '8px' }}>Team of the League</Form.Label>
                                 <Form.Control type="text" placeholder="Enter Amount" value={teamOfLeague ? Number(teamOfLeague).toLocaleString('en-IN') : ''} onChange={(e) => setTeamOfLeague(Number(e.target.value.replace(/,/g, '')) || 0)} style={{ borderRadius: '8px', padding: '10px', fontSize: '14px', backgroundColor: '#f8f9fa', border: '1px solid #e0e0e0', boxShadow: 'none' }} />
