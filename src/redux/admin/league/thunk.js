@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { CREATE_LEAGUE, GET_LEAGUES, GET_LEAGUES_IDS, UPDATE_LEAGUE, GET_STATES, GET_CLUB_WITH_STATE, GET_SPONSOR_CATEGORIES, GET_LEAGUE_BY_ID, DELETE_LEAGUE, GET_LEAGUE_CLUBS, GET_CLUB_TEAMS, EXPORT_LEAGUE_SCHEDULES_PDF } from "../../../helpers/api/apiEndpoint";
+import { CREATE_LEAGUE, GET_LEAGUES, GET_LEAGUES_IDS, UPDATE_LEAGUE, GET_STATES, GET_CLUB_WITH_STATE, GET_SPONSOR_CATEGORIES, GET_LEAGUE_BY_ID, DELETE_LEAGUE, GET_LEAGUE_CLUBS, GET_CLUB_TEAMS, EXPORT_LEAGUE_SCHEDULES_PDF, GET_LEAGUE_SUMMARY, GET_AVAILABLE_PLAYERS, SAVE_TEAMS, GET_TEAMS, GET_SCHEDULE_DATES } from "../../../helpers/api/apiEndpoint";
 import { ownerApi, ownerAxios, getOwnerFromSession } from "../../../helpers/api/apiCore";
 import { showSuccess, showError } from "../../../helpers/Toast";
 
@@ -258,7 +258,7 @@ export const saveSchedule = createAsyncThunk(
       const response = await ownerApi.post('/api/league-schedules/saveSchedule', scheduleData);
       if (response?.status === 200 || response?.status === 201) {
         if (response?.data?.success) {
-          showSuccess(response?.data?.message || "Schedule saved successfully");
+          // showSuccess(response?.data?.message || "Schedule saved successfully");
           return response.data;
         }
       }
@@ -275,14 +275,14 @@ export const getAllSchedules = createAsyncThunk(
   async (params = {}, { rejectWithValue }) => {
     try {
       const queryParams = new URLSearchParams();
-      
+
       // Add all non-empty parameters to query string
       Object.keys(params).forEach(key => {
         if (params[key]) {
           queryParams.append(key, params[key]);
         }
       });
-      
+
       const url = `/api/league-schedules/getAllSchedules${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
       const response = await ownerApi.get(url);
       if (response?.status === 200) {
@@ -301,21 +301,21 @@ export const exportLeagueSchedulesPDF = createAsyncThunk(
     try {
       const owner = getOwnerFromSession();
       const token = owner?.token;
-      
+
       const queryParams = new URLSearchParams();
       if (leagueId) queryParams.append('leagueId', leagueId);
       if (clubId) queryParams.append('clubId', clubId);
       if (venueClubId) queryParams.append('venueClubId', venueClubId);
       if (startDate) queryParams.append('startDate', startDate);
       if (endDate) queryParams.append('endDate', endDate);
-      
+
       const response = await ownerAxios.get(`${EXPORT_LEAGUE_SCHEDULES_PDF}?${queryParams.toString()}`, {
         responseType: 'blob',
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+
       if (response?.status === 200) {
         const blob = new Blob([response.data], { type: 'application/pdf' });
         const url = window.URL.createObjectURL(blob);
@@ -326,7 +326,7 @@ export const exportLeagueSchedulesPDF = createAsyncThunk(
         link.click();
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
-        
+
         showSuccess("PDF exported successfully");
         return { success: true };
       }
@@ -352,6 +352,97 @@ export const deleteLeague = createAsyncThunk(
     } catch (error) {
       showError(error?.message || "Failed to delete league");
       return rejectWithValue(error);
+    }
+  }
+);
+
+export const getLeagueSummary = createAsyncThunk(
+  "league/getLeagueSummary",
+  async (leagueId, { rejectWithValue }) => {
+    try {
+      const response = await ownerApi.get(`${GET_LEAGUE_SUMMARY}?leagueId=${leagueId}`);
+      if (response?.status === 200) {
+        return response.data?.data || null;
+      }
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+); export const getAvailablePlayers = createAsyncThunk(
+  "league/getAvailablePlayers",
+  async ({ leagueId, clubId, categoryType }, { rejectWithValue }) => {
+    try {
+      const res = await ownerApi.get(`${GET_AVAILABLE_PLAYERS}?leagueId=${leagueId}&clubId=${clubId}&categoryType=${categoryType}`);
+      if (res?.status === 200) {
+        return res?.data;
+      } else {
+        return rejectWithValue(res?.data?.message || "Failed to fetch available players");
+      }
+    } catch (error) {
+      return rejectWithValue(error?.response?.data?.message || "Failed to fetch available players");
+    }
+  }
+);
+export const getTeams = createAsyncThunk(
+  "league/getTeams",
+  async ({ leagueId, clubId, categoryType }, { rejectWithValue }) => {
+    try {
+      const res = await ownerApi.get(`${GET_TEAMS}?leagueId=${leagueId}&clubId=${clubId}&categoryType=${categoryType}`);
+      if (res?.status === 200) {
+        return { ...res?.data, categoryType };
+      } else {
+        return { data: null, categoryType };
+      }
+    } catch (error) {
+      if (error?.response?.status === 404) {
+        return { data: null, categoryType };
+      }
+      return rejectWithValue(error?.response?.data?.message || "Failed to fetch teams");
+    }
+  }
+);
+
+export const getScheduleDates = createAsyncThunk(
+  "league/getScheduleDates",
+  async ({ leagueId, roundType, categoryType }, { rejectWithValue }) => {
+    try {
+      const queryParams = new URLSearchParams();
+      if (leagueId) queryParams.append('leagueId', leagueId);
+      if (roundType) queryParams.append('roundType', roundType);
+      if (categoryType) queryParams.append('categoryType', categoryType);
+      
+      const response = await ownerApi.get(`${GET_SCHEDULE_DATES}?${queryParams.toString()}`);
+      if (response?.status === 200) {
+        return response.data?.data || [];
+      }
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      return rejectWithValue(error?.response?.data?.message || error?.message || "Failed to fetch schedule dates");
+    }
+  }
+);
+
+export const saveTeams = createAsyncThunk(
+  "league/saveTeams",
+  async (teamsData, { rejectWithValue }) => {
+    try {
+      const res = await ownerApi.post(SAVE_TEAMS, teamsData);
+      if (res?.status === 200 || res?.status === 201) {
+        showSuccess('Teams saved successfully');
+        return res?.data;
+      } else {
+        showError(res?.data?.message || "Failed to save teams");
+        return rejectWithValue(res?.data?.message || "Failed to save teams");
+      }
+    } catch (error) {
+      console.log({ error })
+      if (error === 'Cannot create teams: 1 player(s) need to register and login to the mobile app before they can be assigned to teams.') {
+        showError("The player has not installed the Swoot app yet. Please ask them to install and log in to the app.")
+      } else {
+        showError(error || error?.response?.data?.message || "Failed to save teams");
+      }
+      return rejectWithValue(error?.response?.data?.message || "Failed to save teams");
     }
   }
 );

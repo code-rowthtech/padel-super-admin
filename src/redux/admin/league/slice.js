@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createLeague, getLeagues, getLeaguesIDS, updateLeague, getStates, getClubsWithState, getSponsorCategories, getLeagueById, deleteLeague, getLeagueClubs, getClubTeams, getAllSchedules, saveSchedule, exportLeagueSchedulesPDF } from "./thunk";
+import { createLeague, getLeagues, getLeaguesIDS, updateLeague, getStates, getClubsWithState, getSponsorCategories, getLeagueById, deleteLeague, getLeagueClubs, getClubTeams, getAllSchedules, saveSchedule, exportLeagueSchedulesPDF, getLeagueSummary, getScheduleDates } from "./thunk";
 
 const initialState = {
   leagues: [],
@@ -18,6 +18,10 @@ const initialState = {
   schedules: [],
   loadingSchedules: false,
   loadingExport: false,
+  loadingSummary: false,
+  leagueSummary: null,
+  scheduleDates: [],
+  loadingScheduleDates: false,
   error: null,
 };
 
@@ -183,6 +187,30 @@ const leagueSlice = createSlice({
       })
       .addCase(exportLeagueSchedulesPDF.rejected, (state, action) => {
         state.loadingExport = false;
+        state.error = action.payload;
+      })
+      .addCase(getLeagueSummary.pending, (state) => {
+        state.loadingSummary = true;
+        state.error = null;
+      })
+      .addCase(getLeagueSummary.fulfilled, (state, action) => {
+        state.loadingSummary = false;
+        state.leagueSummary = action.payload;
+      })
+      .addCase(getLeagueSummary.rejected, (state, action) => {
+        state.loadingSummary = false;
+        state.error = action.payload;
+      })
+      .addCase(getScheduleDates.pending, (state) => {
+        state.loadingScheduleDates = true;
+        state.error = null;
+      })
+      .addCase(getScheduleDates.fulfilled, (state, action) => {
+        state.loadingScheduleDates = false;
+        state.scheduleDates = action.payload;
+      })
+      .addCase(getScheduleDates.rejected, (state, action) => {
+        state.loadingScheduleDates = false;
         state.error = action.payload;
       });
   },

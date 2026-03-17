@@ -9,7 +9,6 @@ const LeagueRegistration = () => {
   const dispatch = useDispatch();
   const { leagues, currentLeague, loadingLeague } = useSelector(state => state.league);
   const [selectedClub, setSelectedClub] = useState(0);
-  const [expandedCategory, setExpandedCategory] = useState({ "0": true });
   const [currentPage] = useState(1);
   const defaultLimit = 15;
   const [selectedLeagueId, setSelectedLeagueId] = useState("");
@@ -30,7 +29,6 @@ const LeagueRegistration = () => {
     if (selectedLeagueId) {
       dispatch(getLeagueById(selectedLeagueId));
       setSelectedClub(0);
-      setExpandedCategory({ "0": true });
     }
   }, [dispatch, selectedLeagueId]);
 
@@ -52,7 +50,7 @@ const LeagueRegistration = () => {
         registrations: (categoryRegistrations?.players || []).map(player => ({
           name: player.playerName,
           phone: player.phoneNumber,
-          email: player.email || 'N/A',
+          email: player.email || '-',
           status: player.paymentStatus === 'paid' ? 'Paid' : 'Pending'
         }))
       };
@@ -70,28 +68,6 @@ const LeagueRegistration = () => {
       categories
     };
   }).filter(club => club.name !== 'Unknown Club');
-
-  const toggleCategory = (catIdx) => {
-    setExpandedCategory(prev => prev[catIdx] ? {} : { [catIdx]: true });
-  };
-
-  const getStatusBadge = (status) => {
-    const config = status === "Paid"
-      ? { bg: "#dcfce7", text: "#16a34a" }
-      : { bg: "#fef3c7", text: "#d97706" };
-    return (
-      <span style={{
-        backgroundColor: config.bg,
-        color: config.text,
-        padding: "4px 12px",
-        borderRadius: "12px",
-        fontSize: "12px",
-        fontWeight: "500"
-      }}>
-        {status}
-      </span>
-    );
-  };
 
   if (!clubs.length && selectedLeagueId && !loadingLeague) {
     return (
@@ -188,7 +164,7 @@ const LeagueRegistration = () => {
           </div>
         </Col>
 
-        <Col md={9}>
+        <Col md={9} style={{ overflowY: 'auto', height: '88vh' }}>
           {loadingLeague ? (
             <div className="text-center py-5">
               <div className="spinner-border text-primary" role="status">
@@ -204,43 +180,37 @@ const LeagueRegistration = () => {
               <p>No clubs found for this league</p>
             </div>
           ) : (
-            <div className="d-flex flex-column gap-3">
+            <Row className="g-3">
               {clubs[selectedClub].categories.map((category, catIdx) => (
-                <Card key={catIdx} className="border rounded shadow-sm" style={{ overflow: "hidden" }}>
-                  <div
-                    onClick={() => toggleCategory(catIdx)}
-                    style={{
-                      backgroundColor: "#FBFCFE",
-                      padding: "14px 20px",
-                      cursor: "pointer",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      borderBottom: expandedCategory[catIdx] ? "1px solid #e5e7eb" : "none"
-                    }}
-                  >
-                    <div className="d-flex align-items-center gap-3">
-                      <small className="fw-semibold rounded-2 px-3" style={{ color: "#1F41BB", background: 'linear-gradient(270deg, rgba(0, 58, 255, 0.1) 0%, rgba(7, 40, 154, 0.1) 100%)' }}>
-                        Game Category: {category.name} ({category.registrations.length})
-                      </small>
+                <Col md={6} key={catIdx} className="d-flex align-items-stretch">
+                  <Card className="border rounded shadow-sm w-100 d-flex flex-column" style={{ overflow: "hidden" }}>
+                    <div
+                      style={{
+                        backgroundColor: "#FBFCFE",
+                        padding: "14px 20px",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        borderBottom: "1px solid #e5e7eb"
+                      }}
+                    >
+                      <div className="d-flex align-items-center gap-3">
+                        <small className="fw-semibold rounded-2 px-3" style={{ color: "#1F41BB", background: 'linear-gradient(270deg, rgba(0, 58, 255, 0.1) 0%, rgba(7, 40, 154, 0.1) 100%)' }}>
+                          Game Category: {category.name} ({category.registrations.length})
+                        </small>
+                      </div>
+                      <div className='d-flex align-items-center gap-3'>
+                        {clubs[selectedClub].levels[category.name] && (
+                          <span className="fw-semibold" style={{ fontSize: '1rem', color: '#1F41BB' }}>{clubs[selectedClub].levels[category.name]}</span>
+                        )}
+                      </div>
                     </div>
-                    <div className='d-flex align-items-center gap-3'>
-                      {clubs[selectedClub].levels[category.name] && (
-                        <span className="fw-semibold" style={{ fontSize: '1rem', color: '#1F41BB' }}>{clubs[selectedClub].levels[category.name]}</span>
-                      )}
-                      {expandedCategory[catIdx] ?
-                        <FaChevronUp size={14} style={{ color: "#6b7280" }} /> :
-                        <FaChevronDown size={14} style={{ color: "#6b7280" }} />
-                      }
-                    </div>
-                  </div>
-                  {expandedCategory[catIdx] && (
-                    <div className="p-3">
+                    <div className="p-3 flex-grow-1" style={{ overflowY: "auto", maxHeight: "400px" }}>
                       {category.registrations.length > 0 ? (
                         <div className="table-responsive">
                           <table className="table table-borderless mb-0">
                             <thead>
-                              <tr style={{ backgroundColor: "#f9fafb", borderBottom: "1px solid #e5e7eb" }}>
+                              <tr style={{ backgroundColor: "#f9fafb", borderBottom: "1px solid #e5e7eb", position: "sticky", top: 0, zIndex: 1 }}>
                                 <th style={{ fontSize: "13px", fontWeight: "600", padding: "12px" }}>Player Name</th>
                                 <th style={{ fontSize: "13px", fontWeight: "600", padding: "12px" }}>Phone Number</th>
                                 <th style={{ fontSize: "13px", fontWeight: "600", padding: "12px" }}>Email</th>
@@ -263,10 +233,10 @@ const LeagueRegistration = () => {
                         </div>
                       )}
                     </div>
-                  )}
-                </Card>
+                  </Card>
+                </Col>
               ))}
-            </div>
+            </Row>
           )}
         </Col>
       </Row>
