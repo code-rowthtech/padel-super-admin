@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { Container, Row, Col, Button, Form, Nav, Modal, Dropdown } from 'react-bootstrap'
-import { FiPlus, FiTrash2 } from 'react-icons/fi'
+import { FiMapPin, FiPlus, FiTrash2 } from 'react-icons/fi'
 import './LeagueScheduleMatch.css'
 import { BiExport } from "react-icons/bi";
 import { useDispatch, useSelector } from 'react-redux';
-import { getLeagues, getLeagueClubs, getClubTeams, saveSchedule, getLeagueById, getLeagueSummary, exportLeagueSchedulesPDF, getAvailablePlayers, getScheduleDates } from '../../../redux/admin/league/thunk';
+import { getLeagues, getLeagueClubs, getClubTeams, saveSchedule, getLeagueById, getLeagueSummary, exportLeagueSchedulesPDF, getAvailablePlayers, getScheduleDates, getAllSchedules } from '../../../redux/admin/league/thunk';
 import { showError, showSuccess } from '../../../helpers/Toast';
 import { FaAngleRight } from 'react-icons/fa'
 import ScheduleModal from './components/ScheduleModal';
@@ -12,7 +12,7 @@ import ConfirmationModal from './components/ConfirmationModal';
 
 const LeagueSchedule = () => {
   const dispatch = useDispatch();
-  const { leagues, leagueClubs, loadingClubs, loadingSchedules, currentLeague, leagueSummary, loadingSummary, loadingExport, scheduleDates, loadingScheduleDates } = useSelector(state => state.league);
+  const { leagues, leagueClubs, loadingClubs, loadingSchedules, currentLeague, leagueSummary, loadingSummary, loadingExport, scheduleDates, loadingScheduleDates, schedules } = useSelector(state => state.league);
   const [activeTab, setActiveTab] = useState('')
   const [selectedRound, setSelectedRound] = useState('regularRound')
   const [showModal, setShowModal] = useState(false)
@@ -46,6 +46,7 @@ const LeagueSchedule = () => {
     venue: '',
     isHomeVenue: true
   })
+  const [selectedScheduleDate, setSelectedScheduleDate] = useState('') // For sidebar date selection
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -123,10 +124,116 @@ const LeagueSchedule = () => {
     }
   }, [availableCategories]);
 
-  // Get current matches - if 'all' tab, combine all categories
+  // Fetch existing schedules when league, round, or selected date changes
+  useEffect(() => {
+    if (selectedLeagueId && selectedRound) {
+      const roundTypeMap = {
+        'regularRound': 'regular',
+        'quarterfinal': 'quarterfinal', 
+        'semifinal': 'semifinal',
+        'final': 'final'
+      };
+      
+      const params = {
+        leagueId: selectedLeagueId,
+        roundType: roundTypeMap[selectedRound]
+      };
+      
+      // If a specific date is selected from sidebar, use it as both start and end date
+      if (selectedScheduleDate) {
+        params.startDate = selectedScheduleDate;
+        params.endDate = selectedScheduleDate;
+      }
+      
+      dispatch(getAllSchedules(params));
+    }
+  }, [dispatch, selectedLeagueId, selectedRound, selectedScheduleDate]);
+
+  // Transform API schedules data to match table structure
+  const transformSchedulesToMatches = (schedulesData) => {
+    const transformedMatches = {};
+    
+    if (!schedulesData || schedulesData.length === 0) return transformedMatches;
+    
+    schedulesData.forEach(dateGroup => {
+      dateGroup.schedules.forEach(schedule => {
+        const categoryId = availableCategories.find(cat => cat.categoryType === schedule.categoryType)?._id;
+        if (!categoryId) return;
+        
+        if (!transformedMatches[categoryId]) {
+          transformedMatches[categoryId] = [];
+        }
+        
+        schedule.matches.forEach((match, index) => {
+          const date = new Date(schedule.date);
+          const formattedDate = `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}/${date.getFullYear().toString().slice(-2)}`;
+          
+          // Convert 12-hour time to 24-hour for input
+          const convertTo24Hour = (time12h) => {
+            if (!time12h) return '09:00';
+            const [time, modifier] = time12h.split(' ');
+            let [hours, minutes] = time.split(':');
+            if (hours === '12') hours = '00';
+            if (modifier === 'PM') hours = parseInt(hours, 10) + 12;
+            return `${hours.toString().padStart(2, '0')}:${minutes}`;
+          };
+          
+          const transformedMatch = {
+            id: `existing_${schedule._id}_${index}`,
+            date: formattedDate,
+            venue: schedule.venue,
+            venueClubId: schedule.venueClubId?._id,
+            homeVenue: match.teamA?.clubType || (schedule.roundType === 'final' ? 'Winner 1' : null),
+            awayVenue: match.teamB?.clubType || (schedule.roundType === 'final' ? 'Winner 2' : null),
+            time: convertTo24Hour(match.startTime),
+            duration: match.duration || 60,
+            endTime: convertTo24Hour(match.endTime),
+            isExisting: true, // Flag to identify existing matches
+            homeTeam: match.teamA || (schedule.roundType === 'final' ? { teamName: 'Winner 1' } : null),
+            awayTeam: match.teamB || (schedule.roundType === 'final' ? { teamName: 'Winner 2' } : null),
+            matchNo: match.matchNo,
+            status: match.status,
+            roundType: schedule.roundType
+          };
+          
+          transformedMatches[categoryId].push(transformedMatch);
+        });
+      });
+    });
+    
+    return transformedMatches;
+  };
+  
+  // Merge existing schedules with new matches
+  const mergedMatches = React.useMemo(() => {
+    const existingMatches = transformSchedulesToMatches(schedules);
+    const merged = { ...matchesByCategory };
+    
+    // Add existing matches to each category
+    Object.keys(existingMatches).forEach(categoryId => {
+      if (!merged[categoryId]) {
+        merged[categoryId] = [];
+      }
+      // Only add existing matches if there are no new matches being created
+      const hasNewMatches = merged[categoryId].some(match => !match.isExisting);
+      if (!hasNewMatches) {
+        merged[categoryId] = existingMatches[categoryId];
+      }
+    });
+    
+    return merged;
+  }, [schedules, matchesByCategory, availableCategories]);
+  
+  // Check if we're in "view mode" (showing existing data without creating new)
+  const isViewMode = !currentScheduleInfo.date && schedules && schedules.length > 0;
+  
+  // Use merged matches instead of matchesByCategory for display
   const currentMatches = activeTab === 'all'
-    ? Object.keys(matchesByCategory).filter(key => key !== 'all').flatMap(key => matchesByCategory[key] || [])
-    : matchesByCategory[activeTab] || [];
+    ? Object.keys(mergedMatches).filter(key => key !== 'all').flatMap(key => mergedMatches[key] || [])
+    : mergedMatches[activeTab] || [];
+  
+  // Check if there are any new (unsaved) matches
+  const hasUnsavedMatches = currentMatches.some(match => !match.isExisting);
 
   const fetchPlayersForClub = useCallback(async (clubName, categoryType) => {
     const club = clubs.find(c => c.name === clubName);
@@ -204,29 +311,152 @@ const LeagueSchedule = () => {
     return loading;
   };
 
-  const CustomClubDropdown = ({ matchId, venue, onClubSelect, availableClubs }) => {
-    const handleClubSelect = (clubName) => {
-      onClubSelect(clubName);
+  const CustomClubSelector = ({ matchId, venue, currentClub, onClubSelect, availableClubs }) => {
+    const dropdownId = `club_${matchId}_${venue}`;
+    const isOpen = openDropdown === dropdownId;
+
+    const handleDropdownClick = (e) => {
+      e.stopPropagation();
+      setOpenDropdown(isOpen ? null : dropdownId);
     };
 
-    return (
-      <Dropdown>
-        <Dropdown.Toggle as="div" style={{ cursor: 'pointer' }}>
-          <FaAngleRight size={17} color='rgba(31, 65, 187, 1)' />
-        </Dropdown.Toggle>
-        <Dropdown.Menu>
-          {availableClubs.map((club, idx) => (
-            <Dropdown.Item key={idx} onClick={() => handleClubSelect(club.name)}>
-              <div className='d-flex align-items-center gap-2'>
-                <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold', color: 'white' }}>
-                  {club.logo}
-                </div>
-                {club.name}
+    const handleClubClick = (e, clubName) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onClubSelect(clubName);
+      setOpenDropdown(null);
+    };
+
+    if (currentClub) {
+      // Show selected club with change option
+      const club = availableClubs.find(c => c.name === currentClub);
+      return (
+        <div style={{ position: 'relative' }}>
+          <div 
+            onClick={handleDropdownClick}
+            style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+          >
+            <div style={{ 
+              width: '34px', 
+              height: '34px', 
+              borderRadius: '50%', 
+              border: venue === 'home' ? '2px solid rgba(31, 65, 187, 1)' : 'none',
+              background: venue === 'home' ? 'transparent' : '#1a1a1a',
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              fontSize: '11px', 
+              fontWeight: 'bold', 
+              color: venue === 'home' ? 'rgba(31, 65, 187, 1)' : 'white'
+            }}>
+              {club?.logo || (venue === 'home' ? 'H' : 'A')}
+            </div>
+            <div>
+              <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937' }}>
+                {currentClub}
               </div>
-            </Dropdown.Item>
-          ))}
-        </Dropdown.Menu>
-      </Dropdown>
+              {/* <div style={{ fontSize: '10px', color: '#666' }}>Click to change</div> */}
+            </div>
+            {/* <FaAngleRight size={17} color='rgba(31, 65, 187, 1)' /> */}
+          </div>
+          {isOpen && (
+            <div style={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              zIndex: 1000,
+              backgroundColor: 'white',
+              border: '1px solid #ddd',
+              borderRadius: '6px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              minWidth: '200px',
+              maxHeight: '200px',
+              overflowY: 'auto'
+            }}>
+              {availableClubs.map((club, idx) => (
+                <div
+                  key={idx}
+                  onMouseDown={(e) => handleClubClick(e, club.name)}
+                  style={{
+                    padding: '8px 12px',
+                    cursor: 'pointer',
+                    borderBottom: '1px solid #f0f0f0',
+                    backgroundColor: club.name === currentClub ? '#e3f2fd' : 'white'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = club.name === currentClub ? '#e3f2fd' : '#f8f9fa'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = club.name === currentClub ? '#e3f2fd' : 'white'}
+                >
+                  <div className='d-flex align-items-center gap-2'>
+                    <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold', color: 'white' }}>
+                      {club.logo}
+                    </div>
+                    {club.name}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // Show add club option when no club selected
+    return (
+      <div style={{ position: 'relative' }}>
+        <div onClick={handleDropdownClick} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ 
+            width: '34px', 
+            height: '34px', 
+            borderRadius: '50%', 
+            border: '2px solid rgba(31, 65, 187, 1)', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            fontSize: '16px', 
+            color: 'rgba(31, 65, 187, 1)', 
+            fontWeight: 'bold' 
+          }}>+</div>
+          <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937' }}>Add Club</div>
+          <FaAngleRight size={17} color='rgba(31, 65, 187, 1)' />
+        </div>
+        {isOpen && (
+          <div style={{
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            zIndex: 1000,
+            backgroundColor: 'white',
+            border: '1px solid #ddd',
+            borderRadius: '6px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            minWidth: '200px',
+            maxHeight: '200px',
+            overflowY: 'auto'
+          }}>
+            {availableClubs.map((club, idx) => (
+              <div
+                key={idx}
+                onMouseDown={(e) => handleClubClick(e, club.name)}
+                style={{
+                  padding: '8px 12px',
+                  cursor: 'pointer',
+                  borderBottom: '1px solid #f0f0f0',
+                  backgroundColor: 'white'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+              >
+                <div className='d-flex align-items-center gap-2'>
+                  <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold', color: 'white' }}>
+                    {club.logo}
+                  </div>
+                  {club.name}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     );
   };
 
@@ -433,7 +663,7 @@ const LeagueSchedule = () => {
       const formatted = month + '/' + day + '/' + year.slice(-2);
 
       // Check if there are unsaved matches and date is different
-      if (currentScheduleInfo.date && currentScheduleInfo.date !== formatted && currentMatches.length > 0) {
+      if (currentScheduleInfo.date && currentScheduleInfo.date !== formatted && hasUnsavedMatches) {
         setPendingAction({ type: 'dateChange', value: formatted });
         setShowConfirmationModal(true);
         return;
@@ -442,6 +672,16 @@ const LeagueSchedule = () => {
       setFormDate(formatted);
     }
   }
+
+  const handleVenueChange = (newVenue) => {
+    // Check if there are unsaved matches and venue is different
+    if (currentScheduleInfo.venue && currentScheduleInfo.venue !== newVenue && hasUnsavedMatches) {
+      setPendingAction({ type: 'venueChange', value: newVenue });
+      setShowConfirmationModal(true);
+      return;
+    }
+    setFormVenue(newVenue);
+  };
 
   const convertTo12Hour = (time24) => {
     const [hours, minutes] = time24.split(':').map(Number);
@@ -558,7 +798,7 @@ const LeagueSchedule = () => {
         // Store current schedule info
         setCurrentScheduleInfo({
           date: formDate,
-          venue: '',
+          venue: formVenue,
           isHomeVenue: isHomeVenue
         });
         setCurrentScheduleDate(formDate);
@@ -782,6 +1022,36 @@ const LeagueSchedule = () => {
       if (activeTab === 'all') {
         showSuccess('All categories saved successfully');
       }
+      
+      // Refresh schedule dates after successful save
+      if (selectedLeagueId && availableCategories.length > 0) {
+        if (activeTab === 'all') {
+          // For 'all' tab, refresh for all categories
+          availableCategories.forEach(category => {
+            dispatch(getScheduleDates({ 
+              leagueId: selectedLeagueId, 
+              roundType: 'final',
+              categoryType: category.categoryType
+            }));
+          });
+        } else {
+          // For specific category tab
+          const activeCategory = availableCategories.find(cat => cat._id === activeTab);
+          if (activeCategory) {
+            dispatch(getScheduleDates({ 
+              leagueId: selectedLeagueId, 
+              roundType: 'final',
+              categoryType: activeCategory.categoryType
+            }));
+          }
+        }
+      }
+      
+      // Refresh league summary to update "By Date" section
+      if (selectedLeagueId) {
+        dispatch(getLeagueSummary(selectedLeagueId));
+      }
+      
       // Clear current schedule info after successful save
       setCurrentScheduleInfo({ date: '', venue: '', isHomeVenue: true });
       setFormDate('');
@@ -828,8 +1098,8 @@ const LeagueSchedule = () => {
   }
 
   const handleTabChange = (newTab) => {
-    // Check if there are unsaved matches in current tab
-    if (activeTab !== 'all' && currentMatches.length > 0 && activeTab !== newTab) {
+    // Only show confirmation if there are unsaved matches
+    if (activeTab !== 'all' && hasUnsavedMatches && activeTab !== newTab) {
       setPendingAction({ type: 'tabChange', value: newTab });
       setShowConfirmationModal(true);
       return;
@@ -838,12 +1108,15 @@ const LeagueSchedule = () => {
   };
 
   const handleRoundChange = (newRound) => {
-    if (selectedRound !== newRound && currentMatches.length > 0) {
+    // Only show confirmation if there are unsaved matches
+    if (selectedRound !== newRound && hasUnsavedMatches) {
       setPendingAction({ type: 'roundChange', value: newRound });
       setShowConfirmationModal(true);
       return;
     }
     setSelectedRound(newRound);
+    // Clear selected date when changing rounds
+    setSelectedScheduleDate('');
     // Only finals collapse to the "All" tab — QF and SF keep per-category tabs
     if (newRound === 'final') {
       setActiveTab('all');
@@ -865,7 +1138,36 @@ const LeagueSchedule = () => {
           ...prev,
           [activeTab]: {}
         }));
+        setClubTeamsData(prev => ({
+          ...prev,
+          [activeTab]: {}
+        }));
+        setLoadingTeamsState(prev => ({
+          ...prev,
+          [activeTab]: {}
+        }));
         setCurrentScheduleInfo({ date: pendingAction.value, venue: '', isHomeVenue });
+      } else if (pendingAction.type === 'venueChange') {
+        setFormVenue(pendingAction.value);
+        // Clear matches when venue changes
+        setMatchesByCategory(prev => ({
+          ...prev,
+          [activeTab]: []
+        }));
+        setSelectedPlayers(prev => ({
+          ...prev,
+          [activeTab]: {}
+        }));
+        setClubTeamsData(prev => ({
+          ...prev,
+          [activeTab]: {}
+        }));
+        setLoadingTeamsState(prev => ({
+          ...prev,
+          [activeTab]: {}
+        }));
+        // Reset current schedule info completely for venue change
+        setCurrentScheduleInfo({ date: '', venue: '', isHomeVenue: true });
       } else if (pendingAction.type === 'tabChange') {
         setActiveTab(pendingAction.value);
       } else if (pendingAction.type === 'roundChange') {
@@ -874,6 +1176,7 @@ const LeagueSchedule = () => {
         setMatchesByCategory({ all: [] });
         setSelectedPlayers({});
         setClubTeamsData({});
+        setLoadingTeamsState({});
         // Only finals collapse to the "All" tab
         if (pendingAction.value === 'final') {
           setActiveTab('all');
@@ -888,7 +1191,78 @@ const LeagueSchedule = () => {
 
   const handleSaveAndProceed = async () => {
     await handleSaveSchedule();
-    handleConfirmAction();
+    
+    // After saving, perform the pending action with complete cleanup
+    if (pendingAction) {
+      if (pendingAction.type === 'venueChange') {
+        // Complete reset for venue change after saving
+        setFormVenue(pendingAction.value);
+        setMatchesByCategory(prev => ({
+          ...prev,
+          [activeTab]: []
+        }));
+        setSelectedPlayers(prev => ({
+          ...prev,
+          [activeTab]: {}
+        }));
+        setClubTeamsData(prev => ({
+          ...prev,
+          [activeTab]: {}
+        }));
+        setLoadingTeamsState(prev => ({
+          ...prev,
+          [activeTab]: {}
+        }));
+        // Reset current schedule info completely
+        setCurrentScheduleInfo({ date: '', venue: '', isHomeVenue: true });
+      } else {
+        // For other types, use the regular confirm action
+        handleConfirmAction();
+        return; // Exit early to avoid duplicate cleanup
+      }
+    }
+    
+    setShowConfirmationModal(false);
+    setPendingAction(null);
+  };
+
+  // Handle date selection from sidebar
+  const handleDateSelection = (dateString) => {
+    // If the same date is clicked again, deselect it
+    if (selectedScheduleDate === dateString) {
+      setSelectedScheduleDate('');
+    } else {
+      setSelectedScheduleDate(dateString);
+    }
+    // Clear current schedule info when selecting/deselecting from sidebar
+    setCurrentScheduleInfo({ date: '', venue: '', isHomeVenue: true });
+  };
+
+  const handleAddMoreRows = () => {
+    if (!currentScheduleInfo.venue || !currentScheduleInfo.date) return;
+    
+    const categoryId = activeTab;
+    const currentMatches = matchesByCategory[categoryId] || [];
+    const newMatchId = currentMatches.length > 0 ? Math.max(...currentMatches.map(m => m.id)) + 1 : 1;
+    const startTime = '09:00';
+    const duration = 60;
+    
+    const newMatch = {
+      id: newMatchId,
+      date: currentScheduleInfo.date,
+      venue: currentScheduleInfo.venue,
+      homeVenue: null,
+      awayVenue: null,
+      time: startTime,
+      duration: duration,
+      endTime: calculateEndTime(startTime, duration),
+      isAwayMatch: true
+    };
+    
+    setMatchesByCategory(prev => ({
+      ...prev,
+      [categoryId]: [...currentMatches, newMatch]
+    }));
   };
 
   const handleOpenModal = () => {
@@ -1000,18 +1374,54 @@ const LeagueSchedule = () => {
             </Nav>
           )}
 
-          {currentMatches.length > 0 ? (
+          {loadingSchedules ? (
+            <div className="d-flex justify-content-center align-items-center" style={{ height: '400px' }}>
+              <div className="text-center">
+                <div className="spinner-border text-primary mb-3" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+                <p className="text-muted">Loading schedules...</p>
+              </div>
+            </div>
+          ) : currentMatches.length > 0 ? (
             <>
               <div className="home-team-header my-3 d-flex justify-content-between align-items-center">
                 <span style={{ fontWeight: '600', color: "rgba(37, 37, 37, 0.8)" }}>Match Schedule</span>
-                {currentScheduleInfo.date && (
-                  <div className="d-flex align-items-center gap-2">
-                    <span style={{ fontSize: '14px', color: '#666' }}>Schedule Date:</span>
-                    <span style={{ fontSize: '14px', fontWeight: '600', color: '#1F41BB' }}>
-                      {currentScheduleInfo.date}
-                    </span>
-                  </div>
-                )}
+                <div className="d-flex align-items-center gap-3">
+                  {currentScheduleInfo.date && (
+                    <div className="d-flex align-items-center gap-2">
+                      <span style={{ fontSize: '14px', color: '#666' }}>Schedule Date:</span>
+                      <span style={{ fontSize: '14px', fontWeight: '600', color: '#1F41BB' }}>
+                        {currentScheduleInfo.date}
+                      </span>
+                    </div>
+                  )}
+                  {currentScheduleInfo.venue && (
+                    <div className="d-flex align-items-center gap-2">
+                      <span style={{ fontSize: '14px', color: '#666' }}>Venue:</span>
+                      <span style={{ fontSize: '14px', fontWeight: '600', color: '#1F41BB' }}>
+                        {currentScheduleInfo.venue}
+                      </span>
+                    </div>
+                  )}
+                  {selectedRound !== 'final' && currentMatches.length > 0 && currentScheduleInfo.venue && (
+                    <button
+                      onClick={handleAddMoreRows}
+                      className="btn btn-sm"
+                      style={{
+                        background: '#1F41BB',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        padding: '6px 12px',
+                        fontSize: '12px',
+                        fontWeight: '600'
+                      }}
+                    >
+                      <FiPlus size={14} /> Add More
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div style={{ overflowX: 'auto', height: '65vh', borderRadius: '8px', padding: '0', position: 'relative' }}>
@@ -1035,7 +1445,7 @@ const LeagueSchedule = () => {
                       availableCategories
                         .filter(cat => activeTab === 'all' || activeTab === cat._id)
                         .map((category) => {
-                          const categoryMatches = matchesByCategory[category._id] || [];
+                          const categoryMatches = mergedMatches[category._id] || [];
                           if (categoryMatches.length === 0 && activeTab !== category._id) return null;
 
                           return (
@@ -1047,10 +1457,10 @@ const LeagueSchedule = () => {
                               </tr>
                               {categoryMatches.length > 0 ? (
                                 categoryMatches.map((match, mIndex) => {
-                                  const homeClub = clubs.find(club => club.name === match.homeVenue);
-                                  const awayClub = clubs.find(club => club.name === match.awayVenue);
-                                  const selectedHomePlayers = getSelectedPlayers(match.id, 'home');
-                                  const selectedAwayPlayers = getSelectedPlayers(match.id, 'away');
+                                  const homeClub = clubs.find(club => club.name === (match.homeVenue === 'Winner 1' ? null : match.homeVenue));
+                                  const awayClub = clubs.find(club => club.name === (match.awayVenue === 'Winner 2' ? null : match.awayVenue));
+                                  const selectedHomePlayers = match.isExisting ? [] : getSelectedPlayers(match.id, 'home');
+                                  const selectedAwayPlayers = match.isExisting ? [] : getSelectedPlayers(match.id, 'away');
                                   return (
                                     <tr className='text-center' key={match.id} style={{ backgroundColor: mIndex % 2 === 1 ? 'rgba(242, 242, 242, 0.7)' : 'white' }}>
                                       <td style={{ padding: '14px 12px', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', borderBottom: '1px solid #ddd' }}>{String(mIndex + 1).padStart(2, '0')}</td>
@@ -1058,22 +1468,25 @@ const LeagueSchedule = () => {
                                         {/* Home Venue Logic */}
                                         {match.homeVenue ? (
                                           <div className='d-flex justify-content-center align-items-center gap-2'>
-                                            {selectedRound !== 'final' && (
-                                              <div style={{ width: '34px', height: '34px', borderRadius: '50%', border: '2px solid rgba(31, 65, 187, 1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold', color: 'rgba(31, 65, 187, 1)' }}>
-                                                {homeClub?.logo || 'H'}
-                                              </div>
-                                            )}
                                             <div>
                                               <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937' }}>
-                                                {selectedHomePlayers.length > 0 ? `${selectedHomePlayers.length}/2 Players` : match.homeVenue}
+                                                {match.isExisting && (match.roundType === 'final' || selectedRound === 'final') ? 
+                                                  (match.homeTeam?.teamName || match.homeVenue) : 
+                                                  (selectedHomePlayers.length > 0 ? `${selectedHomePlayers.length}/2 Players` : match.homeVenue)
+                                                }
                                               </div>
-                                              {selectedRound !== 'final' && selectedHomePlayers.length > 0 && (
+                                              {match.isExisting && match.homeTeam?.players && match.homeTeam.players.length > 0 && (
+                                                <div style={{ fontSize: '10px', color: '#666' }}>
+                                                  {match.homeTeam.players.map(p => p.playerName).join(', ')}
+                                                </div>
+                                              )}
+                                              {!match.isExisting && selectedRound !== 'final' && selectedHomePlayers.length > 0 && (
                                                 <div style={{ fontSize: '10px', color: '#666' }}>
                                                   {selectedHomePlayers.map(p => p.playerName).join(', ')}
                                                 </div>
                                               )}
                                             </div>
-                                            {selectedRound !== 'final' && (
+                                            {!match.isExisting && selectedRound !== 'final' && (
                                               <CustomPlayerDropdown
                                                 matchId={match.id}
                                                 venue="home"
@@ -1085,9 +1498,10 @@ const LeagueSchedule = () => {
                                             )}
                                           </div>
                                         ) : (
-                                          <CustomClubDropdown
+                                          <CustomClubSelector
                                             matchId={match.id || match._id}
                                             venue="home"
+                                            currentClub={null}
                                             onClubSelect={(clubName) => handleHomeVenueChange(match.id, clubName)}
                                             availableClubs={clubs}
                                           />
@@ -1100,22 +1514,25 @@ const LeagueSchedule = () => {
                                         {/* Away Venue Logic */}
                                         {match.awayVenue ? (
                                           <div className='d-flex justify-content-center align-items-center gap-2'>
-                                            {selectedRound !== 'final' && (
-                                              <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold', color: 'white' }}>
-                                                {awayClub?.logo || 'A'}
-                                              </div>
-                                            )}
                                             <div>
                                               <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937' }}>
-                                                {selectedAwayPlayers.length > 0 ? `${selectedAwayPlayers.length}/2 Players` : match.awayVenue}
+                                                {match.isExisting && (match.roundType === 'final' || selectedRound === 'final') ? 
+                                                  (match.awayTeam?.teamName || match.awayVenue) : 
+                                                  (selectedAwayPlayers.length > 0 ? `${selectedAwayPlayers.length}/2 Players` : match.awayVenue)
+                                                }
                                               </div>
-                                              {selectedRound !== 'final' && selectedAwayPlayers.length > 0 && (
+                                              {match.isExisting && match.awayTeam?.players && match.awayTeam.players.length > 0 && (
+                                                <div style={{ fontSize: '10px', color: '#666' }}>
+                                                  {match.awayTeam.players.map(p => p.playerName).join(', ')}
+                                                </div>
+                                              )}
+                                              {!match.isExisting && selectedRound !== 'final' && selectedAwayPlayers.length > 0 && (
                                                 <div style={{ fontSize: '10px', color: '#666' }}>
                                                   {selectedAwayPlayers.map(p => p.playerName).join(', ')}
                                                 </div>
                                               )}
                                             </div>
-                                            {selectedRound !== 'final' && (
+                                            {!match.isExisting && selectedRound !== 'final' && (
                                               <CustomPlayerDropdown
                                                 matchId={match.id}
                                                 venue="away"
@@ -1127,9 +1544,10 @@ const LeagueSchedule = () => {
                                             )}
                                           </div>
                                         ) : match.homeVenue ? (
-                                          <CustomClubDropdown
+                                          <CustomClubSelector
                                             matchId={match.id}
                                             venue="away"
+                                            currentClub={null}
                                             onClubSelect={(clubName) => handleAwayVenueChange(match.id, clubName)}
                                             availableClubs={getAvailableAwayClubs(match.homeVenue)}
                                           />
@@ -1141,39 +1559,53 @@ const LeagueSchedule = () => {
                                         )}
                                       </td>
                                       <td style={{ padding: '14px 12px', fontSize: '13px', color: '#666', borderBottom: '1px solid #ddd' }}>
-                                        <input
-                                          type="time"
-                                          value={match.time}
-                                          onChange={(e) => handleTimeChange(match.id, e.target.value)}
-                                          className="form-control form-control-sm"
-                                          style={{ width: '100px', margin: '0 auto' }}
-                                        />
+                                        {match.isExisting ? (
+                                          <span style={{ fontSize: '13px', color: '#666' }}>
+                                            {convertTo12Hour(match.time)}
+                                          </span>
+                                        ) : (
+                                          <input
+                                            type="time"
+                                            value={match.time}
+                                            onChange={(e) => handleTimeChange(match.id, e.target.value)}
+                                            className="form-control form-control-sm"
+                                            style={{ width: '100px', margin: '0 auto' }}
+                                          />
+                                        )}
                                       </td>
                                       <td style={{ padding: '14px 12px', fontSize: '13px', color: '#666', borderBottom: '1px solid #ddd' }}>
-                                        <select
-                                          value={match.duration || 60}
-                                          onChange={(e) => handleDurationChange(match.id, e.target.value)}
-                                          className="form-select form-select-sm"
-                                          style={{ width: '80px', margin: '0 auto' }}
-                                        >
-                                          <option value={30}>30m</option>
-                                          <option value={60}>1h</option>
-                                          <option value={90}>1.5h</option>
-                                          <option value={120}>2h</option>
-                                        </select>
+                                        {match.isExisting ? (
+                                          <span style={{ fontSize: '13px', color: '#666' }}>{match.duration}m</span>
+                                        ) : (
+                                          <select
+                                            value={match.duration || 60}
+                                            onChange={(e) => handleDurationChange(match.id, e.target.value)}
+                                            className="form-select form-select-sm"
+                                            style={{ width: '80px', margin: '0 auto' }}
+                                          >
+                                            <option value={30}>30m</option>
+                                            <option value={60}>1h</option>
+                                            <option value={90}>1.5h</option>
+                                            <option value={120}>2h</option>
+                                          </select>
+                                        )}
                                       </td>
                                       <td style={{ padding: '14px 12px', fontSize: '13px', color: '#666', borderBottom: '1px solid #ddd', textAlign: 'center' }}>
                                         {convertTo12Hour(match.endTime || calculateEndTime(match.time, match.duration || 60))}
                                       </td>
                                       <td style={{ padding: '14px 12px', borderBottom: '1px solid #ddd', textAlign: 'center' }}>
-                                        <Button
-                                          variant="outline-danger"
-                                          size="sm"
-                                          onClick={() => handleDeleteMatch(match.id)}
-                                          style={{ border: 'none', background: 'transparent', color: '#dc3545' }}
-                                        >
-                                          <FiTrash2 size={16} />
-                                        </Button>
+                                        {!match.isExisting ? (
+                                          <Button
+                                            variant="outline-danger"
+                                            size="sm"
+                                            onClick={() => handleDeleteMatch(match.id)}
+                                            style={{ border: 'none', background: 'transparent', color: '#dc3545' }}
+                                          >
+                                            <FiTrash2 size={16} />
+                                          </Button>
+                                        ) : (
+                                          <span style={{ fontSize: '12px', color: '#666', fontStyle: 'italic' }}>Saved</span>
+                                        )}
                                       </td>
                                     </tr>
                                   );
@@ -1201,41 +1633,50 @@ const LeagueSchedule = () => {
                               <div className='d-flex justify-content-center align-items-center gap-2'>
                                 {match.homeVenue ? (
                                   <>
-                                    <div style={{ width: '34px', height: '34px', borderRadius: '50%', border: '2px solid rgba(31, 65, 187, 1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold', color: 'rgba(31, 65, 187, 1)' }}>
-                                      {homeClub?.logo || 'H'}
-                                    </div>
-                                    <div>
-                                      <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937' }}>
-                                        {selectedHomePlayers.length > 0 ? `${selectedHomePlayers.length}/2 Players` : match.homeVenue}
-                                      </div>
-                                      {selectedHomePlayers.length > 0 && (
-                                        <div className='fw-semibold ' style={{ fontSize: '12px', color: '#666' }}>
-                                          {selectedHomePlayers
-                                            .map(p => p.playerName.split(' ')[0])
-                                            .join(', ')}
+                                    {match.isExisting ? (
+                                      <>
+                                        <div style={{ width: '34px', height: '34px', borderRadius: '50%', border: '2px solid rgba(31, 65, 187, 1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold', color: 'rgba(31, 65, 187, 1)' }}>
+                                          {homeClub?.logo || 'H'}
                                         </div>
-                                      )}
-                                    </div>
-                                    <CustomPlayerDropdown
-                                      matchId={match.id}
-                                      venue="home"
-                                      clubName={match.homeVenue}
-                                      categoryType={availableCategories.find(c => c._id === activeTab)?.categoryType}
-                                      selectedPlayers={selectedHomePlayers.map(p => p._id)}
-                                      onPlayerSelect={(playerId) => handlePlayerSelection(match.id, 'home', playerId)}
-                                    />
+                                        <div>
+                                          <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937' }}>
+                                            {match.homeTeam ? match.homeTeam.teamName : match.homeVenue}
+                                          </div>
+                                          {match.homeTeam?.players && (
+                                            <div className='fw-semibold' style={{ fontSize: '12px', color: '#666' }}>
+                                              {match.homeTeam.players.map(p => p.playerName.split(' ')[0]).join(', ')}
+                                            </div>
+                                          )}
+                                        </div>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <CustomClubSelector
+                                          matchId={match.id}
+                                          venue="home"
+                                          currentClub={match.homeVenue}
+                                          onClubSelect={(clubName) => handleHomeVenueChange(match.id, clubName)}
+                                          availableClubs={clubs}
+                                        />
+                                        <CustomPlayerDropdown
+                                          matchId={match.id}
+                                          venue="home"
+                                          clubName={match.homeVenue}
+                                          categoryType={availableCategories.find(c => c._id === activeTab)?.categoryType}
+                                          selectedPlayers={selectedHomePlayers.map(p => p._id)}
+                                          onPlayerSelect={(playerId) => handlePlayerSelection(match.id, 'home', playerId)}
+                                        />
+                                      </>
+                                    )}
                                   </>
                                 ) : (
-                                  <>
-                                    <div style={{ width: '34px', height: '34px', borderRadius: '50%', border: '2px solid rgba(31, 65, 187, 1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', color: 'rgba(31, 65, 187, 1)', fontWeight: 'bold' }}>+</div>
-                                    <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937' }}>Add Club</div>
-                                    <CustomClubDropdown
-                                      matchId={match.id}
-                                      venue="home"
-                                      onClubSelect={(clubName) => handleHomeVenueChange(match.id, clubName)}
-                                      availableClubs={clubs}
-                                    />
-                                  </>
+                                  <CustomClubSelector
+                                    matchId={match.id}
+                                    venue="home"
+                                    currentClub={null}
+                                    onClubSelect={(clubName) => handleHomeVenueChange(match.id, clubName)}
+                                    availableClubs={clubs}
+                                  />
                                 )}
                               </div>
                             </td>
@@ -1246,41 +1687,50 @@ const LeagueSchedule = () => {
                               <div className='d-flex justify-content-center align-items-center gap-2'>
                                 {match.awayVenue ? (
                                   <>
-                                    <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold', color: 'white' }}>
-                                      {awayClub?.logo || 'A'}
-                                    </div>
-                                    <div>
-                                      <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937' }}>
-                                        {selectedAwayPlayers.length > 0 ? `${selectedAwayPlayers.length}/2 Players` : match.awayVenue}
-                                      </div>
-                                      {selectedAwayPlayers.length > 0 && (
-                                        <div className='fw-semibold ' style={{ fontSize: '12px', color: '#666' }}>
-                                          {selectedAwayPlayers
-                                            .map(p => p.playerName.split(' ')[0])
-                                            .join(', ')}
+                                    {match.isExisting ? (
+                                      <>
+                                        <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold', color: 'white' }}>
+                                          {awayClub?.logo || 'A'}
                                         </div>
-                                      )}
-                                    </div>
-                                    <CustomPlayerDropdown
-                                      matchId={match.id}
-                                      venue="away"
-                                      clubName={match.awayVenue}
-                                      categoryType={availableCategories.find(c => c._id === activeTab)?.categoryType}
-                                      selectedPlayers={selectedAwayPlayers.map(p => p._id)}
-                                      onPlayerSelect={(playerId) => handlePlayerSelection(match.id, 'away', playerId)}
-                                    />
+                                        <div>
+                                          <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937' }}>
+                                            {match.awayTeam ? match.awayTeam.teamName : match.awayVenue}
+                                          </div>
+                                          {match.awayTeam?.players && (
+                                            <div className='fw-semibold' style={{ fontSize: '12px', color: '#666' }}>
+                                              {match.awayTeam.players.map(p => p.playerName.split(' ')[0]).join(', ')}
+                                            </div>
+                                          )}
+                                        </div>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <CustomClubSelector
+                                          matchId={match.id}
+                                          venue="away"
+                                          currentClub={match.awayVenue}
+                                          onClubSelect={(clubName) => handleAwayVenueChange(match.id, clubName)}
+                                          availableClubs={getAvailableAwayClubs(match.homeVenue)}
+                                        />
+                                        <CustomPlayerDropdown
+                                          matchId={match.id}
+                                          venue="away"
+                                          clubName={match.awayVenue}
+                                          categoryType={availableCategories.find(c => c._id === activeTab)?.categoryType}
+                                          selectedPlayers={selectedAwayPlayers.map(p => p._id)}
+                                          onPlayerSelect={(playerId) => handlePlayerSelection(match.id, 'away', playerId)}
+                                        />
+                                      </>
+                                    )}
                                   </>
                                 ) : match.homeVenue ? (
-                                  <>
-                                    <div style={{ width: '34px', height: '34px', borderRadius: '50%', border: '2px solid rgba(31, 65, 187, 1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', color: 'rgba(31, 65, 187, 1)', fontWeight: 'bold' }}>+</div>
-                                    <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937' }}>Add Club</div>
-                                    <CustomClubDropdown
-                                      matchId={match.id}
-                                      venue="away"
-                                      onClubSelect={(clubName) => handleAwayVenueChange(match.id, clubName)}
-                                      availableClubs={getAvailableAwayClubs(match.homeVenue)}
-                                    />
-                                  </>
+                                  <CustomClubSelector
+                                    matchId={match.id}
+                                    venue="away"
+                                    currentClub={null}
+                                    onClubSelect={(clubName) => handleAwayVenueChange(match.id, clubName)}
+                                    availableClubs={getAvailableAwayClubs(match.homeVenue)}
+                                  />
                                 ) : (
                                   <>
                                     <div style={{ width: '34px', height: '34px', borderRadius: '50%', border: '2px solid #ccc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', color: '#ccc', fontWeight: 'bold' }}>+</div>
@@ -1293,39 +1743,51 @@ const LeagueSchedule = () => {
                               </div>
                             </td>
                             <td style={{ padding: '14px 12px', fontSize: '13px', color: '#666', borderBottom: '1px solid #ddd' }}>
-                              <input
-                                type="time"
-                                value={match.time}
-                                onChange={(e) => handleTimeChange(match.id, e.target.value)}
-                                className="form-control form-control-sm"
-                                style={{ width: '100px', margin: '0 auto' }}
-                              />
+                              {match.isExisting ? (
+                                <span style={{ fontSize: '13px', color: '#666' }}>{match.time}</span>
+                              ) : (
+                                <input
+                                  type="time"
+                                  value={match.time}
+                                  onChange={(e) => handleTimeChange(match.id, e.target.value)}
+                                  className="form-control form-control-sm"
+                                  style={{ width: '100px', margin: '0 auto' }}
+                                />
+                              )}
                             </td>
                             <td style={{ padding: '14px 12px', fontSize: '13px', color: '#666', borderBottom: '1px solid #ddd' }}>
-                              <select
-                                value={match.duration || 60}
-                                onChange={(e) => handleDurationChange(match.id, e.target.value)}
-                                className="form-select form-select-sm"
-                                style={{ width: '80px', margin: '0 auto' }}
-                              >
-                                <option value={30}>30m</option>
-                                <option value={60}>1h</option>
-                                <option value={90}>1.5h</option>
-                                <option value={120}>2h</option>
-                              </select>
+                              {match.isExisting ? (
+                                <span style={{ fontSize: '13px', color: '#666' }}>{match.duration}m</span>
+                              ) : (
+                                <select
+                                  value={match.duration || 60}
+                                  onChange={(e) => handleDurationChange(match.id, e.target.value)}
+                                  className="form-select form-select-sm"
+                                  style={{ width: '80px', margin: '0 auto' }}
+                                >
+                                  <option value={30}>30m</option>
+                                  <option value={60}>1h</option>
+                                  <option value={90}>1.5h</option>
+                                  <option value={120}>2h</option>
+                                </select>
+                              )}
                             </td>
                             <td style={{ padding: '14px 12px', fontSize: '13px', color: '#666', borderBottom: '1px solid #ddd', textAlign: 'center' }}>
                               {convertTo12Hour(match.endTime || calculateEndTime(match.time, match.duration || 60))}
                             </td>
                             <td style={{ padding: '14px 12px', borderBottom: '1px solid #ddd', textAlign: 'center' }}>
-                              <Button
-                                variant="outline-danger"
-                                size="sm"
-                                onClick={() => handleDeleteMatch(match.id)}
-                                style={{ border: 'none', background: 'transparent', color: '#dc3545' }}
-                              >
-                                <FiTrash2 size={16} />
-                              </Button>
+                              {!match.isExisting ? (
+                                <Button
+                                  variant="outline-danger"
+                                  size="sm"
+                                  onClick={() => handleDeleteMatch(match.id)}
+                                  style={{ border: 'none', background: 'transparent', color: '#dc3545' }}
+                                >
+                                  <FiTrash2 size={16} />
+                                </Button>
+                              ) : (
+                                <span style={{ fontSize: '12px', color: '#666', fontStyle: 'italic' }}>Saved</span>
+                              )}
                             </td>
                           </tr>
                         );
@@ -1336,11 +1798,11 @@ const LeagueSchedule = () => {
               </div>
             </>
           ) : (
-            <div className="h-75 d-flex align-items-center justify-content-center text-muted py-5">
-              <p>Please add a match to create schedule</p>
+            <div className='h-100 d-flex align-items-center justify-content-center text-muted py-5'>
+              <p>No data found</p>
             </div>
           )}
-          {currentMatches.length > 0 && (
+          {currentMatches.length > 0 && hasUnsavedMatches && (
             <Row className="mt-4">
               <Col className="d-flex justify-content-between">
                 <div></div>
@@ -1389,29 +1851,39 @@ const LeagueSchedule = () => {
                       const isToday = daysLeft === 0;
                       const isPast = daysLeft < 0;
                       const isUpcoming = daysLeft > 0;
+                      const isSelected = selectedScheduleDate === dateItem.date;
                       
                       return (
-                        <div key={idx} className='border rounded-3' style={{ 
-                          background: isPast ? 'rgba(248, 249, 250, 1)' : isToday ? 'rgba(255, 243, 205, 1)' : 'rgba(232, 244, 253, 1)', 
-                          borderRadius: '8px', 
-                          padding: '12px', 
-                          textAlign: 'center',
-                          border: isToday ? '2px solid #ffc107' : '1px solid #dee2e6'
-                        }}>
+                        <div 
+                          key={idx} 
+                          className='border rounded-3' 
+                          onClick={() => handleDateSelection(dateItem.date)}
+                          style={{ 
+                            background: isSelected ? 'rgba(31, 65, 187, 0.1)' : (isPast ? 'rgba(248, 249, 250, 1)' : isToday ? 'rgba(255, 243, 205, 1)' : 'rgba(232, 244, 253, 1)'), 
+                            borderRadius: '8px', 
+                            padding: '12px', 
+                            textAlign: 'center',
+                            border: isSelected ? '2px solid #1F41BB' : (isToday ? '2px solid #ffc107' : '1px solid #dee2e6'),
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isSelected) {
+                              e.currentTarget.style.transform = 'translateY(-2px)';
+                              e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isSelected) {
+                              e.currentTarget.style.transform = 'translateY(0)';
+                              e.currentTarget.style.boxShadow = 'none';
+                            }
+                          }}
+                        >
                           <div className='mb-2'>
                             <span style={{ fontSize: '13px', fontWeight: '600', color: '#1a1a1a' }}>
                               {finalDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                             </span>
-                            {/* <div style={{ 
-                              fontSize: '10px', 
-                              color: 'white', 
-                              background: isPast ? '#6c757d' : isToday ? '#ffc107' : '#1F41BB', 
-                              padding: '3px 8px', 
-                              borderRadius: '12px',
-                              fontWeight: '600'
-                            }}>
-                              {dateItem.categoryType}
-                            </div> */}
                           </div>
                           
                           <div className="text-center mb-2">
@@ -1435,7 +1907,7 @@ const LeagueSchedule = () => {
                             )}
                           </div>
                           
-                          <div className="d-flex justify-content-center">
+                          {/* <div className="d-flex justify-content-center">
                             <div style={{ 
                               fontSize: '10px', 
                               color: '#666', 
@@ -1446,56 +1918,108 @@ const LeagueSchedule = () => {
                             }}>
                               Final Match
                             </div>
-                          </div>
+                          </div> */}
                         </div>
                       );
                     })}
                   </div>
                 </div>
               )}
-              
               {leagueSummary?.byDate?.length > 0 ? (
                 <div className="mb-3">
                   <div className='mb-2' style={{ fontSize: '12px', fontWeight: '600', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' }}>By Date</div>
                   <div className="d-flex flex-column gap-2">
-                    {leagueSummary.byDate.map((item, idx) => (
-                      <div key={idx} className='border rounded-3' style={{ background: 'rgba(251, 252, 254, 1)', borderRadius: '8px', padding: '12px', textAlign: 'center' }}>
-                        <div className='d-flex justify-content-between align-items-center gap-2 mb-2'>
-                          <span style={{ fontSize: '13px', fontWeight: '600', color: '#1a1a1a' }}>
-                            {new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                          </span>
-                          <div
-                            onClick={() => {
-                              dispatch(exportLeagueSchedulesPDF({ leagueId: selectedLeagueId }));
-                            }}
-                            style={{
-                              width: '24px',
-                              height: '24px',
-                              borderRadius: '4px',
-                              background: 'rgba(31, 65, 187, 1)',
+                    {leagueSummary.byDate.map((item, idx) => {
+                      const isSelected = selectedScheduleDate === item.date;
+                      return (
+                        <div 
+                          key={idx} 
+                          className='border rounded-3' 
+                          onClick={() => handleDateSelection(item.date)}
+                          style={{ 
+                            background: isSelected ? 'rgba(31, 65, 187, 0.1)' : 'rgba(251, 252, 254, 1)', 
+                            borderRadius: '8px', 
+                            padding: '12px', 
+                            textAlign: 'center',
+                            border: isSelected ? '2px solid #1F41BB' : '1px solid #dee2e6',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            position: 'relative'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isSelected) {
+                              e.currentTarget.style.transform = 'translateY(-2px)';
+                              e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isSelected) {
+                              e.currentTarget.style.transform = 'translateY(0)';
+                              e.currentTarget.style.boxShadow = 'none';
+                            }
+                          }}
+                        >
+                          {isSelected && (
+                            <div style={{
+                              position: 'absolute',
+                              top: '4px',
+                              right: '4px',
+                              width: '16px',
+                              height: '16px',
+                              borderRadius: '50%',
+                              background: '#1F41BB',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
+                              fontSize: '10px',
                               color: 'white',
-                              cursor: loadingExport ? 'not-allowed' : 'pointer',
-                              opacity: loadingExport ? 0.6 : 1,
-                              pointerEvents: loadingExport ? 'none' : 'auto'
+                              fontWeight: 'bold'
                             }}>
-                            <BiExport size={14} />
+                              ✓
+                            </div>
+                          )}
+                          <div className='d-flex justify-content-between align-items-center gap-2 mb-2'>
+                            <span style={{ fontSize: '13px', fontWeight: '600', color: '#1a1a1a' }}>
+                              {new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                            </span>
+                            <div
+                              onClick={(e) => {
+                                e.stopPropagation(); // Prevent date selection when clicking export
+                                dispatch(exportLeagueSchedulesPDF({ leagueId: selectedLeagueId }));
+                              }}
+                              style={{
+                                width: '24px',
+                                height: '24px',
+                                borderRadius: '4px',
+                                background: 'rgba(31, 65, 187, 1)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white',
+                                cursor: loadingExport ? 'not-allowed' : 'pointer',
+                                opacity: loadingExport ? 0.6 : 1,
+                                pointerEvents: loadingExport ? 'none' : 'auto'
+                              }}
+                            >
+                              <BiExport size={14} />
+                            </div>
+                          </div>
+                          <div className="d-flex justify-content-between align-items-center text-start">
+                            <div className='mb-1 text-start' style={{ fontSize: '12px', color: '#666' }}>
+                              <p className='mb-0'>Matches: {String(item.matchCount).padStart(2, '0')}</p>
+                            </div>
+                            <div className='mb-1 text-end' style={{ fontSize: '12px', color: '#666' }}>
+                              <p className='mb-0'>{item.venueName}</p>
+                            </div>
                           </div>
                         </div>
-                        <div className="d-flex justify-content-between flex-column text-start">
-                          <div className='mb-1 text-start' style={{ fontSize: '12px', color: '#666' }}>
-                            <p className='mb-0'>Matches: {String(item.matchCount).padStart(2, '0')}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               ) : (
-                <div className='h-100 d-flex align-items-center justify-content-center '>
-                  <p>No Schedule Found</p>
+                <div className='h-100 d-flex align-items-center justify-content-center'>
+                  <p>No data found</p>
                 </div>
               )}
             </>
@@ -1513,7 +2037,7 @@ const LeagueSchedule = () => {
         formDate={formDate}
         setFormDate={setFormDate}
         formVenue={formVenue}
-        setFormVenue={setFormVenue}
+        setFormVenue={handleVenueChange}
         formCategory={formCategory}
         setFormCategory={setFormCategory}
         availableCategories={availableCategories}
@@ -1534,7 +2058,7 @@ const LeagueSchedule = () => {
           setPendingAction(null);
         }}
         title="Unsaved Changes"
-        message={`You have unsaved matches in the current ${pendingAction?.type === 'tabChange' ? 'category' : 'schedule'}. Changing ${pendingAction?.type === 'tabChange' ? 'category' : 'date'} will erase all current matches. Would you like to save them first or proceed without saving?`}
+        message={`You have unsaved matches in the current ${pendingAction?.type === 'tabChange' ? 'category' : pendingAction?.type === 'venueChange' ? 'venue' : 'schedule'}. Changing ${pendingAction?.type === 'tabChange' ? 'category' : pendingAction?.type === 'venueChange' ? 'venue' : pendingAction?.type === 'dateChange' ? 'date' : 'round'} will erase all current matches. Would you like to save them first or proceed without saving?`}
         onConfirm={handleConfirmAction}
         onSave={currentMatches.length > 0 ? handleSaveAndProceed : null}
         confirmText="Proceed Without Saving"
