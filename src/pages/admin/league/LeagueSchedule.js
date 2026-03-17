@@ -311,7 +311,7 @@ const LeagueSchedule = () => {
     return loading;
   };
 
-  const CustomClubSelector = ({ matchId, venue, currentClub, onClubSelect, availableClubs }) => {
+  const CustomClubSelector = ({ matchId, venue, currentClub, onClubSelect, availableClubs, selectedPlayers = [] }) => {
     const dropdownId = `club_${matchId}_${venue}`;
     const isOpen = openDropdown === dropdownId;
 
@@ -355,7 +355,11 @@ const LeagueSchedule = () => {
               <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937' }}>
                 {currentClub}
               </div>
-              {/* <div style={{ fontSize: '10px', color: '#666' }}>Click to change</div> */}
+              {selectedPlayers.length > 0 && (
+                <div style={{ fontSize: '10px', color: '#666', marginTop: '2px', textAlign: 'center' }}>
+                  {selectedPlayers.map(p => p.playerName.split(' ')[0]).join(', ')}
+                </div>
+              )}
             </div>
             {/* <FaAngleRight size={17} color='rgba(31, 65, 187, 1)' /> */}
           </div>
@@ -1504,6 +1508,7 @@ const LeagueSchedule = () => {
                                             currentClub={null}
                                             onClubSelect={(clubName) => handleHomeVenueChange(match.id, clubName)}
                                             availableClubs={clubs}
+                                            selectedPlayers={[]}
                                           />
                                         )}
                                       </td>
@@ -1550,6 +1555,7 @@ const LeagueSchedule = () => {
                                             currentClub={null}
                                             onClubSelect={(clubName) => handleAwayVenueChange(match.id, clubName)}
                                             availableClubs={getAvailableAwayClubs(match.homeVenue)}
+                                            selectedPlayers={[]}
                                           />
                                         ) : (
                                           <div className='d-flex justify-content-center align-items-center gap-2' style={{ opacity: 0.5 }}>
@@ -1638,12 +1644,12 @@ const LeagueSchedule = () => {
                                         <div style={{ width: '34px', height: '34px', borderRadius: '50%', border: '2px solid rgba(31, 65, 187, 1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold', color: 'rgba(31, 65, 187, 1)' }}>
                                           {homeClub?.logo || 'H'}
                                         </div>
-                                        <div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                           <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937' }}>
-                                            {match.homeTeam ? match.homeTeam.teamName : match.homeVenue}
+                                            {match.homeVenue}
                                           </div>
-                                          {match.homeTeam?.players && (
-                                            <div className='fw-semibold' style={{ fontSize: '12px', color: '#666' }}>
+                                          {match.homeTeam?.players && match.homeTeam.players.length > 0 && (
+                                            <div style={{ fontSize: '10px', color: '#666', marginTop: '2px', textAlign: 'center' }}>
                                               {match.homeTeam.players.map(p => p.playerName.split(' ')[0]).join(', ')}
                                             </div>
                                           )}
@@ -1651,13 +1657,16 @@ const LeagueSchedule = () => {
                                       </>
                                     ) : (
                                       <>
-                                        <CustomClubSelector
-                                          matchId={match.id}
-                                          venue="home"
-                                          currentClub={match.homeVenue}
-                                          onClubSelect={(clubName) => handleHomeVenueChange(match.id, clubName)}
-                                          availableClubs={clubs}
-                                        />
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                          <CustomClubSelector
+                                            matchId={match.id}
+                                            venue="home"
+                                            currentClub={match.homeVenue}
+                                            onClubSelect={(clubName) => handleHomeVenueChange(match.id, clubName)}
+                                            availableClubs={clubs}
+                                            selectedPlayers={selectedHomePlayers}
+                                          />
+                                        </div>
                                         <CustomPlayerDropdown
                                           matchId={match.id}
                                           venue="home"
@@ -1676,6 +1685,7 @@ const LeagueSchedule = () => {
                                     currentClub={null}
                                     onClubSelect={(clubName) => handleHomeVenueChange(match.id, clubName)}
                                     availableClubs={clubs}
+                                    selectedPlayers={[]}
                                   />
                                 )}
                               </div>
@@ -1692,12 +1702,12 @@ const LeagueSchedule = () => {
                                         <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold', color: 'white' }}>
                                           {awayClub?.logo || 'A'}
                                         </div>
-                                        <div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                           <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937' }}>
-                                            {match.awayTeam ? match.awayTeam.teamName : match.awayVenue}
+                                            {match.awayVenue}
                                           </div>
-                                          {match.awayTeam?.players && (
-                                            <div className='fw-semibold' style={{ fontSize: '12px', color: '#666' }}>
+                                          {match.awayTeam?.players && match.awayTeam.players.length > 0 && (
+                                            <div style={{ fontSize: '10px', color: '#666', marginTop: '2px', textAlign: 'center' }}>
                                               {match.awayTeam.players.map(p => p.playerName.split(' ')[0]).join(', ')}
                                             </div>
                                           )}
@@ -1705,13 +1715,16 @@ const LeagueSchedule = () => {
                                       </>
                                     ) : (
                                       <>
-                                        <CustomClubSelector
-                                          matchId={match.id}
-                                          venue="away"
-                                          currentClub={match.awayVenue}
-                                          onClubSelect={(clubName) => handleAwayVenueChange(match.id, clubName)}
-                                          availableClubs={getAvailableAwayClubs(match.homeVenue)}
-                                        />
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                          <CustomClubSelector
+                                            matchId={match.id}
+                                            venue="away"
+                                            currentClub={match.awayVenue}
+                                            onClubSelect={(clubName) => handleAwayVenueChange(match.id, clubName)}
+                                            availableClubs={getAvailableAwayClubs(match.homeVenue)}
+                                            selectedPlayers={selectedAwayPlayers}
+                                          />
+                                        </div>
                                         <CustomPlayerDropdown
                                           matchId={match.id}
                                           venue="away"
@@ -1730,6 +1743,7 @@ const LeagueSchedule = () => {
                                     currentClub={null}
                                     onClubSelect={(clubName) => handleAwayVenueChange(match.id, clubName)}
                                     availableClubs={getAvailableAwayClubs(match.homeVenue)}
+                                    selectedPlayers={[]}
                                   />
                                 ) : (
                                   <>
