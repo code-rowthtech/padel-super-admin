@@ -36,7 +36,7 @@ const League = () => {
     { title: "Total Leagues", cardBorder: "1px solid #1F41BB1A", value: totalItems, iconBg: '#1F41BB1A', icon: <HiOutlineTrophy style={{ color: '#1F41BB' }} size={20} />, bgColor: "#f3f4f6", tileBg: 'linear-gradient(113.4deg, #FFFFFF 42.44%, #E0E3F2 121.05%)' },
     { title: "Active Leagues", cardBorder: "1px solid #0596691A", value: activeLeagues, iconBg: '#D1FAE5', icon: <BsRecordCircle style={{ color: '#059669' }} size={20} />, bgColor: "#d1fae5", tileBg: 'linear-gradient(113.4deg, #FFFFFF 42.44%, #D1FAE5 121.05%)' },
     { title: "Total Participants", cardBorder: "1px solid #D977061A", value: totalParticipants, iconBg: '#FEF3C7', icon: <FaUsers className="text-warning" size={20} />, bgColor: "#fef3c7", tileBg: 'linear-gradient(113.4deg, #FFFFFF 42.44%, #FEF3C7 121.05%)' },
-    { title: "Revenue (MTD)", cardBorder: "1px solid #9333EA1A", value: `₹ ${totalRevenue.toLocaleString()}`, iconBg: '#F3E8FF', icon: <IoCashOutline style={{ color: '#9333EA' }} size={20} />, bgColor: "#e0e7ff", tileBg: 'linear-gradient(113.4deg, #FFFFFF 42.44%, #F3E8FF 121.05%)' },
+    // { title: "Revenue (MTD)", cardBorder: "1px solid #9333EA1A", value: `₹ ${totalRevenue.toLocaleString()}`, iconBg: '#F3E8FF', icon: <IoCashOutline style={{ color: '#9333EA' }} size={20} />, bgColor: "#e0e7ff", tileBg: 'linear-gradient(113.4deg, #FFFFFF 42.44%, #F3E8FF 121.05%)' },
   ];
 
   const filteredLeagues = statusFilter === "all" ? leaguesData : leaguesData.filter(l => l.status === statusFilter.toLowerCase());
@@ -106,7 +106,7 @@ const League = () => {
     <Container fluid className="px-0 bg-white px-md-4">
       <Row className="mb-0 ">
         {statsCards.map((card, idx) => (
-          <Col key={idx} md={3} sm={6} className="mb-0  py-4">
+          <Col key={idx} md={4} sm={6} className="mb-0  py-4">
             <Card style={{ background: card?.tileBg, border: card?.cardBorder, boxShadow: '0px 0px 8.8px 0px #0000001A' }} className="border-0  h-100 rounded-4">
               <Card.Body className="d-flex  flex-column gap-3">
                 <p className="rounded-2 m-0 d-flex align-items-center justify-content-center p-2" style={{ background: card?.iconBg, width: 'fit-content' }}>
@@ -126,7 +126,7 @@ const League = () => {
             <div className="d-flex justify-content-between align-items-center mb-md-3 mb-2">
               <h6 className="mb-0 tabel-title fs-6">Manage League</h6>
               <div className="d-flex align-items-center justify-content-end gap-3">
-                <Dropdown>
+                {/* <Dropdown>
                   <Dropdown.Toggle
                     variant="white"
                     className="d-flex rounded-2 align-items-center justify-content-between"
@@ -164,7 +164,7 @@ const League = () => {
                       </Dropdown.Item>
                     ))}
                   </Dropdown.Menu>
-                </Dropdown>
+                </Dropdown> */}
                 <button
                   className="d-flex align-items-center position-relative p-0 border-0"
                   style={{

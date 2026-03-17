@@ -16,10 +16,11 @@ const StructureCategories = ({ onNext, onBack }) => {
     const [registrationFee, setRegistrationFee] = useState('');
     const [isFeeEnabled, setIsFeeEnabled] = useState(false);
     const [categories, setCategories] = useState([
-        { name: 'Level A (Male)', registeredCount: 2, isDefault: true },
-        { name: 'Level B (Male)', registeredCount: 2, isDefault: true },
-        { name: 'Female', registeredCount: 2, isDefault: true },
-        { name: 'Mixed', registeredCount: 2, isDefault: true }
+        { name: 'A/B', registeredCount: 2, isDefault: true },
+        { name: 'C/D', registeredCount: 2, isDefault: true },
+        { name: 'Women’s', registeredCount: 2, isDefault: true },
+        { name: 'Mixed Doubles', registeredCount: 2, isDefault: true },
+        { name: 'Hybrid', registeredCount: 2, isDefault: true }
     ]);
 
     // Reset form when switching between create/update modes
@@ -31,10 +32,11 @@ const StructureCategories = ({ onNext, onBack }) => {
             setRegistrationFee('');
             setIsFeeEnabled(false);
             setCategories([
-                { name: 'Level A (Male)', registeredCount: 2, isDefault: true },
-                { name: 'Level B (Male)', registeredCount: 2, isDefault: true },
-                { name: 'Female', registeredCount: 2, isDefault: true },
-                { name: 'Mixed', registeredCount: 2, isDefault: true }
+                { name: 'A/B', registeredCount: 2, isDefault: true },
+                { name: 'C/D', registeredCount: 2, isDefault: true },
+                { name: 'Women’s', registeredCount: 2, isDefault: true },
+                { name: 'Mixed Doubles', registeredCount: 2, isDefault: true },
+                { name: 'Hybrid', registeredCount: 2, isDefault: true }
             ]);
         }
     }, [id]);
@@ -59,7 +61,7 @@ const StructureCategories = ({ onNext, onBack }) => {
                 setCategories(limits.map((limit, idx) => ({
                     name: limit.categoryType,
                     registeredCount: limit.maxParticipants,
-                    isDefault: idx < 4
+                    isDefault: idx < 5
                 })));
             }
         } else if (!id) {
@@ -69,10 +71,11 @@ const StructureCategories = ({ onNext, onBack }) => {
             setRegistrationFee('');
             setIsFeeEnabled(false);
             setCategories([
-                { name: 'Level A (Male)', registeredCount: 2, isDefault: true },
-                { name: 'Level B (Male)', registeredCount: 2, isDefault: true },
-                { name: 'Female', registeredCount: 2, isDefault: true },
-                { name: 'Mixed', registeredCount: 2, isDefault: true }
+                { name: 'A/B', registeredCount: 2, isDefault: true },
+                { name: 'C/D', registeredCount: 2, isDefault: true },
+                { name: 'Women’s', registeredCount: 2, isDefault: true },
+                { name: 'Mixed Doubles', registeredCount: 2, isDefault: true },
+                { name: 'Hybrid', registeredCount: 2, isDefault: true }
             ]);
         }
     }, [currentLeague, id]);
