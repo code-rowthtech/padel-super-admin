@@ -1111,8 +1111,25 @@ const Payments = () => {
                                   </td>
                                   <td style={{ padding: "12px" }}>
                                     <div>
-                                      <span className={`badge ${item?.paymentStatus === 'paid' ? 'bg-success' : item?.paymentStatus === 'pending' ? 'bg-warning' : 'bg-secondary'}`} style={{ fontSize: "10px", padding: "4px 8px", borderRadius: "4px" }}>
-                                        {item?.paymentStatus?.toUpperCase() || ""}
+                                      {/* <span className={`badge ${item?.paymentStatus === 'paid' ? 'bg-success' : item?.paymentStatus === 'pending' ? 'bg-warning' : 'bg-secondary'}`} style={{ fontSize: "10px", padding: "4px 8px", borderRadius: "4px" }}>
+                                        {item?.paymentStatus == 'pending' && (item?.bookingStatus == 'refunded' || item?.bookingStatus == 'cancelled') ? 'CANCELLED' : item?.paymentStatus?.toUpperCase()}
+                                      </span> */}
+                                      <span
+                                        className={`badge ${item?.paymentStatus === 'pending' &&
+                                            (item?.bookingStatus === 'refunded' || item?.bookingStatus === 'cancelled')
+                                            ? 'bg-secondary'
+                                            : item?.paymentStatus === 'paid'
+                                              ? 'bg-success'
+                                              : item?.paymentStatus === 'pending'
+                                                ? 'bg-warning'
+                                                : 'bg-secondary'
+                                          }`}
+                                        style={{ fontSize: "10px", padding: "4px 8px", borderRadius: "4px" }}
+                                      >
+                                        {item?.paymentStatus === 'pending' &&
+                                          (item?.bookingStatus === 'refunded' || item?.bookingStatus === 'cancelled')
+                                          ? 'CANCELLED'
+                                          : item?.paymentStatus?.toUpperCase()}
                                       </span>
                                       <div className="text-muted" style={{ fontSize: "10px", marginTop: "2px" }}>
                                         {item?.paymentMethod || ""}
