@@ -1027,6 +1027,29 @@ const LeagueSchedule = () => {
         showSuccess('All categories saved successfully');
       }
       
+      // Refresh all schedules to show the newly created data
+      if (selectedLeagueId && selectedRound) {
+        const roundTypeMap = {
+          'regularRound': 'regular',
+          'quarterfinal': 'quarterfinal', 
+          'semifinal': 'semifinal',
+          'final': 'final'
+        };
+        
+        const params = {
+          leagueId: selectedLeagueId,
+          roundType: roundTypeMap[selectedRound]
+        };
+        
+        // If a specific date is selected from sidebar, use it as both start and end date
+        if (selectedScheduleDate) {
+          params.startDate = selectedScheduleDate;
+          params.endDate = selectedScheduleDate;
+        }
+        
+        dispatch(getAllSchedules(params));
+      }
+      
       // Refresh schedule dates after successful save
       if (selectedLeagueId && availableCategories.length > 0) {
         if (activeTab === 'all') {
@@ -1396,7 +1419,7 @@ const LeagueSchedule = () => {
                     <div className="d-flex align-items-center gap-2">
                       <span style={{ fontSize: '14px', color: '#666' }}>Schedule Date:</span>
                       <span style={{ fontSize: '14px', fontWeight: '600', color: '#1F41BB' }}>
-                        {currentScheduleInfo.date}
+                        {new Date(currentScheduleInfo.date).toLocaleDateString('en-GB')}
                       </span>
                     </div>
                   )}
