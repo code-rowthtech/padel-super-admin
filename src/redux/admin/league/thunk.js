@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { CREATE_LEAGUE, GET_LEAGUES, GET_LEAGUES_IDS, UPDATE_LEAGUE, GET_STATES, GET_CLUB_WITH_STATE, GET_SPONSOR_CATEGORIES, GET_LEAGUE_BY_ID, DELETE_LEAGUE, GET_LEAGUE_CLUBS, GET_CLUB_TEAMS, EXPORT_LEAGUE_SCHEDULES_PDF, GET_LEAGUE_SUMMARY, GET_AVAILABLE_PLAYERS, SAVE_TEAMS, GET_TEAMS, GET_SCHEDULE_DATES } from "../../../helpers/api/apiEndpoint";
+import { CREATE_LEAGUE, GET_LEAGUES, GET_LEAGUES_IDS, UPDATE_LEAGUE, GET_STATES, GET_CLUB_WITH_STATE, GET_SPONSOR_CATEGORIES, GET_LEAGUE_BY_ID, DELETE_LEAGUE, GET_LEAGUE_CLUBS, GET_CLUB_TEAMS, EXPORT_LEAGUE_SCHEDULES_PDF, GET_LEAGUE_SUMMARY, GET_AVAILABLE_PLAYERS, SAVE_TEAMS, GET_TEAMS, GET_SCHEDULE_DATES, GET_LEAGUE_LEADERBOARD } from "../../../helpers/api/apiEndpoint";
 import { ownerApi, ownerAxios, getOwnerFromSession } from "../../../helpers/api/apiCore";
 import { showSuccess, showError } from "../../../helpers/Toast";
 
@@ -75,7 +75,7 @@ export const getLeagueById = createAsyncThunk(
   "league/getLeagueById",
   async (id, { rejectWithValue }) => {
     try {
-      const response = await ownerApi.get(`${GET_LEAGUE_BY_ID}?id=${id}`);
+      const response = await ownerApi.get(`${GET_LEAGUE_BY_ID}?id=${id}&accessedBy=superadmin`);
       if (response?.status === 200) {
         return response.data?.data;
       }
@@ -270,6 +270,25 @@ export const saveSchedule = createAsyncThunk(
     }
   }
 );
+
+export const updateSchedule = createAsyncThunk(
+  "league/updateSchedule",
+  async (updateData, { rejectWithValue }) => {
+    try {
+      const response = await ownerApi.put(`/api/league-schedules/scheduleId`, updateData);
+      if (response?.status === 200) {
+        if (response?.data?.success) {
+          return response.data;
+        }
+      }
+      showError(response?.data?.message || "Failed to update schedule");
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      showError(error || error?.message || "Error updating schedule");
+      return rejectWithValue(error);
+    }
+  }
+);
 export const getAllSchedules = createAsyncThunk(
   "league/getAllSchedules",
   async (params = {}, { rejectWithValue }) => {
@@ -358,9 +377,15 @@ export const deleteLeague = createAsyncThunk(
 
 export const getLeagueSummary = createAsyncThunk(
   "league/getLeagueSummary",
-  async (leagueId, { rejectWithValue }) => {
+  async ({ leagueId, categoryType }, { rejectWithValue }) => {
     try {
-      const response = await ownerApi.get(`${GET_LEAGUE_SUMMARY}?leagueId=${leagueId}`);
+      const queryParams = new URLSearchParams();
+      queryParams.append('leagueId', leagueId);
+      if (categoryType) {
+        queryParams.append('categoryType', categoryType);
+      }
+
+      const response = await ownerApi.get(`${GET_LEAGUE_SUMMARY}?${queryParams.toString()}`);
       if (response?.status === 200) {
         return response.data?.data || null;
       }
@@ -411,7 +436,7 @@ export const getScheduleDates = createAsyncThunk(
       if (leagueId) queryParams.append('leagueId', leagueId);
       if (roundType) queryParams.append('roundType', roundType);
       if (categoryType) queryParams.append('categoryType', categoryType);
-      
+
       const response = await ownerApi.get(`${GET_SCHEDULE_DATES}?${queryParams.toString()}`);
       if (response?.status === 200) {
         return response.data?.data || [];
@@ -443,6 +468,21 @@ export const saveTeams = createAsyncThunk(
         showError(error || error?.response?.data?.message || "Failed to save teams");
       }
       return rejectWithValue(error?.response?.data?.message || "Failed to save teams");
+    }
+  }
+);
+
+export const getLeagueLeaderboard = createAsyncThunk(
+  "league/getLeagueLeaderboard",
+  async (leagueId, { rejectWithValue }) => {
+    try {
+      const response = await ownerApi.get(`${GET_LEAGUE_LEADERBOARD}/${leagueId}/leaderboard`);
+      if (response?.status === 200) {
+        return response.data?.data || null;
+      }
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      return rejectWithValue(error?.response?.data?.message || error?.message || "Failed to fetch leaderboard");
     }
   }
 );

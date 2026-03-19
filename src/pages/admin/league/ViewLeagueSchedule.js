@@ -9,6 +9,7 @@ import { IoLocationOutline } from 'react-icons/io5';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { DataLoading } from '../../../helpers/loading/Loaders';
+import PointsTable from './PointsTable';
 
 const VSMatchCard = ({ match, category, roundType }) => {
   const getPlayerAvatar = (player) => {
@@ -547,17 +548,7 @@ const ViewLeagueSchedule = () => {
               )}
 
               {activeTab === 1 && (
-                <Card className="text-center py-5 border-0 shadow-sm">
-                  <Card.Body>
-                    <div style={{ fontSize: '48px', color: '#dee2e6', marginBottom: '16px' }}>
-                      🏆
-                    </div>
-                    <h5 className="mb-2">Points Table</h5>
-                    <p className="text-muted mb-0">
-                      Points table functionality coming soon...
-                    </p>
-                  </Card.Body>
-                </Card>
+                <PointsTable leagueId={leagueId} />
               )}
 
               {activeTab === 2 && <TournamentBracket />}

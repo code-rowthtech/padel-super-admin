@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createLeague, getLeagues, getLeaguesIDS, updateLeague, getStates, getClubsWithState, getSponsorCategories, getLeagueById, deleteLeague, getLeagueClubs, getClubTeams, getAllSchedules, saveSchedule, exportLeagueSchedulesPDF, getLeagueSummary, getScheduleDates } from "./thunk";
+import { createLeague, getLeagues, getLeaguesIDS, updateLeague, getStates, getClubsWithState, getSponsorCategories, getLeagueById, deleteLeague, getLeagueClubs, getClubTeams, getAllSchedules, saveSchedule, updateSchedule, exportLeagueSchedulesPDF, getLeagueSummary, getScheduleDates, getLeagueLeaderboard } from "./thunk";
 
 const initialState = {
   leagues: [],
@@ -22,6 +22,8 @@ const initialState = {
   leagueSummary: null,
   scheduleDates: [],
   loadingScheduleDates: false,
+  leaderboard: null,
+  loadingLeaderboard: false,
   error: null,
 };
 
@@ -178,6 +180,17 @@ const leagueSlice = createSlice({
         state.loadingSchedules = false;
         state.error = action.payload;
       })
+      .addCase(updateSchedule.pending, (state) => {
+        state.loadingSchedules = true;
+        state.error = null;
+      })
+      .addCase(updateSchedule.fulfilled, (state, action) => {
+        state.loadingSchedules = false;
+      })
+      .addCase(updateSchedule.rejected, (state, action) => {
+        state.loadingSchedules = false;
+        state.error = action.payload;
+      })
       .addCase(exportLeagueSchedulesPDF.pending, (state) => {
         state.loadingExport = true;
         state.error = null;
@@ -211,6 +224,18 @@ const leagueSlice = createSlice({
       })
       .addCase(getScheduleDates.rejected, (state, action) => {
         state.loadingScheduleDates = false;
+        state.error = action.payload;
+      })
+      .addCase(getLeagueLeaderboard.pending, (state) => {
+        state.loadingLeaderboard = true;
+        state.error = null;
+      })
+      .addCase(getLeagueLeaderboard.fulfilled, (state, action) => {
+        state.loadingLeaderboard = false;
+        state.leaderboard = action.payload;
+      })
+      .addCase(getLeagueLeaderboard.rejected, (state, action) => {
+        state.loadingLeaderboard = false;
         state.error = action.payload;
       });
   },

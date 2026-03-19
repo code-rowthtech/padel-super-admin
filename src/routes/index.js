@@ -24,6 +24,7 @@ const LeagueSchedule = React.lazy(() => import("../pages/admin/league/LeagueSche
 // const TeamCreation = React.lazy(() => import("../pages/admin/league/TeamCreation"));
 const ViewLeagueSchedule = React.lazy(() => import("../pages/admin/league/ViewLeagueSchedule"));
 const Notifications = React.lazy(() => import("../pages/admin/notifications/Notifications"));
+const AppUsers = React.lazy(() => import("../pages/admin/appUsers/AppUsers"));
 
 
 const NotFound = React.lazy(() => import("../pages/error/NotFound"));
@@ -116,6 +117,10 @@ const AllRoutes = () => {
             {
               path: "wallet",
               element: LoadComponent(Wallet),
+            },
+            {
+              path: "app-users",
+              element: LoadComponent(AppUsers),
             },
             {
               path: "notifications",

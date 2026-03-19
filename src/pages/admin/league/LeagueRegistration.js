@@ -62,10 +62,16 @@ const LeagueRegistration = () => {
       return acc;
     }, {});
 
+    const hasIncomplete = categoryLimits.some(limit => {
+      const registered = registeredPlayers.find(r => r.categoryType === limit.categoryType)?.players?.length || 0;
+      return registered < limit.maxParticipants;
+    });
+
     return {
       name: club.clubId?.clubName || 'Unknown Club',
       levels,
-      categories
+      categories,
+      hasIncomplete
     };
   }).filter(club => club.name !== 'Unknown Club');
 
@@ -144,7 +150,15 @@ const LeagueRegistration = () => {
                 }}
               >
                 <Card.Body className="p-3">
-                  <div className="fw-semibold mb-0" style={{ color: selectedClub === idx ? "white" : "#1F41BB" }}>{club.name}</div>
+                  <div className="fw-semibold mb-0 d-flex align-items-center justify-content-between gap-2" style={{ color: selectedClub === idx ? "white" : "#1F41BB" }}>
+                    {club.name}
+                    {club.hasIncomplete && (
+                      <span style={{
+                        width: 12, height: 12, borderRadius: '50%', backgroundColor: '#ef4444', flexShrink: 0,
+                        animation: 'blink 1.8s ease-in-out infinite'
+                      }} />
+                    )}
+                  </div>
                 </Card.Body>
                 {selectedClub === idx && (
                   <BsFillCaretRightFill
