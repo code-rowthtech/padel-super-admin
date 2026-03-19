@@ -282,7 +282,6 @@ const BasicInformation = ({ onNext }) => {
         } else {
             const owner = getOwnerFromSession();
             formDataPayload.append('ownerId', owner?.ownerId || owner?._id);
-            formDataPayload.append('status', 'draft');
             const result = await dispatch(createLeague(formDataPayload));
             if (result.meta.requestStatus === 'fulfilled') {
                 const newLeagueId = result.payload?.data?._id || result.payload?.id;

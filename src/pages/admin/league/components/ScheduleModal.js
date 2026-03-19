@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Modal, Form, Button, InputGroup } from 'react-bootstrap';
+import { Modal, Form, Button, InputGroup, Row, Col } from 'react-bootstrap';
 import { MdClose } from 'react-icons/md';
 import { IoCalendarClearOutline } from "react-icons/io5";
 
@@ -13,6 +13,7 @@ const ScheduleModal = ({
   formCategory,
   setFormCategory,
   availableCategories = [],
+  alreadyScheduledCategories = [],
   isHomeVenue,
   setIsHomeVenue,
   selectedRound,
@@ -20,7 +21,8 @@ const ScheduleModal = ({
   onCreateDate,
   onDateChange,
   showConfirmationModal,
-  isCreatingSchedule = false
+  isCreatingSchedule = false,
+  isLocked = false
 }) => {
   const dateInputRef = useRef(null);
 
@@ -57,38 +59,53 @@ const ScheduleModal = ({
                 className='py-3'
                 defaultValue={getDateInputValue()}
                 onChange={onDateChange}
+                disabled={isLocked}
                 style={{
                   borderRadius: '6px',
                   border: '1px solid #ddd',
-                  backgroundColor: "rgba(204, 210, 221, 0.43)",
-                  boxShadow: "none"
+                  backgroundColor: isLocked ? 'rgba(204, 210, 221, 0.7)' : 'rgba(204, 210, 221, 0.43)',
+                  boxShadow: "none",
+                  cursor: isLocked ? 'not-allowed' : 'auto'
                 }}
               />
             </InputGroup>
+            {isLocked && <small style={{ color: '#888', fontSize: '11px' }}>Date is locked while unsaved matches exist.</small>}
           </Form.Group>
 
-          {/* Show category dropdown only for finals */}
+          {/* Show category multiselect only for finals */}
           {selectedRound === 'final' && (
             <Form.Group className="mb-3">
               <Form.Label style={{ fontWeight: '600', color: '#1a1a1a', marginBottom: '8px' }}>Category</Form.Label>
-              <Form.Select
-                value={formCategory}
-                className='py-3'
-                onChange={(e) => setFormCategory(e.target.value)}
+              <div
                 style={{
                   borderRadius: '6px',
                   border: '1px solid #ddd',
                   backgroundColor: "rgba(204, 210, 221, 0.43)",
-                  boxShadow: "none"
+                  padding: '10px 14px',
                 }}
               >
-                <option value="">Select Category</option>
-                {availableCategories.map((cat) => (
-                  <option key={cat._id} value={cat._id}>
-                    {cat.categoryType}
-                  </option>
-                ))}
-              </Form.Select>
+                <Row>
+                  {availableCategories.map((cat) => (
+                    <Col key={cat._id} xs={4}>
+                      <Form.Check
+                        type="checkbox"
+                        id={`cat-${cat._id}`}
+                        label={cat.categoryType}
+                        checked={formCategory.includes(cat._id)}
+                        disabled={alreadyScheduledCategories.includes(cat._id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFormCategory([...formCategory, cat._id]);
+                          } else {
+                            setFormCategory(formCategory.filter(id => id !== cat._id));
+                          }
+                        }}
+                        style={{ fontSize: '14px', opacity: alreadyScheduledCategories.includes(cat._id) ? 0.5 : 1 }}
+                      />
+                    </Col>
+                  ))}
+                </Row>
+              </div>
             </Form.Group>
           )}
 
@@ -98,11 +115,13 @@ const ScheduleModal = ({
               value={formVenue}
               className='py-3'
               onChange={(e) => setFormVenue(e.target.value)}
+              disabled={isLocked}
               style={{
                 borderRadius: '6px',
                 border: '1px solid #ddd',
-                backgroundColor: "rgba(204, 210, 221, 0.43)",
-                boxShadow: "none"
+                backgroundColor: isLocked ? 'rgba(204, 210, 221, 0.7)' : 'rgba(204, 210, 221, 0.43)',
+                boxShadow: "none",
+                cursor: isLocked ? 'not-allowed' : 'auto'
               }}
             >
               <option value="">Select Venue</option>
@@ -112,6 +131,7 @@ const ScheduleModal = ({
                 </option>
               ))}
             </Form.Select>
+            {isLocked && <small style={{ color: '#888', fontSize: '11px' }}>Venue is locked while unsaved matches exist.</small>}
           </Form.Group>
           {/* {selectedRound === 'final' && (
             <div className="mb-4">
@@ -164,7 +184,7 @@ const ScheduleModal = ({
               fontWeight: '600'
             }}
             onClick={onCreateDate}
-            disabled={!formDate || !formVenue || (selectedRound === 'final' && !formCategory) || isCreatingSchedule}
+            disabled={!formDate || !formVenue || (selectedRound === 'final' && formCategory.length === 0) || isCreatingSchedule}
           >
             {isCreatingSchedule ? (
               <>

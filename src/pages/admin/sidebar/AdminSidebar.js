@@ -8,6 +8,7 @@ import {
   FaTrophy,
   FaChevronDown,
   FaChevronUp,
+  FaUsers,
 } from "react-icons/fa";
 import { MdNotificationsActive } from "react-icons/md";
 
@@ -610,6 +611,60 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               }}
             >
               Wallet
+            </div>
+          )}
+        </div>
+
+        {/* App Users */}
+        <div
+          className="position-relative"
+          onMouseEnter={() =>
+            isCollapsed && window.innerWidth > 768 && setHoveredItem("appUsers")
+          }
+          onMouseLeave={() => setHoveredItem(null)}
+        >
+          <NavLink
+            to="/admin/app-users"
+            end
+            className={
+              isCollapsed && window.innerWidth > 768
+                ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
+                : linkClasses(isActivePath("/admin/app-users"))
+            }
+            style={() => ({
+              backgroundColor: isActivePath("/admin/app-users") ? "rgba(31, 65, 187, 0.15)" : "transparent",
+              color: "#CCD2DD",
+              fontSize: "15px",
+              fontWeight: "500",
+              fontFamily: "Poppins",
+              boxShadow: isActivePath("/admin/app-users") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
+              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+            })}
+            onClick={() => window.innerWidth <= 768 && onClose()}
+          >
+            <FaUsers
+              className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
+              size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
+            />
+            {(!isCollapsed || window.innerWidth <= 768) && "App Users"}
+          </NavLink>
+          {isCollapsed && window.innerWidth > 768 && hoveredItem === "appUsers" && (
+            <div
+              className="position-absolute bg-dark px-2 py-1 rounded"
+              style={{
+                left: "75px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                zIndex: 1200,
+                fontSize: "15px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+                color: "#CCD2DD",
+                whiteSpace: "nowrap",
+              }}
+            >
+              App Users
             </div>
           )}
         </div>
