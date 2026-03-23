@@ -472,6 +472,7 @@ const Booking = () => {
                         <th className="d-none d-md-table-cell">Contact</th>
                         <th>Booking Date</th>
                         <th>Club Name</th>
+                        <th>Game Type</th>
                         <th className="d-none d-lg-table-cell">Court No</th>
                         <th className="d-lg-none">Court</th>
                         <th>Status</th>
@@ -536,7 +537,8 @@ const Booking = () => {
                                       overlay={<Tooltip>{allTimes}</Tooltip>}
                                     >
                                       <span className="text-muted small ms-2">
-                                        {displayTime}
+                                        {/* {displayTime} */}
+                                        {item?.startTime + ' - ' + item?.endTime}
                                       </span>
                                     </OverlayTrigger>
                                   ) : (
@@ -554,6 +556,13 @@ const Booking = () => {
                           >
                             {/* ✅ SUPER ADMIN: Handle both old format and new format */}
                             { item?.club?.clubName || item?.clubName || "-"}
+                          </td>
+                           <td
+                            className="text-truncate text-capitalize"
+                            style={{ maxWidth: "80px" }}
+                          >
+                            {/* ✅ SUPER ADMIN: Handle both old format and new format */}
+                            { item?.categoryId?.name || "-"}
                           </td>
                           <td
                             className="text-truncate"
