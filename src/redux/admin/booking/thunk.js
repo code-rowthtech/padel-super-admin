@@ -30,6 +30,8 @@ export const getBookingByStatus = createAsyncThunk(
         if (params?.paymentStatus) query.append("paymentStatus", params?.paymentStatus);
         if (params.startDate) query.append("startDate", params.startDate);
         if (params.endDate) query.append("endDate", params.endDate);
+        if (params.search) query.append("search", params.search);
+        if (params.category) query.append("category", params.category);
         if (params.page) query.append("page", params.page);
         if (params.limit) query.append("limit", params.limit);
 
@@ -111,6 +113,8 @@ export const bookingCount = createAsyncThunk(
         ...(data?.ownerId ? { ownerId: data.ownerId } : {}),
         ...(data?.startDate ? { startDate: data.startDate } : {}),
         ...(data?.endDate ? { endDate: data.endDate } : {}),
+        ...(data?.search ? { search: data.search } : {}),
+        ...(data?.category ? { category: data.category } : {}),
       };
 
       const allRes = await ownerApi.get(

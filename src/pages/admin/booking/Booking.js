@@ -6,11 +6,12 @@ import {
   Table,
   OverlayTrigger,
   Tooltip,
+  Form,
 } from "react-bootstrap";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { MdOutlineDateRange } from "react-icons/md";
-import { FaTimes } from "react-icons/fa";
+import { FaTimes, FaSearch } from "react-icons/fa";
 import { AppBar, Tabs, Tab, Box } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -31,12 +32,10 @@ import { formatDate, formatTime } from "../../../helpers/Formatting";
 import { MdOutlineCancel } from "react-icons/md";
 import { resetBookingData } from "../../../redux/admin/booking/slice";
 import Pagination from "../../../helpers/Pagination";
-import { resetOwnerClub } from "../../../redux/admin/manualBooking/slice";
 import { useSuperAdminContext } from "../../../contexts/SuperAdminContext";
 
 const Booking = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const { selectedOwnerId } = useSuperAdminContext();
   const Owner = getOwnerFromSession();
   const ownerData = Owner?.user || Owner;
@@ -55,6 +54,20 @@ const Booking = () => {
   const [dateRange, setDateRange] = useState([null, null]);
   const [startDate, endDate] = dateRange;
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [category, setCategory] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch, category]);
 
   const {
     getBookingData,
@@ -80,13 +93,14 @@ const Booking = () => {
 
   const defaultLimit = 20;
 
+  // Effect for fetching bookings when status, page, or filters change
   useEffect(() => {
-    const payload: any = {
-      // ✅ SUPER ADMIN: Only include ownerId if explicitly set (not null)
-      // If ownerId is null (All Owners selected), don't include it in payload
+    const payload = {
       ...(ownerId ? { ownerId } : {}),
       page: currentPage,
       limit: defaultLimit,
+      ...(debouncedSearch ? { search: debouncedSearch } : {}),
+      ...(category ? { category } : {}),
     };
 
     if (tab !== 0) {
@@ -105,16 +119,40 @@ const Booking = () => {
       payload.endDate = formatToYYYYMMDD(endDate);
     }
 
-    // ✅ SUPER ADMIN: Fetch counts for global view or selected owner
-    dispatch(
-      bookingCount({
-        ownerId: ownerId || undefined,
-        ...(sendDate ? { startDate: payload.startDate, endDate: payload.endDate } : {}),
-      })
-    );
     dispatch(resetBookingData());
     dispatch(getBookingByStatus(payload));
-  }, [tab, currentPage, dispatch, ownerId, sendDate, isSuperAdmin]);
+  }, [
+    tab,
+    currentPage,
+    ownerId,
+    debouncedSearch,
+    category,
+    startDate,
+    endDate,
+    dispatch,
+  ]);
+
+  // Effect for fetching counts (only when filters or owner change)
+  useEffect(() => {
+    const countPayload = {
+      ownerId: ownerId || undefined,
+      ...(debouncedSearch ? { search: debouncedSearch } : {}),
+      ...(category ? { category } : {}),
+    };
+
+    if (sendDate) {
+      const formatToYYYYMMDD = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      };
+      countPayload.startDate = formatToYYYYMMDD(startDate);
+      countPayload.endDate = formatToYYYYMMDD(endDate);
+    }
+
+    dispatch(bookingCount(countPayload));
+  }, [ownerId, debouncedSearch, category, startDate, endDate, dispatch]);
 
   useEffect(() => {
     if (tabCount) {
@@ -308,8 +346,51 @@ const Booking = () => {
               </AppBar>
             </Box>
 
-            <div className="d-flex align-items-center gap-2 col-md-6 col-12 d-flex align-items-center justify-content-end">
-              {!showDatePicker && !startDate && !endDate ? (
+            <div className="d-flex align-items-center gap-2 col-md-8 col-12 d-flex align-items-center justify-content-end flex-wrap">
+              <div className="d-flex align-items-center gap-2 flex-grow-1 flex-md-grow-0 mb-2 mb-md-0">
+                <div style={{ position: "relative", width: "100%", maxWidth: "250px" }}>
+                  <Form.Control
+                    type="text"
+                    placeholder="Search bookings..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="ps-5"
+                    style={{
+                      height: "38px",
+                      borderRadius: "8px",
+                      fontSize: "14px",
+                      border: "1px solid #dee2e6",
+                      backgroundColor: "#FAFBFF",
+                    }}
+                  />
+                  <FaSearch
+                    size={14}
+                    className="text-muted"
+                    style={{ position: "absolute", left: "15px", top: "12px" }}
+                  />
+                </div>
+
+                <Form.Select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  style={{
+                    height: "38px",
+                    width: "120px",
+                    borderRadius: "8px",
+                    fontSize: "14px",
+                    border: "1px solid #dee2e6",
+                    backgroundColor: "#FAFBFF",
+                    cursor: "pointer",
+                  }}
+                >
+                  <option value="">Category</option>
+                  <option value="padel">Padel</option>
+                  <option value="pickle">Pickle</option>
+                </Form.Select>
+              </div>
+
+              <div className="d-flex align-items-center gap-2 mb-2 mb-md-0">
+                {!showDatePicker && !startDate && !endDate ? (
                 <div
                   className="d-flex align-items-center justify-content-center rounded p-2"
                   style={{
@@ -368,6 +449,22 @@ const Booking = () => {
                     </div>
                   )}
                 </div>
+              )}
+            </div>
+
+              {(searchTerm || category || startDate || endDate) && (
+                <button
+                  onClick={() => {
+                    setSearchTerm("");
+                    setCategory("");
+                    setDateRange([null, null]);
+                    setCurrentPage(1);
+                  }}
+                  className="btn btn-link text-danger p-0 text-decoration-none small fw-medium"
+                  style={{ fontSize: "13px" }}
+                >
+                  Clear Filters
+                </button>
               )}
 
               {/* <button
@@ -562,7 +659,7 @@ const Booking = () => {
                             style={{ maxWidth: "80px" }}
                           >
                             {/* ✅ SUPER ADMIN: Handle both old format and new format */}
-                            { item?.categoryId?.name || "-"}
+                            { item?.userId?.category || "-"}
                           </td>
                           <td
                             className="text-truncate"

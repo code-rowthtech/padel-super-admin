@@ -461,7 +461,6 @@ export const saveTeams = createAsyncThunk(
         return rejectWithValue(res?.data?.message || "Failed to save teams");
       }
     } catch (error) {
-      console.log({ error })
       if (error === 'Cannot create teams: 1 player(s) need to register and login to the mobile app before they can be assigned to teams.') {
         showError("The player has not installed the Swoot app yet. Please ask them to install and log in to the app.")
       } else {
