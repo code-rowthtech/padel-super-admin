@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { FaAngleRight } from 'react-icons/fa';
 
 const CustomClubSelector = ({
@@ -22,14 +23,40 @@ const CustomClubSelector = ({
   const dropdownId = `club_${matchId}_${venue}`;
   const isOpen = openDropdown === dropdownId;
   const [hoveredClub, setHoveredClub] = useState(currentClub || null);
+  const toggleRef = useRef(null);
+  const dropdownRef = useRef(null);
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
-  // Pre-fetch all clubs' players when dropdown opens
+  // Pre-fetch all clubs' players when dropdown opens and calculate pos
   useEffect(() => {
     if (isOpen) {
       availableClubs.forEach(club => fetchPlayersForClub(club.name, categoryType));
       setHoveredClub(currentClub || availableClubs[0]?.name || null);
+      
+      if (toggleRef.current) {
+        const rect = toggleRef.current.getBoundingClientRect();
+        setDropdownPos({
+          top: rect.bottom + window.scrollY + 5,
+          left: rect.left + window.scrollX
+        });
+      }
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    const handleScroll = (e) => {
+      // Don't close if the scroll originated from within the dropdown itself
+      if (isOpen && dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setOpenDropdown(null);
+      }
+    };
+    if (isOpen) {
+      window.addEventListener('scroll', handleScroll, true);
+    }
+    return () => {
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, [isOpen, setOpenDropdown]);
 
   const hoveredClubObj = availableClubs.find(c => c.name === hoveredClub);
   const hoveredKey = hoveredClubObj ? `${hoveredClubObj.id}_${categoryType}` : null;
@@ -71,8 +98,8 @@ const CustomClubSelector = ({
   const usedPlayers = getUsedPlayersForDate(matchId, venue);
   const selectedPlayerIds = selectedPlayers.map(p => p._id);
 
-  const dropdownPanel = isOpen && (
-    <div style={{ position: 'absolute', top: '100%', left: 0, zIndex: 1000, backgroundColor: 'white', border: '1px solid #ddd', borderRadius: '8px', boxShadow: '0 4px 16px rgba(0,0,0,0.15)', display: 'flex', minWidth: '460px' }}>
+  const dropdownPanel = isOpen && typeof window !== 'undefined' ? createPortal(
+    <div ref={dropdownRef} style={{ position: 'absolute', top: dropdownPos.top, left: dropdownPos.left, zIndex: 99999, backgroundColor: 'white', border: '1px solid #ddd', borderRadius: '8px', boxShadow: '0 4px 16px rgba(0,0,0,0.15)', display: 'flex', minWidth: '460px' }}>
       <div style={{ minWidth: '200px', borderRight: '1px solid #eee', maxHeight: '280px', overflowY: 'auto' }}>
         {availableClubs.map((clubItem, idx) => {
           const clubKey = `${clubItem.id}_${categoryType}`;
@@ -131,13 +158,14 @@ const CustomClubSelector = ({
           <div style={{ fontSize: '12px', color: '#bbb', textAlign: 'center', padding: '20px' }}>Hover a club to see players</div>
         )}
       </div>
-    </div>
-  );
+    </div>,
+    document.body
+  ) : null;
 
   if (currentClub) {
     const club = availableClubs.find(c => c.name === currentClub);
     return (
-      <div style={{ position: 'relative' }}>
+      <div style={{ position: 'relative' }} ref={toggleRef}>
         <div onClick={handleDropdownClick} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{ width: '34px', height: '34px', borderRadius: '50%', border: venue === 'home' ? '2px solid rgba(31, 65, 187, 1)' : 'none', background: venue === 'home' ? 'transparent' : '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold', color: venue === 'home' ? 'rgba(31, 65, 187, 1)' : 'white' }}>
             {club?.logo || (venue === 'home' ? 'H' : 'A')}
@@ -158,7 +186,7 @@ const CustomClubSelector = ({
   }
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div style={{ position: 'relative' }} ref={toggleRef}>
       <div onClick={handleDropdownClick} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
         <div style={{ width: '34px', height: '34px', borderRadius: '50%', border: '2px solid rgba(31, 65, 187, 1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', color: 'rgba(31, 65, 187, 1)', fontWeight: 'bold' }}>+</div>
         <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937' }}>Add Club</div>

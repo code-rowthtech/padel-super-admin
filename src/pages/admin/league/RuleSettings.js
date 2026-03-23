@@ -41,7 +41,7 @@ const RuleSettings = ({ onBack }) => {
             settings: { ...DEFAULT_SETTINGS }
         },
         final: {
-            status: false,
+            status: true,
             setsFormat: '',
             settings: { ...DEFAULT_SETTINGS }
         }
@@ -85,7 +85,7 @@ const RuleSettings = ({ onBack }) => {
                     settings: { ...DEFAULT_SETTINGS }
                 },
                 final: {
-                    status: false,
+                    status: true,
                     setsFormat: '',
                     settings: { ...DEFAULT_SETTINGS }
                 }
@@ -165,7 +165,7 @@ const RuleSettings = ({ onBack }) => {
                     settings: { ...DEFAULT_SETTINGS }
                 },
                 final: {
-                    status: false,
+                    status: true,
                     setsFormat: '',
                     settings: { ...DEFAULT_SETTINGS }
                 }
@@ -601,7 +601,7 @@ const RuleSettings = ({ onBack }) => {
                                 <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '8px' }}>Bounty Criteria {bounty > 0 && <span className="text-danger">*</span>}</Form.Label>
                                 <Form.Control 
                                     type="text" 
-                                    placeholder="e.g., 6-0" 
+                                    placeholder="Enter Bounty Criteria" 
                                     value={bountyCondition} 
                                     isInvalid={!!errors.bountyCondition}
                                     onChange={(e) => {
