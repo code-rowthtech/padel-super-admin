@@ -1492,7 +1492,7 @@ const LeagueSchedule = () => {
                                             ) : (
                                               <>
                                                 <div style={{ width: '34px', height: '34px', borderRadius: '50%', border: '2px solid #ccc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', color: '#ccc', fontWeight: 'bold' }}>+</div>
-                                                <div style={{ fontWeight: '600', fontSize: '13px', color: '#ccc' }}>Select Home Club First</div>
+                                                <div style={{ fontWeight: '600', fontSize: '13px', color: '#ccc' }}>Select Team 1 First</div>
                                                 <div style={{ width: '17px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                                   <FaAngleRight size={17} color='#ccc' style={{ opacity: 0.5 }} />
                                                 </div>
@@ -1598,11 +1598,11 @@ const LeagueSchedule = () => {
                         <thead>
                           <tr style={{ backgroundColor: '#e8e8e8' }}>
                             <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600', color: '#1a1a1a', fontSize: '13px' }}>Match No.</th>
-                            <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600', color: '#1a1a1a', fontSize: '13px' }}>Home</th>
+                            <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600', color: '#1a1a1a', fontSize: '13px' }}>Team 1</th>
                             <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600', color: '#1a1a1a', fontSize: '13px' }}>
                               <div className='rounded-3' style={{ width: '34px', height: '34px', background: 'rgba(37, 37, 37, 1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '12px', margin: '0 auto' }}>VS</div>
                             </th>
-                            <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600', color: '#1a1a1a', fontSize: '13px' }}>Away</th>
+                            <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600', color: '#1a1a1a', fontSize: '13px' }}>Team 2</th>
                             <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600', color: '#1a1a1a', fontSize: '13px' }}>Date</th>
                             <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600', color: '#1a1a1a', fontSize: '13px' }}>Venue</th>
                             <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600', color: '#1a1a1a', fontSize: '13px' }}>Start Time</th>
