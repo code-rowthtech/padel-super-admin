@@ -60,6 +60,7 @@ const ScheduleModal = ({
                 defaultValue={getDateInputValue()}
                 onChange={onDateChange}
                 disabled={isLocked}
+                min={new Date().toISOString().split("T")[0]}
                 style={{
                   borderRadius: '6px',
                   border: '1px solid #ddd',
