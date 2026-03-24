@@ -1247,8 +1247,9 @@ const LeagueSchedule = () => {
                   className="form-select form-select-sm league-select"
                   value={selectedClubId}
                   onChange={(e) => setSelectedClubId(e.target.value)}
+                  disabled={loadingClubs}
                 >
-                  <option value="">Select Club</option>
+                  <option value="">{loadingClubs ? 'Loading...' : "Select Club"}</option>
                   {clubs?.map((club) => (
                     <option key={club?.id} value={club?.id}>
                       {club?.name}
@@ -1520,6 +1521,7 @@ const LeagueSchedule = () => {
                                                 setMatchesByCategory(prev => ({ ...prev, [category._id]: updated }));
                                               }
                                             }}
+                                            min={new Date().toISOString().split("T")[0]}
                                             className="form-control form-control-sm"
                                             style={{ width: '140px', margin: '0 auto' }}
                                           />
@@ -1671,6 +1673,7 @@ const LeagueSchedule = () => {
                                                       setMatchesByCategory(prev => ({ ...prev, [category._id]: updated }));
                                                     }
                                                   }}
+                                                  min={new Date().toISOString().split("T")[0]}
                                                   className="form-control form-control-sm"
                                                   style={{ width: '140px', margin: '0 auto' }}
                                                 />
@@ -1963,6 +1966,7 @@ const LeagueSchedule = () => {
                                                       setMatchesByCategory(prev => ({ ...prev, [category._id]: updated }));
                                                     }
                                                   }}
+                                                  min={new Date().toISOString().split("T")[0]}
                                                   className="form-control form-control-sm"
                                                   style={{ width: '140px', margin: '0 auto' }}
                                                 />
