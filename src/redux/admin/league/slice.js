@@ -16,6 +16,7 @@ const initialState = {
   loadingClubs: false,
   loadingTeams: false,
   schedules: [],
+  categorySummary: [],
   loadingSchedules: false,
   loadingExport: false,
   loadingSummary: false,
@@ -163,7 +164,8 @@ const leagueSlice = createSlice({
       })
       .addCase(getAllSchedules.fulfilled, (state, action) => {
         state.loadingSchedules = false;
-        state.schedules = action.payload;
+        state.schedules = action.payload?.data || [];
+        state.categorySummary = action.payload?.categorySummary || [];
       })
       .addCase(getAllSchedules.rejected, (state, action) => {
         state.loadingSchedules = false;

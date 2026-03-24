@@ -305,7 +305,7 @@ export const getAllSchedules = createAsyncThunk(
       const url = `/api/league-schedules/getAllSchedules${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
       const response = await ownerApi.get(url);
       if (response?.status === 200) {
-        return response.data?.data || [];
+        return response.data || {};
       }
       return rejectWithValue(response?.data?.message);
     } catch (error) {
@@ -377,12 +377,15 @@ export const deleteLeague = createAsyncThunk(
 
 export const getLeagueSummary = createAsyncThunk(
   "league/getLeagueSummary",
-  async ({ leagueId, categoryType }, { rejectWithValue }) => {
+  async ({ leagueId, categoryType, roundType }, { rejectWithValue }) => {
     try {
       const queryParams = new URLSearchParams();
       queryParams.append('leagueId', leagueId);
       if (categoryType) {
         queryParams.append('categoryType', categoryType);
+      }
+      if (roundType) {
+        queryParams.append('roundType', roundType === 'regularRound' ? 'regular' : roundType);
       }
 
       const response = await ownerApi.get(`${GET_LEAGUE_SUMMARY}?${queryParams.toString()}`);

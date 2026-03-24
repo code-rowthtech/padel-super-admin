@@ -19,7 +19,7 @@ import { ButtonLoading } from "../../../helpers/loading/Loaders";
 import { useSuperAdminContext } from "../../../contexts/SuperAdminContext";
 import { SUPER_ADMIN_GET_ALL_OWNERS } from "../../../helpers/api/apiEndpoint";
 import { Form } from "react-bootstrap";
-import { IoTennisballOutline } from "react-icons/io5";
+import BallLogo from '../../../assets/images/BallLogo.png';
 
 const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   const dispatch = useDispatch();
@@ -97,18 +97,15 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
         onClick={() => navigate('/admin/dashboard')}
       >
         <div className={`position-relative ${isCollapsed ? "" : "me-3"}`}>
-          <div
+          {/* <div
             className="rounded-circle p-3"
             style={{
               background: 'rgb(31, 65, 187)',
               boxShadow: '0 4px 12px rgba(31, 65, 187, 0.3)'
             }}
-          >
-            <IoTennisballOutline
-              size={isCollapsed ? 24 : window.innerWidth <= 768 ? 110 : 80}
-              color="white"
-            />
-          </div>
+          > */}
+            <img src={BallLogo} alt="Swoot App" className="rounded-circle" style={{ width: isCollapsed ? 35 : 75, height: isCollapsed ? 35 : 75 }} />
+          {/* </div> */}
         </div>
       </div>
 

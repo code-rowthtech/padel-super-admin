@@ -1,6 +1,8 @@
 import React from 'react';
 import { Col } from 'react-bootstrap';
 import { BiExport } from 'react-icons/bi';
+import { exportLeagueSchedulesPDF } from '../../../../redux/admin/league/thunk';
+import { useDispatch } from 'react-redux';
 
 const ScheduleSidebar = ({
   loadingSummary,
@@ -10,8 +12,10 @@ const ScheduleSidebar = ({
   selectedScheduleDate,
   loadingExport,
   onDateSelection,
-  onExport
+  leagueId,
+  setSelectedRound
 }) => {
+  const dispatch = useDispatch();
   return (
     <Col md={2} className='d-flex flex-column border-end' style={{ backgroundColor: '#FBFCFE', padding: '16px', gap: '12px', overflowY: 'auto', maxHeight: 'calc(100vh - 200px)' }}>
       <div className="d-flex justify-content-between align-items-center mb-1">
@@ -38,7 +42,10 @@ const ScheduleSidebar = ({
                     <div
                       key={idx}
                       className='border rounded-3'
-                      onClick={() => onDateSelection(dateItem.date)}
+                      onClick={() => {
+                        onDateSelection(dateItem.date);
+                        setSelectedRound('final')
+                      }}
                       style={{
                         background: isSelected ? 'rgba(31, 65, 187, 0.1)' : isPast ? 'rgba(248, 249, 250, 1)' : isToday ? 'rgba(255, 243, 205, 1)' : 'rgba(232, 244, 253, 1)',
                         padding: '12px', textAlign: 'center', cursor: 'pointer', transition: 'all 0.2s ease',
@@ -99,7 +106,10 @@ const ScheduleSidebar = ({
                           {new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                         </span>
                         <div
-                          onClick={e => { e.stopPropagation(); onExport(); }}
+                          onClick={e => {
+                            e.stopPropagation();
+                            dispatch(exportLeagueSchedulesPDF({ leagueId: leagueId, startDate: item.date, endDate: item.date }))
+                          }}
                           style={{ width: '24px', height: '24px', borderRadius: '4px', background: 'rgba(31, 65, 187, 1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: loadingExport ? 'not-allowed' : 'pointer', opacity: loadingExport ? 0.6 : 1, pointerEvents: loadingExport ? 'none' : 'auto' }}
                         >
                           <BiExport size={14} />
@@ -110,7 +120,9 @@ const ScheduleSidebar = ({
                           <p className='mb-0'>Matches: {String(item.matchCount).padStart(2, '0')}</p>
                         </div>
                         <div className='mb-1 text-end' style={{ fontSize: '12px', color: '#666' }}>
-                          <p className='mb-0'>{item.venueName}</p>
+                          <p className='mb-0'>
+                            {item?.venues?.map(v => v?.venueName).join(', ')}
+                          </p>
                         </div>
                       </div>
                     </div>
