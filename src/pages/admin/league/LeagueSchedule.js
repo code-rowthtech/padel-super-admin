@@ -13,7 +13,7 @@ import ConfirmationModal from './components/ConfirmationModal';
 
 const LeagueSchedule = () => {
   const dispatch = useDispatch();
-  const { leagues, leagueClubs, loadingClubs, loadingSchedules, currentLeague, leagueSummary, loadingSummary, loadingExport, scheduleDates, loadingScheduleDates, schedules } = useSelector(state => state.league);
+  const { leagues, leagueClubs, loadingClubs, loadingSchedules, currentLeague, leagueSummary, loadingSummary, loadingExport, scheduleDates, loadingScheduleDates, schedules, categorySummary } = useSelector(state => state.league);
   const [activeTab, setActiveTab] = useState('')
   const [selectedRound, setSelectedRound] = useState('regularRound')
   const [showModal, setShowModal] = useState(false)
@@ -22,6 +22,7 @@ const LeagueSchedule = () => {
   const [formCategory, setFormCategory] = useState([])
   const [isHomeVenue, setIsHomeVenue] = useState(true)
   const [selectedLeagueId, setSelectedLeagueId] = useState('')
+  const [selectedClubId, setSelectedClubId] = useState('')
   const [currentPage] = useState(1)
   const defaultLimit = 15
   const [matchesByCategory, setMatchesByCategory] = useState({
@@ -29,7 +30,6 @@ const LeagueSchedule = () => {
   })
   const [matchTimes, setMatchTimes] = useState({})
   const [clubTeamsData, setClubTeamsData] = useState({})
-
   const [isCreatingSchedule, setIsCreatingSchedule] = useState(false)
   const [selectedPlayers, setSelectedPlayers] = useState({})
   const [loadingTeamsState, setLoadingTeamsState] = useState({})
@@ -81,13 +81,13 @@ const LeagueSchedule = () => {
       if (activeTab && activeTab !== 'all') {
         const activeCategory = availableCategories.find(cat => cat._id === activeTab);
         if (activeCategory) {
-          dispatch(getLeagueSummary({ leagueId: selectedLeagueId, categoryType: activeCategory.categoryType }));
+          dispatch(getLeagueSummary({ leagueId: selectedLeagueId, categoryType: activeCategory.categoryType, roundType: selectedRound }));
         }
       } else {
-        dispatch(getLeagueSummary({ leagueId: selectedLeagueId }));
+        dispatch(getLeagueSummary({ leagueId: selectedLeagueId, roundType: selectedRound }));
       }
     }
-  }, [dispatch, selectedLeagueId, activeTab, availableCategories]);
+  }, [dispatch, selectedLeagueId, activeTab, availableCategories, selectedRound]);
 
   const clubs = leagueClubs.map((club, index) => ({
     id: club.clubId || index + 1,
@@ -119,7 +119,6 @@ const LeagueSchedule = () => {
       setActiveTab('');
     }
   }, [availableCategories]);
-
   // Fetch existing schedules when league, round, active tab or selected date changes
   useEffect(() => {
     if (selectedLeagueId && selectedRound) {
@@ -145,9 +144,13 @@ const LeagueSchedule = () => {
         if (activeCategory) params.categoryType = activeCategory.categoryType;
       }
 
+      if (selectedClubId) {
+        params.clubId = selectedClubId;
+      }
+
       dispatch(getAllSchedules(params));
     }
-  }, [dispatch, selectedLeagueId, selectedRound, selectedScheduleDate, activeTab]);
+  }, [dispatch, selectedLeagueId, selectedRound, selectedScheduleDate, activeTab, selectedClubId, availableCategories]);
 
   // Transform API schedules data to match table structure
   const transformSchedulesToMatches = (schedulesData) => {
@@ -248,7 +251,6 @@ const LeagueSchedule = () => {
 
     return { newMatches: newMatchesData, existingMatches: existingMerged };
   }, [schedules, matchesByCategory, availableCategories]);
-
   // Check if we're in "view mode" (showing existing data without creating new)
   const isViewMode = !currentScheduleInfo.date && schedules && schedules.length > 0;
 
@@ -415,6 +417,7 @@ const LeagueSchedule = () => {
 
   const handleLeagueChange = (e) => {
     setSelectedLeagueId(e.target.value);
+    setSelectedClubId('');
   };
 
   const handleDateChange = (e) => {
@@ -578,10 +581,10 @@ const LeagueSchedule = () => {
       if (activeTab && activeTab !== 'all') {
         const activeCategory = availableCategories.find(cat => cat._id === activeTab);
         if (activeCategory) {
-          dispatch(getLeagueSummary({ leagueId: selectedLeagueId, categoryType: activeCategory.categoryType }));
+          dispatch(getLeagueSummary({ leagueId: selectedLeagueId, categoryType: activeCategory.categoryType, roundType: selectedRound }));
         }
       } else {
-        dispatch(getLeagueSummary({ leagueId: selectedLeagueId }));
+        dispatch(getLeagueSummary({ leagueId: selectedLeagueId, roundType: selectedRound }));
       }
     } else {
       setEditingMatchId(null);
@@ -663,10 +666,10 @@ const LeagueSchedule = () => {
           const category = availableCategories.find(cat => cat._id === categoryId);
           const maxParticipants = category?.maxParticipants || 2;
           const numMatches = Math.max(1, Math.floor(maxParticipants / 2));
-          
+
           const existingMatches = matchesByCategory[categoryId] || [];
           let currentBaseId = existingMatches.length > 0 ? Math.max(...existingMatches.map(m => m.id)) + 1 : 1;
-          
+
           const catMatches = [];
           for (let i = 0; i < numMatches; i++) {
             const homeIdx = (i * 2) + 1;
@@ -982,7 +985,6 @@ const LeagueSchedule = () => {
         }))
       }))
     };
-    console.log({ payload })
     const result = await dispatch(saveSchedule(payload));
     if (result.type === 'league/saveSchedule/fulfilled') {
       showSuccess('Schedule saved successfully');
@@ -1007,10 +1009,10 @@ const LeagueSchedule = () => {
       if (activeTab && activeTab !== 'all') {
         const activeCategory = availableCategories.find(cat => cat._id === activeTab);
         if (activeCategory) {
-          dispatch(getLeagueSummary({ leagueId: selectedLeagueId, categoryType: activeCategory.categoryType }));
+          dispatch(getLeagueSummary({ leagueId: selectedLeagueId, categoryType: activeCategory.categoryType, roundType: selectedRound }));
         }
       } else {
-        dispatch(getLeagueSummary({ leagueId: selectedLeagueId }));
+        dispatch(getLeagueSummary({ leagueId: selectedLeagueId, roundType: selectedRound }));
       }
       availableCategories.forEach(cat => dispatch(getScheduleDates({ leagueId: selectedLeagueId, roundType: 'final', categoryType: cat.categoryType })));
     }
@@ -1240,6 +1242,21 @@ const LeagueSchedule = () => {
               )}
             </div>
             <div className="d-flex align-items-center gap-2 flex-nowrap">
+              {selectedLeagueId && clubs?.length ?
+                <select
+                  className="form-select form-select-sm league-select"
+                  value={selectedClubId}
+                  onChange={(e) => setSelectedClubId(e.target.value)}
+                >
+                  <option value="">Select Club</option>
+                  {clubs?.map((club) => (
+                    <option key={club?.id} value={club?.id}>
+                      {club?.name}
+                    </option>
+                  ))}
+                </select>
+                :
+                <></>}
               <select
                 className="form-select form-select-sm league-select"
                 value={selectedLeagueId}
@@ -1273,10 +1290,13 @@ const LeagueSchedule = () => {
                 const tabKey = category._id;
 
                 if (!tabKey) return null;
+                const summaryMatch = categorySummary?.find(s => s.categoryType === category.categoryType);
+                const count = summaryMatch ? summaryMatch.matchCount : 0;
+
                 return (
                   <Nav.Item key={tabKey}>
                     <Nav.Link eventKey={tabKey} className={activeTab === tabKey ? 'active' : ''}>
-                      {category.categoryType}
+                      {category.categoryType} <span className='fw-semibold' style={{ color: '#1f41bb' }}>{categorySummary?.length > 0 ? `(${count})` : ''}</span>
                     </Nav.Link>
                   </Nav.Item>
                 );
@@ -1284,7 +1304,7 @@ const LeagueSchedule = () => {
               {availableCategories.length > 0 && (
                 <Nav.Item>
                   <Nav.Link eventKey="all" className={activeTab === 'all' ? 'active' : ''}>
-                    All
+                    All <span className='fw-semibold' style={{ color: '#1f41bb' }}>{categorySummary?.length > 0 ? `(${categorySummary.reduce((acc, curr) => acc + (curr.matchCount || 0), 0)})` : ''}</span>
                   </Nav.Link>
                 </Nav.Item>
               )}
@@ -1313,7 +1333,7 @@ const LeagueSchedule = () => {
                       </span>
                     </div>
                   )}
-                  {selectedRound !== 'final' && selectedScheduleDate && (
+                  {selectedRound !== 'final' && selectedScheduleDate && activeTab !== 'all' && (
                     <button
                       onClick={handleAddMoreRows}
                       className="btn btn-sm"
@@ -1340,16 +1360,16 @@ const LeagueSchedule = () => {
                     <div className="d-flex justify-content-between align-items-center mb-2">
                       <span style={{ fontWeight: '600', color: 'rgba(31, 65, 187, 1)', fontSize: '14px' }}>New Matches (Unsaved)</span>
                     </div>
-                    <div style={{ overflowX: 'auto', borderRadius: '8px', border: '2px solid rgba(31, 65, 187, 0.3)' }}>
+                    <div style={{ overflowX: 'auto', borderRadius: '8px' }}>
                       <table style={{ width: '100%', borderCollapse: 'collapse', position: 'relative' }}>
                         <thead>
                           <tr style={{ backgroundColor: '#e8e8e8' }}>
                             <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600', color: '#1a1a1a', fontSize: '13px' }}>Match No.</th>
-                            <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600', color: '#1a1a1a', fontSize: '13px' }}>Home</th>
+                            <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600', color: '#1a1a1a', fontSize: '13px' }}>Team 1</th>
                             <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600', color: '#1a1a1a', fontSize: '13px' }}>
                               <div className='rounded-3' style={{ width: '34px', height: '34px', background: 'rgba(37, 37, 37, 1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '12px', margin: '0 auto' }}>VS</div>
                             </th>
-                            <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600', color: '#1a1a1a', fontSize: '13px' }}>Away</th>
+                            <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600', color: '#1a1a1a', fontSize: '13px' }}>Team 2</th>
                             <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600', color: '#1a1a1a', fontSize: '13px' }}>Date</th>
                             <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600', color: '#1a1a1a', fontSize: '13px' }}>Venue</th>
                             <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600', color: '#1a1a1a', fontSize: '13px' }}>Start Time</th>
@@ -2078,10 +2098,12 @@ const LeagueSchedule = () => {
           loadingScheduleDates={loadingScheduleDates}
           scheduleDates={scheduleDates}
           leagueSummary={leagueSummary}
+          leagueId={selectedLeagueId}
           selectedScheduleDate={selectedScheduleDate}
           loadingExport={loadingExport}
           onDateSelection={handleDateSelection}
-          onExport={() => dispatch(exportLeagueSchedulesPDF({ leagueId: selectedLeagueId }))}
+          setSelectedRound={setSelectedRound}
+        // onExport={() => }
         />
       </Row>
 

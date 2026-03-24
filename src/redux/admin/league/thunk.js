@@ -305,7 +305,7 @@ export const getAllSchedules = createAsyncThunk(
       const url = `/api/league-schedules/getAllSchedules${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
       const response = await ownerApi.get(url);
       if (response?.status === 200) {
-        return response.data?.data || [];
+        return response.data || {};
       }
       return rejectWithValue(response?.data?.message);
     } catch (error) {
@@ -377,12 +377,15 @@ export const deleteLeague = createAsyncThunk(
 
 export const getLeagueSummary = createAsyncThunk(
   "league/getLeagueSummary",
-  async ({ leagueId, categoryType }, { rejectWithValue }) => {
+  async ({ leagueId, categoryType, roundType }, { rejectWithValue }) => {
     try {
       const queryParams = new URLSearchParams();
       queryParams.append('leagueId', leagueId);
       if (categoryType) {
         queryParams.append('categoryType', categoryType);
+      }
+      if (roundType) {
+        queryParams.append('roundType', roundType === 'regularRound' ? 'regular' : roundType);
       }
 
       const response = await ownerApi.get(`${GET_LEAGUE_SUMMARY}?${queryParams.toString()}`);
@@ -461,7 +464,6 @@ export const saveTeams = createAsyncThunk(
         return rejectWithValue(res?.data?.message || "Failed to save teams");
       }
     } catch (error) {
-      console.log({ error })
       if (error === 'Cannot create teams: 1 player(s) need to register and login to the mobile app before they can be assigned to teams.') {
         showError("The player has not installed the Swoot app yet. Please ask them to install and log in to the app.")
       } else {
