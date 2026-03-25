@@ -20,6 +20,7 @@ import {
   getBookingByStatus,
   getBookingDetailsById,
   updateBookingStatus,
+  getCategoryList,
 } from "../../../redux/thunks";
 import { FaEye } from "react-icons/fa";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
@@ -66,6 +67,10 @@ const Booking = () => {
   }, [searchTerm]);
 
   useEffect(() => {
+    dispatch(getCategoryList());
+  }, [dispatch]);
+
+  useEffect(() => {
     setCurrentPage(1);
   }, [debouncedSearch, category]);
 
@@ -75,6 +80,8 @@ const Booking = () => {
     getBookingDetailsData,
     updateBookingLoading,
     bookingCount: tabCount,
+    categoryList,
+    categoryListLoading,
   } = useSelector((state) => state.booking);
 
   const bookings = getBookingData?.bookings || [];
@@ -100,7 +107,7 @@ const Booking = () => {
       page: currentPage,
       limit: defaultLimit,
       ...(debouncedSearch ? { search: debouncedSearch } : {}),
-      ...(category ? { category } : {}),
+      ...(category ? { category: category } : {}),
     };
 
     if (tab !== 0) {
@@ -137,7 +144,7 @@ const Booking = () => {
     const countPayload = {
       ownerId: ownerId || undefined,
       ...(debouncedSearch ? { search: debouncedSearch } : {}),
-      ...(category ? { category } : {}),
+      ...(category ? { category: category } : {}),
     };
 
     if (sendDate) {
@@ -384,8 +391,11 @@ const Booking = () => {
                   }}
                 >
                   <option value="">Category</option>
-                  <option value="padel">Padel</option>
-                  <option value="pickle">Pickle</option>
+                  {categoryList?.map((cat) => (
+                    <option key={cat._id} value={cat._id}>
+                      {cat.name}
+                    </option>
+                  ))}
                 </Form.Select>
               </div>
 

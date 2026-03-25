@@ -155,6 +155,7 @@ export const GET_AVAILABLE_PLAYERS = "/api/league-players/available-players";
 export const SAVE_TEAMS = "/api/league-players/teams";
 export const GET_TEAMS = "/api/league-players/teams";
 export const GET_LEAGUE_LEADERBOARD = "/api/score/league";
+export const GET_LEAGUE_FINALISTS = "/api/score/league";
 // League Schedule API endpoints
 export const GET_LEAGUE_CLUBS = "/api/league-schedules/clubs";
 export const GET_CLUB_TEAMS = "/api/league-schedules/teams";
@@ -165,3 +166,6 @@ export const GET_SCHEDULE_DATES = "/api/league-schedules/schedule-dates";
 
 // App Users Management
 export const GET_APP_USERS = "/api/customer/getCustomersWithFcmTokens";
+
+// Category Management
+export const GET_CATEGORY_LIST = "/api/category/list";

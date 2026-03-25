@@ -4,8 +4,9 @@ import { FiPlus, FiTrash2, FiEdit2, FiCheck, FiX } from 'react-icons/fi'
 import './LeagueScheduleMatch.css'
 import ScheduleSidebar from './components/ScheduleSidebar';
 import CustomClubSelector from './components/CustomClubSelector';
+import FinalistTeamSelector from './components/FinalistTeamSelector';
 import { useDispatch, useSelector } from 'react-redux';
-import { getLeagues, getLeagueClubs, getClubTeams, saveSchedule, updateSchedule, getLeagueById, getLeagueSummary, exportLeagueSchedulesPDF, getAvailablePlayers, getScheduleDates, getAllSchedules } from '../../../redux/admin/league/thunk';
+import { getLeagues, getLeagueClubs, getClubTeams, saveSchedule, updateSchedule, getLeagueById, getLeagueSummary, exportLeagueSchedulesPDF, getAvailablePlayers, getScheduleDates, getAllSchedules, getLeagueFinalists } from '../../../redux/admin/league/thunk';
 import { showError, showSuccess } from '../../../helpers/Toast';
 import { FaAngleRight } from 'react-icons/fa'
 import ScheduleModal from './components/ScheduleModal';
@@ -13,7 +14,7 @@ import ConfirmationModal from './components/ConfirmationModal';
 
 const LeagueSchedule = () => {
   const dispatch = useDispatch();
-  const { leagues, leagueClubs, loadingClubs, loadingSchedules, currentLeague, leagueSummary, loadingSummary, loadingExport, scheduleDates, loadingScheduleDates, schedules, categorySummary } = useSelector(state => state.league);
+  const { leagues, leagueClubs, loadingClubs, loadingSchedules, currentLeague, leagueSummary, loadingSummary, loadingExport, scheduleDates, loadingScheduleDates, schedules, categorySummary, finalists, loadingFinalists } = useSelector(state => state.league);
   const [activeTab, setActiveTab] = useState('')
   const [selectedRound, setSelectedRound] = useState('regularRound')
   const [showModal, setShowModal] = useState(false)
@@ -28,7 +29,6 @@ const LeagueSchedule = () => {
   const [matchesByCategory, setMatchesByCategory] = useState({
     all: []
   })
-  const [matchTimes, setMatchTimes] = useState({})
   const [clubTeamsData, setClubTeamsData] = useState({})
   const [isCreatingSchedule, setIsCreatingSchedule] = useState(false)
   const [selectedPlayers, setSelectedPlayers] = useState({})
@@ -60,6 +60,12 @@ const LeagueSchedule = () => {
   useEffect(() => {
     dispatch(getLeagues({ page: currentPage, limit: defaultLimit }));
   }, [dispatch, currentPage]);
+
+  useEffect(() => {
+    if (selectedLeagueId && selectedRound === 'final') {
+      dispatch(getLeagueFinalists(selectedLeagueId));
+    }
+  }, [dispatch, selectedLeagueId, selectedRound]);
 
   const leaguesData = Array.isArray(leagues?.data) ? leagues.data : [];
 
@@ -519,7 +525,6 @@ const LeagueSchedule = () => {
   const handleUpdateMatch = async (match, categoryType) => {
     const roundTypeMap = { regularRound: 'regular', quarterfinal: 'quarterfinal', semifinal: 'semifinal', final: 'final' };
     const scheduleId = match.id.toString().replace('existing_', '').split('_')[0];
-    const matchIndex = parseInt(match.id.toString().replace('existing_', '').split('_')[1]);
 
     const homePlayers = getSelectedPlayers(match.id, 'home');
     const awayPlayers = getSelectedPlayers(match.id, 'away');
@@ -659,8 +664,12 @@ const LeagueSchedule = () => {
         // Finals: use formCategory (multiple categories chosen in modal)
         if (!formCategory.length) { alert('Please select a category'); return; }
         const newMatches = {};
-        // Only process categories that don't already have a match
-        const categoriesToCreate = formCategory.filter(categoryId => (matchesByCategory[categoryId] || []).length === 0);
+        // Only process categories that don't already have a match (either unsaved or existing for final)
+        const categoriesToCreate = formCategory.filter(categoryId => {
+          const hasUnsaved = (matchesByCategory[categoryId] || []).length > 0;
+          const hasExisting = (existingMatches[categoryId] || []).length > 0;
+          return !hasUnsaved && !hasExisting;
+        });
         if (categoriesToCreate.length === 0) { setShowModal(false); return; }
         categoriesToCreate.forEach(categoryId => {
           const category = availableCategories.find(cat => cat._id === categoryId);
@@ -674,19 +683,21 @@ const LeagueSchedule = () => {
           for (let i = 0; i < numMatches; i++) {
             const homeIdx = (i * 2) + 1;
             const awayIdx = (i * 2) + 2;
-            catMatches.push({
-              id: currentBaseId + i,
-              date: formDate,
-              venue: formVenue,
-              venueClubId: venueClub?.id,
-              homeVenue: `Winner ${homeIdx}`,
-              awayVenue: `Winner ${awayIdx}`,
-              homeTeam: { teamName: `Winner ${homeIdx}` },
-              awayTeam: { teamName: `Winner ${awayIdx}` },
-              time: startTime,
-              duration,
-              endTime: calculateEndTime(startTime, duration)
-            });
+              const homeClubName = finalists?.data?.finalists?.[0]?.clubName || `Winner ${homeIdx}`;
+              const awayClubName = finalists?.data?.finalists?.[1]?.clubName || `Winner ${awayIdx}`;
+              catMatches.push({
+                id: currentBaseId + i,
+                date: formDate,
+                venue: formVenue,
+                venueClubId: venueClub?.id,
+                homeVenue: homeClubName,
+                awayVenue: awayClubName,
+                homeTeam: { teamName: homeClubName },
+                awayTeam: { teamName: awayClubName },
+                time: startTime,
+                duration,
+                endTime: calculateEndTime(startTime, duration)
+              });
           }
           newMatches[categoryId] = [...existingMatches, ...catMatches];
         });
@@ -945,25 +956,47 @@ const LeagueSchedule = () => {
           schedulesMap[key].categoriesMap[category.categoryType] = [];
         }
 
-        const homePlayers = getSelectedPlayers(match.id, 'home', category._id);
-        const awayPlayers = getSelectedPlayers(match.id, 'away', category._id);
+        const homePlayers = selectedRound === 'final' ? match.homeTeam?.players || [] : getSelectedPlayers(match.id, 'home', category._id);
+        const awayPlayers = selectedRound === 'final' ? match.awayTeam?.players || [] : getSelectedPlayers(match.id, 'away', category._id);
         const homeClubData = clubs.find(c => c.name === match.homeVenue);
         const awayClubData = clubs.find(c => c.name === match.awayVenue);
 
+        let teamAData = null;
+        if (selectedRound === 'final') {
+          teamAData = {
+            clubId: finalists?.data?.finalists?.[0]?.clubId || homeClubData?.id,
+            teamName: match.homeTeam?.teamName || `Winner 1`,
+            players: homePlayers.slice(0, 2).map(p => ({ playerId: p.playerId || p._id, playerName: p.playerName }))
+          };
+        } else if (homePlayers.length >= 2) {
+          teamAData = {
+            clubId: homeClubData?.id,
+            clubType: match.homeVenue,
+            teamName: `Team ${index + 1}A`,
+            players: homePlayers.slice(0, 2).map(p => ({ playerId: p.playerId || p._id, playerName: p.playerName }))
+          };
+        }
+
+        let teamBData = null;
+        if (selectedRound === 'final') {
+          teamBData = {
+            clubId: finalists?.data?.finalists?.[1]?.clubId || awayClubData?.id,
+            teamName: match.awayTeam?.teamName || `Winner 2`,
+            players: awayPlayers.slice(0, 2).map(p => ({ playerId: p.playerId || p._id, playerName: p.playerName }))
+          };
+        } else if (awayPlayers.length >= 2) {
+          teamBData = {
+            clubId: awayClubData?.id,
+            clubType: match.awayVenue,
+            teamName: `Team ${index + 1}B`,
+            players: awayPlayers.slice(0, 2).map(p => ({ playerId: p.playerId || p._id, playerName: p.playerName }))
+          };
+        }
+
         schedulesMap[key].categoriesMap[category.categoryType].push({
           matchNo: index + 1,
-          teamA: homePlayers.length >= 2 ? {
-            clubId: homeClubData?.id,
-            ...(selectedRound !== 'final' ? { clubType: match.homeVenue } : {}),
-            teamName: `Team ${index + 1}A`,
-            players: homePlayers.slice(0, 2).map(p => ({ playerId: p._id, playerName: p.playerName }))
-          } : null,
-          teamB: awayPlayers.length >= 2 ? {
-            clubId: awayClubData?.id,
-            ...(selectedRound !== 'final' ? { clubType: match.awayVenue } : {}),
-            teamName: `Team ${index + 1}B`,
-            players: awayPlayers.slice(0, 2).map(p => ({ playerId: p._id, playerName: p.playerName }))
-          } : null,
+          teamA: teamAData,
+          teamB: teamBData,
           startTime: convertTo12Hour(match.time),
           endTime: convertTo12Hour(match.endTime || calculateEndTime(match.time, match.duration || 60)),
           duration: match.duration || 60,
@@ -1175,14 +1208,16 @@ const LeagueSchedule = () => {
     const duration = 60;
 
     const nextIdx = (currentMatches.length * 2) + 1;
+    const homeClubName = finalists?.data?.finalists?.[0]?.clubName || `Winner ${nextIdx}`;
+    const awayClubName = finalists?.data?.finalists?.[1]?.clubName || `Winner ${nextIdx + 1}`;
     const newMatch = {
       id: newMatchId,
       date: formattedDate,
       venue: fallbackVenue,
-      homeVenue: selectedRound === 'final' ? `Winner ${nextIdx}` : null,
-      awayVenue: selectedRound === 'final' ? `Winner ${nextIdx + 1}` : null,
-      homeTeam: selectedRound === 'final' ? { teamName: `Winner ${nextIdx}` } : null,
-      awayTeam: selectedRound === 'final' ? { teamName: `Winner ${nextIdx + 1}` } : null,
+      homeVenue: selectedRound === 'final' ? homeClubName : null,
+      awayVenue: selectedRound === 'final' ? awayClubName : null,
+      homeTeam: selectedRound === 'final' ? { teamName: homeClubName } : null,
+      awayTeam: selectedRound === 'final' ? { teamName: awayClubName } : null,
       time: startTime,
       duration: duration,
       endTime: calculateEndTime(startTime, duration),
@@ -1403,7 +1438,44 @@ const LeagueSchedule = () => {
                                         <td style={{ padding: '14px 12px', borderBottom: '1px solid #ddd' }}>
                                           <div className='d-flex justify-content-center align-items-center gap-2'>
                                             {selectedRound === 'final' ? (
-                                              <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937' }}>{match.homeTeam?.teamName || match.homeVenue || 'Winner 1'}</div>
+                                              finalists?.data?.finalists?.[0] ? (
+                                                <FinalistTeamSelector
+                                                  matchId={match.id}
+                                                  venue="home"
+                                                  clubName={finalists.data.finalists[0].clubName}
+                                                  clubLogo={clubs.find(c => c.name === finalists.data.finalists[0].clubName)?.logo}
+                                                  availableTeams={finalists.data.finalists[0].categories.find(c => c.categoryType === category.categoryType)?.teams || []}
+                                                  selectedTeamName={match.homeTeam?.optionsSelected || match.homeTeam?.teamName || ''}
+                                                  onTeamSelect={(team) => {
+                                                    const matches = matchesByCategory[category._id] || [];
+                                                    const updated = matches.map(m =>
+                                                      m.id === match.id ? {
+                                                        ...m,
+                                                        homeTeam: { teamName: team.teamName, players: team.players || [], optionsSelected: team.teamName },
+                                                        homeVenue: finalists.data.finalists[0].clubName
+                                                      } : m
+                                                    );
+                                                    setMatchesByCategory(prev => ({ ...prev, [category._id]: updated }));
+                                                  }}
+                                                  openDropdown={openDropdown}
+                                                  setOpenDropdown={setOpenDropdown}
+                                                />
+                                              ) : match.homeTeam?.players && match.homeTeam.players.length > 0 && match.homeVenue && !match.homeVenue.startsWith('Winner') ? (
+                                                <div className="d-flex align-items-center">
+                                                  <div style={{ width: '34px', height: '34px', borderRadius: '50%', border: '2px solid rgba(31, 65, 187, 1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold', color: 'rgba(31, 65, 187, 1)' }}>
+                                                    {clubs.find(c => c.name === match.homeVenue)?.logo || 'H'}
+                                                  </div>
+                                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginLeft: '8px' }}>
+                                                    <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937', textAlign: 'left' }}>{match.homeVenue}</div>
+                                                    <div style={{ fontSize: '10px', color: '#666', marginTop: '2px', textAlign: 'left', lineHeight: '1.2' }}>
+                                                      <span style={{ fontWeight: '600', color: '#1F2937' }}>{match.homeTeam.teamName}</span>
+                                                      <span> • {match.homeTeam.players.map(p => p.playerName.split(' ')[0]).join(', ')}</span>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              ) : (
+                                                <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937' }}>{match.homeTeam?.teamName || match.homeVenue || 'Winner 1'}</div>
+                                              )
                                             ) : match.homeVenue ? (
                                               <CustomClubSelector
                                                 matchId={match.id}
@@ -1451,7 +1523,44 @@ const LeagueSchedule = () => {
                                         <td style={{ padding: '14px 12px', borderBottom: '1px solid #ddd' }}>
                                           <div className='d-flex justify-content-center align-items-center gap-2'>
                                             {selectedRound === 'final' ? (
-                                              <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937' }}>{match.awayTeam?.teamName || match.awayVenue || 'Winner 2'}</div>
+                                              finalists?.data?.finalists?.[1] ? (
+                                                <FinalistTeamSelector
+                                                  matchId={match.id}
+                                                  venue="away"
+                                                  clubName={finalists.data.finalists[1].clubName}
+                                                  clubLogo={clubs.find(c => c.name === finalists.data.finalists[1].clubName)?.logo}
+                                                  availableTeams={finalists.data.finalists[1].categories.find(c => c.categoryType === category.categoryType)?.teams || []}
+                                                  selectedTeamName={match.awayTeam?.optionsSelected || match.awayTeam?.teamName || ''}
+                                                  onTeamSelect={(team) => {
+                                                    const matches = matchesByCategory[category._id] || [];
+                                                    const updated = matches.map(m =>
+                                                      m.id === match.id ? {
+                                                        ...m,
+                                                        awayTeam: { teamName: team.teamName, players: team.players || [], optionsSelected: team.teamName },
+                                                        awayVenue: finalists.data.finalists[1].clubName
+                                                      } : m
+                                                    );
+                                                    setMatchesByCategory(prev => ({ ...prev, [category._id]: updated }));
+                                                  }}
+                                                  openDropdown={openDropdown}
+                                                  setOpenDropdown={setOpenDropdown}
+                                                />
+                                              ) : match.awayTeam?.players && match.awayTeam.players.length > 0 && match.awayVenue && !match.awayVenue.startsWith('Winner') ? (
+                                                <div className="d-flex align-items-center">
+                                                  <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold', color: 'white' }}>
+                                                    {clubs.find(c => c.name === match.awayVenue)?.logo || 'A'}
+                                                  </div>
+                                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginLeft: '8px' }}>
+                                                    <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937', textAlign: 'left' }}>{match.awayVenue}</div>
+                                                    <div style={{ fontSize: '10px', color: '#666', marginTop: '2px', textAlign: 'left', lineHeight: '1.2' }}>
+                                                      <span style={{ fontWeight: '600', color: '#1F2937' }}>{match.awayTeam.teamName}</span>
+                                                      <span> • {match.awayTeam.players.map(p => p.playerName.split(' ')[0]).join(', ')}</span>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              ) : (
+                                                <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937' }}>{match.awayTeam?.teamName || match.awayVenue || 'Winner 2'}</div>
+                                              )
                                             ) : match.awayVenue ? (
                                               <CustomClubSelector
                                                 matchId={match.id}
@@ -1641,7 +1750,44 @@ const LeagueSchedule = () => {
                                             <td style={{ padding: '14px 12px', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', borderBottom: '1px solid #ddd' }}>{String(mIndex + 1).padStart(2, '0')}</td>
                                             <td style={{ padding: '14px 12px', borderBottom: '1px solid #ddd' }}>
                                               <div className='d-flex justify-content-center align-items-center gap-2'>
-                                                <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937' }}>{match.homeTeam?.teamName || match.homeVenue || `Winner ${(mIndex * 2) + 1}`}</div>
+                                                {isEditing && finalists?.data?.finalists?.[0] ? (
+                                                  <FinalistTeamSelector
+                                                    matchId={match.id}
+                                                    venue="home"
+                                                    clubName={finalists.data.finalists[0].clubName}
+                                                    clubLogo={clubs.find(c => c.name === finalists.data.finalists[0].clubName)?.logo}
+                                                    availableTeams={finalists.data.finalists[0].categories.find(c => c.categoryType === category.categoryType)?.teams || []}
+                                                    selectedTeamName={match.homeTeam?.optionsSelected || match.homeTeam?.teamName || ''}
+                                                    onTeamSelect={(team) => {
+                                                      const matches = matchesByCategory[category._id] || [];
+                                                      const updated = matches.map(m =>
+                                                        m.id === match.id ? {
+                                                          ...m,
+                                                          homeTeam: { teamName: team.teamName, players: team.players || [], optionsSelected: team.teamName },
+                                                          homeVenue: finalists.data.finalists[0].clubName
+                                                        } : m
+                                                      );
+                                                      setMatchesByCategory(prev => ({ ...prev, [category._id]: updated }));
+                                                    }}
+                                                    openDropdown={openDropdown}
+                                                    setOpenDropdown={setOpenDropdown}
+                                                  />
+                                                ) : match.homeTeam?.players && match.homeTeam.players.length > 0 && match.homeVenue && !match.homeVenue.startsWith('Winner') ? (
+                                                  <div className="d-flex align-items-center">
+                                                    <div style={{ width: '34px', height: '34px', borderRadius: '50%', border: '2px solid rgba(31, 65, 187, 1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold', color: 'rgba(31, 65, 187, 1)' }}>
+                                                      {clubs.find(c => c.name === match.homeVenue)?.logo || 'H'}
+                                                    </div>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginLeft: '8px' }}>
+                                                      <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937', textAlign: 'left' }}>{match.homeVenue}</div>
+                                                      <div style={{ fontSize: '10px', color: '#666', marginTop: '2px', textAlign: 'left', lineHeight: '1.2' }}>
+                                                        <span style={{ fontWeight: '600', color: '#1F2937' }}>{match.homeTeam.teamName}</span>
+                                                        <span> • {match.homeTeam.players.map(p => p.playerName.split(' ')[0]).join(', ')}</span>
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                ) : (
+                                                  <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937' }}>{match.homeTeam?.teamName || match.homeVenue || `Winner ${(mIndex * 2) + 1}`}</div>
+                                                )}
                                               </div>
                                             </td>
                                             <td style={{ padding: '14px 12px', textAlign: 'center', borderBottom: '1px solid #ddd' }}>
@@ -1649,7 +1795,44 @@ const LeagueSchedule = () => {
                                             </td>
                                             <td style={{ padding: '14px 12px', borderBottom: '1px solid #ddd' }}>
                                               <div className='d-flex justify-content-center align-items-center gap-2'>
-                                                <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937' }}>{match.awayTeam?.teamName || match.awayVenue || `Winner ${(mIndex * 2) + 2}`}</div>
+                                                {isEditing && finalists?.data?.finalists?.[1] ? (
+                                                  <FinalistTeamSelector
+                                                    matchId={match.id}
+                                                    venue="away"
+                                                    clubName={finalists.data.finalists[1].clubName}
+                                                    clubLogo={clubs.find(c => c.name === finalists.data.finalists[1].clubName)?.logo}
+                                                    availableTeams={finalists.data.finalists[1].categories.find(c => c.categoryType === category.categoryType)?.teams || []}
+                                                    selectedTeamName={match.awayTeam?.optionsSelected || match.awayTeam?.teamName || ''}
+                                                    onTeamSelect={(team) => {
+                                                      const matches = matchesByCategory[category._id] || [];
+                                                      const updated = matches.map(m =>
+                                                        m.id === match.id ? {
+                                                          ...m,
+                                                          awayTeam: { teamName: team.teamName, players: team.players || [], optionsSelected: team.teamName },
+                                                          awayVenue: finalists.data.finalists[1].clubName
+                                                        } : m
+                                                      );
+                                                      setMatchesByCategory(prev => ({ ...prev, [category._id]: updated }));
+                                                    }}
+                                                    openDropdown={openDropdown}
+                                                    setOpenDropdown={setOpenDropdown}
+                                                  />
+                                                ) : match.awayTeam?.players && match.awayTeam.players.length > 0 && match.awayVenue && !match.awayVenue.startsWith('Winner') ? (
+                                                  <div className="d-flex align-items-center">
+                                                    <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold', color: 'white' }}>
+                                                      {clubs.find(c => c.name === match.awayVenue)?.logo || 'A'}
+                                                    </div>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginLeft: '8px' }}>
+                                                      <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937', textAlign: 'left' }}>{match.awayVenue}</div>
+                                                      <div style={{ fontSize: '10px', color: '#666', marginTop: '2px', textAlign: 'left', lineHeight: '1.2' }}>
+                                                        <span style={{ fontWeight: '600', color: '#1F2937' }}>{match.awayTeam.teamName}</span>
+                                                        <span> • {match.awayTeam.players.map(p => p.playerName.split(' ')[0]).join(', ')}</span>
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                ) : (
+                                                  <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937' }}>{match.awayTeam?.teamName || match.awayVenue || `Winner ${(mIndex * 2) + 2}`}</div>
+                                                )}
                                               </div>
                                             </td>
                                             <td style={{ padding: '14px 12px', fontSize: '13px', color: '#666', borderBottom: '1px solid #ddd', whiteSpace: 'nowrap' }}>

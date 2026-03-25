@@ -11,6 +11,7 @@ const StructureCategories = ({ onNext, onBack }) => {
     const { id } = useParams();
     const { loading, leagueId, currentLeague } = useSelector(state => state.league);
 
+    console.log({currentLeague})
     const [registrationDates, setRegistrationDates] = useState({ startDate: '', endDate: '' });
     const [dateErrors, setDateErrors] = useState({ startDate: '', endDate: '' });
     const [registrationFee, setRegistrationFee] = useState('');

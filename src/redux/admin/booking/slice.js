@@ -4,6 +4,7 @@ import {
   getBookingByStatus,
   getBookingDetailsById,
   updateBookingStatus,
+  getCategoryList,
 } from "./thunk";
 
 const initialState = {
@@ -22,6 +23,10 @@ const initialState = {
   bookingCount: null,
   bookingCountLoading: false,
   bookingCountError: null,
+
+  categoryList: [],
+  categoryListLoading: false,
+  categoryListError: null,
 };
 
 const BookingSlice = createSlice({
@@ -107,6 +112,21 @@ const BookingSlice = createSlice({
       state.bookingCountLoading = false;
       state.bookingCount = null;
       state.bookingCountError = action.payload;
+    });
+
+    builder.addCase(getCategoryList.pending, (state) => {
+      state.categoryListLoading = true;
+      state.categoryListError = null;
+    });
+    builder.addCase(getCategoryList.fulfilled, (state, action) => {
+      state.categoryListLoading = false;
+      state.categoryList = action.payload;
+      state.categoryListError = null;
+    });
+    builder.addCase(getCategoryList.rejected, (state, action) => {
+      state.categoryListLoading = false;
+      state.categoryList = [];
+      state.categoryListError = action.payload;
     });
   },
 });
