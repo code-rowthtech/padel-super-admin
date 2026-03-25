@@ -138,3 +138,19 @@ export const bookingCount = createAsyncThunk(
     }
   }
 );
+
+export const getCategoryList = createAsyncThunk(
+  "booking/getCategoryList",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await ownerApi.get(Url.GET_CATEGORY_LIST);
+      const { status, data } = res || {};
+      if (status === 200) {
+        return data?.data || [];
+      }
+      return rejectWithValue("Failed to fetch categories");
+    } catch (error) {
+      return rejectWithValue(error?.response?.data?.message || "Network error");
+    }
+  }
+);

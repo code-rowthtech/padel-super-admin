@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createLeague, getLeagues, getLeaguesIDS, updateLeague, getStates, getClubsWithState, getSponsorCategories, getLeagueById, deleteLeague, getLeagueClubs, getClubTeams, getAllSchedules, saveSchedule, updateSchedule, exportLeagueSchedulesPDF, getLeagueSummary, getScheduleDates, getLeagueLeaderboard } from "./thunk";
+import { createLeague, getLeagues, getLeaguesIDS, updateLeague, getStates, getClubsWithState, getSponsorCategories, getLeagueById, deleteLeague, getLeagueClubs, getClubTeams, getAllSchedules, saveSchedule, updateSchedule, exportLeagueSchedulesPDF, getLeagueSummary, getScheduleDates, getLeagueLeaderboard, getLeagueFinalists } from "./thunk";
 
 const initialState = {
   leagues: [],
@@ -25,6 +25,8 @@ const initialState = {
   loadingScheduleDates: false,
   leaderboard: null,
   loadingLeaderboard: false,
+  finalists: null,
+  loadingFinalists: false,
   error: null,
 };
 
@@ -239,6 +241,19 @@ const leagueSlice = createSlice({
       .addCase(getLeagueLeaderboard.rejected, (state, action) => {
         state.loadingLeaderboard = false;
         state.error = action.payload;
+      })
+      .addCase(getLeagueFinalists.pending, (state) => {
+        state.loadingFinalists = true;
+        state.error = null;
+      })
+      .addCase(getLeagueFinalists.fulfilled, (state, action) => {
+        state.loadingFinalists = false;
+        state.finalists = action.payload;
+      })
+      .addCase(getLeagueFinalists.rejected, (state, action) => {
+        state.loadingFinalists = false;
+        state.error = action.payload;
+        state.finalists = null;
       });
   },
 });
