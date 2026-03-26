@@ -31,7 +31,7 @@ const AppUsers = () => {
   const statsCards = [
     { title: "iPhone Users", cardBorder: "1px solid #1F41BB1A", value: iphoneUsers, iconBg: '#1F41BB1A', icon: <FaApple style={{ color: '#1F41BB' }} size={20} />, tileBg: 'linear-gradient(113.4deg, #FFFFFF 42.44%, #E0E3F2 121.05%)' },
     { title: "Android Users", cardBorder: "1px solid #0596691A", value: androidUsers, iconBg: '#D1FAE5', icon: <FaAndroid style={{ color: '#059669' }} size={20} />, tileBg: 'linear-gradient(113.4deg, #FFFFFF 42.44%, #D1FAE5 121.05%)' },
-    { title: "Total Users", cardBorder: "1px solid #D977061A", value: totalDeviceUsers, iconBg: '#FEF3C7', icon: <FaUsers style={{ color: '#D97706' }} size={20} />, tileBg: 'linear-gradient(113.4deg, #FFFFFF 42.44%, #FEF3C7 121.05%)' },
+    { title: "Total Users", cardBorder: "1px solid #D977061A", value: totalItems, iconBg: '#FEF3C7', icon: <FaUsers style={{ color: '#D97706' }} size={20} />, tileBg: 'linear-gradient(113.4deg, #FFFFFF 42.44%, #FEF3C7 121.05%)' },
   ];
 
   return (
@@ -58,10 +58,6 @@ const AppUsers = () => {
             className="bg-white rounded shadow-sm p-2 p-md-3 d-flex flex-column"
             style={{ height: '100%' }}
           >
-            <h6 className="mb-md-3 mb-2 tabel-title fs-6">
-              Users with FCM Tokens
-            </h6>
-
             {loading ? (
               <DataLoading height="60vh" />
             ) : usersData?.length > 0 ? (
