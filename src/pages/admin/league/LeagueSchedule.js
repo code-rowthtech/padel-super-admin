@@ -1255,9 +1255,9 @@ const LeagueSchedule = () => {
     { key: "final", label: "Final" },
   ];
   return (
-    <Container fluid className="p-4 bg-white" style={{ minHeight: '100vh' }}>
-      <Row className="mb-4">
-        <Col>
+    <Container fluid className="p-4 pt-0 bg-white border h-100" >
+      <Row className="mb-0">
+        <Col className='py-3'>
           <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div className="d-flex gap-2 flex-wrap">
               {currentLeague?.matchRules && (
@@ -1317,7 +1317,6 @@ const LeagueSchedule = () => {
         </Col>
       </Row>
       <Row className='border-top' style={{ minHeight: 'calc(100vh - 200px)' }}>
-
         <Col md={10} style={{ overflowY: 'auto' }}>
           {/* Show category tabs for regular, quarter-final, and semi-final rounds */}
           {selectedRound !== 'final' && (
@@ -1388,7 +1387,7 @@ const LeagueSchedule = () => {
                   )}
                 </div>
               </div>
-              <div style={{ overflowY: 'auto', maxHeight: '65vh' }}>
+              <div style={{ overflowY: 'auto', maxHeight: '70vh' }}>
                 {/* New Matches Table (Unsaved) */}
                 {currentNewMatches.length > 0 && (
                   <div style={{ marginBottom: '30px' }}>
