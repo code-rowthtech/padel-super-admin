@@ -1,5 +1,5 @@
 import React from 'react';
-import { Col } from 'react-bootstrap';
+import { Col, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { BiExport } from 'react-icons/bi';
 import { exportLeagueSchedulesPDF } from '../../../../redux/admin/league/thunk';
 import { useDispatch } from 'react-redux';
@@ -105,15 +105,20 @@ const ScheduleSidebar = ({
                         <span style={{ fontSize: '13px', fontWeight: '600', color: '#1a1a1a' }}>
                           {new Date(item.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                         </span>
-                        <div
-                          onClick={e => {
-                            e.stopPropagation();
-                            dispatch(exportLeagueSchedulesPDF({ leagueId: leagueId, startDate: item.date, endDate: item.date }))
-                          }}
-                          style={{ width: '24px', height: '24px', borderRadius: '4px', background: 'rgba(31, 65, 187, 1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: loadingExport ? 'not-allowed' : 'pointer', opacity: loadingExport ? 0.6 : 1, pointerEvents: loadingExport ? 'none' : 'auto' }}
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={<Tooltip>Export Schedule</Tooltip>}
                         >
-                          <BiExport size={14} />
-                        </div>
+                          <div
+                            onClick={e => {
+                              e.stopPropagation();
+                              dispatch(exportLeagueSchedulesPDF({ leagueId: leagueId, startDate: item.date, endDate: item.date }))
+                            }}
+                            style={{ width: '24px', height: '24px', borderRadius: '4px', background: 'rgba(31, 65, 187, 1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: loadingExport ? 'not-allowed' : 'pointer', opacity: loadingExport ? 0.6 : 1, pointerEvents: loadingExport ? 'none' : 'auto' }}
+                          >
+                            <BiExport size={14} />
+                          </div>
+                        </OverlayTrigger>
                       </div>
                       <div className="d-flex justify-content-between align-items-center text-start">
                         <div className='mb-1 text-start' style={{ fontSize: '12px', color: '#666' }}>

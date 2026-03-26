@@ -1387,7 +1387,7 @@ const LeagueSchedule = () => {
                   )}
                 </div>
               </div>
-              <div style={{ overflowY: 'auto', maxHeight: '70vh' }}>
+              <div style={{ overflowY: 'auto', maxHeight: '66vh' }}>
                 {/* New Matches Table (Unsaved) */}
                 {currentNewMatches.length > 0 && (
                   <div style={{ marginBottom: '30px' }}>

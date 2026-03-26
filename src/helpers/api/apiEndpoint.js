@@ -166,6 +166,7 @@ export const GET_SCHEDULE_DATES = "/api/league-schedules/schedule-dates";
 
 // App Users Management
 export const GET_APP_USERS = "/api/customer/getCustomersWithFcmTokens";
+export const GET_DEVICE_TYPE_COUNT = "/api/customer/getDeviceTypeCount";
 
 // Category Management
 export const GET_CATEGORY_LIST = "/api/category/list";

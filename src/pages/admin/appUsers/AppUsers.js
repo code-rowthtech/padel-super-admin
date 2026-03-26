@@ -1,35 +1,62 @@
 import React, { useEffect, useState } from "react";
-import { Container, Row, Col, Table } from "react-bootstrap";
+import { Container, Row, Col, Table, Card } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
-import { getAppUsers } from "../../../redux/admin/appUsers/thunk";
+import { getAppUsers, getDeviceTypeCount } from "../../../redux/admin/appUsers/thunk";
 import { DataLoading } from "../../../helpers/loading/Loaders";
 import Pagination from "../../../helpers/Pagination";
+import { FaApple, FaAndroid, FaUsers } from "react-icons/fa";
 
 const AppUsers = () => {
   const dispatch = useDispatch();
   const [currentPage, setCurrentPage] = useState(1);
   const defaultLimit = 20;
 
-  const { users, loading } = useSelector((state) => state.appUsers);
+  const { users, deviceCounts, loading } = useSelector((state) => state.appUsers);
 
   const usersData = users?.data || [];
   const totalItems = users?.total || 0;
+  const iphoneUsers = deviceCounts?.response?.ios || 0;
+  const androidUsers = deviceCounts?.response?.android || 0;
+  const totalDeviceUsers = iphoneUsers + androidUsers;
 
   useEffect(() => {
     dispatch(getAppUsers({ page: currentPage, limit: defaultLimit }));
+    dispatch(getDeviceTypeCount());
   }, [dispatch, currentPage]);
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
 
+  const statsCards = [
+    { title: "iPhone Users", cardBorder: "1px solid #1F41BB1A", value: iphoneUsers, iconBg: '#1F41BB1A', icon: <FaApple style={{ color: '#1F41BB' }} size={20} />, tileBg: 'linear-gradient(113.4deg, #FFFFFF 42.44%, #E0E3F2 121.05%)' },
+    { title: "Android Users", cardBorder: "1px solid #0596691A", value: androidUsers, iconBg: '#D1FAE5', icon: <FaAndroid style={{ color: '#059669' }} size={20} />, tileBg: 'linear-gradient(113.4deg, #FFFFFF 42.44%, #D1FAE5 121.05%)' },
+    { title: "Total Users", cardBorder: "1px solid #D977061A", value: totalDeviceUsers, iconBg: '#FEF3C7', icon: <FaUsers style={{ color: '#D97706' }} size={20} />, tileBg: 'linear-gradient(113.4deg, #FFFFFF 42.44%, #FEF3C7 121.05%)' },
+  ];
+
   return (
-    <Container fluid className="p-0">
-      <Row className="mb-5">
-        <Col xs={12}>
+    <Container fluid className="px-0 bg-white px-md-4 h-100" style={{  display: 'flex', flexDirection: 'column' }}>
+      <Row className="mb-0" style={{ flexShrink: 0 }}>
+        {statsCards.map((card, idx) => (
+          <Col key={idx} md={4} sm={6} className="mb-0 py-4">
+            <Card style={{ background: card?.tileBg, border: card?.cardBorder, boxShadow: '0px 0px 8.8px 0px #0000001A' }} className="border-0 h-100 rounded-4">
+              <Card.Body className="d-flex flex-column gap-3">
+                <p className="rounded-2 m-0 d-flex align-items-center justify-content-center p-2" style={{ background: card?.iconBg, width: 'fit-content' }}>
+                  {card.icon}
+                </p>
+                <small className="text-muted fw-semibold fs-6 m-0">{card.title}</small>
+                <h5 className="m-0 fw-bold">{card.value.toLocaleString()}</h5>
+              </Card.Body>
+            </Card>
+          </Col>
+        ))}
+      </Row>
+
+      <Row className="mb-0" style={{ flex: 1, minHeight: 0 }}>
+        <Col xs={12} className="px-0" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
           <div
             className="bg-white rounded shadow-sm p-2 p-md-3 d-flex flex-column"
-            style={{ minHeight: "75vh" }}
+            style={{ height: '100%' }}
           >
             <h6 className="mb-md-3 mb-2 tabel-title fs-6">
               Users with FCM Tokens
@@ -45,7 +72,7 @@ const AppUsers = () => {
                     overflowY: "auto",
                     overflowX: "auto",
                     flex: "1 1 auto",
-                    maxHeight: "calc(100vh - 300px)",
+                    minHeight: 0
                   }}
                 >
                   <Table
@@ -54,7 +81,7 @@ const AppUsers = () => {
                     size="sm"
                     className="custom-table"
                   >
-                    <thead>
+                    <thead style={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 1 }}>
                       <tr className="text-center">
                         <th className="d-lg-table-cell">Sr No.</th>
                         <th className="d-none d-lg-table-cell">User Name</th>
@@ -143,26 +170,26 @@ const AppUsers = () => {
                 No users found!
               </div>
             )}
-
-            {totalItems > defaultLimit && (
-              <div
-                className="pt-3 d-flex justify-content-center align-items-center border-top"
-                style={{
-                  marginTop: "auto",
-                  backgroundColor: "white",
-                }}
-              >
-                <Pagination
-                  totalRecords={totalItems}
-                  defaultLimit={defaultLimit}
-                  handlePageChange={handlePageChange}
-                  currentPage={currentPage}
-                />
-              </div>
-            )}
           </div>
         </Col>
       </Row>
+
+      {totalItems > defaultLimit && (
+        <Row style={{ flexShrink: 0 }}>
+          <Col xs={12} className="px-0">
+            <div
+              className="pt-3 pb-3 d-flex justify-content-center align-items-center bg-white"
+            >
+              <Pagination
+                totalRecords={totalItems}
+                defaultLimit={defaultLimit}
+                handlePageChange={handlePageChange}
+                currentPage={currentPage}
+              />
+            </div>
+          </Col>
+        </Row>
+      )}
     </Container>
   );
 };

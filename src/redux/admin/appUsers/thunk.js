@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { GET_APP_USERS } from "../../../helpers/api/apiEndpoint";
+import { GET_APP_USERS, GET_DEVICE_TYPE_COUNT } from "../../../helpers/api/apiEndpoint";
 import { ownerApi } from "../../../helpers/api/apiCore";
 import { showError } from "../../../helpers/Toast";
 
@@ -15,6 +15,23 @@ export const getAppUsers = createAsyncThunk(
       return rejectWithValue(response?.data?.message);
     } catch (error) {
       showError(error?.message || "Failed to fetch app users");
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const getDeviceTypeCount = createAsyncThunk(
+  "appUsers/getDeviceTypeCount",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await ownerApi.get(GET_DEVICE_TYPE_COUNT);
+      if (response?.status === 200) {
+        return response.data || {};
+      }
+      showError(response?.data?.message || "Failed to fetch device counts");
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      showError(error?.message || "Failed to fetch device counts");
       return rejectWithValue(error);
     }
   }
