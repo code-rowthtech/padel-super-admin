@@ -147,3 +147,9 @@ export const UPDATE_LEAGUE = "/api/leagues/updateLeague";
 export const GET_LEAGUE_BY_ID = "/api/leagues/getLeagueById";
 export const DELETE_LEAGUE = "/api/leagues/deleteLeague";
 export const GET_SPONSOR_CATEGORIES = "/api/sponsor-categories";
+
+
+// version
+
+export const GET_VERSION = "/api/app-version/all";
+export const UPDATE_VERSION = "/api/app-version/update";

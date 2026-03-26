@@ -17,6 +17,8 @@ import { useSuperAdminContext } from "../../../contexts/SuperAdminContext";
 import { SUPER_ADMIN_GET_ALL_OWNERS } from "../../../helpers/api/apiEndpoint";
 import { Form } from "react-bootstrap";
 import { IoTennisballOutline } from "react-icons/io5";
+import { TbVersions } from "react-icons/tb";
+
 
 const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   const dispatch = useDispatch();
@@ -94,7 +96,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
         onClick={() => navigate('/admin/dashboard')}
       >
         <div className={`position-relative ${isCollapsed ? "" : "me-3"}`}>
-          <div 
+          <div
             className="rounded-circle p-3"
             style={{
               background: 'rgb(31, 65, 187)',
@@ -112,10 +114,10 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
       {/* Super Admin Badge */}
       {isSuperAdmin && !isCollapsed && (
         <div className="px-3 mb-3">
-          <div 
+          <div
             className="text-white p-2 rounded text-center small fw-bold"
             onClick={() => navigate('/admin/dashboard')}
-            style={{ 
+            style={{
               cursor: 'pointer',
               background: 'rgb(31, 65, 187)',
               boxShadow: '0 2px 8px rgba(31, 65, 187, 0.3)'
@@ -648,6 +650,59 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               }}
             >
               Profile
+            </div>
+          )}
+        </div>
+        {/* virsion  */}
+        <div
+          className="position-relative"
+          onMouseEnter={() =>
+            isCollapsed && window.innerWidth > 768 && setHoveredItem("virsion")
+          }
+          onMouseLeave={() => setHoveredItem(null)}
+        >
+          <NavLink
+            to="/admin/virsion"
+            end
+            className={
+              isCollapsed && window.innerWidth > 768
+                ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
+                : linkClasses(isActivePath("/admin/virsion"))
+            }
+            style={() => ({
+              backgroundColor: isActivePath("/admin/virsion") ? "rgba(31, 65, 187, 0.15)" : "transparent",
+              color: "#CCD2DD",
+              fontSize: "15px",
+              fontWeight: "500",
+              fontFamily: "Poppins",
+              boxShadow: isActivePath("/admin/virsion") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
+              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+            })}
+            onClick={() => window.innerWidth <= 768 && onClose()}
+          >
+            <TbVersions
+              className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
+              size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
+            />
+            {(!isCollapsed || window.innerWidth <= 768) && "Version"}
+          </NavLink>
+          {isCollapsed && window.innerWidth > 768 && hoveredItem === "virsion" && (
+            <div
+              className="position-absolute bg-dark px-2 py-1 rounded"
+              style={{
+                left: "75px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                zIndex: 1200,
+                fontSize: "15px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+                color: "#CCD2DD",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Version
             </div>
           )}
         </div>

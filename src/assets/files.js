@@ -36,8 +36,9 @@ import booking_logo_img from './images/bookingclublogoimage.png'
 import clearall from './images/clear_all.png'
 import bannerimg from './images/bannermobile.png'
 import vs_image from './images/leaguevs.png'
+import app_logo from './images/appstore 1 (1).png'
 export {
-    bannerimg,
+    bannerimg,app_logo,
     clearall,
     twoball,vs_image,
     taness,
