@@ -15,7 +15,6 @@ const CustomClubSelector = ({
   fetchPlayersForClub,
   setSelectedPlayers,
   handlePlayerSelection,
-  getUsedPlayersForDate,
   clubTeamsData,
   loadingTeamsState,
   activeTab
@@ -95,7 +94,6 @@ const CustomClubSelector = ({
     handlePlayerSelection(matchId, venue, playerId);
   };
 
-  const usedPlayers = getUsedPlayersForDate(matchId, venue);
   const selectedPlayerIds = selectedPlayers.map(p => p._id);
 
   const dropdownPanel = isOpen && typeof window !== 'undefined' ? createPortal(
@@ -133,20 +131,18 @@ const CustomClubSelector = ({
           ) : (hoveredKey && clubTeamsData[activeTab]?.[hoveredKey]?.length > 0) ? (
             clubTeamsData[activeTab][hoveredKey].filter(p => p.playerStatus === 'active').map((player) => {
               const isSelected = selectedPlayerIds.includes(player._id);
-              const isUsed = usedPlayers.has(player._id);
-              const isDisabled = (selectedPlayerIds.length >= 2 && !isSelected) || isUsed;
+              const isDisabled = selectedPlayerIds.length >= 2 && !isSelected;
               return (
                 <div
                   key={player._id}
                   onMouseDown={(e) => !isDisabled && handlePlayerClick(e, player._id)}
-                  style={{ padding: '8px 10px', borderRadius: '6px', marginBottom: '6px', border: isSelected ? '2px solid #1976d2' : '1px solid #e0e0e0', backgroundColor: isSelected ? '#e3f2fd' : isUsed ? '#ffebee' : 'white', cursor: isDisabled ? 'not-allowed' : 'pointer', opacity: isDisabled && !isSelected ? 0.5 : 1, display: 'flex', alignItems: 'center', gap: '8px' }}
+                  style={{ padding: '8px 10px', borderRadius: '6px', marginBottom: '6px', border: isSelected ? '2px solid #1976d2' : '1px solid #e0e0e0', backgroundColor: isSelected ? '#e3f2fd' : 'white', cursor: isDisabled ? 'not-allowed' : 'pointer', opacity: isDisabled && !isSelected ? 0.5 : 1, display: 'flex', alignItems: 'center', gap: '8px' }}
                 >
-                  <div style={{ width: '30px', height: '30px', borderRadius: '50%', flexShrink: 0, background: isSelected ? '#1976d2' : isUsed ? '#f44336' : '#e0e0e0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold', color: isSelected || isUsed ? 'white' : '#555' }}>
+                  <div style={{ width: '30px', height: '30px', borderRadius: '50%', flexShrink: 0, background: isSelected ? '#1976d2' : '#e0e0e0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold', color: isSelected ? 'white' : '#555' }}>
                     {isSelected ? '✓' : player.playerName?.charAt(0) || 'P'}
                   </div>
                   <div>
                     <div style={{ fontSize: '12px', fontWeight: '600', color: '#1F2937' }}>{player.playerName}</div>
-                    {isUsed && <div style={{ fontSize: '10px', color: '#f44336' }}>Already used</div>}
                   </div>
                 </div>
               );
