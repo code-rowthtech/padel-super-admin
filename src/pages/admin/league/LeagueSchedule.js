@@ -1369,7 +1369,7 @@ const LeagueSchedule = () => {
                       </span>
                     </div>
                   )}
-                  {selectedRound !== 'final' && selectedScheduleDate && activeTab !== 'all' && (
+                  {selectedRound !== 'final' && (selectedScheduleDate || currentScheduleInfo.date) && activeTab !== 'all' && (
                     <button
                       onClick={handleAddMoreRows}
                       className="btn btn-sm"
@@ -1388,7 +1388,7 @@ const LeagueSchedule = () => {
                   )}
                 </div>
               </div>
-
+I need you to analyze the @viewschedule component and the points table in it  Need a separate page for it also with title Points table in the sidebar and there will  be league selection in the page which fetches the points table of a specific league and neeed that the ui of the table will be the same as the one used in the viewschedule page
               <div style={{ overflowY: 'auto', maxHeight: '65vh' }}>
                 {/* New Matches Table (Unsaved) */}
                 {currentNewMatches.length > 0 && (
