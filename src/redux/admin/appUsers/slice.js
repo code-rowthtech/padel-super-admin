@@ -1,8 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getAppUsers } from "./thunk";
+import { getAppUsers, getDeviceTypeCount } from "./thunk";
 
 const initialState = {
   users: null,
+  deviceCounts: null,
   loading: false,
   error: null,
 };
@@ -13,6 +14,7 @@ const appUsersSlice = createSlice({
   reducers: {
     resetAppUsers: (state) => {
       state.users = null;
+      state.deviceCounts = null;
       state.loading = false;
       state.error = null;
     },
@@ -28,6 +30,19 @@ const appUsersSlice = createSlice({
       state.error = null;
     });
     builder.addCase(getAppUsers.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    });
+    builder.addCase(getDeviceTypeCount.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
+    builder.addCase(getDeviceTypeCount.fulfilled, (state, action) => {
+      state.loading = false;
+      state.deviceCounts = action.payload;
+      state.error = null;
+    });
+    builder.addCase(getDeviceTypeCount.rejected, (state, action) => {
       state.loading = false;
       state.error = action.payload;
     });

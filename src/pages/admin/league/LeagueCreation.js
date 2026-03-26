@@ -88,7 +88,6 @@ const League = () => {
     setLeagueToDelete(null);
   };
 
-
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
@@ -126,45 +125,6 @@ const League = () => {
             <div className="d-flex justify-content-between align-items-center mb-md-3 mb-2">
               <h6 className="mb-0 tabel-title fs-6">Manage League</h6>
               <div className="d-flex align-items-center justify-content-end gap-3">
-                {/* <Dropdown>
-                  <Dropdown.Toggle
-                    variant="white"
-                    className="d-flex rounded-2 align-items-center justify-content-between"
-                    size="sm"
-                    style={{
-                      width: '8rem',
-                      border: "1px solid #ddd",
-                      gap: "8px",
-                      fontWeight: "500",
-                      padding: "6px 12px",
-                    }}
-                  >
-                    {selectedLabel}
-                    <FaChevronDown size={12} />
-                  </Dropdown.Toggle>
-
-                  <Dropdown.Menu
-                    style={{
-                      borderRadius: "8px",
-                      padding: "6px",
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                    }}
-                  >
-                    {statusOptions.map((option) => (
-                      <Dropdown.Item
-                        key={option.value}
-                        active={statusFilter === option.value}
-                        onClick={() => setStatusFilter(option.value)}
-                        style={{
-                          borderRadius: "6px",
-                          fontSize: "14px",
-                        }}
-                      >
-                        {option.label}
-                      </Dropdown.Item>
-                    ))}
-                  </Dropdown.Menu>
-                </Dropdown> */}
                 <button
                   className="d-flex align-items-center position-relative p-0 border-0"
                   style={{
