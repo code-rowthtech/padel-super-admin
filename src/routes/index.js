@@ -23,6 +23,7 @@ const LeagueRegistration = React.lazy(() => import("../pages/admin/league/League
 const LeagueSchedule = React.lazy(() => import("../pages/admin/league/LeagueSchedule"));
 // const TeamCreation = React.lazy(() => import("../pages/admin/league/TeamCreation"));
 const ViewLeagueSchedule = React.lazy(() => import("../pages/admin/league/ViewLeagueSchedule"));
+const PointsTablePage = React.lazy(() => import("../pages/admin/league/PointsTablePage"));
 const Notifications = React.lazy(() => import("../pages/admin/notifications/Notifications"));
 const AppUsers = React.lazy(() => import("../pages/admin/appUsers/AppUsers"));
 
@@ -102,6 +103,10 @@ const AllRoutes = () => {
             //   path: "league/team-creation",
             //   element: LoadComponent(TeamCreation),
             // },
+            {
+              path: "league/points-table",
+              element: LoadComponent(PointsTablePage),
+            },
             {
               path: "view-league-schedule/:leagueId",
               element: LoadComponent(ViewLeagueSchedule),
