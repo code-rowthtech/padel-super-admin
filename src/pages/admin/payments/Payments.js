@@ -1459,7 +1459,7 @@ const Payments = () => {
                                 </div>
                               </td>
                               <td style={{ padding: "12px" }}>
-                               Padel
+                                {item?.categoryId?.name}
                               </td>
                               <td style={{ padding: "12px" }}>
                                 <div>
@@ -1573,15 +1573,15 @@ const Payments = () => {
                                       </span> */}
                                       <span
                                         className={`badge ${item?.paymentStatus === "pending" &&
-                                            (item?.bookingStatus === "refunded" ||
-                                              item?.bookingStatus === "cancelled")
-                                            ? "bg-secondary"
-                                            : item?.paymentStatus === "paid"
-                                              ? "bg-success"
-                                              : item?.paymentStatus ===
-                                                "pending"
-                                                ? "bg-warning"
-                                                : "bg-secondary"
+                                          (item?.bookingStatus === "refunded" ||
+                                            item?.bookingStatus === "cancelled")
+                                          ? "bg-secondary"
+                                          : item?.paymentStatus === "paid"
+                                            ? "bg-success"
+                                            : item?.paymentStatus ===
+                                              "pending"
+                                              ? "bg-warning"
+                                              : "bg-secondary"
                                           }`}
                                         style={{
                                           fontSize: "10px",

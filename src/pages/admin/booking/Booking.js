@@ -669,7 +669,7 @@ const Booking = () => {
                             style={{ maxWidth: "80px" }}
                           >
                             {/* ✅ SUPER ADMIN: Handle both old format and new format */}
-                            { item?.userId?.category || "-"}
+                            { item?.category?.name || "-"}
                           </td>
                           <td
                             className="text-truncate"
