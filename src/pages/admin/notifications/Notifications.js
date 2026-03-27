@@ -175,6 +175,7 @@ const Notifications = () => {
                       <th>Type</th>
                       <th>Recipients</th>
                       <th>Date</th>
+                      <th>Send Time</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
@@ -231,6 +232,9 @@ const Notifications = () => {
                         </td>
                         <td className="text-muted" style={{ fontSize: "13px" }}>
                           {formatDate(notif.createdAt)}
+                        </td>
+                        <td className="text-muted" style={{ fontSize: "13px" }}>
+                          {notif.notificationType === "scheduled" && notif.sendTime ? notif.sendTime : "—"}
                         </td>
                         <td>
                           {notif.notificationType === "scheduled" ? (

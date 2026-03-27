@@ -10,6 +10,19 @@ import { useDispatch, useSelector } from "react-redux";
 import { getVersion, updateVersion } from "../../../redux/thunks";
 import { ButtonLoading } from "../../../helpers/loading/Loaders";
 
+const SkeletonBox = ({ width = "80%", height = 14 }) => (
+    <div
+        style={{
+            width,
+            height,
+            borderRadius: 6,
+            background: "linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%)",
+            backgroundSize: "200% 100%",
+            animation: "shimmer 1.2s infinite",
+        }}
+    />
+);
+
 const Version = () => {
     const dispatch = useDispatch()
     const versionData = useSelector((state) => state?.version?.versionData)
@@ -138,6 +151,7 @@ const Version = () => {
     
     return (
         <Container fluid className="p-4 bg-light">
+            <style>{`@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }`}</style>
 
             {/* Title */}
             <h2 className="fw-bold mb-4">Versions</h2>
@@ -205,18 +219,14 @@ const Version = () => {
                                         >
                                             Swoot App Partner
                                         </div>
+                                        {versionLoading ? <SkeletonBox /> : (
                                         <input
                                             type="text"
-                                            value={versionLoading ? 'Loading....' : versions.ios_admin}
-                                            onChange={(e) =>
-                                                handleChange("ios_admin", e.target.value)
-                                            }
+                                            value={versions.ios_admin}
+                                            onChange={(e) => handleChange("ios_admin", e.target.value)}
                                             className="formdata border-0 w-100"
-                                            style={{
-                                                backgroundColor: "transparent",
-                                                boxShadow: "none",
-                                            }}
-                                        />
+                                            style={{ backgroundColor: "transparent", boxShadow: "none" }}
+                                        />)}
                                     </div>
 
                                 </div>
@@ -260,18 +270,14 @@ const Version = () => {
                                         >
                                             Swoot App User
                                         </div>
+                                        {versionLoading ? <SkeletonBox /> : (
                                         <input
                                             type="text"
-                                            value={versionLoading ? 'Loading....' : versions.ios}
-                                            onChange={(e) =>
-                                                handleChange("ios", e.target.value)
-                                            }
+                                            value={versions.ios}
+                                            onChange={(e) => handleChange("ios", e.target.value)}
                                             className="formdata border-0 w-100"
-                                            style={{
-                                                backgroundColor: "transparent",
-                                                boxShadow: "none",
-                                            }}
-                                        />
+                                            style={{ backgroundColor: "transparent", boxShadow: "none" }}
+                                        />)}
                                     </div>
                                 </div>
                             </Col>
@@ -347,18 +353,14 @@ const Version = () => {
                                         >
                                             Swoot App Partner
                                         </div>
+                                        {versionLoading ? <SkeletonBox /> : (
                                         <input
                                             type="text"
-                                            value={versionLoading ? 'Loading....' : versions.android_admin}
-                                            onChange={(e) =>
-                                                handleChange("android_admin", e.target.value)
-                                            }
+                                            value={versions.android_admin}
+                                            onChange={(e) => handleChange("android_admin", e.target.value)}
                                             className="formdata border-0 w-100"
-                                            style={{
-                                                backgroundColor: "transparent",
-                                                boxShadow: "none",
-                                            }}
-                                        />
+                                            style={{ backgroundColor: "transparent", boxShadow: "none" }}
+                                        />)}
                                     </div>
                                 </div>
                             </Col>
@@ -401,18 +403,14 @@ const Version = () => {
                                         >
                                             Swoot App User
                                         </div>
+                                        {versionLoading ? <SkeletonBox /> : (
                                         <input
                                             type="text"
-                                            value={versionLoading ? 'Loading....' : versions.android}
-                                            onChange={(e) =>
-                                                handleChange("android", e.target.value)
-                                            }
+                                            value={versions.android}
+                                            onChange={(e) => handleChange("android", e.target.value)}
                                             className="formdata border-0 w-100"
-                                            style={{
-                                                backgroundColor: "transparent",
-                                                boxShadow: "none",
-                                            }}
-                                        />
+                                            style={{ backgroundColor: "transparent", boxShadow: "none" }}
+                                        />)}
                                     </div>
                                 </div>
                             </Col>
