@@ -174,3 +174,7 @@ export const GET_DEVICE_TYPE_COUNT = "/api/customer/getDeviceTypeCount";
 
 // Category Management
 export const GET_CATEGORY_LIST = "/api/category/list";
+// version
+ 
+export const GET_VERSION = "/api/app-version/all";
+export const UPDATE_VERSION = "/api/app-version/update";

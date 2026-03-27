@@ -11,7 +11,7 @@ import {
   FaUsers,
 } from "react-icons/fa";
 import { MdNotificationsActive } from "react-icons/md";
-
+import { GoVersions } from "react-icons/go";
 import { useDispatch } from "react-redux";
 import { RiWallet3Line, RiWalletLine } from "react-icons/ri";
 import { getOwnerFromSession, ownerApi } from "../../../helpers/api/apiCore";
@@ -782,6 +782,59 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               }}
             >
               Profile
+            </div>
+          )}
+        </div>
+         {/* Version */}
+        <div
+          className="position-relative"
+          onMouseEnter={() =>
+            isCollapsed && window.innerWidth > 768 && setHoveredItem("appVersion")
+          }
+          onMouseLeave={() => setHoveredItem(null)}
+        >
+          <NavLink
+            to="/admin/app-version"
+            end
+            className={
+              isCollapsed && window.innerWidth > 768
+                ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
+                : linkClasses(isActivePath("/admin/app-version"))
+            }
+            style={() => ({
+              backgroundColor: isActivePath("/admin/app-version") ? "rgba(31, 65, 187, 0.15)" : "transparent",
+              color: "#CCD2DD",
+              fontSize: "15px",
+              fontWeight: "500",
+              fontFamily: "Poppins",
+              boxShadow: isActivePath("/admin/app-version") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
+              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+            })}
+            onClick={() => window.innerWidth <= 768 && onClose()}
+          >
+            <GoVersions
+              className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
+              size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
+            />
+            {(!isCollapsed || window.innerWidth <= 768) && "Version"}
+          </NavLink>
+          {isCollapsed && window.innerWidth > 768 && hoveredItem === "appVersion" && (
+            <div
+              className="position-absolute bg-dark px-2 py-1 rounded"
+              style={{
+                left: "75px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                zIndex: 1200,
+                fontSize: "15px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+                color: "#CCD2DD",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Version
             </div>
           )}
         </div>
