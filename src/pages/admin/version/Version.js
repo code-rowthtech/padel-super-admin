@@ -18,7 +18,6 @@ const Version = () => {
     const [andLoading, setAndLoading] = useState(false);
     const [iosLoading, setIosLoading] = useState(false);
 
-    console.log({ versionData })
     const [initialVersions, setInitialVersions] = useState({
         ios: "",
         ios_admin: "",
