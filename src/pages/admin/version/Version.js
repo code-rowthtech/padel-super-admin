@@ -31,7 +31,6 @@ const Version = () => {
         android: "",
         android_admin: "",
     });
-
     useEffect(() => {
         dispatch(getVersion())
     }, [dispatch])
