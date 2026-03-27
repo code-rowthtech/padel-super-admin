@@ -125,3 +125,21 @@ export const getAdminBulkNotifications = createAsyncThunk(
     }
   }
 );
+
+export const resendBulkNotification = createAsyncThunk(
+  "notification/resendBulkNotification",
+  async (notificationId, { rejectWithValue }) => {
+    try {
+      const res = await ownerApi.post(`${Url.RESEND_BULK_NOTIFICATION}`, { notificationId });
+      const { status, data, message } = res || {};
+      if (status === 200 || status === 201) {
+        showSuccess(message || "Notification resent successfully!");
+        return data;
+      }
+      return rejectWithValue(message);
+    } catch (error) {
+      showError(error?.response?.data?.message || error.message);
+      return rejectWithValue(error.message);
+    }
+  }
+);

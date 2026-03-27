@@ -6,15 +6,17 @@ import {
   Table,
   Button,
 } from "react-bootstrap";
-import { MdNotificationsActive, MdSend } from "react-icons/md";
+import { MdNotificationsActive, MdSend, MdOutlineReplay } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
-import { getAdminBulkNotifications } from "../../../redux/admin/notifiction/thunk";
+import { getAdminBulkNotifications, resendBulkNotification } from "../../../redux/admin/notifiction/thunk";
 import { DataLoading } from "../../../helpers/loading/Loaders";
 import NotificationModal from "./NotificationModal";
 
 const Notifications = () => {
   const dispatch = useDispatch();
   const [showModal, setShowModal] = useState(false);
+  const [resendTarget, setResendTarget] = useState(null);
+  const [resending, setResending] = useState(false);
 
   const { bulkNotifications, bulkNotificationsLoading: loading } =
     useSelector((state) => state.notificationData);
@@ -22,6 +24,13 @@ const Notifications = () => {
   useEffect(() => {
     dispatch(getAdminBulkNotifications());
   }, [dispatch]);
+
+  const handleResendConfirm = async () => {
+    setResending(true);
+    await dispatch(resendBulkNotification(resendTarget._id));
+    setResending(false);
+    setResendTarget(null);
+  };
 
   const handleModalClose = (refreshList) => {
     setShowModal(false);
@@ -142,6 +151,7 @@ const Notifications = () => {
                       <th className="d-none d-lg-table-cell">Message</th>
                       <th>Recipients</th>
                       <th>Date</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -180,6 +190,15 @@ const Notifications = () => {
                         <td className="text-muted" style={{ fontSize: "13px" }}>
                           {formatDate(notif.createdAt)}
                         </td>
+                        <td>
+                          <button
+                            title="Resend"
+                            onClick={() => setResendTarget(notif)}
+                            style={{ background: "none", border: "none", cursor: "pointer", color: "#1F41BB" }}
+                          >
+                            <MdOutlineReplay size={18} />
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -191,6 +210,42 @@ const Notifications = () => {
       </Row>
 
       <NotificationModal show={showModal} onClose={handleModalClose} />
+
+      {resendTarget && (
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1050 }}
+          onClick={() => !resending && setResendTarget(null)}
+        >
+          <div
+            className="bg-white rounded p-4"
+            style={{ maxWidth: "420px", width: "90%" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h6 className="mb-2 fw-semibold">Resend Notification</h6>
+            <p className="text-muted mb-1" style={{ fontSize: "14px" }}>
+              Are you sure you want to resend{resendTarget.title ? <> <strong>"{resendTarget.title}"</strong></> : ""} to all original recipients?
+            </p>
+            <p className="mb-3" style={{ fontSize: "13px", color: "#888" }}>
+              This will re-deliver the notification to{" "}
+              <strong>{resendTarget.totalRecipients ?? (resendTarget.sentTo?.length || 0)}</strong> recipient(s).
+            </p>
+            <div className="d-flex justify-content-end gap-2">
+              <Button variant="outline-secondary" size="sm" onClick={() => setResendTarget(null)} disabled={resending}>
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                disabled={resending}
+                style={{ backgroundColor: "#1F41BB", border: "none" }}
+                onClick={handleResendConfirm}
+              >
+                {resending ? "Resending..." : "Yes, Resend"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </Container>
   );
 };
