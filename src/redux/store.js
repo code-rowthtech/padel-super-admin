@@ -8,6 +8,7 @@ import logoReducer from "./admin/logo/slice";
 import notificationDataReducer from "./admin/notifiction/slice";
 import leagueReducer from "./admin/league/slice";
 import appUsersReducer from "./admin/appUsers/slice";
+import versionReducer from "./admin/version/slice";
 
 const store = configureStore({
   reducer: {
@@ -20,6 +21,7 @@ const store = configureStore({
     notificationData: notificationDataReducer,
     league: leagueReducer,
     appUsers: appUsersReducer,
+    version: versionReducer,
   },
 });
 
