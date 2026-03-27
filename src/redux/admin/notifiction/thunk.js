@@ -112,15 +112,53 @@ export const sendBulkNotification = createAsyncThunk(
 
 export const getAdminBulkNotifications = createAsyncThunk(
   "notification/getAdminBulkNotifications",
-  async (_, { rejectWithValue }) => {
+  async ({ page = 1, notificationType } = {}, { rejectWithValue }) => {
     try {
-      const res = await ownerApi.get(`${Url.GET_ADMIN_BULK_NOTIFICATIONS}`);
+      let url = `${Url.GET_ADMIN_BULK_NOTIFICATIONS}?page=${page}`;
+      if (notificationType) url += `&notificationType=${notificationType}`;
+      const res = await ownerApi.get(url);
       const { status, data, message } = res || {};
       if (status === 200 || status === 201) {
         return data;
       }
       return rejectWithValue(message);
     } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+export const resendBulkNotification = createAsyncThunk(
+  "notification/resendBulkNotification",
+  async (notificationId, { rejectWithValue }) => {
+    try {
+      const res = await ownerApi.post(`${Url.RESEND_BULK_NOTIFICATION}`, { notificationId });
+      const { status, data, message } = res || {};
+      if (status === 200 || status === 201) {
+        showSuccess(message || "Notification resent successfully!");
+        return data;
+      }
+      return rejectWithValue(message);
+    } catch (error) {
+      showError(error?.response?.data?.message || error.message);
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+export const createScheduledNotification = createAsyncThunk(
+  "notification/createScheduledNotification",
+  async (params, { rejectWithValue }) => {
+    try {
+      const res = await ownerApi.post(`${Url.CREATE_SCHEDULED_NOTIFICATION}`, params);
+      const { status, data, message } = res || {};
+      if (status === 200 || status === 201) {
+        showSuccess(message || "Notification scheduled successfully!");
+        return data;
+      }
+      return rejectWithValue(message);
+    } catch (error) {
+      showError(error?.response?.data?.message || error.message);
       return rejectWithValue(error.message);
     }
   }
