@@ -135,6 +135,9 @@ const Version = () => {
             setAndLoading(false);
         }
     };
+
+
+    
     return (
         <Container fluid className="p-4 bg-light">
 
@@ -163,7 +166,6 @@ const Version = () => {
                             <FaApple size={28} color="#6c6f7d" />
                             <h4 className="mb-0 fw-semibold">iOS</h4>
                         </div>
-
                         {/* App Store Version */}
                         <Row className="mx-auto">
                             <Col lg={6} className="pe-3">
@@ -426,6 +428,8 @@ const Version = () => {
                 </Col>
 
             </Row>
+
+            
         </Container >
     );
 };
