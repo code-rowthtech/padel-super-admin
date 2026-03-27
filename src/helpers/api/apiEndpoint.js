@@ -91,6 +91,8 @@ export const GET_ADMIN_BULK_NOTIFICATIONS =
   "/api/adminNotification/getAdminBulkNotifications";
 export const RESEND_BULK_NOTIFICATION =
   "/api/adminNotification/resendBulkNotification";
+export const CREATE_SCHEDULED_NOTIFICATION =
+  "/api/adminNotification/createScheduledNotification";
 
 export const GET_SUBOWNER = "/api/owners/getusers";
 export const UPDATE_SUBOWNER = "/api/owners/updatesubowner";

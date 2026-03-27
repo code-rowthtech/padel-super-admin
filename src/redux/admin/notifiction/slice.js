@@ -11,6 +11,7 @@ const initialState = {
   bulkNotifications: [],
   bulkNotificationsLoading: false,
   bulkNotificationsError: null,
+  bulkNotificationsPagination: null,
 };
 
 const NotificationSlice = createSlice({
@@ -100,6 +101,7 @@ const NotificationSlice = createSlice({
       .addCase(getAdminBulkNotifications.fulfilled, (state, action) => {
         state.bulkNotificationsLoading = false;
         state.bulkNotifications = action.payload;
+        state.bulkNotificationsPagination = action.payload?.pagination || null;
       })
       .addCase(getAdminBulkNotifications.rejected, (state, action) => {
         state.bulkNotificationsLoading = false;
