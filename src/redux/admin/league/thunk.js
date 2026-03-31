@@ -503,3 +503,21 @@ export const getLeagueFinalists = createAsyncThunk(
     }
   }
 );
+
+export const createLivestream = createAsyncThunk(
+  "league/createLivestream",
+  async ({ scheduleId, streamKey }, { rejectWithValue }) => {
+    try {
+      const response = await ownerApi.put(`/api/league-schedules/${scheduleId}/stream`, { streamKey });
+      if (response?.status === 200 || response?.status === 201) {
+        showSuccess(response?.data?.message || "Livestream updated successfully");
+        return response.data;
+      }
+      showError(response?.data?.message || "Failed to update livestream");
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      showError(error || "Failed to update livestream");
+      return rejectWithValue(error);
+    }
+  }
+);
