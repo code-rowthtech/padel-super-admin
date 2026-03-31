@@ -215,7 +215,6 @@ const BasicInformation = ({ onNext }) => {
         formDataPayload.append('startDate', formData.startDate);
         formDataPayload.append('sportType', formData.sportType);
         if (formData.seasonType) formDataPayload.append('seasonType', formData.seasonType);
-
         if (mobileBanner instanceof File) formDataPayload.append('mobileBanner', mobileBanner);
         if (webBanner instanceof File) formDataPayload.append('webBanner', webBanner);
 
