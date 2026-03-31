@@ -218,7 +218,6 @@ const BasicInformation = ({ onNext }) => {
 
         if (mobileBanner instanceof File) formDataPayload.append('mobileBanner', mobileBanner);
         if (webBanner instanceof File) formDataPayload.append('webBanner', webBanner);
-        if (titleSponsorBanner instanceof File) formDataPayload.append('titleSponsorBanner', titleSponsorBanner);
 
         // clubs.filter(c => c.name).forEach((club, index) => {
         //     formDataPayload.append(`clubs[${index}][clubId]`, club.name);
@@ -262,7 +261,7 @@ const BasicInformation = ({ onNext }) => {
             if (titleSponsorBanner instanceof File) {
                 formDataPayload.append('titleSponsorBanner', titleSponsorBanner);
             } else if (titleSponsorBanner && typeof titleSponsorBanner === 'string') {
-                formDataPayload.append('titleSponsor[banner]', titleSponsorBanner);
+                formDataPayload.append('titleSponsor[titleSponsorBanner]', titleSponsorBanner);
             }
         }
 
