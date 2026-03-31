@@ -1,17 +1,18 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Container, Row, Col, Card, Badge, Form, Button } from 'react-bootstrap';
+import { Container, Row, Col, Card, Form, Button, Modal } from 'react-bootstrap';
 import { Tabs, Tab } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import { getAllSchedules, exportLeagueSchedulesPDF, getLeagueById } from '../../../redux/admin/league/thunk';
+import { getAllSchedules, exportLeagueSchedulesPDF, getLeagueById, createLivestream } from '../../../redux/admin/league/thunk';
 import { clearCurrentLeague } from '../../../redux/admin/league/slice';
 import { IoLocationOutline } from 'react-icons/io5';
+import { IoCopyOutline, IoCheckmarkOutline } from 'react-icons/io5';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { DataLoading } from '../../../helpers/loading/Loaders';
 import PointsTable from './PointsTable';
 
-const VSMatchCard = ({ match, category, roundType }) => {
+const VSMatchCard = ({ match, category, roundType, isLive, onClick }) => {
   const getPlayerAvatar = (player) => {
     if (player?.avatar) return player.avatar;
     const name = player?.playerName || player?.name || 'P';
@@ -24,16 +25,18 @@ const VSMatchCard = ({ match, category, roundType }) => {
   };
   return (
     <div
+      onClick={onClick}
       className="mb-3 shadow-sm rounded-3 position-relative overflow-hidden"
       style={{
         background: 'linear-gradient(100.97deg, rgb(253, 253, 255) 0%, rgb(158, 186, 255) 317.27%)',
         padding: '30px 16px 16px 16px',
-        border: '1px solid #1F41BB1A',
-        minHeight: '110px'
+        border: isLive ? '1px solid #22c55e44' : '1px solid #1F41BB1A',
+        minHeight: '9rem',
+        cursor: 'pointer'
       }}
     >
-      <div className="vs-date-badge">
-        {match?.time}
+      <div className="vs-date-badge" >
+        {match?.startTime}
       </div>
       <Row className="align-items-center">
         {/* Team A */}
@@ -60,7 +63,15 @@ const VSMatchCard = ({ match, category, roundType }) => {
 
         {/* Center - Date and VS */}
         <Col xs={4} className="text-center">
-          {/* <small className='fw-semibold text-capitalize' style={{ fontSize: '0.7rem' }}>{roundType}</small> */}
+          {isLive && (
+            <div className="d-flex align-items-center justify-content-center gap-1 mb-1">
+              <span style={{
+                width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e',
+                display: 'inline-block', animation: 'livePulse 1.2s ease-in-out infinite'
+              }} />
+              <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#22c55e', letterSpacing: '0.5px' }}>LIVE</span>
+            </div>
+          )}
           <div
             className="d-flex align-items-center justify-content-center mx-auto"
             style={{
@@ -72,6 +83,7 @@ const VSMatchCard = ({ match, category, roundType }) => {
               color: "transparent",
               WebkitTextStroke: "1.5px #1F41BB",
             }}
+
           >
             VS
           </div>
@@ -104,8 +116,6 @@ const VSMatchCard = ({ match, category, roundType }) => {
   );
 };
 
-
-
 const formatDate = (dateString) => {
   const date = new Date(dateString + (dateString.includes('T') ? '' : 'T00:00:00.000Z'));
   const today = new Date();
@@ -128,21 +138,21 @@ const formatDate = (dateString) => {
 };
 
 // Renders a date group: one date heading + all matches across all schedule entries in one flat Row
-const DateSection = ({ dateGroup }) => {
-  // Flatten all matches from all schedules into one list, attaching category/venue metadata
+const DateSection = ({ dateGroup, onMatchClick }) => {
   const allMatchCols = (dateGroup.schedules || []).flatMap((schedule) =>
     (schedule.matches || []).map((match) => ({
       match,
+      schedule,
       category: schedule.categoryType,
       roundType: schedule.roundType,
       venue: schedule.venue,
+      isLive: schedule.matchStatus === 'live' || match.status === 'live',
       key: match._id,
     }))
   );
 
   return (
     <div className="mb-4">
-      {/* Date Header */}
       <div className="mb-3">
         <div className="d-flex align-items-center gap-2">
           <h6 className="mb-0 fw-bold" style={{ color: '#2c3e50', fontSize: '16px' }}>
@@ -156,11 +166,10 @@ const DateSection = ({ dateGroup }) => {
         </div>
       </div>
 
-      {/* All matches in a single flat row grid */}
       <Row className="g-2">
-        {allMatchCols.map(({ match, category, roundType, venue, key }) => (
+        {allMatchCols.map(({ match, schedule, category, roundType, venue, isLive, key }) => (
           <Col key={key} xs={12} sm={6} md={4} lg={3} xl={3}>
-            <VSMatchCard match={match} category={category} roundType={roundType} venue={venue} />
+            <VSMatchCard match={match} category={category} roundType={roundType} venue={venue} isLive={isLive} onClick={() => onMatchClick(match, schedule)} />
           </Col>
         ))}
       </Row>
@@ -189,8 +198,11 @@ const TournamentBracket = () => {
 const ViewLeagueSchedule = () => {
   const dispatch = useDispatch();
   const { leagueId } = useParams();
-  const { schedules, loadingSchedules, loadingExport, currentLeague } = useSelector(state => state.league);
+  const { schedules, loadingSchedules, loadingExport, currentLeague, loadingLivestream } = useSelector(state => state.league);
   const [activeTab, setActiveTab] = useState(0);
+  const [livestreamModal, setLivestreamModal] = useState({ show: false, match: null });
+  const [livestreamForm, setLivestreamForm] = useState({ streamKey: '' });
+  const [copied, setCopied] = useState(false);
   const [filters, setFilters] = useState({
     categoryType: '',
     roundType: '',
@@ -300,6 +312,29 @@ const ViewLeagueSchedule = () => {
     // If only one date is selected, don't call API
   }, [dispatch, leagueId, filters]);
 
+  const handleMatchClick = (match, schedule) => {
+    setLivestreamModal({ show: true, match, schedule });
+    setLivestreamForm({ streamKey: '' });
+  };
+
+  const handleCopy = (text) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleLivestreamSubmit = () => {
+    dispatch(createLivestream({
+      scheduleId: livestreamModal.schedule?._id,
+      streamKey: livestreamForm.streamKey,
+    })).then((res) => {
+      if (!res.error) {
+        setLivestreamModal({ show: false, match: null, schedule: null });
+        dispatch(getAllSchedules({ leagueId }));
+      }
+    });
+  };
+
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
@@ -320,8 +355,8 @@ const ViewLeagueSchedule = () => {
   const schedulesData = Array.isArray(schedules?.data)
     ? schedules.data
     : Array.isArray(schedules)
-    ? schedules
-    : [];
+      ? schedules
+      : [];
 
   return (
     <div style={{ backgroundColor: 'white', height: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -531,6 +566,7 @@ const ViewLeagueSchedule = () => {
                         <DateSection
                           key={dateGroup.date || index}
                           dateGroup={dateGroup}
+                          onMatchClick={handleMatchClick}
                         />
                       ))}
                     </div>
@@ -556,6 +592,68 @@ const ViewLeagueSchedule = () => {
           </Row>
         </Container>
       </div>
+
+      <Modal show={livestreamModal.show} onHide={() => setLivestreamModal({ show: false, match: null, schedule: null })} centered>
+        <Modal.Header closeButton style={{ borderBottom: '1px solid #f3f4f6', padding: '1.25rem 1.5rem', background: '#f9fafb', borderRadius: '16px 16px 0 0' }}>
+          <Modal.Title style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 600, fontSize: '16px', color: '#1f2937', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            Setup Livestream
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body style={{ padding: '1.5rem' }}>
+          {!livestreamModal.schedule?.scoreboardUrl ? (
+            <div className="text-center py-3">
+              <div style={{ fontSize: '36px', marginBottom: '12px' }}>⏳</div>
+              <p className="fw-semibold mb-1" style={{ color: '#374151' }}>Match Not Started Yet</p>
+              <p className="text-muted mb-0" style={{ fontSize: '13px' }}>The scoreboard URL will be available once the match begins.</p>
+            </div>
+          ) : (
+            <>
+              <Form.Group className="mb-3">
+                <Form.Label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                  Scoreboard URL
+                </Form.Label>
+                <div className="input-group">
+                  <Form.Control
+                    value={livestreamModal.schedule?.scoreboardUrl || ''}
+                    readOnly
+                    style={{ fontSize: '13px', background: '#f9fafb' }}
+                  />
+                  <button
+                    className="btn btn-outline-secondary"
+                    type="button"
+                    title="Copy scoreboard URL"
+                    onClick={() => handleCopy(livestreamModal.schedule?.scoreboardUrl || '')}
+                    style={{ transition: 'color 0.2s', color: copied ? '#22c55e' : undefined }}
+                  >
+                    {copied
+                      ? <IoCheckmarkOutline size={16} color="#22c55e" />
+                      : <IoCopyOutline size={16} />}
+                  </button>
+                </div>
+              </Form.Group>
+              <Form.Group>
+                <Form.Label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+                  Stream Key <span className="text-danger">*</span>
+                </Form.Label>
+                <Form.Control
+                  value={livestreamForm.streamKey}
+                  onChange={(e) => setLivestreamForm(prev => ({ ...prev, streamKey: e.target.value }))}
+                  placeholder="Enter your stream key"
+                  style={{ fontSize: '14px' }}
+                />
+              </Form.Group>
+            </>
+          )}
+        </Modal.Body>
+        <Modal.Footer style={{ borderTop: '1px solid #f3f4f6', padding: '1rem 1.5rem', background: '#f9fafb', borderRadius: '0 0 16px 16px' }}>
+          <Button variant="secondary" onClick={() => setLivestreamModal({ show: false, match: null, schedule: null })} style={{ fontSize: '13px', fontWeight: 500 }}>Cancel</Button>
+          {livestreamModal.schedule?.scoreboardUrl && (
+            <Button variant="primary" onClick={handleLivestreamSubmit} disabled={loadingLivestream || !livestreamForm.streamKey} style={{ fontSize: '13px', fontWeight: 500 }}>
+              {loadingLivestream ? 'Submitting...' : 'Go Live'}
+            </Button>
+          )}
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };

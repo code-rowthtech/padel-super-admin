@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createLeague, getLeagues, getLeaguesIDS, updateLeague, getStates, getClubsWithState, getSponsorCategories, getLeagueById, deleteLeague, getLeagueClubs, getClubTeams, getAllSchedules, saveSchedule, updateSchedule, exportLeagueSchedulesPDF, getLeagueSummary, getScheduleDates, getLeagueLeaderboard, getLeagueFinalists } from "./thunk";
+import { createLeague, getLeagues, getLeaguesIDS, updateLeague, getStates, getClubsWithState, getSponsorCategories, getLeagueById, deleteLeague, getLeagueClubs, getClubTeams, getAllSchedules, saveSchedule, updateSchedule, exportLeagueSchedulesPDF, getLeagueSummary, getScheduleDates, getLeagueLeaderboard, getLeagueFinalists, createLivestream } from "./thunk";
 
 const initialState = {
   leagues: [],
@@ -27,6 +27,7 @@ const initialState = {
   loadingLeaderboard: false,
   finalists: null,
   loadingFinalists: false,
+  loadingLivestream: false,
   error: null,
 };
 
@@ -254,6 +255,16 @@ const leagueSlice = createSlice({
         state.loadingFinalists = false;
         state.error = action.payload;
         state.finalists = null;
+      })
+      .addCase(createLivestream.pending, (state) => {
+        state.loadingLivestream = true;
+      })
+      .addCase(createLivestream.fulfilled, (state) => {
+        state.loadingLivestream = false;
+      })
+      .addCase(createLivestream.rejected, (state, action) => {
+        state.loadingLivestream = false;
+        state.error = action.payload;
       });
   },
 });
