@@ -42,8 +42,8 @@ const ScheduleModal = ({
 
   return (
     <Modal show={show} onHide={onHide} centered className={`${showConfirmationModal ? 'd-none' : ''}`}>
-      <Modal.Header className="border-bottom d-flex justify-content-between align-items-center" style={{ padding: '20px' }}>
-        <Modal.Title style={{ fontWeight: '600', fontSize: '20px', color: 'rgba(37, 37, 37, 1)' }}>
+      <Modal.Header className="border-bottom bg-white d-flex justify-content-between align-items-center" style={{ padding: '20px' }}>
+        <Modal.Title className='d-flex align-items-center gap-2' style={{ fontWeight: '600', fontSize: '20px', color: 'rgba(37, 37, 37, 1)' }}>
           <IoCalendarClearOutline size={18} /> Day one schedule
         </Modal.Title>
         <MdClose size={24} onClick={onHide} style={{ cursor: 'pointer' }} />

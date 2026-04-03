@@ -296,13 +296,12 @@ const BasicInformation = ({ onNext }) => {
         <div className='h-100 overflow-hidden'>
             <div className='px-1' style={{ height: '90%', overflowX: 'hidden', overflowY: 'scroll' }}>
                 <div className="d-flex align-items-center mb-4">
-                    <BsInfoCircle size={20} className="me-2" />
                     <h5 className="mb-0 fw-semibold">League Information</h5>
                 </div>
 
                 <Row className="mb-0">
-                    <Col md={6} className="mb-3">
-                        <Form.Group className='mb-3'>
+                    <Col md={6}>
+                        <Form.Group >
                             <Form.Label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>League Name <span className="text-danger">*</span></Form.Label>
                             <Form.Control
                                 type="text"
@@ -326,8 +325,8 @@ const BasicInformation = ({ onNext }) => {
                                 {errors.leagueName && <div className="text-danger" style={{ fontSize: '12px' }}>{errors.leagueName}</div>}
                             </div>
                         </Form.Group>
-                        <Row className="mb-4">
-                            <Col md={6} className="mb-3">
+                        <Row className="mb-0">
+                            <Col md={6} >
                                 <Form.Group>
                                     <Form.Label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>Location <span className="text-danger">*</span></Form.Label>
                                     <Form.Select
@@ -356,7 +355,7 @@ const BasicInformation = ({ onNext }) => {
                                     </div>
                                 </Form.Group>
                             </Col>
-                            <Col md={6} className="mb-3">
+                            <Col md={6} >
                                 <Form.Group>
                                     <Form.Label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>Start Date <span className="text-danger">*</span></Form.Label>
                                     <Form.Control
@@ -382,8 +381,8 @@ const BasicInformation = ({ onNext }) => {
                                 </Form.Group>
                             </Col>
                         </Row>
-                        <Row className="mb-4">
-                            <Col md={6} className="mb-3">
+                        <Row >
+                            <Col md={6}>
                                 <Form.Group>
                                     <Form.Label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>Sport Type</Form.Label>
                                     <Form.Select
@@ -396,7 +395,7 @@ const BasicInformation = ({ onNext }) => {
                                     </Form.Select>
                                 </Form.Group>
                             </Col>
-                            <Col md={6} className="mb-3">
+                            <Col md={6}>
                                 <Form.Group>
                                     <Form.Label style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>Season Type</Form.Label>
                                     <Form.Control
@@ -511,7 +510,6 @@ const BasicInformation = ({ onNext }) => {
 
                 <div className="d-flex align-items-center justify-content-between mb-3 mt-4">
                     <div className="d-flex align-items-center">
-                        <span style={{ fontSize: '18px', marginRight: '8px' }}>🏆</span>
                         <h5 className="mb-0 fw-semibold">Sponsors</h5>
                         <span style={{ backgroundColor: '#E0E7FF', color: '#1F41BB', borderRadius: '12px', padding: '2px 12px', fontSize: '12px', fontWeight: '600', marginLeft: '12px' }}>Tier 1: Max 1 | Tier 2 & 3: Multiple</span>
                     </div>
