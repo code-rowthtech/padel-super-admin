@@ -5,7 +5,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { getAllSchedules, exportLeagueSchedulesPDF, getLeagueById, createLivestream } from '../../../redux/admin/league/thunk';
 import { clearCurrentLeague } from '../../../redux/admin/league/slice';
-import { IoLocationOutline } from 'react-icons/io5';
 import { IoCopyOutline, IoCheckmarkOutline } from 'react-icons/io5';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -276,7 +275,6 @@ const ViewLeagueSchedule = () => {
 
   useEffect(() => {
     if (leagueId) {
-      // Clear previous league data before loading new one
       dispatch(clearCurrentLeague());
       dispatch(getLeagueById(leagueId));
     }
@@ -284,32 +282,24 @@ const ViewLeagueSchedule = () => {
 
   useEffect(() => {
     const params = { leagueId };
-
     if (filters.categoryType) params.categoryType = filters.categoryType;
     if (filters.roundType) params.roundType = filters.roundType;
-
-    // Only add date filters if both dates are selected or neither is selected
     const hasStartDate = filters.startDate;
     const hasEndDate = filters.endDate;
 
     if (hasStartDate && hasEndDate) {
-      // Both dates selected - add both to params
       const startYear = filters.startDate.getFullYear();
       const startMonth = String(filters.startDate.getMonth() + 1).padStart(2, '0');
       const startDay = String(filters.startDate.getDate()).padStart(2, '0');
       params.startDate = `${startYear}-${startMonth}-${startDay}`;
-
       const endYear = filters.endDate.getFullYear();
       const endMonth = String(filters.endDate.getMonth() + 1).padStart(2, '0');
       const endDay = String(filters.endDate.getDate()).padStart(2, '0');
       params.endDate = `${endYear}-${endMonth}-${endDay}`;
-
       dispatch(getAllSchedules(params));
     } else if (!hasStartDate && !hasEndDate) {
-      // Neither date selected - call API without date filters
       dispatch(getAllSchedules(params));
     }
-    // If only one date is selected, don't call API
   }, [dispatch, leagueId, filters]);
 
   const handleMatchClick = (match, schedule) => {
@@ -361,8 +351,6 @@ const ViewLeagueSchedule = () => {
 
   const hasActiveFilters = filters.categoryType || filters.roundType || filters.startDate || filters.endDate;
 
-  // New API format: { data: [{ date, schedules[] }], pagination: {} }
-  // Fall back gracefully if the old flat-array format is ever returned
   const schedulesData = Array.isArray(schedules?.data)
     ? schedules.data
     : Array.isArray(schedules)
@@ -401,7 +389,6 @@ const ViewLeagueSchedule = () => {
                       {/* <Tab label="Bracket" /> */}
                     </Tabs>
                   </div>
-
                   {/* Filters Section - Only show on Schedules tab */}
                   {activeTab === 0 && (
                     <div className="d-flex gap-2 align-items-center">
@@ -430,7 +417,6 @@ const ViewLeagueSchedule = () => {
                           </option>
                         ))}
                       </Form.Select>
-
                       <DatePicker
                         selected={filters.startDate}
                         onChange={(dates) => {

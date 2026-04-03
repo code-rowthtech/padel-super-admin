@@ -450,9 +450,7 @@ const BasicInformation = ({ onNext }) => {
                         </Row>
                     </Col>
                 </Row>
-
                 <hr />
-
                 <div className="d-flex align-items-center justify-content-between mb-3">
                     <h5 className="mb-0 fw-semibold">Club Selection <span className="text-danger">*</span></h5>
                     <button className="d-flex align-items-center position-relative p-0 border-0" style={{ borderRadius: "20px 10px 10px 20px", background: "none", overflow: "hidden", cursor: "pointer", transition: "all 0.3s ease", flexShrink: 0 }} onClick={() => setClubs([...clubs, { name: '', location: '' }])}>
@@ -494,7 +492,7 @@ const BasicInformation = ({ onNext }) => {
                                             <option key={clubItem._id} value={clubItem._id} disabled={isSelected}>
                                                 {clubItem.clubName} {isSelected ? '(Already Selected)' : ''}
                                             </option>
-                                        );
+                                        );  
                                     })}
                                 </Form.Select>
                             </Form.Group>
@@ -591,8 +589,7 @@ const BasicInformation = ({ onNext }) => {
                                         padding: "10px",
                                         fontSize: "14px",
                                         height: "44px",
-                                    }}
-                                >
+                                    }}>
                                     <option value="">Select Category</option>
                                     {Array.isArray(sponsorCategories) &&
                                         sponsorCategories.map((cat) => {
@@ -651,7 +648,6 @@ const BasicInformation = ({ onNext }) => {
                                         }
                                     }}
                                 />
-
                                 <div style={{ width: "100%", position: "relative" }}>
                                     <div
                                         onClick={() =>
@@ -678,7 +674,6 @@ const BasicInformation = ({ onNext }) => {
                                             ? sponsor.image.name || "Sponsor Logo"
                                             : "Upload Logo"}
                                     </div>
-
                                     {/* Preview Icon */}
                                     {sponsor.image && (
                                         <FiEye
@@ -704,7 +699,6 @@ const BasicInformation = ({ onNext }) => {
                                             }}
                                         />
                                     )}
-
                                     <div style={{ minHeight: "16px", marginTop: "4px" }}>
                                         {errors[`sponsor_${index}_image`] && (
                                             <div className="text-danger" style={{ fontSize: "12px" }}>
@@ -713,7 +707,6 @@ const BasicInformation = ({ onNext }) => {
                                         )}
                                     </div>
                                 </div>
-
                                 {/* Delete Icon */}
                                 <div
                                     style={{
@@ -722,8 +715,7 @@ const BasicInformation = ({ onNext }) => {
                                         alignItems: "center",
                                         justifyContent: "center",
                                         marginTop: "8px",
-                                    }}
-                                >
+                                    }}>
                                     {index > 0 && (
                                         <RiDeleteBin6Fill
                                             className="text-danger"
