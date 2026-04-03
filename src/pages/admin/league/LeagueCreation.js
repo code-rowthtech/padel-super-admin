@@ -109,7 +109,6 @@ const League = () => {
           </Col>
         ))}
       </Row>
-
       <Row className="mb-5">
         <Col xs={12} className="px-0">
           <div className="bg-white shadow-sm rounded p-2 p-md-3 d-flex flex-column" style={{ minHeight: "75vh" }}>
@@ -212,7 +211,6 @@ const League = () => {
                 </Table>
               </div>
             )}
-
             {totalItems > defaultLimit && (
               <div className="pt-3 d-flex justify-content-center align-items-center border-top" style={{ backgroundColor: "white" }}>
                 <Pagination

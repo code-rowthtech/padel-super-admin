@@ -112,9 +112,9 @@ const LeagueRegistration = () => {
   }
 
   return (
-    <Container fluid className="px-0 h-100 bg-white px-md-4 py-0">
+    <Container fluid className="px-0 h-100 bg-white px-md-0 py-0">
       <Row className="h-100" style={{ overflow: "visible" }}>
-        <Col md={3} className="mb-3 h-100 shadow-sm px-0 mb-md-0" style={{ position: "relative", zIndex: 10, overflow: "visible" }}>
+        <Col md={3} className="mb-3 h-100 bg-white shadow-sm px-0 mb-md-0" style={{ position: "relative", zIndex: 10, overflow: "visible" }}>
           <div className="small fw-medium d-flex flex-wrap align-items-center justify-content-between p-3 gap-1">
             <span>
               Clubs ({clubs.length})
@@ -147,7 +147,7 @@ const LeagueRegistration = () => {
                   overflow: "visible"
                 }}>
                 <Card.Body className="p-3">
-                  <div className="fw-semibold mb-0 d-flex align-items-center justify-content-between gap-2" style={{ color: selectedClub === idx ? "white" : "#1F41BB" }}>
+                  <div className="fw-bold mb-0 d-flex align-items-center justify-content-between gap-2" style={{ fontSize: "0.9rem", color: selectedClub === idx ? "white" : "#1F41BB" }}>
                     {club.name}
                     {club.hasIncomplete && (
                       <span style={{
