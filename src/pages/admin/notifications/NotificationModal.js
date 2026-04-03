@@ -82,7 +82,6 @@ const NotificationModal = ({ show, onClose }) => {
       const payload = { title: form.title.trim(), message: form.message.trim(), createdBy };
       if (form.notificationType === "all") payload.type = "all";
       else payload.leagueId = form.leagueId;
-
       result = await dispatch(sendBulkNotification(payload));
       if (sendBulkNotification.fulfilled.match(result)) {
         setForm(EMPTY_FORM); setErrors({}); onClose(true);

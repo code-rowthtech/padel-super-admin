@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Card, Table, Button, Dropdown, Modal } from "react-bootstrap";
-import { FaUsers, FaEye, FaEdit, FaTrash, FaChevronDown } from "react-icons/fa";
+import { Container, Row, Col, Card, Table, Button, Modal } from "react-bootstrap";
+import { FaUsers, FaEdit, FaTrash } from "react-icons/fa";
 import { HiOutlineTrophy } from "react-icons/hi2";
 import { BsRecordCircle } from "react-icons/bs";
 import { IoCashOutline } from "react-icons/io5";
@@ -92,15 +92,6 @@ const League = () => {
     setCurrentPage(pageNumber);
   };
 
-  const statusOptions = [
-    { label: "All", value: "all" },
-    { label: "Draft", value: "draft" },
-    { label: "Active", value: "active" },
-    { label: "Completed", value: "completed" },
-    { label: "Cancelled", value: "cancelled" },
-  ];
-  const selectedLabel =
-    statusOptions.find((s) => s.value === statusFilter)?.label || "Status";
   return (
     <Container fluid className="px-0 bg-white px-md-4">
       <Row className="mb-0 ">
@@ -211,7 +202,6 @@ const League = () => {
                         <td>
                           <div className="d-flex justify-content-center gap-2">
                             <GrSchedules style={{ cursor: "pointer", color: "#6b7280" }} onClick={() => navigate(`/admin/view-league-schedule/${league._id}`)} size={16} />
-                            {/* <FaEye style={{ cursor: "pointer", color: "#6b7280" }} onClick={() => navigate(`/admin/new-league/${league._id}`)} size={16} /> */}
                             <FaEdit style={{ cursor: "pointer", color: "#6b7280" }} onClick={() => navigate(`/admin/new-league/${league._id}`)} size={16} />
                             <FaTrash style={{ cursor: "pointer", color: "#6b7280" }} onClick={() => handleDeleteClick(league)} size={16} />
                           </div>

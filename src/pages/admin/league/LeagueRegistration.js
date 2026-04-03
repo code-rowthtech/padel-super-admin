@@ -88,8 +88,7 @@ const LeagueRegistration = () => {
                 className="form-select form-select-sm"
                 style={{ width: "auto" }}
                 value={selectedLeagueId}
-                onChange={handleLeagueChange}
-              >
+                onChange={handleLeagueChange}>
                 <option value="">Select League</option>
                 {leaguesData.map((league) => (
                   <option key={league._id} value={league._id}>
@@ -124,8 +123,7 @@ const LeagueRegistration = () => {
               className="form-select form-select-sm"
               style={{ width: "auto" }}
               value={selectedLeagueId}
-              onChange={handleLeagueChange}
-            >
+              onChange={handleLeagueChange}>
               <option value="">Select League</option>
               {leaguesData.map((league) => (
                 <option key={league._id} value={league._id}>
@@ -147,8 +145,7 @@ const LeagueRegistration = () => {
                   border: "1px solid #e5e7eb",
                   transition: "all 0.2s",
                   overflow: "visible"
-                }}
-              >
+                }}>
                 <Card.Body className="p-3">
                   <div className="fw-semibold mb-0 d-flex align-items-center justify-content-between gap-2" style={{ color: selectedClub === idx ? "white" : "#1F41BB" }}>
                     {club.name}

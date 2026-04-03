@@ -316,7 +316,6 @@ const LeagueSchedule = () => {
       return playersData;
 
     } catch (error) {
-      console.error('Error fetching players:', error);
       setClubTeamsData(prev => ({
         ...prev,
         [categoryKey]: { ...prev[categoryKey], [key]: [] }
@@ -338,13 +337,10 @@ const LeagueSchedule = () => {
 
       let updatedPlayers;
       if (currentPlayers.includes(playerId)) {
-        // Remove player if already selected
         updatedPlayers = currentPlayers.filter(id => id !== playerId);
       } else if (currentPlayers.length < 2) {
-        // Add player if less than 2 selected
         updatedPlayers = [...currentPlayers, playerId];
       } else {
-        // Don't add if already 2 players selected
         return prev;
       }
 
