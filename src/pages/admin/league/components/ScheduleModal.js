@@ -134,21 +134,6 @@ const ScheduleModal = ({
             </Form.Select>
             {isLocked && <small style={{ color: '#888', fontSize: '11px' }}>Venue is locked while unsaved matches exist.</small>}
           </Form.Group>
-          {/* {selectedRound === 'final' && (
-            <div className="mb-4">
-              <div className="d-flex justify-content-between align-items-center gap-3 p-3 rounded-3" style={{ backgroundColor: 'rgba(204, 210, 221, 0.2)', border: '1px dashed #ced4da' }}>
-                <div className="text-center flex-fill">
-                  <div style={{ fontSize: '12px', color: '#666', fontWeight: '500' }}>Column 1</div>
-                  <div style={{ fontWeight: '700', color: '#1F41BB', fontSize: '15px' }}>Winner 1</div>
-                </div>
-                <div style={{ fontWeight: 'bold', color: '#ced4da' }}>VS</div>
-                <div className="text-center flex-fill">
-                  <div style={{ fontSize: '12px', color: '#666', fontWeight: '500' }}>Column 2</div>
-                  <div style={{ fontWeight: '700', color: '#1F41BB', fontSize: '15px' }}>Winner 2</div>
-                </div>
-              </div>
-            </div>
-          )} */}
           {/* Show Home/Away venue type for regular, quarter-final, and semi-final */}
           {selectedRound !== 'final' && (
             <Form.Group className="mb-4">

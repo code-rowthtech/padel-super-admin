@@ -1,11 +1,20 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Container, Row, Col, Card, Form, Button, Modal } from 'react-bootstrap';
+﻿import React, { useState, useEffect, useMemo } from 'react';
+import { Container, Row, Col, Card, Form, Button, Modal, Table } from 'react-bootstrap';
 import { Tabs, Tab } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import { getAllSchedules, exportLeagueSchedulesPDF, getLeagueById, createLivestream } from '../../../redux/admin/league/thunk';
+import {
+  getAllSchedules,
+  exportLeagueSchedulesPDF,
+  getLeagueById,
+  createLivestream,
+  createQuickPoint,
+  getQuickPoints,
+  updateQuickPoint,
+} from '../../../redux/admin/league/thunk';
 import { clearCurrentLeague } from '../../../redux/admin/league/slice';
 import { IoCopyOutline, IoCheckmarkOutline } from 'react-icons/io5';
+import { FaEdit } from 'react-icons/fa';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { DataLoading } from '../../../helpers/loading/Loaders';
@@ -172,6 +181,218 @@ const DateSection = ({ dateGroup, onMatchClick }) => {
           </Col>
         ))}
       </Row>
+    </div>
+  );
+};
+
+const QuickiePointTab = ({ leagueId }) => {
+  const dispatch = useDispatch();
+  const { schedules, loadingSchedules, quickPoints, loadingQuickPoints } = useSelector(state => state.league);
+  const [formData, setFormData] = useState({ date: '', matchId: '', teamId: '', points: 1 });
+  const [editingId, setEditingId] = useState(null);
+
+  useEffect(() => {
+    if (leagueId) {
+      dispatch(getAllSchedules({ leagueId }));
+      dispatch(getQuickPoints(leagueId));
+    }
+  }, [dispatch, leagueId]);
+
+  const schedulesData = Array.isArray(schedules?.data) ? schedules.data : Array.isArray(schedules) ? schedules : [];
+
+  const dateOptions = useMemo(() => {
+    const seen = new Set();
+    return schedulesData.reduce((acc, s) => {
+      if (s.date && !seen.has(s.date)) { seen.add(s.date); acc.push(s.date); }
+      return acc;
+    }, []);
+  }, [schedulesData]);
+
+  const matchesForDate = useMemo(() => {
+    if (!formData.date) return [];
+    const dateGroup = schedulesData.find(s => s.date === formData.date);
+    if (!dateGroup) return [];
+    return (dateGroup.schedules || []).flatMap(schedule =>
+      (schedule.matches || []).map(match => ({
+        matchId: match._id,
+        label: `${match.teamA?.clubId?.clubName || 'TBD'} vs ${match.teamB?.clubId?.clubName || 'TBD'} · ${schedule.roundType.charAt(0).toUpperCase() + schedule.roundType.slice(1)} @ ${schedule.playTime || 'TBD'}`,
+        teamA: match.teamA,
+        teamB: match.teamB,
+        scheduleId: schedule._id,
+        categoryType: schedule.categoryType,
+        roundType: schedule.roundType,
+      }))
+    );
+  }, [formData.date, schedulesData]);
+
+  const teamsForMatch = useMemo(() => {
+    if (!formData.matchId) return [];
+    const match = matchesForDate.find(m => m.matchId === formData.matchId);
+    if (!match) return [];
+    const toTeam = (team, fallback) => ({
+      _id: team._id,
+      clubId: team.clubId?._id,
+      clubType: team.clubId?.clubName || '',
+      teamName: team.teamName || fallback,
+      players: (team.players || []).map(p => ({ playerId: p.playerId, playerName: p.playerName || p.name })),
+    });
+    const teams = [];
+    if (match.teamA?._id) teams.push(toTeam(match.teamA, 'Team A'));
+    if (match.teamB?._id) teams.push(toTeam(match.teamB, 'Team B'));
+    return teams;
+  }, [formData.matchId, matchesForDate]);
+
+  const handleDateChange = (e) => setFormData({ date: e.target.value, matchId: '', teamId: '', points: 1 });
+  const handleMatchChange = (e) => setFormData(prev => ({ ...prev, matchId: e.target.value, teamId: '', points: 1 }));
+
+  const handleSubmit = () => {
+    const selectedMatch = matchesForDate.find(m => m.matchId === formData.matchId);
+    const selectedTeam = teamsForMatch.find(t => t._id === formData.teamId);
+    const payload = {
+      leagueId,
+      clubId: selectedTeam?.clubId,
+      scheduleId: selectedMatch?.scheduleId,
+      matchId: formData.matchId,
+      quickPoint: Number(formData.points),
+      date: formData.date,
+      teamId: selectedTeam?._id,
+      team: selectedTeam ? { clubId: selectedTeam.clubId, clubType: selectedTeam.clubType, teamName: selectedTeam.teamName, players: selectedTeam.players } : undefined,
+    };
+    if (editingId) {
+      dispatch(updateQuickPoint({ id: editingId, ...payload })).then(res => {
+        if (!res.error) { setEditingId(null); setFormData({ date: '', matchId: '', teamId: '', points: 1 }); }
+      });
+    } else {
+      dispatch(createQuickPoint(payload)).then(res => {
+        if (!res.error) setFormData(prev => ({ ...prev, teamId: '', points: 1 }));
+      });
+    }
+  };
+
+  const handleEdit = (item) => {
+    setEditingId(item._id);
+    setFormData({
+      date: item.date,
+      matchId: item.matchId || '',
+      teamId: item.teamId || item.team?.teamId || item.team?._id || '',
+      points: item.quickPoint,
+    });
+  };
+
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setFormData({ date: '', matchId: '', teamId: '', points: 1 });
+  };
+
+  return (
+    <div className="py-2">
+      <Card className="border-0 shadow-sm mb-4">
+        <Card.Body className="p-3">
+          <Row className="align-items-end g-3">
+            <Col md={3}>
+              <Form.Group>
+                <Form.Label style={{ fontSize: '13px', fontWeight: 600 }}>Date</Form.Label>
+                <Form.Select size="sm" value={formData.date} onChange={handleDateChange} disabled={loadingSchedules}>
+                  <option value="">{loadingSchedules ? 'Loading...' : 'Select Date'}</option>
+                  {dateOptions.map(date => (
+                    <option key={date} value={date}>{formatDate(date)}</option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+            </Col>
+            <Col md={3}>
+              <Form.Group>
+                <Form.Label style={{ fontSize: '13px', fontWeight: 600 }}>Match</Form.Label>
+                <Form.Select size="sm" value={formData.matchId} onChange={handleMatchChange} disabled={!formData.date && !editingId}>
+                  <option value="">Select Match</option>
+                  {matchesForDate.map(m => (
+                    <option key={m.matchId} value={m.matchId}>{m.label}</option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+            </Col>
+            <Col md={2}>
+              <Form.Group>
+                <Form.Label style={{ fontSize: '13px', fontWeight: 600 }}>Team</Form.Label>
+                <Form.Select size="sm" value={formData.teamId} onChange={(e) => setFormData(prev => ({ ...prev, teamId: e.target.value }))} disabled={!formData.matchId && !editingId}>
+                  <option value="">Select Team</option>
+                  {teamsForMatch.map(t => (
+                    <option key={t._id} value={t._id}>{t.teamName} - {t.clubType} ({t.players.map(p => p.playerName).join(' & ')})</option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+            </Col>
+            <Col md={2}>
+              <Form.Group>
+                <Form.Label style={{ fontSize: '13px', fontWeight: 600 }}>Points</Form.Label>
+                <Form.Control
+                  type="number"
+                  size="sm"
+                  min={1}
+                  disabled={!formData.teamId && !editingId}
+                  value={formData.points}
+                  onChange={(e) => setFormData(prev => ({ ...prev, points: e.target.value }))}
+                  onBlur={(e) => { const val = Number(e.target.value); if (!val || val < 1) setFormData(prev => ({ ...prev, points: 1 })); }}
+                />
+              </Form.Group>
+            </Col>
+            <Col md={2} className="d-flex gap-2">
+              <Button variant="primary" size="sm" className="w-100" onClick={handleSubmit} disabled={!formData.teamId || loadingQuickPoints}>
+                {loadingQuickPoints ? '...' : editingId ? 'Update' : 'Add Point'}
+              </Button>
+              {editingId && (
+                <Button variant="outline-secondary" size="sm" onClick={handleCancelEdit}>Cancel</Button>
+              )}
+            </Col>
+          </Row>
+        </Card.Body>
+      </Card>
+
+      <Card className="border-0 shadow-sm">
+        <div className="bg-white shadow-sm rounded p-2 p-md-3">
+          <div className="flex-grow-1" style={{ overflowY: 'auto', overflowX: 'auto' }}>
+            <Table responsive borderless size="sm" className="custom-table">
+              <thead>
+                <tr className="text-center">
+                  <th>Sr No.</th>
+                  <th>Date</th>
+                  <th>Team</th>
+                  <th>Club</th>
+                  <th>Points</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loadingQuickPoints ? (
+                  <tr><td colSpan="6" className="text-center py-4"><DataLoading /></td></tr>
+                ) : quickPoints.length === 0 ? (
+                  <tr><td colSpan="6" className="text-center py-5 text-muted">No quickie points added yet</td></tr>
+                ) : (
+                  quickPoints.map((item, idx) => (
+                    <tr key={item._id} className="table-data border-bottom align-middle text-center">
+                      <td>{idx + 1}</td>
+                      <td>{formatDate(item.date)}</td>
+                      <td className="text-truncate" style={{ maxWidth: '150px' }}>{item.team?.teamName}</td>
+                      <td className="text-truncate" style={{ maxWidth: '150px' }}>{item.team?.clubType}</td>
+                      <td className="fw-bold text-primary">{item.quickPoint}</td>
+                      <td>
+                        <div className="d-flex justify-content-center gap-2">
+                          <FaEdit
+                            size={15}
+                            style={{ cursor: 'pointer', color: '#6b7280' }}
+                            onClick={() => handleEdit(item)}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </Table>
+          </div>
+        </div>
+      </Card>
     </div>
   );
 };
@@ -386,6 +607,7 @@ const ViewLeagueSchedule = () => {
                     >
                       <Tab label={`Schedules (${schedulesData.length})`} />
                       <Tab label="Points Table" />
+                      <Tab label="Quickie Point" />
                       {/* <Tab label="Bracket" /> */}
                     </Tabs>
                   </div>
@@ -584,7 +806,11 @@ const ViewLeagueSchedule = () => {
                 <PointsTable leagueId={leagueId} />
               )}
 
-              {activeTab === 2 && <TournamentBracket />}
+              {activeTab === 2 && (
+                <QuickiePointTab leagueId={leagueId} />
+              )}
+
+              {activeTab === 3 && <TournamentBracket />}
             </Col>
           </Row>
         </Container>

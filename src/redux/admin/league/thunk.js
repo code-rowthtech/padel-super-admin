@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { CREATE_LEAGUE, GET_LEAGUES, GET_LEAGUES_IDS, UPDATE_LEAGUE, GET_STATES, GET_CLUB_WITH_STATE, GET_SPONSOR_CATEGORIES, GET_LEAGUE_BY_ID, DELETE_LEAGUE, GET_LEAGUE_CLUBS, GET_CLUB_TEAMS, EXPORT_LEAGUE_SCHEDULES_PDF, GET_LEAGUE_SUMMARY, GET_AVAILABLE_PLAYERS, SAVE_TEAMS, GET_TEAMS, GET_SCHEDULE_DATES, GET_LEAGUE_LEADERBOARD, GET_LEAGUE_FINALISTS } from "../../../helpers/api/apiEndpoint";
+import { CREATE_LEAGUE, GET_LEAGUES, GET_LEAGUES_IDS, UPDATE_LEAGUE, GET_STATES, GET_CLUB_WITH_STATE, GET_SPONSOR_CATEGORIES, GET_LEAGUE_BY_ID, DELETE_LEAGUE, GET_LEAGUE_CLUBS, GET_CLUB_TEAMS, EXPORT_LEAGUE_SCHEDULES_PDF, GET_LEAGUE_SUMMARY, GET_AVAILABLE_PLAYERS, SAVE_TEAMS, GET_TEAMS, GET_SCHEDULE_DATES, GET_LEAGUE_LEADERBOARD, GET_LEAGUE_FINALISTS, CREATE_QUICK_POINT, GET_QUICK_POINTS, UPDATE_QUICK_POINT } from "../../../helpers/api/apiEndpoint";
 import { ownerApi, ownerAxios, getOwnerFromSession } from "../../../helpers/api/apiCore";
 import { showSuccess, showError } from "../../../helpers/Toast";
 
@@ -416,7 +416,7 @@ export const getTeams = createAsyncThunk(
   "league/getTeams",
   async ({ leagueId, clubId, categoryType }, { rejectWithValue }) => {
     try {
-      const res = await ownerApi.get(`${GET_TEAMS}?leagueId=${leagueId}&clubId=${clubId}&categoryType=${categoryType}`);
+      const res = await ownerApi.get(`${GET_TEAMS}?leagueId=${leagueId}${clubId ? `&clubId=${clubId}` : ''}${categoryType ? `&categoryType=${categoryType}` : ''}`);
       if (res?.status === 200) {
         return { ...res?.data, categoryType };
       } else {
@@ -500,6 +500,58 @@ export const getLeagueFinalists = createAsyncThunk(
       return rejectWithValue(response?.data?.message);
     } catch (error) {
       return rejectWithValue(error?.response?.data?.message || error?.message || "Failed to fetch finalists");
+    }
+  }
+);
+
+export const createQuickPoint = createAsyncThunk(
+  "league/createQuickPoint",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await ownerApi.post(CREATE_QUICK_POINT, data);
+      if (response?.status === 200 || response?.status === 201) {
+        showSuccess(response?.data?.message || "Quick point added successfully");
+        return response.data?.data;
+      }
+      showError(response?.data?.message || "Failed to add quick point");
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      showError(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const getQuickPoints = createAsyncThunk(
+  "league/getQuickPoints",
+  async (leagueId, { rejectWithValue }) => {
+    try {
+      const response = await ownerApi.get(GET_QUICK_POINTS, { leagueId });
+      if (response?.status === 200) {
+        return response.data?.data || [];
+      }
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const updateQuickPoint = createAsyncThunk(
+  "league/updateQuickPoint",
+  async ({ id, ...data }, { rejectWithValue }) => {
+    try {
+      data.id = id; // Ensure ID is included in the payload
+      const response = await ownerApi.put(`${UPDATE_QUICK_POINT}`, data);
+      if (response?.status === 200) {
+        showSuccess(response?.data?.message || "Quick point updated successfully");
+        return response.data?.data;
+      }
+      showError(response?.data?.message || "Failed to update quick point");
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      showError(error);
+      return rejectWithValue(error);
     }
   }
 );

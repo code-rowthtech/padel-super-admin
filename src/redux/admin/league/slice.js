@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createLeague, getLeagues, getLeaguesIDS, updateLeague, getStates, getClubsWithState, getSponsorCategories, getLeagueById, deleteLeague, getLeagueClubs, getClubTeams, getAllSchedules, saveSchedule, updateSchedule, exportLeagueSchedulesPDF, getLeagueSummary, getScheduleDates, getLeagueLeaderboard, getLeagueFinalists, createLivestream } from "./thunk";
+import { createLeague, getLeagues, getLeaguesIDS, updateLeague, getStates, getClubsWithState, getSponsorCategories, getLeagueById, deleteLeague, getLeagueClubs, getClubTeams, getAllSchedules, saveSchedule, updateSchedule, exportLeagueSchedulesPDF, getLeagueSummary, getScheduleDates, getLeagueLeaderboard, getLeagueFinalists, createLivestream, createQuickPoint, getQuickPoints, updateQuickPoint } from "./thunk";
 
 const initialState = {
   leagues: [],
@@ -28,6 +28,8 @@ const initialState = {
   finalists: null,
   loadingFinalists: false,
   loadingLivestream: false,
+  quickPoints: [],
+  loadingQuickPoints: false,
   error: null,
 };
 
@@ -264,6 +266,42 @@ const leagueSlice = createSlice({
       })
       .addCase(createLivestream.rejected, (state, action) => {
         state.loadingLivestream = false;
+        state.error = action.payload;
+      })
+      .addCase(createQuickPoint.pending, (state) => {
+        state.loadingQuickPoints = true;
+      })
+      .addCase(createQuickPoint.fulfilled, (state, action) => {
+        state.loadingQuickPoints = false;
+        if (action.payload) state.quickPoints.push(action.payload);
+      })
+      .addCase(createQuickPoint.rejected, (state, action) => {
+        state.loadingQuickPoints = false;
+        state.error = action.payload;
+      })
+      .addCase(getQuickPoints.pending, (state) => {
+        state.loadingQuickPoints = true;
+      })
+      .addCase(getQuickPoints.fulfilled, (state, action) => {
+        state.loadingQuickPoints = false;
+        state.quickPoints = action.payload;
+      })
+      .addCase(getQuickPoints.rejected, (state, action) => {
+        state.loadingQuickPoints = false;
+        state.error = action.payload;
+      })
+      .addCase(updateQuickPoint.pending, (state) => {
+        state.loadingQuickPoints = true;
+      })
+      .addCase(updateQuickPoint.fulfilled, (state, action) => {
+        state.loadingQuickPoints = false;
+        if (action.payload) {
+          const idx = state.quickPoints.findIndex(q => q._id === action.payload._id);
+          if (idx !== -1) state.quickPoints[idx] = action.payload;
+        }
+      })
+      .addCase(updateQuickPoint.rejected, (state, action) => {
+        state.loadingQuickPoints = false;
         state.error = action.payload;
       });
   },

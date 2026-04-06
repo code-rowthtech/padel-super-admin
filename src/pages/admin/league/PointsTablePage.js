@@ -69,10 +69,10 @@ const PointsTablePage = () => {
                           <th>W</th>
                           <th>L</th>
                           <th>PT</th>
-                          <th>A/B</th>
-                          <th>C/D</th>
-                          <th>A/B MX</th>
-                          <th>C/D MX</th>
+                          <th>Advanced</th>
+                          <th>Intermediate</th>
+                          <th>Advanced MX</th>
+                          <th>Intermediate MX</th>
                           <th>HY</th>
                           <th>SD</th>
                           <th>WM</th>
