@@ -168,6 +168,10 @@ export const GET_SPONSOR_CATEGORIES = "/api/sponsor-categories";
 export const GET_LEAGUE_SUMMARY = "/api/league-schedules/summary";
 export const GET_SCHEDULE_DATES = "/api/league-schedules/schedule-dates";
 
+export const CREATE_QUICK_POINT = "/api/quick-points/createQuickPoint";
+export const GET_QUICK_POINTS = "/api/quick-points/getQuickPoints";
+export const UPDATE_QUICK_POINT = "/api/quick-points/updateQuickPoint";
+
 // App Users Management
 export const GET_APP_USERS = "/api/customer/getCustomersWithFcmTokens";
 export const GET_DEVICE_TYPE_COUNT = "/api/customer/getDeviceTypeCount";
