@@ -493,7 +493,6 @@ const ViewLeagueSchedule = () => {
     return rounds;
   }, [currentLeague?.matchRules]);
 
-
   useEffect(() => {
     if (leagueId) {
       dispatch(clearCurrentLeague());
@@ -525,7 +524,7 @@ const ViewLeagueSchedule = () => {
 
   const handleMatchClick = (match, schedule) => {
     setLivestreamModal({ show: true, match, schedule });
-    setLivestreamForm({ streamKey: '' });
+    setLivestreamForm({ streamKey: schedule?.streamKey || '' });
   };
 
   const handleCopy = (text) => {
@@ -673,7 +672,6 @@ const ViewLeagueSchedule = () => {
                         >
                           {loadingExport ? 'Exporting...' : 'Export Schedule'}
                         </Button>
-
                         {showExportDropdown && (
                           <div className="position-absolute bg-white border rounded shadow-sm p-3" style={{ top: '100%', right: 0, zIndex: 1000, minWidth: '300px' }}>
                             <div className="mb-2">
