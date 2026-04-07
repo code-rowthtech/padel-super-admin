@@ -5,8 +5,6 @@ import { showSuccess, showError } from "../../../helpers/Toast";
 
 const buildLeagueFormData = (data) => {
   const formData = new FormData();
-
-  // Basic fields
   if (data.id) formData.append('id', data.id);
   if (data.leagueName) formData.append('leagueName', data.leagueName);
   if (data.stateId) formData.append('stateId', data.stateId);
@@ -30,9 +28,6 @@ const buildLeagueFormData = (data) => {
         });
       }
       if (club.participationLimit) {
-        // if (club.participationLimit.maxParticipants) {
-        //   formData.append(`clubs[${index}][participationLimit][maxParticipants]`, club.participationLimit.maxParticipants);
-        // }
         if (club.participationLimit.categoryLimits) {
           club.participationLimit.categoryLimits.forEach((limit, limitIndex) => {
             formData.append(`clubs[${index}][participationLimit][categoryLimits][${limitIndex}][categoryType]`, limit.categoryType);
@@ -61,7 +56,6 @@ const buildLeagueFormData = (data) => {
       }
     });
   }
-
   // Step 2 & 3 fields
   if (data.matchRules) formData.append('matchRules', JSON.stringify(data.matchRules));
   if (data.priceDistribution) formData.append('priceDistribution', JSON.stringify(data.priceDistribution));
