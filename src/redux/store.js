@@ -9,6 +9,7 @@ import notificationDataReducer from "./admin/notifiction/slice";
 import leagueReducer from "./admin/league/slice";
 import appUsersReducer from "./admin/appUsers/slice";
 import versionReducer from "./admin/version/slice";
+import tournamentReducer from "./admin/tournament/slice";
 
 const store = configureStore({
   reducer: {
@@ -22,6 +23,7 @@ const store = configureStore({
     league: leagueReducer,
     appUsers: appUsersReducer,
     version: versionReducer,
+    tournament: tournamentReducer,
   },
 });
 

@@ -1,12 +1,12 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react'
-import { Container, Row, Col, Button, Form, Nav, Modal, Dropdown } from 'react-bootstrap'
+import React, { useState, useEffect, useCallback } from 'react'
+import { Container, Row, Col, Button, Form, Nav } from 'react-bootstrap'
 import { FiPlus, FiTrash2, FiEdit2, FiCheck, FiX } from 'react-icons/fi'
 import './LeagueScheduleMatch.css'
 import ScheduleSidebar from './components/ScheduleSidebar';
 import CustomClubSelector from './components/CustomClubSelector';
 import FinalistTeamSelector from './components/FinalistTeamSelector';
 import { useDispatch, useSelector } from 'react-redux';
-import { getLeagues, getLeagueClubs, getClubTeams, saveSchedule, updateSchedule, getLeagueById, getLeagueSummary, exportLeagueSchedulesPDF, getAvailablePlayers, getScheduleDates, getAllSchedules, getLeagueFinalists } from '../../../redux/admin/league/thunk';
+import { getLeagues, getLeagueClubs, saveSchedule, updateSchedule, getLeagueById, getLeagueSummary, getAvailablePlayers, getScheduleDates, getAllSchedules, getLeagueFinalists } from '../../../redux/admin/league/thunk';
 import { showError, showSuccess } from '../../../helpers/Toast';
 import { FaAngleRight } from 'react-icons/fa'
 import ScheduleModal from './components/ScheduleModal';
@@ -125,7 +125,7 @@ const LeagueSchedule = () => {
       setActiveTab('');
     }
   }, [availableCategories]);
-  // Fetch existing schedules when league, round, active tab or selected date changes
+
   useEffect(() => {
     if (selectedLeagueId && selectedRound) {
       const roundTypeMap = {
@@ -161,23 +161,17 @@ const LeagueSchedule = () => {
   // Transform API schedules data to match table structure
   const transformSchedulesToMatches = (schedulesData) => {
     const transformedMatches = {};
-
     if (!schedulesData || schedulesData.length === 0) return transformedMatches;
-
     schedulesData.forEach(dateGroup => {
       dateGroup.schedules.forEach(schedule => {
         const categoryId = availableCategories.find(cat => cat.categoryType === schedule.categoryType)?._id;
         if (!categoryId) return;
-
         if (!transformedMatches[categoryId]) {
           transformedMatches[categoryId] = [];
         }
-
         schedule.matches.forEach((match, index) => {
           const date = new Date(schedule.date);
           const formattedDate = `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}/${date.getFullYear().toString().slice(-2)}`;
-
-          // Convert 12-hour time to 24-hour for input
           const convertTo24Hour = (time12h) => {
             if (!time12h) return '09:00';
             const [time, modifier] = time12h.split(' ');
@@ -204,7 +198,6 @@ const LeagueSchedule = () => {
             status: match.status,
             roundType: schedule.roundType
           };
-
           transformedMatches[categoryId].push(transformedMatch);
         });
       });
@@ -231,7 +224,6 @@ const LeagueSchedule = () => {
       const categoryMatches = matchesByCategory[categoryId] || [];
 
       if (categoryMatches.length > 0) {
-        // Separate new matches and existing matches being edited
         const newMatchesList = categoryMatches.filter(match => !match.isExisting);
         const editedExistingMatches = categoryMatches.filter(match => match.isExisting);
 
@@ -376,6 +368,7 @@ const LeagueSchedule = () => {
     return players;
   };
 
+  // To be used in case we want to disable already selected players for the same date dont remove as it could be required later
   const getUsedPlayersForDate = (currentMatchId, currentVenue) => {
     const usedPlayers = new Set();
     const allMatches = [...(newMatches[activeTab] || []), ...(existingMatches[activeTab] || [])];
@@ -434,7 +427,6 @@ const LeagueSchedule = () => {
         setShowConfirmationModal(true);
         return;
       }
-
       setFormDate(formatted);
     }
   }
@@ -647,6 +639,7 @@ const LeagueSchedule = () => {
     }
     return new Date(dateStr).toLocaleDateString('en-GB');
   };
+
   const handleCreateDate = async () => {
     if (!formDate || !formVenue) return;
     setIsCreatingSchedule(true);
@@ -679,21 +672,21 @@ const LeagueSchedule = () => {
           for (let i = 0; i < numMatches; i++) {
             const homeIdx = (i * 2) + 1;
             const awayIdx = (i * 2) + 2;
-              const homeClubName = finalists?.data?.finalists?.[0]?.clubName || `Winner ${homeIdx}`;
-              const awayClubName = finalists?.data?.finalists?.[1]?.clubName || `Winner ${awayIdx}`;
-              catMatches.push({
-                id: currentBaseId + i,
-                date: formDate,
-                venue: formVenue,
-                venueClubId: venueClub?.id,
-                homeVenue: homeClubName,
-                awayVenue: awayClubName,
-                homeTeam: { teamName: homeClubName },
-                awayTeam: { teamName: awayClubName },
-                time: startTime,
-                duration,
-                endTime: calculateEndTime(startTime, duration)
-              });
+            const homeClubName = finalists?.data?.finalists?.[0]?.clubName || `Winner ${homeIdx}`;
+            const awayClubName = finalists?.data?.finalists?.[1]?.clubName || `Winner ${awayIdx}`;
+            catMatches.push({
+              id: currentBaseId + i,
+              date: formDate,
+              venue: formVenue,
+              venueClubId: venueClub?.id,
+              homeVenue: homeClubName,
+              awayVenue: awayClubName,
+              homeTeam: { teamName: homeClubName },
+              awayTeam: { teamName: awayClubName },
+              time: startTime,
+              duration,
+              endTime: calculateEndTime(startTime, duration)
+            });
           }
           newMatches[categoryId] = [...existingMatches, ...catMatches];
         });
@@ -702,7 +695,6 @@ const LeagueSchedule = () => {
         // Non-finals: create a row in EVERY category simultaneously
         const newMatchesByCategory = {};
         const newSelectedPlayersByCategory = {};
-
         await Promise.all(availableCategories.map(async (category) => {
           const categoryId = category._id;
           const existingMatches = matchesByCategory[categoryId] || [];

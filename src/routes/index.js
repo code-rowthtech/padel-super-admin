@@ -23,6 +23,10 @@ const LeagueRegistration = React.lazy(() => import("../pages/admin/league/League
 const LeagueSchedule = React.lazy(() => import("../pages/admin/league/LeagueSchedule"));
 // const TeamCreation = React.lazy(() => import("../pages/admin/league/TeamCreation"));
 const ViewLeagueSchedule = React.lazy(() => import("../pages/admin/league/ViewLeagueSchedule"));
+const TournamentCreation = React.lazy(() => import("../pages/admin/tournament/TournamentCreation"));
+const NewTournament = React.lazy(() => import("../pages/admin/tournament/NewTournamentCreation"));
+const TournamentSchedule = React.lazy(() => import("../pages/admin/tournament/TournamentSchedule"));
+const ViewTournament = React.lazy(() => import("../pages/admin/tournament/ViewTournament"));
 const PointsTablePage = React.lazy(() => import("../pages/admin/league/PointsTablePage"));
 const Notifications = React.lazy(() => import("../pages/admin/notifications/Notifications"));
 const AppUsers = React.lazy(() => import("../pages/admin/appUsers/AppUsers"));
@@ -118,6 +122,26 @@ const AllRoutes = () => {
             {
               path: "new-league/:id",
               element: LoadComponent(NewLeague),
+            },
+            {
+              path: "tournament/creation",
+              element: LoadComponent(TournamentCreation),
+            },
+            {
+              path: "new-tournament",
+              element: LoadComponent(NewTournament),
+            },
+            {
+              path: "new-tournament/:id",
+              element: LoadComponent(NewTournament),
+            },
+            {
+              path: "tournament/schedule",
+              element: LoadComponent(TournamentSchedule),
+            },
+            {
+              path: "view-tournament/:tournamentId",
+              element: LoadComponent(ViewTournament),
             },
             {
               path: "wallet",

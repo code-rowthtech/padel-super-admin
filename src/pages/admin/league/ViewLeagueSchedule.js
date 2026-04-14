@@ -466,7 +466,6 @@ const ViewLeagueSchedule = () => {
 
   const categoryOptions = useMemo(() => {
     if (!currentLeague?.clubs?.length) return [];
-
     const categories = new Set();
     currentLeague.clubs.forEach(club => {
       // Handle both nested clubId and direct club structure
@@ -585,9 +584,7 @@ const ViewLeagueSchedule = () => {
           <Col>
             <div className="border-0 ">
               <div className="p-0">
-                {/* Tabs and Filters in same row */}
                 <div className="d-flex justify-content-between align-items-center p-0">
-                  {/* Tabs Section */}
                   <div>
                     <Tabs
                       value={activeTab}
@@ -610,7 +607,6 @@ const ViewLeagueSchedule = () => {
                       {/* <Tab label="Bracket" /> */}
                     </Tabs>
                   </div>
-                  {/* Filters Section - Only show on Schedules tab */}
                   {activeTab === 0 && (
                     <div className="d-flex gap-2 align-items-center">
                       <Form.Select
@@ -652,7 +648,6 @@ const ViewLeagueSchedule = () => {
                         style={{ fontSize: '12px', width: '180px' }}
                         dateFormat="yyyy-MM-dd"
                       />
-
                       {hasActiveFilters && (
                         <button
                           className="btn btn-outline-danger text-danger fw-semibold btn-sm"

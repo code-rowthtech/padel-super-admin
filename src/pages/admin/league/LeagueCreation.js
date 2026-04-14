@@ -6,7 +6,7 @@ import { BsRecordCircle } from "react-icons/bs";
 import { IoCashOutline } from "react-icons/io5";
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { getLeagues, deleteLeague } from '../../../redux/admin/league/thunk';
+import { getLeagues, deleteLeague, updateLeague } from '../../../redux/admin/league/thunk';
 import { DataLoading } from '../../../helpers/loading/Loaders';
 import Pagination from '../../../helpers/Pagination';
 import { GrSchedules } from "react-icons/gr";
@@ -19,6 +19,9 @@ const League = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [leagueToDelete, setLeagueToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [leagueToToggle, setLeagueToToggle] = useState(null);
+  const [toggling, setToggling] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const defaultLimit = 15;
 
@@ -29,38 +32,45 @@ const League = () => {
   const leaguesData = Array.isArray(leagues?.data) ? leagues.data : [];
   const totalItems = leagues?.pagination?.total || 0;
   const totalParticipants = leaguesData.reduce((sum, league) => sum + (league.clubs || []).reduce((clubSum, club) => clubSum + (club.totalRegistrations || 0), 0), 0);
-  const activeLeagues = leaguesData.filter(l => l.status === 'active').length;
+  const activeLeagues = leaguesData.filter(l => l.leagueStatus).length;
   const totalRevenue = leaguesData.reduce((sum, league) => sum + (league.totalPaymentReceived || 0), 0);
 
   const statsCards = [
     { title: "Total Leagues", cardBorder: "1px solid #1F41BB1A", value: totalItems, iconBg: '#1F41BB1A', icon: <HiOutlineTrophy style={{ color: '#1F41BB' }} size={20} />, bgColor: "#f3f4f6", tileBg: 'linear-gradient(113.4deg, #FFFFFF 42.44%, #E0E3F2 121.05%)' },
     { title: "Active Leagues", cardBorder: "1px solid #0596691A", value: activeLeagues, iconBg: '#D1FAE5', icon: <BsRecordCircle style={{ color: '#059669' }} size={20} />, bgColor: "#d1fae5", tileBg: 'linear-gradient(113.4deg, #FFFFFF 42.44%, #D1FAE5 121.05%)' },
     { title: "Total Participants", cardBorder: "1px solid #D977061A", value: totalParticipants, iconBg: '#FEF3C7', icon: <FaUsers className="text-warning" size={20} />, bgColor: "#fef3c7", tileBg: 'linear-gradient(113.4deg, #FFFFFF 42.44%, #FEF3C7 121.05%)' },
-    // { title: "Revenue (MTD)", cardBorder: "1px solid #9333EA1A", value: `₹ ${totalRevenue.toLocaleString()}`, iconBg: '#F3E8FF', icon: <IoCashOutline style={{ color: '#9333EA' }} size={20} />, bgColor: "#e0e7ff", tileBg: 'linear-gradient(113.4deg, #FFFFFF 42.44%, #F3E8FF 121.05%)' },
+    { title: "Revenue (MTD)", cardBorder: "1px solid #9333EA1A", value: `₹ ${totalRevenue.toLocaleString()}`, iconBg: '#F3E8FF', icon: <IoCashOutline style={{ color: '#9333EA' }} size={20} />, bgColor: "#e0e7ff", tileBg: 'linear-gradient(113.4deg, #FFFFFF 42.44%, #F3E8FF 121.05%)' },
   ];
 
   const filteredLeagues = statusFilter === "all" ? leaguesData : leaguesData.filter(l => l.status === statusFilter.toLowerCase());
 
-  const getStatusBadge = (status) => {
-    const statusMap = {
-      draft: { bg: "#f3f4f6", text: "#6b7280", label: "Draft" },
-      active: { bg: "#dcfce7", text: "#16a34a", label: "Active" },
-      completed: { bg: "#dbeafe", text: "#2563eb", label: "Completed" },
-      cancelled: { bg: "#fee2e2", text: "#dc2626", label: "Cancelled" },
-    };
-    const config = statusMap[status] || statusMap.draft;
-    return (
-      <span style={{
-        backgroundColor: config.bg,
-        color: config.text,
-        padding: "4px 12px",
-        borderRadius: "12px",
-        fontSize: "12px",
-        fontWeight: "500"
-      }}>
-        {config.label}
-      </span>
-    );
+  const handleToggleClick = (league) => {
+    setLeagueToToggle(league);
+    setShowStatusModal(true);
+  };
+
+  const handleToggleConfirm = async () => {
+    if (!leagueToToggle) return;
+    setToggling(true);
+    try {
+      const newStatus = leagueToToggle.leagueStatus ? false : true;
+      const formData = new FormData();
+      formData.append('id', leagueToToggle._id);
+      formData.append('leagueStatus', newStatus);
+      await dispatch(updateLeague({ leagueData: formData })).unwrap();
+      setShowStatusModal(false);
+      setLeagueToToggle(null);
+      dispatch(getLeagues({ page: currentPage, limit: defaultLimit }));
+    } catch (error) {
+      console.error('Status update failed:', error);
+    } finally {
+      setToggling(false);
+    }
+  };
+
+  const handleToggleCancel = () => {
+    setShowStatusModal(false);
+    setLeagueToToggle(null);
   };
 
   const handleDeleteClick = (league) => {
@@ -96,11 +106,11 @@ const League = () => {
     <Container fluid className="px-0 bg-white px-md-4">
       <Row className="mb-0 ">
         {statsCards.map((card, idx) => (
-          <Col key={idx} md={4} sm={6} className="mb-0  py-4">
+          <Col key={idx} md={3} sm={6} className="mb-0  py-4">
             <Card style={{ background: card?.tileBg, border: card?.cardBorder, boxShadow: '0px 0px 8.8px 0px #0000001A' }} className="border-0  h-100 rounded-4">
               <Card.Body className="d-flex  flex-column gap-3">
                 <p className="rounded-2 m-0 d-flex align-items-center justify-content-center p-2" style={{ background: card?.iconBg, width: 'fit-content' }}>
-                  {card.icon}
+                  {card?.icon}
                 </p>
                 <small className="text-muted fw-semibold fs-6 m-0">{card.title}</small>
                 <h5 className="m-0 fw-bold">{card.value}</h5>
@@ -147,8 +157,7 @@ const League = () => {
                         height: "36px",
                         borderRadius: "50%",
                         fontSize: "20px",
-                      }}
-                    >
+                      }}>
                       <span className="mb-1">+</span>
                     </div>
                   </div>
@@ -197,7 +206,18 @@ const League = () => {
                         <td>{new Date(league.startDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
                         <td>{(league.clubs || []).length}</td>
                         <td className="d-none d-lg-table-cell">{(league.clubs || []).reduce((sum, club) => sum + (club.totalRegistrations || 0), 0)}</td>
-                        <td>{getStatusBadge(league.status)}</td>
+                        <td>
+                          <div className="form-check form-switch d-flex justify-content-center">
+                            <input
+                              className="form-check-input"
+                              type="checkbox"
+                              role="switch"
+                              checked={league.leagueStatus}
+                              onChange={() => handleToggleClick(league)}
+                              style={{ cursor: 'pointer' }}
+                            />
+                          </div>
+                        </td>
                         <td>
                           <div className="d-flex justify-content-center gap-2">
                             <GrSchedules style={{ cursor: "pointer", color: "#6b7280" }} onClick={() => navigate(`/admin/view-league-schedule/${league._id}`)} size={16} />
@@ -239,6 +259,25 @@ const League = () => {
           </Button>
           <Button variant="danger" onClick={handleDeleteConfirm} disabled={deleting}>
             {deleting ? 'Deleting...' : 'Delete'}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <Modal show={showStatusModal} onHide={handleToggleCancel} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Status Change</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p className="mb-0">
+            Are you sure you want to {leagueToToggle?.leagueStatus ? 'deactivate' : 'activate'} <strong>{leagueToToggle?.leagueName}</strong>?
+          </p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleToggleCancel} disabled={toggling}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleToggleConfirm} disabled={toggling}>
+            {toggling ? 'Updating...' : 'Confirm'}
           </Button>
         </Modal.Footer>
       </Modal>

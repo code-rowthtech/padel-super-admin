@@ -283,6 +283,7 @@ export const updateSchedule = createAsyncThunk(
     }
   }
 );
+
 export const getAllSchedules = createAsyncThunk(
   "league/getAllSchedules",
   async (params = {}, { rejectWithValue }) => {
@@ -391,7 +392,9 @@ export const getLeagueSummary = createAsyncThunk(
       return rejectWithValue(error);
     }
   }
-); export const getAvailablePlayers = createAsyncThunk(
+);
+
+export const getAvailablePlayers = createAsyncThunk(
   "league/getAvailablePlayers",
   async ({ leagueId, clubId, categoryType }, { rejectWithValue }) => {
     try {
@@ -406,6 +409,7 @@ export const getLeagueSummary = createAsyncThunk(
     }
   }
 );
+
 export const getTeams = createAsyncThunk(
   "league/getTeams",
   async ({ leagueId, clubId, categoryType }, { rejectWithValue }) => {
