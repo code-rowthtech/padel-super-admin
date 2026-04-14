@@ -11,6 +11,7 @@ import {
   FaUsers,
 } from "react-icons/fa";
 import { MdNotificationsActive } from "react-icons/md";
+import { HiOutlineTrophy } from "react-icons/hi2";
 import { GoVersions } from "react-icons/go";
 import { useDispatch } from "react-redux";
 import { RiWallet3Line, RiWalletLine } from "react-icons/ri";
@@ -33,6 +34,12 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   const [owners, setOwners] = useState([]);
   const [loadingOwners, setLoadingOwners] = useState(false);
   const [leagueExpanded, setLeagueExpanded] = useState(false);
+  const [tournamentExpanded, setTournamentExpanded] = useState(false);
+  const isTournamentActive = location.pathname.startsWith('/admin/tournament') || location.pathname.startsWith('/admin/new-tournament') || location.pathname.startsWith('/admin/tournament/schedule');
+
+  useEffect(() => {
+    if (isTournamentActive) setTournamentExpanded(true);
+  }, [isTournamentActive]);
 
   useEffect(() => {
     if (isSuperAdmin) {
@@ -104,7 +111,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               boxShadow: '0 4px 12px rgba(31, 65, 187, 0.3)'
             }}
           > */}
-            <img src={BallLogo} alt="Swoot App" className="rounded-circle" style={{ width: isCollapsed ? 35 : 75, height: isCollapsed ? 35 : 75 }} />
+          <img src={BallLogo} alt="Swoot App" className="rounded-circle" style={{ width: isCollapsed ? 35 : 75, height: isCollapsed ? 35 : 75 }} />
           {/* </div> */}
         </div>
       </div>
@@ -160,7 +167,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
         </div>
       )}
 
-      <nav className="flex-grow-1 mt-2">
+      <nav className="flex-grow-1 mt-2" style={{ overflowY: 'auto', overflowX: 'hidden' }}>
         {!isCollapsed && (
           <p className="px-4 py-0 mb-1" style={{ color: "#8A99AF" }}>
             MENU
@@ -572,6 +579,43 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
           )}
         </div>
 
+        {/* Tournament with Submenu */}
+        <div
+          className="position-relative"
+          onMouseEnter={() => isCollapsed && window.innerWidth > 768 && setHoveredItem('tournament')}
+          onMouseLeave={() => setHoveredItem(null)}
+        >
+          <div
+            className={isCollapsed && window.innerWidth > 768 ? 'd-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer' : linkClasses(isTournamentActive)}
+            style={{ backgroundColor: isTournamentActive ? 'rgba(31, 65, 187, 0.15)' : 'transparent', color: '#CCD2DD', fontSize: '15px', fontWeight: '500', fontFamily: 'Poppins', boxShadow: isTournamentActive ? '0 4px 12px rgba(31, 65, 187, 0.2)' : 'none', minHeight: isCollapsed && window.innerWidth > 768 ? '48px' : 'auto', width: isCollapsed && window.innerWidth > 768 ? '48px' : 'auto', cursor: 'pointer' }}
+            onClick={() => !isCollapsed && setTournamentExpanded(!tournamentExpanded)}
+          >
+            <HiOutlineTrophy className={isCollapsed && window.innerWidth > 768 ? '' : 'me-4'} size={isCollapsed && window.innerWidth > 768 ? 18 : 20} />
+            {(!isCollapsed || window.innerWidth <= 768) && (
+              <><span className="flex-grow-1">Tournament</span>{tournamentExpanded ? <FaChevronUp size={14} /> : <FaChevronDown size={14} />}</>
+            )}
+          </div>
+          {isCollapsed && window.innerWidth > 768 && hoveredItem === 'tournament' && (
+            <div className="position-absolute bg-dark px-2 py-1 rounded" style={{ left: '75px', top: '50%', transform: 'translateY(-50%)', zIndex: 1200, fontSize: '15px', fontWeight: '500', fontFamily: 'Poppins', color: '#CCD2DD', whiteSpace: 'nowrap' }}>Tournament</div>
+          )}
+          {tournamentExpanded && (!isCollapsed || window.innerWidth <= 768) && (
+            <div className="ms-4">
+              <NavLink to="/admin/tournament/creation" end
+                className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
+                style={{ backgroundColor: isActivePath('/admin/tournament/creation') ? 'rgba(31, 65, 187, 0.1)' : 'transparent', color: '#CCD2DD', fontSize: '14px', fontWeight: '400', fontFamily: 'Poppins' }}
+                onClick={() => window.innerWidth <= 768 && onClose()}>
+                Tournaments
+              </NavLink>
+              <NavLink to="/admin/tournament/schedule"
+                className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
+                style={{ backgroundColor: isActivePath('/admin/tournament/schedule') ? 'rgba(31, 65, 187, 0.1)' : 'transparent', color: '#CCD2DD', fontSize: '14px', fontWeight: '400', fontFamily: 'Poppins' }}
+                onClick={() => window.innerWidth <= 768 && onClose()}>
+                Schedule
+              </NavLink>
+            </div>
+          )}
+        </div>
+
         {/* Wallet */}
         <div
           className="position-relative"
@@ -785,7 +829,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             </div>
           )}
         </div>
-         {/* Version */}
+        {/* Version */}
         <div
           className="position-relative"
           onMouseEnter={() =>

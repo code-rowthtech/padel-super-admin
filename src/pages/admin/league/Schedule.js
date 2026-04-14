@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import { Container, Row, Col, Card, Table, Button, Modal, Form, Nav } from "react-bootstrap";
-import { FaCalendarAlt, FaSearch } from "react-icons/fa";
+import { FaSearch } from "react-icons/fa";
 
 const Schedule = () => {
   const [selectedTab, setSelectedTab] = useState("All");
   const [showDateModal, setShowDateModal] = useState(false);
-  const [selectedMatch, setSelectedMatch] = useState(null);
   const [dateForm, setDateForm] = useState({ date: "", venue: "", selectType: "" });
 
   const tabs = [
@@ -34,11 +33,6 @@ const Schedule = () => {
     { id: 9, matchNo: "09", home: "Terrafort", homeVenue: "Venue A", away: "Aadi Club", awayVenue: "Team - A", time: "09:00 Am" },
     { id: 10, matchNo: "10", home: "Terrafort", homeVenue: "Venue A", away: "Aadi Club", awayVenue: "Team - A", time: "09:00 Am" },
   ];
-
-  const handleAddDate = (match) => {
-    setSelectedMatch(match);
-    setShowDateModal(true);
-  };
 
   const handleCreateDate = () => {
     setShowDateModal(false);
