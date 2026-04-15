@@ -20,7 +20,9 @@ import 'react-datepicker/dist/react-datepicker.css';
 import { DataLoading } from '../../../helpers/loading/Loaders';
 import PointsTable from './PointsTable';
 
-const VSMatchCard = ({ match, category, roundType, isLive, onClick }) => {
+const VSMatchCard = ({ match, category, roundType, matchId, isLive, onClick, scheduleId }) => {
+  const [copied, setCopied] = React.useState(false);
+
   const getPlayerAvatar = (player) => {
     if (player?.avatar) return player.avatar;
     const name = player?.playerName || player?.name || 'P';
@@ -31,6 +33,25 @@ const VSMatchCard = ({ match, category, roundType, isLive, onClick }) => {
     if (!team?.players?.length) return [];
     return team.players.slice(0, 2); // Show max 2 players
   };
+
+  const handleCopyScheduleId = (e) => {
+    e.stopPropagation();
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(matchId);
+    } else {
+      const el = document.createElement('textarea');
+      el.value = matchId;
+      el.style.position = 'fixed';
+      el.style.opacity = '0';
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
     <div
       onClick={onClick}
@@ -49,8 +70,8 @@ const VSMatchCard = ({ match, category, roundType, isLive, onClick }) => {
       <Row className="align-items-center">
         {/* Team A */}
         <Col xs={4} className="text-start">
-          <div className="fw-bold mb-1" style={{ fontSize: '14px', color: '#1F41BB' }}>
-            Team A
+          <div className="fw-bold text-capitalize mb-1" style={{ fontSize: '14px', color: '#1F41BB' }}>
+            {match?.teamA?.clubId?.clubName || 'Team A'}
           </div>
           <div className="d-flex flex-column gap-1">
             {getTeamPlayers(match.teamA).map((player, index) => (
@@ -61,7 +82,7 @@ const VSMatchCard = ({ match, category, roundType, isLive, onClick }) => {
                   className="rounded-circle"
                   style={{ width: '24px', height: '24px' }}
                 />
-                <span style={{ fontSize: '12px' }}>
+                <span className='text-capitalize' style={{ fontSize: '12px' }}>
                   {player?.playerName || player?.name || 'Player'}
                 </span>
               </div>
@@ -95,18 +116,47 @@ const VSMatchCard = ({ match, category, roundType, isLive, onClick }) => {
           >
             VS
           </div>
-          <small className='fw-semibold' style={{ fontSize: '0.7rem' }}>{category} - <span className='text-capitalize'>{roundType}</span></small>
+          <div style={{ height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {match?.score && (match.score.teamA?.sets > 0 || match.score.teamB?.sets > 0) && (
+              <div className="d-flex align-items-center gap-2">
+                <span className="fw-bold" style={{ fontSize: '16px', color: match.winner === 'teamA' ? '#22c55e' : '#1F41BB' }}>
+                  {match.score.teamA?.sets || 0}
+                </span>
+                <span style={{ fontSize: '12px', color: '#6b7280' }}>-</span>
+                <span className="fw-bold" style={{ fontSize: '16px', color: match.winner === 'teamB' ? '#22c55e' : '#1F41BB' }}>
+                  {match.score.teamB?.sets || 0}
+                </span>
+              </div>
+            )}
+          </div>
+          <small className='fw-semibold text-nowrap' style={{ fontSize: '0.7rem' }}>{category} - <span className='text-capitalize'>{roundType}</span></small>
+          {matchId && (
+            <div
+              className="  d-flex align-items-center gap-1"
+              style={{ top: '8px', right: '8px', fontSize: '10px', color: '#6b7280', padding: '4px 8px', borderRadius: '4px' }}
+            >
+              <span style={{ fontFamily: 'monospace', maxWidth: '80px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {matchId}
+              </span>
+              <IoCopyOutline
+                size={12}
+                style={{ cursor: 'pointer', color: copied ? '#22c55e' : '#6b7280', flexShrink: 0 }}
+                onClick={handleCopyScheduleId}
+                title="Copy Schedule ID"
+              />
+            </div>
+          )}
         </Col>
 
         {/* Team B */}
         <Col xs={4} className="text-end">
-          <div className="fw-bold mb-1" style={{ fontSize: '14px', color: '#1F41BB' }}>
-            Team B
+          <div className="fw-bold text-capitalize mb-1" style={{ fontSize: '14px', color: '#1F41BB' }}>
+            {match?.teamB?.clubId?.clubName || 'Team B'}
           </div>
           <div className="d-flex flex-column gap-1 align-items-end">
             {getTeamPlayers(match.teamB).map((player, index) => (
               <div key={index} className="d-flex align-items-center gap-2">
-                <span style={{ fontSize: '12px' }}>
+                <span className='text-capitalize' style={{ fontSize: '12px' }}>
                   {player?.playerName || player?.name || 'Player'}
                 </span>
                 <img
@@ -177,7 +227,7 @@ const DateSection = ({ dateGroup, onMatchClick }) => {
       <Row className="g-2">
         {allMatchCols.map(({ match, schedule, category, roundType, venue, isLive, key }) => (
           <Col key={key} xs={12} sm={6} md={4} lg={3} xl={3}>
-            <VSMatchCard match={match} category={category} roundType={roundType} venue={venue} isLive={isLive} onClick={() => onMatchClick(match, schedule)} />
+            <VSMatchCard match={match} category={category} roundType={roundType} venue={venue} isLive={isLive} scheduleId={schedule._id} matchId={schedule?.matchId} onClick={() => onMatchClick(match, schedule)} />
           </Col>
         ))}
       </Row>
@@ -224,6 +274,7 @@ const QuickiePointTab = ({ leagueId }) => {
       }))
     );
   }, [formData.date, schedulesData]);
+
 
   const teamsForMatch = useMemo(() => {
     if (!formData.matchId) return [];
@@ -427,7 +478,8 @@ const ViewLeagueSchedule = () => {
     categoryType: '',
     roundType: '',
     startDate: null,
-    endDate: null
+    endDate: null,
+    matchStatus: ''
   });
   const [showExportDropdown, setShowExportDropdown] = useState(false);
   const [exportFilters, setExportFilters] = useState({
@@ -445,7 +497,8 @@ const ViewLeagueSchedule = () => {
       categoryType: '',
       roundType: '',
       startDate: null,
-      endDate: null
+      endDate: null,
+      matchStatus: ''
     });
     setShowExportDropdown(false);
     setExportFilters({
@@ -503,6 +556,7 @@ const ViewLeagueSchedule = () => {
     const params = { leagueId };
     if (filters.categoryType) params.categoryType = filters.categoryType;
     if (filters.roundType) params.roundType = filters.roundType;
+    if (filters.matchStatus) params.matchStatus = filters.matchStatus;
     const hasStartDate = filters.startDate;
     const hasEndDate = filters.endDate;
 
@@ -568,7 +622,7 @@ const ViewLeagueSchedule = () => {
     setShowExportDropdown(false);
   };
 
-  const hasActiveFilters = filters.categoryType || filters.roundType || filters.startDate || filters.endDate;
+  const hasActiveFilters = filters.categoryType || filters.roundType || filters.startDate || filters.endDate || filters.matchStatus;
 
   const schedulesData = Array.isArray(schedules?.data)
     ? schedules.data
@@ -611,6 +665,18 @@ const ViewLeagueSchedule = () => {
                     <div className="d-flex gap-2 align-items-center">
                       <Form.Select
                         size="sm"
+                        value={filters.matchStatus}
+                        onChange={(e) => handleFilterChange('matchStatus', e.target.value)}
+                        style={{ width: '120px', fontSize: '12px' }}
+                      >
+                        <option value="">All</option>
+                        <option value="upcoming">Upcoming</option>
+                        <option value="live">Live</option>
+                        <option value="finished">Finished</option>
+                      </Form.Select>
+
+                      <Form.Select
+                        size="sm"
                         value={filters.categoryType}
                         onChange={(e) => handleFilterChange('categoryType', e.target.value)}
                         style={{ width: '140px', fontSize: '12px' }}
@@ -651,7 +717,7 @@ const ViewLeagueSchedule = () => {
                       {hasActiveFilters && (
                         <button
                           className="btn btn-outline-danger text-danger fw-semibold btn-sm"
-                          onClick={() => setFilters({ categoryType: '', roundType: '', startDate: null, endDate: null })}
+                          onClick={() => setFilters({ categoryType: '', roundType: '', startDate: null, endDate: null, matchStatus: '' })}
                           style={{ fontSize: '12px' }}
                         >
                           Clear
