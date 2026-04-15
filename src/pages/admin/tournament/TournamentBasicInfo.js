@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Form } from 'react-bootstrap';
-import { FiUpload, FiEye } from 'react-icons/fi';
+import { FiUpload, FiEye, FiEyeOff } from 'react-icons/fi';
 import { RiDeleteBin6Fill } from 'react-icons/ri';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -107,12 +107,14 @@ const TournamentBasicInfo = ({ onNext }) => {
   const [leagueLogo, setLeagueLogo] = useState(null);
   const [webLogo, setWebLogo] = useState(null);
   const [ourLogo, setOurLogo] = useState(null);
+  const [umpire, setUmpire] = useState({ email: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (!id) {
       setFormData({ tournamentName: '', stateId: '', startDate: '', endDate: '', sportType: 'padel', seasonType: '', status: 'active', tournamentStatus: true });
-      setLeagueLogo(null); setWebLogo(null); setOurLogo(null); setErrors({});
+      setLeagueLogo(null); setWebLogo(null); setOurLogo(null); setUmpire({ email: '', password: '' }); setErrors({});
     }
   }, [id]);
 
@@ -131,6 +133,7 @@ const TournamentBasicInfo = ({ onNext }) => {
       if (currentTournament.leagueLogo) setLeagueLogo(currentTournament.leagueLogo);
       if (currentTournament.webLogo) setWebLogo(currentTournament.webLogo);
       if (currentTournament.ourLogo) setOurLogo(currentTournament.ourLogo);
+      if (currentTournament.umpire) setUmpire(currentTournament.umpire);
     }
   }, [currentTournament, id]);
 
@@ -163,6 +166,8 @@ const TournamentBasicInfo = ({ onNext }) => {
     if (leagueLogo instanceof File) fd.append('leagueLogo', leagueLogo);
     if (webLogo instanceof File) fd.append('webLogo', webLogo);
     if (ourLogo instanceof File) fd.append('ourLogo', ourLogo);
+    if (umpire.email) fd.append('umpire[email]', umpire.email);
+    if (umpire.password) fd.append('umpire[password]', umpire.password);
 
     if (id) {
       const result = await dispatch(updateTournament({ tournamentData: fd }));
@@ -300,7 +305,58 @@ const TournamentBasicInfo = ({ onNext }) => {
           </Row>
         </div>
 
-        {/* ── Section 2: Logos ── */}
+        {/* ── Section 2: Umpire ── */}
+        <div className="mb-4 p-3 rounded-3" style={{ backgroundColor: '#F8FAFC', border: '1px solid #E5E7EB' }}>
+          <p className="fw-semibold mb-3" style={{ fontSize: '13px', color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Umpire Details
+          </p>
+          <Row className="g-3">
+            <Col md={6}>
+              <Form.Group>
+                <Form.Label style={labelStyle}>Email</Form.Label>
+                <Form.Control
+                  type="email"
+                  placeholder="umpire@example.com"
+                  value={umpire.email}
+                  onChange={e => setUmpire(prev => ({ ...prev, email: e.target.value }))}
+                  style={inputStyle(false)}
+                />
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group>
+                <Form.Label style={labelStyle}>Password</Form.Label>
+                <div style={{ position: 'relative' }}>
+                  <Form.Control
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Enter password"
+                    value={umpire.password}
+                    onChange={e => setUmpire(prev => ({ ...prev, password: e.target.value }))}
+                    disabled={currentTournament?.umpire?.password}
+                    style={{ ...inputStyle(false), paddingRight: '40px' }}
+                  />
+                  {!currentTournament?.umpire?.password && (
+                    <div
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{
+                        position: 'absolute',
+                        right: '12px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        cursor: 'pointer',
+                        color: '#6B7280'
+                      }}
+                    >
+                      {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                    </div>
+                  )}
+                </div>
+              </Form.Group>
+            </Col>
+          </Row>
+        </div>
+
+        {/* ── Section 3: Logos ── */}
         <div className="p-3 rounded-3" style={{ backgroundColor: '#F8FAFC', border: '1px solid #E5E7EB' }}>
           <p className="fw-semibold mb-3" style={{ fontSize: '13px', color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             Tournament Logos

@@ -64,10 +64,10 @@ const TeamInput = ({ team, matchId, side, onUpdateMatch, availablePlayers, allMa
   const getPlayersScheduledAtSameTime = () => {
     const ids = new Set();
     if (!currentMatch.date || !currentMatch.time) return ids;
-    
+
     const currentDate = currentMatch.date;
     const currentTime = currentMatch.time;
-    
+
     allMatches.forEach(match => {
       if (match.id === matchId) return; // Skip current match
       if (match.date === currentDate && match.time === currentTime) {
@@ -119,10 +119,10 @@ const TeamInput = ({ team, matchId, side, onUpdateMatch, availablePlayers, allMa
                 const isSelectedInMatch = selectedInMatch.has(player._id) && player._id !== currentPlayerId;
                 const isScheduledAtSameTime = scheduledAtSameTime.has(player._id);
                 const isDisabled = isSelectedInMatch || isScheduledAtSameTime;
-                
+
                 return (
-                  <option 
-                    key={player._id} 
+                  <option
+                    key={player._id}
                     value={player._id}
                     disabled={isDisabled}
                   >
@@ -199,38 +199,38 @@ const MatchRow = ({ match, index, editable, isEditing, onUpdateMatch, onDelete, 
       <td style={{ padding: '12px', borderBottom: '1px solid #ddd', textAlign: 'center', width: '120px' }}>
         {editable
           ? <input type="date" className="form-control form-control-sm" value={m.date}
-              min={new Date().toISOString().split('T')[0]}
-              style={{ width: 140, margin: '0 auto', fontSize: 12 }}
-              onChange={e => onUpdateMatch(m.id, prev => ({ ...prev, date: e.target.value }))} />
+            min={new Date().toISOString().split('T')[0]}
+            style={{ width: 140, margin: '0 auto', fontSize: 12 }}
+            onChange={e => onUpdateMatch(m.id, prev => ({ ...prev, date: e.target.value }))} />
           : <span style={{ fontSize: 12, color: '#555' }}>{m.date ? new Date(m.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</span>}
       </td>
 
       <td style={{ padding: '12px', borderBottom: '1px solid #ddd', textAlign: 'center', width: '120px' }}>
         {editable
           ? <input className="form-control form-control-sm" value={m.venue} placeholder="Venue"
-              style={{ width: 140, margin: '0 auto', fontSize: 12, backgroundColor: '#F3F4F6', border: 'none' }}
-              onChange={e => onUpdateMatch(m.id, prev => ({ ...prev, venue: e.target.value }))} />
+            style={{ width: 140, margin: '0 auto', fontSize: 12, backgroundColor: '#F3F4F6', border: 'none' }}
+            onChange={e => onUpdateMatch(m.id, prev => ({ ...prev, venue: e.target.value }))} />
           : <span style={{ fontSize: 12, color: '#555' }}>{m.venue || '—'}</span>}
       </td>
 
       <td style={{ padding: '12px', borderBottom: '1px solid #ddd', textAlign: 'center', width: '100px' }}>
         {editable
           ? <input type="time" className="form-control form-control-sm" value={m.time}
-              style={{ width: 100, margin: '0 auto', fontSize: 12 }}
-              onChange={e => onUpdateMatch(m.id, prev => ({ ...prev, time: e.target.value, endTime: calcEndTime(e.target.value, prev.duration) }))} />
+            style={{ width: 100, margin: '0 auto', fontSize: 12 }}
+            onChange={e => onUpdateMatch(m.id, prev => ({ ...prev, time: e.target.value, endTime: calcEndTime(e.target.value, prev.duration) }))} />
           : <span style={{ fontSize: 12, color: '#555' }}>{convertTo12Hour(m.time)}</span>}
       </td>
 
       <td style={{ padding: '12px', borderBottom: '1px solid #ddd', textAlign: 'center', width: '90px' }}>
         {editable
           ? <select className="form-select form-select-sm" value={m.duration}
-              style={{ width: 80, margin: '0 auto', fontSize: 12 }}
-              onChange={e => onUpdateMatch(m.id, prev => ({ ...prev, duration: +e.target.value, endTime: calcEndTime(prev.time, +e.target.value) }))}>
-              <option value={30}>30m</option>
-              <option value={60}>1h</option>
-              <option value={90}>1.5h</option>
-              <option value={120}>2h</option>
-            </select>
+            style={{ width: 80, margin: '0 auto', fontSize: 12 }}
+            onChange={e => onUpdateMatch(m.id, prev => ({ ...prev, duration: +e.target.value, endTime: calcEndTime(prev.time, +e.target.value) }))}>
+            <option value={30}>30m</option>
+            <option value={60}>1h</option>
+            <option value={90}>1.5h</option>
+            <option value={120}>2h</option>
+          </select>
           : <span style={{ fontSize: 12, color: '#555' }}>{m.duration}m</span>}
       </td>
 
@@ -366,12 +366,11 @@ const ManagePlayersOffcanvas = ({ show, onHide, selectedTournamentId, activeCate
       }))
     };
 
-    console.log('Create Players Payload:', payload);
 
     try {
       const response = await ownerAxios.post('/api/tournament-players/addPlayer', payload);
       showSuccess(`${players.length} player(s) created successfully`);
-      
+
       // Reset form
       setPlayers([{
         playerName: '',
@@ -379,12 +378,12 @@ const ManagePlayersOffcanvas = ({ show, onHide, selectedTournamentId, activeCate
         email: '',
         gender: ''
       }]);
-      
+
       // Trigger refetch of players
       if (onPlayersAdded) {
         onPlayersAdded();
       }
-      
+
       onHide();
     } catch (error) {
       showError(error.response?.data?.message || 'Failed to create players');
@@ -726,9 +725,9 @@ const TournamentSchedule = () => {
                 <option value="">Select Tournament</option>
                 {tournamentsData.map(t => <option key={t._id} value={t._id}>{t.tournamentName}</option>)}
               </select>
-              <button 
-                className="export-btn" 
-                onClick={() => setShowPlayersOffcanvas(true)} 
+              <button
+                className="export-btn"
+                onClick={() => setShowPlayersOffcanvas(true)}
                 disabled={!selectedTournamentId || !activeTab}
                 title="Add players to this category"
               >
@@ -866,8 +865,8 @@ const TournamentSchedule = () => {
       </Row>
 
       <AddDateModal show={showModal} onHide={() => setShowModal(false)} onConfirm={handleAddDate} />
-      <ManagePlayersOffcanvas 
-        show={showPlayersOffcanvas} 
+      <ManagePlayersOffcanvas
+        show={showPlayersOffcanvas}
         onHide={() => setShowPlayersOffcanvas(false)}
         selectedTournamentId={selectedTournamentId}
         activeCategory={activeTab}
