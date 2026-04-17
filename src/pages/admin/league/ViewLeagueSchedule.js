@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Container, Row, Col, Card, Form, Button, Modal, Table } from 'react-bootstrap';
 import { Tabs, Tab } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
@@ -60,14 +60,16 @@ const VSMatchCard = ({ match, category, roundType, matchId, isLive, onClick, sch
         background: 'linear-gradient(100.97deg, rgb(253, 253, 255) 0%, rgb(158, 186, 255) 317.27%)',
         padding: '30px 16px 16px 16px',
         border: isLive ? '1px solid #22c55e44' : '1px solid #1F41BB1A',
-        minHeight: '9rem',
-        cursor: 'pointer'
+        height: '10.5rem',
+        cursor: 'pointer',
+        display: 'flex',
+        flexDirection: 'column'
       }}
     >
       <div className="vs-date-badge" >
         {match?.startTime}
       </div>
-      <Row className="align-items-center">
+      <Row className="align-items-center" style={{ flex: 1 }}>
         {/* Team A */}
         <Col xs={4} className="text-start">
           <div className="fw-bold text-capitalize mb-1" style={{ fontSize: '14px', color: '#1F41BB' }}>
@@ -882,58 +884,52 @@ const ViewLeagueSchedule = () => {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body style={{ padding: '1.5rem' }}>
-          {!livestreamModal.schedule?.scoreboardUrl ? (
-            <div className="text-center py-3">
-              <div style={{ fontSize: '36px', marginBottom: '12px' }}>⏳</div>
-              <p className="fw-semibold mb-1" style={{ color: '#374151' }}>Match Not Started Yet</p>
-              <p className="text-muted mb-0" style={{ fontSize: '13px' }}>The scoreboard URL will be available once the match begins.</p>
-            </div>
-          ) : (
-            <>
-              <Form.Group className="mb-3">
-                <Form.Label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
-                  Scoreboard URL
-                </Form.Label>
-                <div className="input-group">
-                  <Form.Control
-                    value={livestreamModal.schedule?.scoreboardUrl || ''}
-                    readOnly
-                    style={{ fontSize: '13px', background: '#f9fafb' }}
-                  />
-                  <button
-                    className="btn btn-outline-secondary"
-                    type="button"
-                    title="Copy scoreboard URL"
-                    onClick={() => handleCopy(livestreamModal.schedule?.scoreboardUrl || '')}
-                    style={{ transition: 'color 0.2s', color: copied ? '#22c55e' : undefined }}
-                  >
-                    {copied
-                      ? <IoCheckmarkOutline size={16} color="#22c55e" />
-                      : <IoCopyOutline size={16} />}
-                  </button>
-                </div>
-              </Form.Group>
-              <Form.Group>
-                <Form.Label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
-                  Stream Key <span className="text-danger">*</span>
-                </Form.Label>
+          <Form.Group className="mb-3">
+            <Form.Label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+              Scoreboard URL
+            </Form.Label>
+            {!livestreamModal.schedule?.scoreboardUrl ? (
+              <div className="alert alert-info mb-0" style={{ fontSize: '13px', padding: '10px' }}>
+                The scoreboard URL will be available once the match begins.
+              </div>
+            ) : (
+              <div className="input-group">
                 <Form.Control
-                  value={livestreamForm.streamKey}
-                  onChange={(e) => setLivestreamForm(prev => ({ ...prev, streamKey: e.target.value }))}
-                  placeholder="Enter your stream key"
-                  style={{ fontSize: '14px' }}
+                  value={livestreamModal.schedule?.scoreboardUrl || ''}
+                  readOnly
+                  style={{ fontSize: '13px', background: '#f9fafb' }}
                 />
-              </Form.Group>
-            </>
-          )}
+                <button
+                  className="btn btn-outline-secondary"
+                  type="button"
+                  title="Copy scoreboard URL"
+                  onClick={() => handleCopy(livestreamModal.schedule?.scoreboardUrl || '')}
+                  style={{ transition: 'color 0.2s', color: copied ? '#22c55e' : undefined }}
+                >
+                  {copied
+                    ? <IoCheckmarkOutline size={16} color="#22c55e" />
+                    : <IoCopyOutline size={16} />}
+                </button>
+              </div>
+            )}
+          </Form.Group>
+          <Form.Group>
+            <Form.Label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+              Stream Key <span className="text-danger">*</span>
+            </Form.Label>
+            <Form.Control
+              value={livestreamForm.streamKey}
+              onChange={(e) => setLivestreamForm(prev => ({ ...prev, streamKey: e.target.value }))}
+              placeholder="Enter your stream key"
+              style={{ fontSize: '14px' }}
+            />
+          </Form.Group>
         </Modal.Body>
         <Modal.Footer style={{ borderTop: '1px solid #f3f4f6', padding: '1rem 1.5rem', background: '#f9fafb', borderRadius: '0 0 16px 16px' }}>
           <Button variant="secondary" onClick={() => setLivestreamModal({ show: false, match: null, schedule: null })} style={{ fontSize: '13px', fontWeight: 500 }}>Cancel</Button>
-          {livestreamModal.schedule?.scoreboardUrl && (
-            <Button variant="primary" onClick={handleLivestreamSubmit} disabled={loadingLivestream || !livestreamForm.streamKey} style={{ fontSize: '13px', fontWeight: 500 }}>
-              {loadingLivestream ? 'Submitting...' : 'Go Live'}
-            </Button>
-          )}
+          <Button variant="primary" onClick={handleLivestreamSubmit} disabled={loadingLivestream || !livestreamForm.streamKey} style={{ fontSize: '13px', fontWeight: 500 }}>
+            {loadingLivestream ? 'Submitting...' : 'Submit'}
+          </Button>
         </Modal.Footer>
       </Modal>
     </div>
