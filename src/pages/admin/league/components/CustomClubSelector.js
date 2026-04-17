@@ -31,7 +31,7 @@ const CustomClubSelector = ({
     if (isOpen) {
       availableClubs.forEach(club => fetchPlayersForClub(club.name, categoryType));
       setHoveredClub(currentClub || availableClubs[0]?.name || null);
-      
+
       if (toggleRef.current) {
         const rect = toggleRef.current.getBoundingClientRect();
         setDropdownPos({
@@ -142,7 +142,7 @@ const CustomClubSelector = ({
                     {isSelected ? '✓' : player.playerName?.charAt(0) || 'P'}
                   </div>
                   <div>
-                    <div style={{ fontSize: '12px', fontWeight: '600', color: '#1F2937' }}>{player.playerName}</div>
+                    <div className='text-capitalize' style={{ fontSize: '12px', fontWeight: '600', color: '#1F2937' }}>{player.playerName}</div>
                   </div>
                 </div>
               );
@@ -169,7 +169,7 @@ const CustomClubSelector = ({
           <div>
             <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937' }}>{currentClub}</div>
             {selectedPlayers.length > 0 && (
-              <div style={{ fontSize: '10px', color: '#666' }}>
+              <div className='text-capitalize' style={{ fontSize: '10px', color: '#666' }}>
                 {selectedPlayers.map(p => p.playerName?.split(' ')[0]).join(', ')}
               </div>
             )}
