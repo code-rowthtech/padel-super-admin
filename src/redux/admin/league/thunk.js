@@ -590,21 +590,3 @@ export const createLivestream = createAsyncThunk(
     }
   }
 );
-
-export const deleteSchedule = createAsyncThunk(
-  "league/deleteSchedule",
-  async (scheduleId, { rejectWithValue }) => {
-    try {
-      const response = await ownerApi.delete(`${DELETE_SCHEDULE}/${scheduleId}`);
-      if (response?.status === 200 && response?.data?.success) {
-        showSuccess(response?.data?.message || "Schedule deleted successfully");
-        return scheduleId;
-      }
-      showError(response?.data?.message || "Failed to delete schedule");
-      return rejectWithValue(response?.data?.message);
-    } catch (error) {
-      showError(error?.message || "Failed to delete schedule");
-      return rejectWithValue(error);
-    }
-  }
-);
