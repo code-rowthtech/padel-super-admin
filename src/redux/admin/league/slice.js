@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createLeague, getLeagues, getLeaguesIDS, updateLeague, getStates, getClubsWithState, getSponsorCategories, getLeagueById, deleteLeague, getLeagueClubs, getClubTeams, getAllSchedules, saveSchedule, updateSchedule, exportLeagueSchedulesPDF, getLeagueSummary, getScheduleDates, getLeagueLeaderboard, getLeagueFinalists, createLivestream, createQuickPoint, getQuickPoints, updateQuickPoint } from "./thunk";
+import { createLeague, getLeagues, getLeaguesIDS, updateLeague, getStates, getClubsWithState, getSponsorCategories, getLeagueById, deleteLeague, getLeagueClubs, getClubTeams, getAllSchedules, saveSchedule, updateSchedule, exportLeagueSchedulesPDF, getLeagueSummary, getScheduleDates, getLeagueLeaderboard, getLeagueFinalists, createLivestream, createQuickPoint, getQuickPoints, updateQuickPoint, deleteSchedule } from "./thunk";
 
 const initialState = {
   leagues: [],
@@ -302,6 +302,16 @@ const leagueSlice = createSlice({
       })
       .addCase(updateQuickPoint.rejected, (state, action) => {
         state.loadingQuickPoints = false;
+        state.error = action.payload;
+      })
+      .addCase(deleteSchedule.pending, (state) => {
+        state.loadingSchedules = true;
+      })
+      .addCase(deleteSchedule.fulfilled, (state) => {
+        state.loadingSchedules = false;
+      })
+      .addCase(deleteSchedule.rejected, (state, action) => {
+        state.loadingSchedules = false;
         state.error = action.payload;
       });
   },
