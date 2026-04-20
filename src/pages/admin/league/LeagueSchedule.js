@@ -6,11 +6,12 @@ import ScheduleSidebar from './components/ScheduleSidebar';
 import CustomClubSelector from './components/CustomClubSelector';
 import FinalistTeamSelector from './components/FinalistTeamSelector';
 import { useDispatch, useSelector } from 'react-redux';
-import { getLeagues, getLeagueClubs, saveSchedule, updateSchedule, getLeagueById, getLeagueSummary, getAvailablePlayers, getScheduleDates, getAllSchedules, getLeagueFinalists } from '../../../redux/admin/league/thunk';
+import { getLeagues, getLeagueClubs, saveSchedule, updateSchedule, getLeagueById, getLeagueSummary, getAvailablePlayers, getScheduleDates, getAllSchedules, getLeagueFinalists, deleteSchedule } from '../../../redux/admin/league/thunk';
 import { showError, showSuccess } from '../../../helpers/Toast';
 import { FaAngleRight } from 'react-icons/fa'
 import ScheduleModal from './components/ScheduleModal';
 import ConfirmationModal from './components/ConfirmationModal';
+import DeleteScheduleModal from './components/DeleteScheduleModal';
 
 const LeagueSchedule = () => {
   const dispatch = useDispatch();
@@ -46,6 +47,9 @@ const LeagueSchedule = () => {
   })
   const [selectedScheduleDate, setSelectedScheduleDate] = useState('') // For sidebar date selection
   const [editingMatchId, setEditingMatchId] = useState(null)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [scheduleToDelete, setScheduleToDelete] = useState(null)
+  const [deletingSchedule, setDeletingSchedule] = useState(false)
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -612,6 +616,48 @@ const LeagueSchedule = () => {
       }
       return updated;
     });
+  };
+
+  const handleDeleteSchedule = (match) => {
+    const scheduleId = match.id.toString().replace('existing_', '').split('_')[0];
+    setScheduleToDelete({ scheduleId, match });
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteSchedule = async () => {
+    if (!scheduleToDelete) return;
+
+    setDeletingSchedule(true);
+    const result = await dispatch(deleteSchedule(scheduleToDelete.scheduleId));
+    setDeletingSchedule(false);
+    
+    if (result.type === 'league/deleteSchedule/fulfilled') {
+      setShowDeleteModal(false);
+      setScheduleToDelete(null);
+
+      // Refresh schedules
+      const roundTypeMap = { regularRound: 'regular', quarterfinal: 'quarterfinal', semifinal: 'semifinal', final: 'final' };
+      const params = { leagueId: selectedLeagueId, roundType: roundTypeMap[selectedRound] };
+      if (selectedScheduleDate) {
+        params.startDate = selectedScheduleDate;
+        params.endDate = selectedScheduleDate;
+      }
+      if (activeTab && activeTab !== 'all') {
+        const activeCategory = availableCategories.find(cat => cat._id === activeTab);
+        if (activeCategory) params.categoryType = activeCategory.categoryType;
+      }
+      dispatch(getAllSchedules(params));
+
+      // Update summary
+      if (activeTab && activeTab !== 'all') {
+        const activeCategory = availableCategories.find(cat => cat._id === activeTab);
+        if (activeCategory) {
+          dispatch(getLeagueSummary({ leagueId: selectedLeagueId, categoryType: activeCategory.categoryType, roundType: selectedRound }));
+        }
+      } else {
+        dispatch(getLeagueSummary({ leagueId: selectedLeagueId, roundType: selectedRound }));
+      }
+    }
   };
 
   const handleEditTimeChange = (matchId, categoryId, time) => {
@@ -1920,14 +1966,26 @@ const LeagueSchedule = () => {
                                                   </Button>
                                                 </div>
                                               ) : (
-                                                <Button
-                                                  variant="outline-secondary"
-                                                  size="sm"
-                                                  onClick={() => handleEditMatch(match, category._id)}
-                                                  style={{ border: 'none', background: 'transparent', color: '#1F41BB' }}
-                                                >
-                                                  <FiEdit2 size={15} />
-                                                </Button>
+                                                <div className="d-flex gap-1 justify-content-center">
+                                                  <Button
+                                                    variant="outline-secondary"
+                                                    size="sm"
+                                                    onClick={() => handleEditMatch(match, category._id)}
+                                                    style={{ border: 'none', background: 'transparent', color: '#1F41BB' }}
+                                                    title="Edit"
+                                                  >
+                                                    <FiEdit2 size={15} />
+                                                  </Button>
+                                                  <Button
+                                                    variant="outline-danger"
+                                                    size="sm"
+                                                    onClick={() => handleDeleteSchedule(match)}
+                                                    style={{ border: 'none', background: 'transparent', color: '#dc3545' }}
+                                                    title="Delete"
+                                                  >
+                                                    <FiTrash2 size={15} />
+                                                  </Button>
+                                                </div>
                                               )}
                                             </td>
                                           </tr>
@@ -2221,14 +2279,26 @@ const LeagueSchedule = () => {
                                                   </Button>
                                                 </div>
                                               ) : (
-                                                <Button
-                                                  variant="outline-secondary"
-                                                  size="sm"
-                                                  onClick={() => handleEditMatch(match, category._id)}
-                                                  style={{ border: 'none', background: 'transparent', color: '#1F41BB' }}
-                                                >
-                                                  <FiEdit2 size={15} />
-                                                </Button>
+                                                <div className="d-flex gap-1 justify-content-center">
+                                                  <Button
+                                                    variant="outline-secondary"
+                                                    size="sm"
+                                                    onClick={() => handleEditMatch(match, category._id)}
+                                                    style={{ border: 'none', background: 'transparent', color: '#1F41BB' }}
+                                                    title="Edit"
+                                                  >
+                                                    <FiEdit2 size={15} />
+                                                  </Button>
+                                                  <Button
+                                                    variant="outline-danger"
+                                                    size="sm"
+                                                    onClick={() => handleDeleteSchedule(match)}
+                                                    style={{ border: 'none', background: 'transparent', color: '#dc3545' }}
+                                                    title="Delete"
+                                                  >
+                                                    <FiTrash2 size={15} />
+                                                  </Button>
+                                                </div>
                                               )}
                                             </td>
                                           </tr>
@@ -2310,6 +2380,17 @@ const LeagueSchedule = () => {
         onSave={currentNewMatches.length > 0 ? handleSaveAndProceed : null}
         confirmText="Proceed Without Saving"
         saveText="Save & Proceed"
+      />
+
+      <DeleteScheduleModal
+        show={showDeleteModal}
+        onHide={() => {
+          setShowDeleteModal(false);
+          setScheduleToDelete(null);
+        }}
+        onConfirm={confirmDeleteSchedule}
+        scheduleData={scheduleToDelete}
+        loading={deletingSchedule}
       />
     </Container >
   )

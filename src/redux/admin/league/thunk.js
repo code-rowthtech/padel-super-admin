@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { CREATE_LEAGUE, GET_LEAGUES, GET_LEAGUES_IDS, UPDATE_LEAGUE, GET_STATES, GET_CLUB_WITH_STATE, GET_SPONSOR_CATEGORIES, GET_LEAGUE_BY_ID, DELETE_LEAGUE, GET_LEAGUE_CLUBS, GET_CLUB_TEAMS, EXPORT_LEAGUE_SCHEDULES_PDF, GET_LEAGUE_SUMMARY, GET_AVAILABLE_PLAYERS, SAVE_TEAMS, GET_TEAMS, GET_SCHEDULE_DATES, GET_LEAGUE_LEADERBOARD, GET_LEAGUE_FINALISTS, CREATE_QUICK_POINT, GET_QUICK_POINTS, UPDATE_QUICK_POINT } from "../../../helpers/api/apiEndpoint";
+import { CREATE_LEAGUE, GET_LEAGUES, GET_LEAGUES_IDS, UPDATE_LEAGUE, GET_STATES, GET_CLUB_WITH_STATE, GET_SPONSOR_CATEGORIES, GET_LEAGUE_BY_ID, DELETE_LEAGUE, GET_LEAGUE_CLUBS, GET_CLUB_TEAMS, EXPORT_LEAGUE_SCHEDULES_PDF, GET_LEAGUE_SUMMARY, GET_AVAILABLE_PLAYERS, SAVE_TEAMS, GET_TEAMS, GET_SCHEDULE_DATES, GET_LEAGUE_LEADERBOARD, GET_LEAGUE_FINALISTS, CREATE_QUICK_POINT, GET_QUICK_POINTS, UPDATE_QUICK_POINT, DELETE_SCHEDULE } from "../../../helpers/api/apiEndpoint";
 import { ownerApi, ownerAxios, getOwnerFromSession } from "../../../helpers/api/apiCore";
 import { showSuccess, showError } from "../../../helpers/Toast";
 
@@ -567,6 +567,24 @@ export const createLivestream = createAsyncThunk(
       return rejectWithValue(response?.data?.message);
     } catch (error) {
       showError(error || "Failed to update livestream");
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const deleteSchedule = createAsyncThunk(
+  "league/deleteSchedule",
+  async (scheduleId, { rejectWithValue }) => {
+    try {
+      const response = await ownerApi.delete(`${DELETE_SCHEDULE}/${scheduleId}`);
+      if (response?.status === 200 && response?.data?.success) {
+        showSuccess(response?.data?.message || "Schedule deleted successfully");
+        return scheduleId;
+      }
+      showError(response?.data?.message || "Failed to delete schedule");
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      showError(error?.message || "Failed to delete schedule");
       return rejectWithValue(error);
     }
   }
