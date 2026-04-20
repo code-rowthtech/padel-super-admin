@@ -284,6 +284,25 @@ export const updateSchedule = createAsyncThunk(
   }
 );
 
+export const deleteSchedule = createAsyncThunk(
+  "league/deleteSchedule",
+  async (scheduleId, { rejectWithValue }) => {
+    try {
+      const response = await ownerApi.delete(`/api/league-schedules/${scheduleId}`);
+      if (response?.status === 200) {
+        if (response?.data?.success) {
+          return scheduleId;
+        }
+      }
+      showError(response?.data?.message || "Failed to delete schedule");
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      showError(error || error?.message || "Error deleting schedule");
+      return rejectWithValue(error);
+    }
+  }
+);
+
 export const getAllSchedules = createAsyncThunk(
   "league/getAllSchedules",
   async (params = {}, { rejectWithValue }) => {
@@ -567,24 +586,6 @@ export const createLivestream = createAsyncThunk(
       return rejectWithValue(response?.data?.message);
     } catch (error) {
       showError(error || "Failed to update livestream");
-      return rejectWithValue(error);
-    }
-  }
-);
-
-export const deleteSchedule = createAsyncThunk(
-  "league/deleteSchedule",
-  async (scheduleId, { rejectWithValue }) => {
-    try {
-      const response = await ownerApi.delete(`${DELETE_SCHEDULE}/${scheduleId}`);
-      if (response?.status === 200 && response?.data?.success) {
-        showSuccess(response?.data?.message || "Schedule deleted successfully");
-        return scheduleId;
-      }
-      showError(response?.data?.message || "Failed to delete schedule");
-      return rejectWithValue(response?.data?.message);
-    } catch (error) {
-      showError(error?.message || "Failed to delete schedule");
       return rejectWithValue(error);
     }
   }
