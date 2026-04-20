@@ -182,9 +182,9 @@ const ViewTournament = () => {
 
                       {hasActiveFilters && (
                         <button
-                          className="btn btn-outline-danger text-danger fw-semibold btn-sm"
                           onClick={clearFilters}
-                          style={{ fontSize: '12px' }}
+                          className="btn text-danger fw-semibold btn-sm"
+                          style={{ fontSize: '12px', border: '1px solid #dc3545' }}
                         >
                           Clear
                         </button>
