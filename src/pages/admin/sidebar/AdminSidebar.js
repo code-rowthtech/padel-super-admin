@@ -882,6 +882,44 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             </div>
           )}
         </div>
+
+        {/* XP Settings */}
+        <div
+          className="position-relative"
+          onMouseEnter={() => isCollapsed && window.innerWidth > 768 && setHoveredItem("xpSettings")}
+          onMouseLeave={() => setHoveredItem(null)}
+        >
+          <NavLink
+            to="/admin/settings/xp"
+            end
+            className={
+              isCollapsed && window.innerWidth > 768
+                ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
+                : linkClasses(isActivePath("/admin/settings/xp"))
+            }
+            style={() => ({
+              backgroundColor: isActivePath("/admin/settings/xp") ? "rgba(31, 65, 187, 0.15)" : "transparent",
+              color: "#CCD2DD",
+              fontSize: "15px",
+              fontWeight: "500",
+              fontFamily: "Poppins",
+              boxShadow: isActivePath("/admin/settings/xp") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
+              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+            })}
+            onClick={() => window.innerWidth <= 768 && onClose()}
+          >
+            <span className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"} style={{ fontSize: isCollapsed && window.innerWidth > 768 ? 18 : 20 }}>⚙️</span>
+            {(!isCollapsed || window.innerWidth <= 768) && "XP Settings"}
+          </NavLink>
+          {isCollapsed && window.innerWidth > 768 && hoveredItem === "xpSettings" && (
+            <div className="position-absolute bg-dark px-2 py-1 rounded"
+              style={{ left: "75px", top: "50%", transform: "translateY(-50%)", zIndex: 1200, fontSize: "15px", fontWeight: "500", fontFamily: "Poppins", color: "#CCD2DD", whiteSpace: "nowrap" }}>
+              XP Settings
+            </div>
+          )}
+        </div>
+
       </nav>
     </aside>
   );

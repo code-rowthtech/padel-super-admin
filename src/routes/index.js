@@ -31,6 +31,7 @@ const PointsTablePage = React.lazy(() => import("../pages/admin/league/PointsTab
 const Notifications = React.lazy(() => import("../pages/admin/notifications/Notifications"));
 const AppUsers = React.lazy(() => import("../pages/admin/appUsers/AppUsers"));
 const AppVersion = React.lazy(() => import("../pages/admin/version/Version"));
+const XpSettings = React.lazy(() => import("../pages/admin/settings/XpSettings"));
 
 const NotFound = React.lazy(() => import("../pages/error/NotFound"));
 const loading = <DataLoading height={900} />;
@@ -154,6 +155,10 @@ const AllRoutes = () => {
              {
               path: "app-version",
               element: LoadComponent(AppVersion),
+            },
+            {
+              path: "settings/xp",
+              element: LoadComponent(XpSettings),
             },
             {
               path: "notifications",
