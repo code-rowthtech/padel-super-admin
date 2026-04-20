@@ -124,6 +124,11 @@ export const CREATE_HELP_REQUEST = "/api/contact/submit";
 export const SUPER_ADMIN_CREATE_OWNER = "/api/super-admin/create-owner";
 export const SUPER_ADMIN_GET_ALL_OWNERS = "/api/super-admin/owners";
 export const SUPER_ADMIN_GET_OWNER_BY_ID = "/api/super-admin/owners";
+
+// System Config
+export const SYSTEM_CONFIG_GET = "/api/system-config";
+export const SYSTEM_CONFIG_GET_KEY = "/api/system-config"; // + /:key
+export const SYSTEM_CONFIG_SET_KEY = "/api/system-config"; // PUT + /:key
 export const SUPER_ADMIN_UPDATE_OWNER = "/api/super-admin/owners";
 export const SUPER_ADMIN_SUSPEND_OWNER = "/api/super-admin/owners";
 export const SUPER_ADMIN_ACTIVATE_OWNER = "/api/super-admin/owners";

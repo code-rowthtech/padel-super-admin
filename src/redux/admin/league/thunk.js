@@ -284,6 +284,25 @@ export const updateSchedule = createAsyncThunk(
   }
 );
 
+export const deleteSchedule = createAsyncThunk(
+  "league/deleteSchedule",
+  async (scheduleId, { rejectWithValue }) => {
+    try {
+      const response = await ownerApi.delete(`/api/league-schedules/${scheduleId}`);
+      if (response?.status === 200) {
+        if (response?.data?.success) {
+          return scheduleId;
+        }
+      }
+      showError(response?.data?.message || "Failed to delete schedule");
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      showError(error || error?.message || "Error deleting schedule");
+      return rejectWithValue(error);
+    }
+  }
+);
+
 export const getAllSchedules = createAsyncThunk(
   "league/getAllSchedules",
   async (params = {}, { rejectWithValue }) => {
