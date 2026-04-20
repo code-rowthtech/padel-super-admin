@@ -45,8 +45,6 @@ const ROUNDS = [
 
 // ─── TeamInput — defined at module level so identity is stable ───────────────
 
-const VALID_PHONE_START = /^[6-9]/;
-
 const TeamInput = ({ team, matchId, side, onUpdateMatch, availablePlayers, allMatches, currentMatch }) => {
   // Get all selected player IDs from the current match
   const getSelectedPlayerIds = () => {
@@ -537,7 +535,6 @@ const TournamentSchedule = () => {
   const [matchesByCategory, setMatchesByCategory] = useState({});
   const [editingId, setEditingId] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [nextId, setNextId] = useState(1);
   const [availablePlayers, setAvailablePlayers] = useState([]);
   const [loadingPlayers, setLoadingPlayers] = useState(false);
   const [showPlayersOffcanvas, setShowPlayersOffcanvas] = useState(false);

@@ -172,6 +172,7 @@ export const EXPORT_LEAGUE_SCHEDULES_PDF = "/api/league-schedules/export/pdf";
 export const GET_SPONSOR_CATEGORIES = "/api/sponsor-categories";
 export const GET_LEAGUE_SUMMARY = "/api/league-schedules/summary";
 export const GET_SCHEDULE_DATES = "/api/league-schedules/schedule-dates";
+export const DELETE_SCHEDULE = "/api/league-schedules";
 
 export const CREATE_QUICK_POINT = "/api/quick-points/createQuickPoint";
 export const GET_QUICK_POINTS = "/api/quick-points/getQuickPoints";
