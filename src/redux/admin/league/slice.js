@@ -314,16 +314,6 @@ const leagueSlice = createSlice({
       .addCase(updateQuickPoint.rejected, (state, action) => {
         state.loadingQuickPoints = false;
         state.error = action.payload;
-      })
-      .addCase(deleteSchedule.pending, (state) => {
-        state.loadingSchedules = true;
-      })
-      .addCase(deleteSchedule.fulfilled, (state) => {
-        state.loadingSchedules = false;
-      })
-      .addCase(deleteSchedule.rejected, (state, action) => {
-        state.loadingSchedules = false;
-        state.error = action.payload;
       });
   },
 });
