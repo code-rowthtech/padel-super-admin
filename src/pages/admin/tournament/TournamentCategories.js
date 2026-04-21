@@ -24,8 +24,7 @@ const SectionHeader = ({ title, onAdd, addLabel }) => (
       type="button"
       className="d-flex align-items-center position-relative p-0 border-0"
       style={{ borderRadius: '20px 10px 10px 20px', background: 'none', overflow: 'hidden', cursor: 'pointer', flexShrink: 0 }}
-      onClick={onAdd}
-    >
+      onClick={onAdd}>
       <div className="p-md-1 p-2 rounded-circle bg-light" style={{ position: 'relative', left: '10px' }}>
         <div className="d-flex justify-content-center align-items-center text-white fw-bold" style={{ backgroundColor: '#1F41BB', width: '32px', height: '32px', borderRadius: '50%', fontSize: '18px' }}>
           <span className="mb-1">+</span>
@@ -54,7 +53,6 @@ const TournamentCategories = ({ onNext, onBack }) => {
   const dispatch = useDispatch();
   const { id } = useParams();
   const { loading, currentTournament, tournamentId } = useSelector(state => state.tournament);
-
   const [registration, setRegistration] = useState({ startDate: '', endDate: '', fee: '', isEnabled: false });
   const [dateErrors, setDateErrors] = useState({ startDate: '', endDate: '' });
   const [category, setCategory] = useState(DEFAULT_CATEGORY);

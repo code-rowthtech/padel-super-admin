@@ -404,7 +404,7 @@ const ManagePlayersOffcanvas = ({ show, onHide, selectedTournamentId, activeCate
         <Offcanvas.Title className="d-flex align-items-center gap-2" style={{ fontWeight: 600, fontSize: 18 }}>
           <FiUsers size={20} /> Add Players to {activeCategory}
         </Offcanvas.Title>
-        <MdClose size={24} onClick={handleClose} style={{ cursor: 'pointer' }} />
+        {/* <MdClose size={24} onClick={handleClose} style={{ cursor: 'pointer' }} /> */}
       </Offcanvas.Header>
       <Offcanvas.Body style={{ padding: '20px', overflowY: 'auto' }}>
         <div className="mb-3 d-flex justify-content-between align-items-center">
@@ -473,7 +473,7 @@ const ManagePlayersOffcanvas = ({ show, onHide, selectedTournamentId, activeCate
                     <Form.Label style={{ fontSize: 13, fontWeight: 600 }}>Email</Form.Label>
                     <Form.Control
                       type="email"
-                      placeholder="player@example.com"
+                      placeholder="Enter email address"
                       value={player.email}
                       onChange={(e) => updatePlayer(index, 'email', e.target.value)}
                       style={{ fontSize: 13, backgroundColor: '#fff', border: '1px solid #ddd' }}
@@ -489,7 +489,7 @@ const ManagePlayersOffcanvas = ({ show, onHide, selectedTournamentId, activeCate
                       onChange={(e) => updatePlayer(index, 'gender', e.target.value)}
                       style={{ fontSize: 13, backgroundColor: '#fff', border: '1px solid #ddd' }}
                     >
-                      <option value="">Select Gender</option>
+                      <option value="">Select gender</option>
                       <option value="Male">Male</option>
                       <option value="Female">Female</option>
                       <option value="Other">Other</option>

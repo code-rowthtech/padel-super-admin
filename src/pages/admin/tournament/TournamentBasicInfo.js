@@ -156,7 +156,7 @@ const TournamentBasicInfo = ({ onNext }) => {
     if (!formData.tournamentName.trim()) e.tournamentName = 'Tournament name is required';
     if (!formData.stateId) e.stateId = 'Location is required';
     if (!formData.startDate) e.startDate = 'Start date is required';
-    
+
     const umpireErrs = umpires.map((u, idx) => {
       const errs = { email: '', password: '' };
       if (u.email) {
@@ -167,7 +167,7 @@ const TournamentBasicInfo = ({ onNext }) => {
       }
       return errs;
     });
-    
+
     setErrors(e);
     setUmpireErrors(umpireErrs);
     return Object.keys(e).length === 0 && !umpireErrs.some(err => err.email || err.password);
