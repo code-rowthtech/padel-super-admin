@@ -211,7 +211,7 @@ const TournamentBasicInfo = ({ onNext }) => {
                 <Form.Label style={labelStyle}>Tournament Name <span className="text-danger">*</span></Form.Label>
                 <Form.Control
                   type="text"
-                  placeholder="e.g. Padel Open Championship 2025"
+                  placeholder="Enter tournament name"
                   value={formData.tournamentName}
                   onChange={e => set('tournamentName', e.target.value)}
                   style={inputStyle(errors.tournamentName)}
