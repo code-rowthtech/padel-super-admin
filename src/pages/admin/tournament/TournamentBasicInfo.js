@@ -133,9 +133,10 @@ const TournamentBasicInfo = ({ onNext }) => {
       if (currentTournament.leagueLogo) setLeagueLogo(currentTournament.leagueLogo);
       if (currentTournament.webLogo) setWebLogo(currentTournament.webLogo);
       if (currentTournament.ourLogo) setOurLogo(currentTournament.ourLogo);
-      if (currentTournament.umpires && currentTournament.umpires.length > 0) {
-        setUmpires(currentTournament.umpires);
-        setShowPasswords(new Array(currentTournament.umpires.length).fill(false));
+      const umpireData = currentTournament.umpire || currentTournament.umpires;
+      if (umpireData && umpireData.length > 0) {
+        setUmpires(umpireData.map(u => ({ email: u.email || '', password: '' })));
+        setShowPasswords(new Array(umpireData.length).fill(false));
       }
     }
   }, [currentTournament, id]);
@@ -359,7 +360,7 @@ const TournamentBasicInfo = ({ onNext }) => {
                     <Form.Label style={labelStyle}>Email</Form.Label>
                     <Form.Control
                       type="email"
-                      placeholder="umpire@example.com"
+                      placeholder="Enter umpire email"
                       value={umpire.email}
                       onChange={e => {
                         const updated = [...umpires];
@@ -383,10 +384,10 @@ const TournamentBasicInfo = ({ onNext }) => {
                           updated[index].password = e.target.value;
                           setUmpires(updated);
                         }}
-                        disabled={currentTournament?.umpires?.[index]?.password}
+                        disabled={(currentTournament?.umpire?.[index] || currentTournament?.umpires?.[index])}
                         style={{ ...inputStyle(false), paddingRight: '40px' }}
                       />
-                      {!currentTournament?.umpires?.[index]?.password && (
+                      {!(currentTournament?.umpire?.[index] || currentTournament?.umpires?.[index]) && (
                         <div
                           onClick={() => {
                             const updated = [...showPasswords];
