@@ -1,20 +1,251 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Form, Table } from 'react-bootstrap';
+import { Container, Row, Col, Card, Form, Table, Button, Offcanvas } from 'react-bootstrap';
 import { Tabs, Tab } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { getTournamentById } from '../../../redux/admin/tournament/thunk';
+import { getTournamentById, getTournamentSchedules } from '../../../redux/admin/tournament/thunk';
 import { DataLoading } from '../../../helpers/loading/Loaders';
 import { ownerAxios } from '../../../helpers/api/apiCore';
-import { showError } from '../../../helpers/Toast';
+import { showError, showSuccess } from '../../../helpers/Toast';
 
-const PlayersTab = ({ tournamentId, filters, handleFilterChange, clearFilters, hasActiveFilters, categories }) => {
+const VSMatchCard = ({ match, category, venue, scheduleId }) => {
+  const getTeamPlayers = (team) => {
+    if (!team?.players?.length) return [];
+    return team.players.slice(0, 2);
+  };
+
+  return (
+    <div
+      className="mb-3 shadow-sm rounded-3 position-relative overflow-hidden"
+      style={{
+        background: 'linear-gradient(100.97deg, rgb(253, 253, 255) 0%, rgb(158, 186, 255) 317.27%)',
+        padding: '30px 16px 16px 16px',
+        border: '1px solid #1F41BB1A',
+        height: '10.5rem',
+        cursor: 'pointer',
+        display: 'flex',
+        flexDirection: 'column'
+      }}
+    >
+      <div className="vs-date-badge">
+        {match?.startTime || match?.time}
+      </div>
+      <Row className="align-items-center" style={{ flex: 1 }}>
+        {/* Team A */}
+        <Col xs={4} className="text-start">
+          <div className="fw-bold text-capitalize mb-1" style={{ fontSize: '14px', color: '#1F41BB' }}>
+            {match?.teamA?.teamName || 'Team A'}
+          </div>
+          <div className="d-flex flex-column gap-1">
+            {getTeamPlayers(match.teamA).map((player, index) => (
+              <div key={index} className="d-flex align-items-center gap-2">
+                <span className='text-capitalize' style={{ fontSize: '12px' }}>
+                  {player?.playerName || 'Player'}
+                </span>
+              </div>
+            ))}
+          </div>
+        </Col>
+
+        {/* Center - VS */}
+        <Col xs={4} className="text-center">
+          <div
+            className="d-flex align-items-center justify-content-center mx-auto"
+            style={{
+              width: "40px",
+              height: "40px",
+              fontWeight: 700,
+              fontSize: "20px",
+              letterSpacing: "2px",
+              color: "transparent",
+              WebkitTextStroke: "1.5px #1F41BB",
+            }}
+          >
+            VS
+          </div>
+          <div style={{ height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {match?.score && (match.score.teamA?.sets > 0 || match.score.teamB?.sets > 0) && (
+              <div className="d-flex align-items-center gap-2">
+                <span className="fw-bold" style={{ fontSize: '16px', color: match.winner === 'teamA' ? '#22c55e' : '#1F41BB' }}>
+                  {match.score.teamA?.sets || 0}
+                </span>
+                <span style={{ fontSize: '12px', color: '#6b7280' }}>-</span>
+                <span className="fw-bold" style={{ fontSize: '16px', color: match.winner === 'teamB' ? '#22c55e' : '#1F41BB' }}>
+                  {match.score.teamB?.sets || 0}
+                </span>
+              </div>
+            )}
+          </div>
+          <small className='fw-semibold text-nowrap' style={{ fontSize: '0.7rem' }}>{category}</small>
+          <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '4px' }}>{venue}</div>
+        </Col>
+
+        {/* Team B */}
+        <Col xs={4} className="text-end">
+          <div className="fw-bold text-capitalize mb-1" style={{ fontSize: '14px', color: '#1F41BB' }}>
+            {match?.teamB?.teamName || 'Team B'}
+          </div>
+          <div className="d-flex flex-column gap-1 align-items-end">
+            {getTeamPlayers(match.teamB).map((player, index) => (
+              <div key={index} className="d-flex align-items-center gap-2">
+                <span className='text-capitalize' style={{ fontSize: '12px' }}>
+                  {player?.playerName || 'Player'}
+                </span>
+              </div>
+            ))}
+          </div>
+        </Col>
+      </Row>
+    </div>
+  );
+};
+
+const formatDate = (dateString) => {
+  const date = new Date(dateString + (dateString.includes('T') ? '' : 'T00:00:00.000Z'));
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  const dateUTC = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+  const todayUTC = new Date(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+  const tomorrowUTC = new Date(tomorrow.getUTCFullYear(), tomorrow.getUTCMonth(), tomorrow.getUTCDate());
+
+  if (dateUTC.getTime() === todayUTC.getTime()) return 'Today';
+  if (dateUTC.getTime() === tomorrowUTC.getTime()) return 'Tomorrow';
+
+  return date.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC'
+  });
+};
+
+const DateSection = ({ dateGroup, tournamentName }) => {
+  return (
+    <div className="mb-4">
+      <div className="mb-3">
+        <div className="d-flex align-items-center gap-2">
+          <h6 className="mb-0 fw-bold" style={{ color: '#2c3e50', fontSize: '16px' }}>
+            {formatDate(dateGroup.date)}
+          </h6>
+          {tournamentName && (
+            <span className="fw-medium text-muted d-none d-sm-inline" style={{ fontSize: '12px' }}>
+              {tournamentName}
+            </span>
+          )}
+        </div>
+      </div>
+
+      <Row className="g-2">
+        {dateGroup.schedules.map((schedule) => (
+          schedule.matches?.map((match) => (
+            <Col key={match._id} xs={12} sm={6} md={4} lg={3} xl={3}>
+              <VSMatchCard
+                match={match}
+                category={schedule.categoryType}
+                venue={schedule.venue}
+                scheduleId={schedule._id}
+              />
+            </Col>
+          ))
+        ))}
+      </Row>
+    </div>
+  );
+};
+
+const SchedulesTab = ({ tournamentId, categories, selectedRound }) => {
+  const [schedules, setSchedules] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [tournamentName, setTournamentName] = useState('');
+
+  const ROUNDS = [
+    { key: 'regular', label: 'Regular' },
+    { key: 'quarterfinal', label: 'Quarter-Final' },
+    { key: 'semifinal', label: 'Semi-Final' },
+    { key: 'final', label: 'Final' },
+  ];
+
+  useEffect(() => {
+    fetchSchedules();
+  }, [tournamentId, selectedRound]);
+
+  const fetchSchedules = async () => {
+    if (!tournamentId) return;
+    setLoading(true);
+    try {
+      const response = await ownerAxios.get('/api/tournament-schedules/getSchedules', {
+        params: { tournamentId, roundType: selectedRound }
+      });
+      const data = response.data?.data || [];
+      setSchedules(data);
+      if (data.length > 0 && data[0].tournamentId?.tournamentName) {
+        setTournamentName(data[0].tournamentId.tournamentName);
+      }
+    } catch (error) {
+      showError('Failed to load schedules');
+      setSchedules([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Group schedules by date
+  const groupedByDate = React.useMemo(() => {
+    const groups = {};
+    schedules.forEach(schedule => {
+      const date = schedule.date?.split('T')[0];
+      if (!date) return;
+      if (!groups[date]) {
+        groups[date] = { date, schedules: [] };
+      }
+      groups[date].schedules.push(schedule);
+    });
+    return Object.values(groups).sort((a, b) => new Date(a.date) - new Date(b.date));
+  }, [schedules]);
+
+  return (
+    <div className="py-2">
+      {/* Schedules Content */}
+      {loading ? (
+        <Card className="text-center py-5 border-0 shadow-sm">
+          <Card.Body>
+            <DataLoading />
+            <div className="mt-3 text-muted">Loading schedules...</div>
+          </Card.Body>
+        </Card>
+      ) : groupedByDate.length > 0 ? (
+        <div>
+          {groupedByDate.map((dateGroup, index) => (
+            <DateSection
+              key={dateGroup.date || index}
+              dateGroup={dateGroup}
+              tournamentName={tournamentName}
+            />
+          ))}
+        </div>
+      ) : (
+        <Card className="text-center py-5 shadow-none">
+          <Card.Body>
+            <h5 className="mb-2">No Schedules Found</h5>
+            <p className="text-muted mb-0">
+              There are no schedules for {ROUNDS.find(r => r.key === selectedRound)?.label} round yet.
+            </p>
+          </Card.Body>
+        </Card>
+      )}
+    </div>
+  );
+};
+
+const PlayersTab = ({ tournamentId, filters, handleFilterChange, clearFilters, hasActiveFilters, categories, refreshTrigger }) => {
   const [players, setPlayers] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchPlayers();
-  }, [tournamentId, filters]);
+  }, [tournamentId, filters, refreshTrigger]);
 
   const fetchPlayers = async () => {
     if (!tournamentId) return;
@@ -117,8 +348,18 @@ const ViewTournament = () => {
     categoryType: '',
     gender: ''
   });
+  const [showPlayersOffcanvas, setShowPlayersOffcanvas] = useState(false);
+  const [refreshPlayers, setRefreshPlayers] = useState(0);
+  const [selectedRound, setSelectedRound] = useState('regular');
 
   const categories = currentTournament?.category || [];
+
+  const ROUNDS = [
+    { key: 'regular', label: 'Regular' },
+    { key: 'quarterfinal', label: 'Quarter-Final' },
+    { key: 'semifinal', label: 'Semi-Final' },
+    { key: 'final', label: 'Final' },
+  ];
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -165,32 +406,71 @@ const ViewTournament = () => {
                     {/* <Tab label="Bracket" /> */}
                   </Tabs>
 
-                  {/* Filters - Only show on Players tab */}
-                  {activeTab === 0 && (
-                    <div className="d-flex gap-2 align-items-center">
-                      <Form.Select
-                        size="sm"
-                        value={filters.categoryType}
-                        onChange={(e) => handleFilterChange('categoryType', e.target.value)}
-                        style={{ width: '180px', fontSize: '12px' }}
-                      >
-                        <option value="">All Categories</option>
-                        {categories.map(cat => (
-                          <option key={cat.tag} value={cat.tag}>{cat.tag}</option>
-                        ))}
-                      </Form.Select>
-
-                      {hasActiveFilters && (
-                        <button
-                          onClick={clearFilters}
-                          className="btn text-danger fw-semibold btn-sm"
-                          style={{ fontSize: '12px', border: '1px solid #dc3545' }}
+                  {/* Filters - Show on both tabs */}
+                  <div className="d-flex gap-2 align-items-center">
+                    {activeTab === 0 && (
+                      <>
+                        <Form.Select
+                          size="sm"
+                          value={filters.categoryType}
+                          onChange={(e) => handleFilterChange('categoryType', e.target.value)}
+                          style={{ width: '180px', fontSize: '12px' }}
                         >
-                          Clear
+                          <option value="">All Categories</option>
+                          {categories.map(cat => (
+                            <option key={cat.tag} value={cat.tag}>{cat.tag}</option>
+                          ))}
+                        </Form.Select>
+
+                        {hasActiveFilters && (
+                          <button
+                            onClick={clearFilters}
+                            className="btn text-danger fw-semibold btn-sm"
+                            style={{ fontSize: '12px', border: '1px solid #dc3545' }}
+                          >
+                            Clear
+                          </button>
+                        )}
+                        
+                        <button
+                          onClick={() => setShowPlayersOffcanvas(true)}
+                          className="btn btn-sm"
+                          style={{ 
+                            backgroundColor: '#1F41BB', 
+                            color: 'white', 
+                            border: 'none',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            padding: '6px 16px'
+                          }}
+                        >
+                          Add Player
                         </button>
-                      )}
-                    </div>
-                  )}
+                      </>
+                    )}
+                    {activeTab === 1 && (
+                      <div className="d-flex gap-2">
+                        {ROUNDS.map(({ key, label }) => (
+                          <button
+                            key={key}
+                            onClick={() => setSelectedRound(key)}
+                            className="btn btn-sm"
+                            style={{
+                              backgroundColor: selectedRound === key ? '#1F41BB' : '#f8f9fa',
+                              color: selectedRound === key ? 'white' : '#666',
+                              border: 'none',
+                              fontWeight: 600,
+                              fontSize: '13px',
+                              padding: '6px 16px',
+                              borderRadius: '6px'
+                            }}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -212,18 +492,8 @@ const ViewTournament = () => {
                 </Card>
               ) : (
                 <>
-                  {activeTab === 0 && <PlayersTab tournamentId={tournamentId} filters={filters} handleFilterChange={handleFilterChange} clearFilters={clearFilters} hasActiveFilters={hasActiveFilters} categories={categories} />}
-                  {activeTab === 1 && (
-                    <Card className="border-0 shadow-sm">
-                      <Card.Body className="p-4">
-                        <div className="text-center py-5">
-                          <div style={{ fontSize: '48px', color: '#dee2e6', marginBottom: '16px' }}>📅</div>
-                          <h5 className="mb-2">Tournament Schedules</h5>
-                          <p className="text-muted mb-0">Schedule management coming soon...</p>
-                        </div>
-                      </Card.Body>
-                    </Card>
-                  )}
+                  {activeTab === 0 && <PlayersTab tournamentId={tournamentId} filters={filters} handleFilterChange={handleFilterChange} clearFilters={clearFilters} hasActiveFilters={hasActiveFilters} categories={categories} refreshTrigger={refreshPlayers} />}
+                  {activeTab === 1 && <SchedulesTab tournamentId={tournamentId} categories={categories} selectedRound={selectedRound} />}
                   {activeTab === 2 && (
                     <Card className="border-0 shadow-sm">
                       <Card.Body className="p-4">
@@ -241,7 +511,245 @@ const ViewTournament = () => {
           </Row>
         </Container>
       </div>
+
+      {/* Add Players Offcanvas */}
+      <ManagePlayersOffcanvas
+        show={showPlayersOffcanvas}
+        onHide={() => setShowPlayersOffcanvas(false)}
+        tournamentId={tournamentId}
+        onPlayersAdded={() => setRefreshPlayers(prev => prev + 1)}
+      />
     </div>
+  );
+};
+
+const ManagePlayersOffcanvas = ({ show, onHide, tournamentId, onPlayersAdded }) => {
+  const [players, setPlayers] = useState([{
+    playerName: '',
+    phoneNumber: '',
+    email: '',
+    gender: ''
+  }]);
+
+  const addPlayer = () => {
+    setPlayers([...players, {
+      playerName: '',
+      phoneNumber: '',
+      email: '',
+      gender: ''
+    }]);
+  };
+
+  const removePlayer = (index) => {
+    if (players.length === 1) return;
+    setPlayers(players.filter((_, i) => i !== index));
+  };
+
+  const updatePlayer = (index, field, value) => {
+    const updated = [...players];
+    updated[index] = { ...updated[index], [field]: value };
+    setPlayers(updated);
+  };
+
+  const validatePlayers = () => {
+    for (let i = 0; i < players.length; i++) {
+      const p = players[i];
+      if (!p.playerName.trim()) {
+        showError(`Player ${i + 1}: Name is required`);
+        return false;
+      }
+      if (!p.phoneNumber.trim()) {
+        showError(`Player ${i + 1}: Phone number is required`);
+        return false;
+      }
+      if (!/^[6-9]\d{9}$/.test(p.phoneNumber)) {
+        showError(`Player ${i + 1}: Invalid phone number`);
+        return false;
+      }
+      if (p.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email)) {
+        showError(`Player ${i + 1}: Invalid email format`);
+        return false;
+      }
+      if (!p.gender) {
+        showError(`Player ${i + 1}: Gender is required`);
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const handleSubmit = async () => {
+    if (!validatePlayers()) return;
+
+    const payload = {
+      tournamentId: tournamentId,
+      players: players.map(p => ({
+        playerName: p.playerName.trim(),
+        phoneNumber: p.phoneNumber.trim(),
+        email: p.email.trim(),
+        gender: p.gender.toLowerCase()
+      }))
+    };
+
+    try {
+      const response = await ownerAxios.post('/api/tournament-players/addPlayer', payload);
+      showSuccess(`${players.length} player(s) created successfully`);
+
+      // Reset form
+      setPlayers([{
+        playerName: '',
+        phoneNumber: '',
+        email: '',
+        gender: ''
+      }]);
+
+      // Trigger refetch of players
+      if (onPlayersAdded) {
+        onPlayersAdded();
+      }
+
+      onHide();
+    } catch (error) {
+      showError(error.response?.data?.message || 'Failed to create players');
+    }
+  };
+
+  const handleClose = () => {
+    setPlayers([{
+      playerName: '',
+      phoneNumber: '',
+      email: '',
+      gender: ''
+    }]);
+    onHide();
+  };
+
+  return (
+    <Offcanvas show={show} onHide={handleClose} placement="end" style={{ width: '600px' }}>
+      <Offcanvas.Header className="border-bottom" style={{ padding: '20px' }}>
+        <Offcanvas.Title className="d-flex align-items-center gap-2" style={{ fontWeight: 600, fontSize: 18 }}>
+          Add Players to Tournament
+        </Offcanvas.Title>
+        <button onClick={handleClose} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer' }}>×</button>
+      </Offcanvas.Header>
+      <Offcanvas.Body style={{ padding: '20px', overflowY: 'auto' }}>
+        <div className="mb-3 d-flex justify-content-between align-items-center">
+          <span style={{ fontSize: 14, color: '#666' }}>Add multiple players at once</span>
+          <Button
+            size="sm"
+            onClick={addPlayer}
+            style={{ backgroundColor: '#1F41BB', border: 'none', fontSize: 13, padding: '6px 12px' }}
+          >
+            Add Another
+          </Button>
+        </div>
+
+        <div style={{ maxHeight: 'calc(100vh - 250px)', overflowY: 'auto' }}>
+          {players.map((player, index) => (
+            <div key={index} className="mb-4 p-3 border rounded" style={{ backgroundColor: '#f8f9fa', position: 'relative' }}>
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <span style={{ fontWeight: 600, fontSize: 14, color: '#1F41BB' }}>Player {index + 1}</span>
+                {players.length > 1 && (
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="p-0 text-danger"
+                    onClick={() => removePlayer(index)}
+                  >
+                    Remove
+                  </Button>
+                )}
+              </div>
+
+              <Row>
+                <Col xs={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label style={{ fontSize: 13, fontWeight: 600 }}>Player Name <span className="text-danger">*</span></Form.Label>
+                    <Form.Control
+                      type="text"
+                      placeholder="Enter player name"
+                      value={player.playerName}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
+                        updatePlayer(index, 'playerName', capitalized);
+                      }}
+                      style={{ fontSize: 13, backgroundColor: '#fff', border: '1px solid #ddd' }}
+                    />
+                  </Form.Group>
+                </Col>
+
+                <Col xs={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label style={{ fontSize: 13, fontWeight: 600 }}>Phone Number <span className="text-danger">*</span></Form.Label>
+                    <Form.Control
+                      type="text"
+                      placeholder="10-digit mobile number"
+                      value={player.phoneNumber}
+                      maxLength={10}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, '');
+                        if (value.length === 0 || /^[6-9]/.test(value)) {
+                          updatePlayer(index, 'phoneNumber', value);
+                        }
+                      }}
+                      style={{ fontSize: 13, backgroundColor: '#fff', border: '1px solid #ddd' }}
+                    />
+                  </Form.Group>
+                </Col>
+
+                <Col xs={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label style={{ fontSize: 13, fontWeight: 600 }}>Email</Form.Label>
+                    <Form.Control
+                      type="email"
+                      placeholder="player@example.com"
+                      value={player.email}
+                      onChange={(e) => updatePlayer(index, 'email', e.target.value)}
+                      style={{ fontSize: 13, backgroundColor: '#fff', border: '1px solid #ddd' }}
+                    />
+                  </Form.Group>
+                </Col>
+
+                <Col xs={6}>
+                  <Form.Group className="mb-3">
+                    <Form.Label style={{ fontSize: 13, fontWeight: 600 }}>Gender <span className="text-danger">*</span></Form.Label>
+                    <Form.Select
+                      value={player.gender}
+                      onChange={(e) => updatePlayer(index, 'gender', e.target.value)}
+                      style={{ fontSize: 13, backgroundColor: '#fff', border: '1px solid #ddd' }}
+                    >
+                      <option value="">Select Gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </Form.Select>
+                  </Form.Group>
+                </Col>
+              </Row>
+            </div>
+          ))}
+        </div>
+
+        <div className="d-flex gap-2 mt-4">
+          <Button
+            className="flex-grow-1"
+            style={{ backgroundColor: '#1F41BB', border: 'none', fontWeight: 600, padding: 12 }}
+            onClick={handleSubmit}
+          >
+            Create {players.length} Player{players.length > 1 ? 's' : ''}
+          </Button>
+          <Button
+            variant="outline-secondary"
+            className="flex-grow-1"
+            style={{ fontWeight: 600, padding: 12 }}
+            onClick={handleClose}
+          >
+            Cancel
+          </Button>
+        </div>
+      </Offcanvas.Body>
+    </Offcanvas>
   );
 };
 
