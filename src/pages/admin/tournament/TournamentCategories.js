@@ -58,6 +58,7 @@ const TournamentCategories = ({ onNext, onBack }) => {
   const [registration, setRegistration] = useState({ startDate: '', endDate: '', fee: '', isEnabled: false });
   const [dateErrors, setDateErrors] = useState({ startDate: '', endDate: '' });
   const [category, setCategory] = useState(DEFAULT_CATEGORY);
+  const [categoryError, setCategoryError] = useState('');
   const [prizeDistribution, setPrizeDistribution] = useState([
     { position: '1st', amount: 0 },
     { position: '2nd', amount: 0 },
@@ -119,6 +120,19 @@ const TournamentCategories = ({ onNext, onBack }) => {
     if (!registration.startDate) errs.startDate = 'Start date is required';
     if (!registration.endDate) errs.endDate = 'End date is required';
     setDateErrors(errs);
+
+    if (category.length === 0) {
+      setCategoryError('At least one participation category is required');
+      return;
+    }
+
+    const hasEmptyCategory = category.some(cat => !cat.categoryType.trim());
+    if (hasEmptyCategory) {
+      setCategoryError('All category names are required');
+      return;
+    }
+    setCategoryError('');
+
     if (errs.startDate || errs.endDate) return;
 
     const payload = { id: idToUpdate };
@@ -213,9 +227,10 @@ const TournamentCategories = ({ onNext, onBack }) => {
         <div className="mb-4 p-3 rounded-3" style={{ backgroundColor: '#F8FAFC', border: '1px solid #E5E7EB' }}>
           <SectionHeader
             title="Participation Categories"
-            onAdd={() => setCategory([...category, { categoryType: '', maxParticipants: 16, tag: TAG_OPTIONS[0] }])}
+            onAdd={() => { setCategory([...category, { categoryType: '', maxParticipants: 16, tag: TAG_OPTIONS[0] }]); setCategoryError(''); }}
             addLabel="Add"
           />
+          {categoryError && <div className="text-danger mb-2" style={{ fontSize: '14px' }}>{categoryError}</div>}
           <div style={{ border: '1px solid #E5E7EB', borderRadius: '8px', overflow: 'hidden' }}>
             <div className="d-flex" style={{ backgroundColor: '#F9FAFB', borderBottom: '1px solid #E5E7EB' }}>
               <div style={{ flex: '2', padding: '10px 14px', fontWeight: '600', fontSize: '13px', color: '#374151' }}>Category</div>
@@ -251,7 +266,7 @@ const TournamentCategories = ({ onNext, onBack }) => {
                   </Form.Select>
                 </div>
                 <div style={{ width: '48px', padding: '8px 14px', borderLeft: '1px solid #E5E7EB', textAlign: 'center' }}>
-                  <RiDeleteBin6Fill className="text-danger" style={{ cursor: 'pointer' }} size={16} onClick={() => setCategory(category.filter((_, idx) => idx !== i))} />
+                  {category.length > 1 && <RiDeleteBin6Fill className="text-danger" style={{ cursor: 'pointer' }} size={16} onClick={() => { setCategory(category.filter((_, idx) => idx !== i)); setCategoryError(''); }} />}
                 </div>
               </div>
             ))}
