@@ -107,14 +107,14 @@ const TournamentBasicInfo = ({ onNext }) => {
   const [leagueLogo, setLeagueLogo] = useState(null);
   const [webLogo, setWebLogo] = useState(null);
   const [ourLogo, setOurLogo] = useState(null);
-  const [umpire, setUmpire] = useState({ email: '', password: '' });
-  const [showPassword, setShowPassword] = useState(false);
+  const [umpires, setUmpires] = useState([{ email: '', password: '' }]);
+  const [showPasswords, setShowPasswords] = useState([false]);
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (!id) {
       setFormData({ tournamentName: '', stateId: '', startDate: '', endDate: '', sportType: 'padel', seasonType: '', status: 'active', tournamentStatus: true });
-      setLeagueLogo(null); setWebLogo(null); setOurLogo(null); setUmpire({ email: '', password: '' }); setErrors({});
+      setLeagueLogo(null); setWebLogo(null); setOurLogo(null); setUmpires([{ email: '', password: '' }]); setShowPasswords([false]); setErrors({});
     }
   }, [id]);
 
@@ -133,7 +133,10 @@ const TournamentBasicInfo = ({ onNext }) => {
       if (currentTournament.leagueLogo) setLeagueLogo(currentTournament.leagueLogo);
       if (currentTournament.webLogo) setWebLogo(currentTournament.webLogo);
       if (currentTournament.ourLogo) setOurLogo(currentTournament.ourLogo);
-      if (currentTournament.umpire) setUmpire(currentTournament.umpire);
+      if (currentTournament.umpires && currentTournament.umpires.length > 0) {
+        setUmpires(currentTournament.umpires);
+        setShowPasswords(new Array(currentTournament.umpires.length).fill(false));
+      }
     }
   }, [currentTournament, id]);
 
@@ -166,8 +169,12 @@ const TournamentBasicInfo = ({ onNext }) => {
     if (leagueLogo instanceof File) fd.append('leagueLogo', leagueLogo);
     if (webLogo instanceof File) fd.append('webLogo', webLogo);
     if (ourLogo instanceof File) fd.append('ourLogo', ourLogo);
-    if (umpire.email) fd.append('umpire[email]', umpire.email);
-    if (umpire.password) fd.append('umpire[password]', umpire.password);
+    umpires.forEach((umpire, index) => {
+      if (umpire.email) {
+        fd.append(`umpires[${index}][email]`, umpire.email);
+        if (umpire.password) fd.append(`umpires[${index}][password]`, umpire.password);
+      }
+    });
 
     if (id) {
       const result = await dispatch(updateTournament({ tournamentData: fd }));
@@ -305,55 +312,105 @@ const TournamentBasicInfo = ({ onNext }) => {
           </Row>
         </div>
 
-        {/* ── Section 2: Umpire ── */}
+        {/* ── Section 2: Umpires ── */}
         <div className="mb-4 p-3 rounded-3" style={{ backgroundColor: '#F8FAFC', border: '1px solid #E5E7EB' }}>
-          <p className="fw-semibold mb-3" style={{ fontSize: '13px', color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Umpire Details
-          </p>
-          <Row className="g-3">
-            <Col md={6}>
-              <Form.Group>
-                <Form.Label style={labelStyle}>Email</Form.Label>
-                <Form.Control
-                  type="email"
-                  placeholder="umpire@example.com"
-                  value={umpire.email}
-                  onChange={e => setUmpire(prev => ({ ...prev, email: e.target.value }))}
-                  style={inputStyle(false)}
-                />
-              </Form.Group>
-            </Col>
-            <Col md={6}>
-              <Form.Group>
-                <Form.Label style={labelStyle}>Password</Form.Label>
-                <div style={{ position: 'relative' }}>
-                  <Form.Control
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Enter password"
-                    value={umpire.password}
-                    onChange={e => setUmpire(prev => ({ ...prev, password: e.target.value }))}
-                    disabled={currentTournament?.umpire?.password}
-                    style={{ ...inputStyle(false), paddingRight: '40px' }}
-                  />
-                  {!currentTournament?.umpire?.password && (
-                    <div
-                      onClick={() => setShowPassword(!showPassword)}
-                      style={{
-                        position: 'absolute',
-                        right: '12px',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        cursor: 'pointer',
-                        color: '#6B7280'
-                      }}
-                    >
-                      {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
-                    </div>
-                  )}
+          <div className="d-flex align-items-center justify-content-between mb-3">
+            <h6 className="mb-0 fw-semibold" style={{ fontSize: '15px', color: '#1a1a1a' }}>Umpire Details</h6>
+            {umpires.length < 4 && (
+              <button
+                type="button"
+                className="d-flex align-items-center position-relative p-0 border-0"
+                style={{ borderRadius: '20px 10px 10px 20px', background: 'none', overflow: 'hidden', cursor: 'pointer', flexShrink: 0 }}
+                onClick={() => {
+                  setUmpires([...umpires, { email: '', password: '' }]);
+                  setShowPasswords([...showPasswords, false]);
+                }}
+              >
+                <div className="p-md-1 p-2 rounded-circle bg-light" style={{ position: 'relative', left: '10px' }}>
+                  <div className="d-flex justify-content-center align-items-center text-white fw-bold" style={{ backgroundColor: '#1F41BB', width: '32px', height: '32px', borderRadius: '50%', fontSize: '18px' }}>
+                    <span className="mb-1">+</span>
+                  </div>
                 </div>
-              </Form.Group>
-            </Col>
-          </Row>
+                <div className="d-flex align-items-center fw-medium rounded-end-3" style={{ padding: '0 14px', height: '32px', fontSize: '13px', color: '#1F41BB', border: '1px solid #1F41BB' }}>
+                  Add Umpire
+                </div>
+              </button>
+            )}
+          </div>
+          {umpires.map((umpire, index) => (
+            <div key={index} className="mb-3 p-3 rounded-2" style={{ backgroundColor: 'white', border: '1px solid #E5E7EB' }}>
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <span style={{ fontSize: '12px', fontWeight: '600', color: '#374151' }}>Umpire {index + 1}</span>
+                {umpires.length > 1 && (
+                  <RiDeleteBin6Fill
+                    size={18}
+                    color="#ef4444"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => {
+                      setUmpires(umpires.filter((_, i) => i !== index));
+                      setShowPasswords(showPasswords.filter((_, i) => i !== index));
+                    }}
+                  />
+                )}
+              </div>
+              <Row className="g-3">
+                <Col md={6}>
+                  <Form.Group>
+                    <Form.Label style={labelStyle}>Email</Form.Label>
+                    <Form.Control
+                      type="email"
+                      placeholder="umpire@example.com"
+                      value={umpire.email}
+                      onChange={e => {
+                        const updated = [...umpires];
+                        updated[index].email = e.target.value;
+                        setUmpires(updated);
+                      }}
+                      style={inputStyle(false)}
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group>
+                    <Form.Label style={labelStyle}>Password</Form.Label>
+                    <div style={{ position: 'relative' }}>
+                      <Form.Control
+                        type={showPasswords[index] ? 'text' : 'password'}
+                        placeholder="Enter password"
+                        value={umpire.password}
+                        onChange={e => {
+                          const updated = [...umpires];
+                          updated[index].password = e.target.value;
+                          setUmpires(updated);
+                        }}
+                        disabled={currentTournament?.umpires?.[index]?.password}
+                        style={{ ...inputStyle(false), paddingRight: '40px' }}
+                      />
+                      {!currentTournament?.umpires?.[index]?.password && (
+                        <div
+                          onClick={() => {
+                            const updated = [...showPasswords];
+                            updated[index] = !updated[index];
+                            setShowPasswords(updated);
+                          }}
+                          style={{
+                            position: 'absolute',
+                            right: '12px',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            cursor: 'pointer',
+                            color: '#6B7280'
+                          }}
+                        >
+                          {showPasswords[index] ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                        </div>
+                      )}
+                    </div>
+                  </Form.Group>
+                </Col>
+              </Row>
+            </div>
+          ))}
         </div>
 
         {/* ── Section 3: Logos ── */}
