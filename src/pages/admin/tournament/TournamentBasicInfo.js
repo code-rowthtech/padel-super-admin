@@ -110,6 +110,7 @@ const TournamentBasicInfo = ({ onNext }) => {
   const [umpires, setUmpires] = useState([{ email: '', password: '' }]);
   const [showPasswords, setShowPasswords] = useState([false]);
   const [errors, setErrors] = useState({});
+  const [umpireErrors, setUmpireErrors] = useState([{ email: '', password: '' }]);
 
   useEffect(() => {
     if (!id) {
@@ -146,13 +147,30 @@ const TournamentBasicInfo = ({ onNext }) => {
     if (errors[field]) setErrors(prev => ({ ...prev, [field]: '' }));
   };
 
+  const validateEmail = (email) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
   const validate = () => {
     const e = {};
     if (!formData.tournamentName.trim()) e.tournamentName = 'Tournament name is required';
     if (!formData.stateId) e.stateId = 'Location is required';
     if (!formData.startDate) e.startDate = 'Start date is required';
+    
+    const umpireErrs = umpires.map((u, idx) => {
+      const errs = { email: '', password: '' };
+      if (u.email) {
+        if (!validateEmail(u.email)) errs.email = 'Invalid email format';
+        if (!u.password && !(currentTournament?.umpire?.[idx] || currentTournament?.umpires?.[idx])) {
+          errs.password = 'Password is required';
+        }
+      }
+      return errs;
+    });
+    
     setErrors(e);
-    return Object.keys(e).length === 0;
+    setUmpireErrors(umpireErrs);
+    return Object.keys(e).length === 0 && !umpireErrs.some(err => err.email || err.password);
   };
 
   const handleSubmit = async () => {
@@ -325,6 +343,7 @@ const TournamentBasicInfo = ({ onNext }) => {
                 onClick={() => {
                   setUmpires([...umpires, { email: '', password: '' }]);
                   setShowPasswords([...showPasswords, false]);
+                  setUmpireErrors([...umpireErrors, { email: '', password: '' }]);
                 }}
               >
                 <div className="p-md-1 p-2 rounded-circle bg-light" style={{ position: 'relative', left: '10px' }}>
@@ -350,6 +369,7 @@ const TournamentBasicInfo = ({ onNext }) => {
                     onClick={() => {
                       setUmpires(umpires.filter((_, i) => i !== index));
                       setShowPasswords(showPasswords.filter((_, i) => i !== index));
+                      setUmpireErrors(umpireErrors.filter((_, i) => i !== index));
                     }}
                   />
                 )}
@@ -366,9 +386,15 @@ const TournamentBasicInfo = ({ onNext }) => {
                         const updated = [...umpires];
                         updated[index].email = e.target.value;
                         setUmpires(updated);
+                        if (umpireErrors[index]?.email) {
+                          const updatedErrors = [...umpireErrors];
+                          updatedErrors[index] = { ...updatedErrors[index], email: '' };
+                          setUmpireErrors(updatedErrors);
+                        }
                       }}
-                      style={inputStyle(false)}
+                      style={inputStyle(umpireErrors[index]?.email)}
                     />
+                    {umpireErrors[index]?.email && <div className="text-danger mt-1" style={{ fontSize: '12px' }}>{umpireErrors[index].email}</div>}
                   </Form.Group>
                 </Col>
                 <Col md={6}>
@@ -383,9 +409,14 @@ const TournamentBasicInfo = ({ onNext }) => {
                           const updated = [...umpires];
                           updated[index].password = e.target.value;
                           setUmpires(updated);
+                          if (umpireErrors[index]?.password) {
+                            const updatedErrors = [...umpireErrors];
+                            updatedErrors[index] = { ...updatedErrors[index], password: '' };
+                            setUmpireErrors(updatedErrors);
+                          }
                         }}
                         disabled={(currentTournament?.umpire?.[index] || currentTournament?.umpires?.[index])}
-                        style={{ ...inputStyle(false), paddingRight: '40px' }}
+                        style={{ ...inputStyle(umpireErrors[index]?.password), paddingRight: '40px' }}
                       />
                       {!(currentTournament?.umpire?.[index] || currentTournament?.umpires?.[index]) && (
                         <div
@@ -407,6 +438,7 @@ const TournamentBasicInfo = ({ onNext }) => {
                         </div>
                       )}
                     </div>
+                    {umpireErrors[index]?.password && <div className="text-danger mt-1" style={{ fontSize: '12px' }}>{umpireErrors[index].password}</div>}
                   </Form.Group>
                 </Col>
               </Row>
