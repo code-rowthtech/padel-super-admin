@@ -77,9 +77,9 @@ const TournamentCreation = () => {
     setOpenMenuId(null);
     setExportingId(tournament._id);
     try {
-      await dispatch(exportPlayersCSV({ 
-        tournamentId: tournament._id, 
-        tournamentName: tournament.tournamentName 
+      await dispatch(exportPlayersCSV({
+        tournamentId: tournament._id,
+        tournamentName: tournament.tournamentName
       })).unwrap();
     } catch (error) {
       // Error already handled in thunk
@@ -100,9 +100,9 @@ const TournamentCreation = () => {
     if (!file || !uploadTargetId.current) return;
     setUploadingId(uploadTargetId.current);
     try {
-      await dispatch(uploadPlayersCSV({ 
-        file, 
-        tournamentId: uploadTargetId.current 
+      await dispatch(uploadPlayersCSV({
+        file,
+        tournamentId: uploadTargetId.current
       })).unwrap();
     } catch (error) {
       // Error already handled in thunk

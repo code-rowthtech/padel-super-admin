@@ -630,7 +630,7 @@ const LeagueSchedule = () => {
     setDeletingSchedule(true);
     const result = await dispatch(deleteSchedule(scheduleToDelete.scheduleId));
     setDeletingSchedule(false);
-    
+
     if (result.type === 'league/deleteSchedule/fulfilled') {
       setShowDeleteModal(false);
       setScheduleToDelete(null);

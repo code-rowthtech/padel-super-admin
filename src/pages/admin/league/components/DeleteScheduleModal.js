@@ -68,11 +68,6 @@ const DeleteScheduleModal = ({
                 </p>
               </div>
             </div>
-            {/* <MdClose
-              size={24}
-              onClick={onHide}
-              style={{ cursor: 'pointer', color: '#666' }}
-            /> */}
           </div>
         </div>
       </Modal.Header>
@@ -93,7 +88,6 @@ const DeleteScheduleModal = ({
           </p>
         </div>
 
-        {/* Schedule Details Card */}
         <div
           style={{
             backgroundColor: '#fff',

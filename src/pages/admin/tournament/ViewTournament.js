@@ -431,13 +431,13 @@ const ViewTournament = () => {
                             Clear
                           </button>
                         )}
-                        
+
                         <button
                           onClick={() => setShowPlayersOffcanvas(true)}
                           className="btn btn-sm"
-                          style={{ 
-                            backgroundColor: '#1F41BB', 
-                            color: 'white', 
+                          style={{
+                            backgroundColor: '#1F41BB',
+                            color: 'white',
                             border: 'none',
                             fontSize: '12px',
                             fontWeight: 600,
@@ -630,7 +630,6 @@ const ManagePlayersOffcanvas = ({ show, onHide, tournamentId, onPlayersAdded }) 
         <Offcanvas.Title className="d-flex align-items-center gap-2" style={{ fontWeight: 600, fontSize: 18 }}>
           Add Players to Tournament
         </Offcanvas.Title>
-        <button onClick={handleClose} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer' }}>×</button>
       </Offcanvas.Header>
       <Offcanvas.Body style={{ padding: '20px', overflowY: 'auto' }}>
         <div className="mb-3 d-flex justify-content-between align-items-center">
@@ -703,7 +702,7 @@ const ManagePlayersOffcanvas = ({ show, onHide, tournamentId, onPlayersAdded }) 
                     <Form.Label style={{ fontSize: 13, fontWeight: 600 }}>Email</Form.Label>
                     <Form.Control
                       type="email"
-                      placeholder="player@example.com"
+                      placeholder="Enter email address"
                       value={player.email}
                       onChange={(e) => updatePlayer(index, 'email', e.target.value)}
                       style={{ fontSize: 13, backgroundColor: '#fff', border: '1px solid #ddd' }}
@@ -719,7 +718,7 @@ const ManagePlayersOffcanvas = ({ show, onHide, tournamentId, onPlayersAdded }) 
                       onChange={(e) => updatePlayer(index, 'gender', e.target.value)}
                       style={{ fontSize: 13, backgroundColor: '#fff', border: '1px solid #ddd' }}
                     >
-                      <option value="">Select Gender</option>
+                      <option value="">Select gender</option>
                       <option value="Male">Male</option>
                       <option value="Female">Female</option>
                       <option value="Other">Other</option>
