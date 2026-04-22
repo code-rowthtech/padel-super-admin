@@ -254,7 +254,7 @@ const TournamentBasicInfo = ({ onNext }) => {
                 <Form.Label style={labelStyle}>Season Type</Form.Label>
                 <Form.Control
                   type="text"
-                  placeholder="e.g. Summer, Winter"
+                  placeholder="Enter season type (e.g. Summer 2024)"
                   value={formData.seasonType}
                   onChange={e => set('seasonType', e.target.value)}
                   style={inputStyle(false)}
