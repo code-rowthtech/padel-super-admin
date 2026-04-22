@@ -4,12 +4,13 @@ import { FiPlus, FiTrash2, FiCheck, FiX, FiEdit2, FiUsers } from 'react-icons/fi
 import { IoCalendarClearOutline } from 'react-icons/io5';
 import { MdClose } from 'react-icons/md';
 import { useDispatch, useSelector } from 'react-redux';
-import { getTournaments, saveTournamentSchedule, getTournamentSchedules, getPlayersByCategoryGender, addTournamentPlayers } from '../../../redux/admin/tournament/thunk';
+import { getTournaments, saveTournamentSchedule, getTournamentSchedules, getPlayersByCategoryGender, addTournamentPlayers, deleteTournamentSchedule } from '../../../redux/admin/tournament/thunk';
 import { showError, showSuccess } from '../../../helpers/Toast';
 import { DataLoading } from '../../../helpers/loading/Loaders';
 import '../league/LeagueScheduleMatch.css';
 import { ownerAxios } from '../../../helpers/api/apiCore';
 import PlayerImportResultModal from '../../../components/PlayerImportResultModal';
+import DeleteScheduleModal from '../league/components/DeleteScheduleModal';
 
 // ─── pure helpers (module-level, never recreated) ────────────────────────────
 
@@ -97,7 +98,7 @@ const TeamInput = ({ team, matchId, side, onUpdateMatch, availablePlayers, allMa
         return (
           <div key={i} className="mb-2">
             <select
-              className="form-select form-select-sm"
+              className="form-select form-select-sm text-capitalize"
               value={p.playerId}
               onChange={e => {
                 const selectedPlayer = availablePlayers.find(pl => pl._id === e.target.value);
@@ -124,6 +125,7 @@ const TeamInput = ({ team, matchId, side, onUpdateMatch, availablePlayers, allMa
                     key={player._id}
                     value={player._id}
                     disabled={isDisabled}
+                    className='text-capitalize'
                   >
                     {player.playerName} ({player.phoneNumber || 'N/A'})
                   </option>
@@ -141,7 +143,7 @@ const TeamDisplay = ({ team }) => (
   <div style={{ minWidth: 180 }}>
     <div style={{ fontWeight: 600, fontSize: 13, color: '#1F2937', marginBottom: 2 }}>{team?.teamName || '—'}</div>
     {team?.players?.map((p, i) => (
-      <div key={i} style={{ fontSize: 11, color: '#6B7280', lineHeight: '1.5' }}>
+      <div className='text-capitalize' key={i} style={{ fontSize: 11, color: '#6B7280', lineHeight: '1.5' }}>
         {p.playerName || `Player ${i + 1}`}{p.phoneNumber ? ` · ${p.phoneNumber}` : ''}
       </div>
     ))}
@@ -239,14 +241,17 @@ const MatchRow = ({ match, index, editable, isEditing, onUpdateMatch, onDelete, 
 
       <td style={{ padding: '12px', borderBottom: '1px solid #ddd', textAlign: 'center', width: '80px' }}>
         {!match.isExisting ? (
-          <Button variant="link" size="sm" className="p-0 text-danger" onClick={() => onDelete(match.id)}><FiTrash2 size={15} /></Button>
+          <Button variant="link" size="sm" className="p-0 text-danger" onClick={() => onDelete(match.id, match)}><FiTrash2 size={15} /></Button>
         ) : isEditing ? (
           <div className="d-flex gap-1 justify-content-center">
             <Button variant="link" size="sm" className="p-0 text-success"><FiCheck size={15} /></Button>
             <Button variant="link" size="sm" className="p-0 text-secondary" onClick={() => onCancelEdit(match.id)}><FiX size={15} /></Button>
           </div>
         ) : (
-          <Button variant="link" size="sm" className="p-0" style={{ color: '#1F41BB' }} onClick={() => onEditExisting(match)}><FiEdit2 size={15} /></Button>
+          <div className="d-flex gap-1 justify-content-center">
+            <Button variant="link" size="sm" className="p-0" style={{ color: '#1F41BB' }} onClick={() => onEditExisting(match)}><FiEdit2 size={15} /></Button>
+            <Button variant="link" size="sm" className="p-0 text-danger" onClick={() => onDelete(match.id, match)}><FiTrash2 size={15} /></Button>
+          </div>
         )}
       </td>
     </tr>
@@ -346,10 +351,10 @@ const ManagePlayersOffcanvas = ({ show, onHide, selectedTournamentId, activeCate
         showError(`Player ${i + 1}: Phone number is required`);
         return false;
       }
-      if (!/^[6-9]\d{9}$/.test(p.phoneNumber)) {
-        showError(`Player ${i + 1}: Invalid phone number`);
-        return false;
-      }
+      // if (!/^[6-9]\d{9}$/.test(p.phoneNumber)) {
+      //   showError(`Player ${i + 1}: Invalid phone number`);
+      //   return false;
+      // }
       if (p.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email)) {
         showError(`Player ${i + 1}: Invalid email format`);
         return false;
@@ -366,10 +371,10 @@ const ManagePlayersOffcanvas = ({ show, onHide, selectedTournamentId, activeCate
     if (!validatePlayers()) return;
 
     const result = await dispatch(addTournamentPlayers({ tournamentId: selectedTournamentId, players }));
-    
+
     if (result.meta.requestStatus === 'fulfilled') {
       const data = result.payload;
-      
+
       // Reset form
       setPlayers([{
         playerName: '',
@@ -384,7 +389,7 @@ const ManagePlayersOffcanvas = ({ show, onHide, selectedTournamentId, activeCate
       }
 
       onHide();
-      
+
       // Show result modal if there are added or skipped players
       if (onImportResult && (data?.added?.length > 0 || data?.skipped?.length > 0)) {
         onImportResult(data);
@@ -546,6 +551,9 @@ const TournamentSchedule = () => {
   const [showPlayersOffcanvas, setShowPlayersOffcanvas] = useState(false);
   const [showImportResultModal, setShowImportResultModal] = useState(false);
   const [importResult, setImportResult] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [scheduleToDelete, setScheduleToDelete] = useState(null);
+  const [deletingSchedule, setDeletingSchedule] = useState(false);
 
   const tournamentsData = Array.isArray(tournaments?.data) ? tournaments.data : [];
   const selectedTournament = tournamentsData.find(t => t._id === selectedTournamentId);
@@ -629,8 +637,14 @@ const TournamentSchedule = () => {
     }));
   }, [activeTab]);
 
-  const onDelete = useCallback((id) => {
-    setMatchesByCategory(prev => ({ ...prev, [activeTab]: (prev[activeTab] || []).filter(m => m.id !== id) }));
+  const onDelete = useCallback((id, match) => {
+    if (match?.isExisting) {
+      const scheduleId = id.toString().replace('existing_', '').split('_')[0];
+      setScheduleToDelete({ scheduleId, match });
+      setShowDeleteModal(true);
+    } else {
+      setMatchesByCategory(prev => ({ ...prev, [activeTab]: (prev[activeTab] || []).filter(m => m.id !== id) }));
+    }
   }, [activeTab]);
 
   const onEditExisting = useCallback((match) => {
@@ -659,8 +673,8 @@ const TournamentSchedule = () => {
         if (!m.teamB.players[j]?.playerName) { showError(`Match ${i + 1} Team B: player ${j + 1} name required`); return; }
         const phoneA = m.teamA.players[j]?.phoneNumber;
         const phoneB = m.teamB.players[j]?.phoneNumber;
-        if (phoneA && (!/^[6-9]/.test(phoneA) || phoneA.length !== 10)) { showError(`Match ${i + 1} Team A player ${j + 1}: invalid phone number`); return; }
-        if (phoneB && (!/^[6-9]/.test(phoneB) || phoneB.length !== 10)) { showError(`Match ${i + 1} Team B player ${j + 1}: invalid phone number`); return; }
+        // if (phoneA && (!/^[6-9]/.test(phoneA) || phoneA.length !== 10)) { showError(`Match ${i + 1} Team A player ${j + 1}: invalid phone number`); return; }
+        // if (phoneB && (!/^[6-9]/.test(phoneB) || phoneB.length !== 10)) { showError(`Match ${i + 1} Team B player ${j + 1}: invalid phone number`); return; }
       }
     }
     const payload = {
@@ -682,6 +696,20 @@ const TournamentSchedule = () => {
     const result = await dispatch(saveTournamentSchedule(payload));
     if (result.meta.requestStatus === 'fulfilled') {
       setMatchesByCategory(prev => ({ ...prev, [activeTab]: [] }));
+      dispatch(getTournamentSchedules({ tournamentId: selectedTournamentId, roundType: selectedRound }));
+    }
+  };
+
+  const confirmDeleteSchedule = async () => {
+    if (!scheduleToDelete) return;
+
+    setDeletingSchedule(true);
+    const result = await dispatch(deleteTournamentSchedule(scheduleToDelete.scheduleId));
+    setDeletingSchedule(false);
+
+    if (result.type === 'tournament/deleteTournamentSchedule/fulfilled') {
+      setShowDeleteModal(false);
+      setScheduleToDelete(null);
       dispatch(getTournamentSchedules({ tournamentId: selectedTournamentId, roundType: selectedRound }));
     }
   };
@@ -860,6 +888,13 @@ const TournamentSchedule = () => {
         show={showImportResultModal}
         onHide={() => setShowImportResultModal(false)}
         result={importResult}
+      />
+      <DeleteScheduleModal
+        show={showDeleteModal}
+        onHide={() => setShowDeleteModal(false)}
+        onConfirm={confirmDeleteSchedule}
+        scheduleData={scheduleToDelete}
+        loading={deletingSchedule}
       />
     </Container>
   );

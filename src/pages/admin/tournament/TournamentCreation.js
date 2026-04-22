@@ -205,15 +205,15 @@ const TournamentCreation = () => {
                         <td className="text-start" style={{ maxWidth: '180px' }}>
                           <div className="fw-semibold text-truncate" style={{ fontSize: '13px' }}>{tournament.tournamentName}</div>
                         </td>
-                        <td>{tournament.stateId?.name || '—'}</td>
-                        <td style={{ textTransform: 'capitalize' }}>{tournament.sportType}</td>
-                        <td style={{ textTransform: 'capitalize' }}>{tournament.seasonType || '—'}</td>
+                        <td className='text-capitalize'>{tournament.stateId?.name || '—'}</td>
+                        <td className='text-capitalize'>{tournament.sportType}</td>
+                        <td className='text-capitalize'>{tournament.seasonType || '—'}</td>
                         <td>{tournament.startDate ? new Date(tournament.startDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '—'}</td>
                         <td>{tournament.endDate ? new Date(tournament.endDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '—'}</td>
                         <td>
                           {tournament.registration?.isEnabled
                             ? <span style={{ fontWeight: '600', color: '#059669' }}>₹{tournament.registration.fee?.toLocaleString('en-IN') || 0}</span>
-                            : <span style={{ color: '#9ca3af', fontSize: '12px' }}>Free</span>}
+                            : <span style={{ color: '#9ca3af', fontSize: '12px' }}>-</span>}
                         </td>
                         <td>
                           {tournament.category?.length > 0 ? (
@@ -288,15 +288,19 @@ const TournamentCreation = () => {
       </Row>
 
       <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered>
-        <Modal.Header closeButton><Modal.Title>Confirm Delete</Modal.Title></Modal.Header>
-        <Modal.Body>
-          <p className="mb-2">Are you sure you want to delete <strong>{tournamentToDelete?.tournamentName}</strong>?</p>
-          <p className="text-danger mb-0">This action cannot be undone.</p>
+        <Modal.Body className="p-4">
+          <div className="text-center mb-3">
+            <div className="d-inline-flex justify-content-center align-items-center rounded-circle mb-3" style={{ width: '64px', height: '64px', backgroundColor: '#fee2e2' }}>
+              <FiTrash2 size={28} color="#dc2626" />
+            </div>
+            <h5 className="fw-semibold mb-2">Delete Tournament</h5>
+            <p className="text-muted mb-2">Are you sure you want to delete <strong className="text-dark">{tournamentToDelete?.tournamentName}</strong>?</p>
+          </div>
+          <div className="d-flex gap-2 mt-4">
+            <Button variant="outline-secondary" className="flex-fill" onClick={() => setShowDeleteModal(false)} disabled={deleting} style={{ fontWeight: '500' }}>Cancel</Button>
+            <Button variant="danger" className="flex-fill" onClick={handleDeleteConfirm} disabled={deleting} style={{ fontWeight: '500' }}>{deleting ? 'Deleting...' : 'Delete'}</Button>
+          </div>
         </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowDeleteModal(false)} disabled={deleting}>Cancel</Button>
-          <Button variant="danger" onClick={handleDeleteConfirm} disabled={deleting}>{deleting ? 'Deleting...' : 'Delete'}</Button>
-        </Modal.Footer>
       </Modal>
 
       <PlayerImportResultModal
