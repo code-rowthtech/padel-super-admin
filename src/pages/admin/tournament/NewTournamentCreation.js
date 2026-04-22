@@ -8,7 +8,7 @@ import TournamentCategories from './TournamentCategories';
 import TournamentRules from './TournamentRules';
 import { getTournamentById } from '../../../redux/admin/tournament/thunk';
 import { clearCurrentTournament } from '../../../redux/admin/tournament/slice';
-import { getStates } from '../../../redux/admin/league/thunk';
+import { getStates, getSponsorCategories } from '../../../redux/admin/league/thunk';
 import { DataLoading } from '../../../helpers/loading/Loaders';
 
 const NewTournament = () => {
@@ -30,6 +30,7 @@ const NewTournament = () => {
   useEffect(() => {
     if (!id) dispatch(clearCurrentTournament());
     dispatch(getStates());
+    dispatch(getSponsorCategories());
     if (id) dispatch(getTournamentById(id));
   }, [dispatch, id]);
 

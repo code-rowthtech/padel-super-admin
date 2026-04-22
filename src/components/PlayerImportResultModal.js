@@ -24,8 +24,8 @@ const PlayerImportResultModal = ({ show, onHide, result }) => {
         .reason-badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; }
         .section-title { font-size: 15px; font-weight: 600; color: #374151; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
       `}</style>
-      
-      <Modal show={show} onHide={onHide} centered size="lg">
+
+      <Modal show={show} onHide={onHide} centered size="xl">
         <Modal.Header className="import-result-modal">
           <Modal.Title className='text-black'>Player Import Results</Modal.Title>
         </Modal.Header>
@@ -119,7 +119,7 @@ const PlayerImportResultModal = ({ show, onHide, result }) => {
                       // Handle both CSV upload structure (with row property) and manual add structure (direct properties)
                       const playerName = item.row?.playerName || item.playerName;
                       const phoneNumber = item.row?.phoneNumber || item.phoneNumber;
-                      
+
                       return (
                         <tr key={idx}>
                           <td style={{ color: '#6b7280', fontWeight: '500' }}>{idx + 1}</td>
