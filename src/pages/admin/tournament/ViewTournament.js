@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Form, Table, Button, Offcanvas } from 'react-bootstrap';
+import { Container, Row, Col, Card, Form, Table, Button, Offcanvas, Modal } from 'react-bootstrap';
 import { Tabs, Tab } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -8,20 +8,42 @@ import { DataLoading } from '../../../helpers/loading/Loaders';
 import { ownerAxios } from '../../../helpers/api/apiCore';
 import { showError, showSuccess } from '../../../helpers/Toast';
 import PlayerImportResultModal from '../../../components/PlayerImportResultModal';
+import { IoCopyOutline, IoCheckmarkOutline } from 'react-icons/io5';
 
-const VSMatchCard = ({ match, category, venue, scheduleId }) => {
+const VSMatchCard = ({ match, category, venue, scheduleId, matchId, isLive, onClick }) => {
+  const [copied, setCopied] = React.useState(false);
+
   const getTeamPlayers = (team) => {
     if (!team?.players?.length) return [];
     return team.players.slice(0, 2);
   };
 
+  const handleCopyScheduleId = (e) => {
+    e.stopPropagation();
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(matchId);
+    } else {
+      const el = document.createElement('textarea');
+      el.value = matchId;
+      el.style.position = 'fixed';
+      el.style.opacity = '0';
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
     <div
+      onClick={onClick}
       className="mb-3 shadow-sm rounded-3 position-relative overflow-hidden"
       style={{
         background: 'linear-gradient(100.97deg, rgb(253, 253, 255) 0%, rgb(158, 186, 255) 317.27%)',
         padding: '30px 16px 16px 16px',
-        border: '1px solid #1F41BB1A',
+        border: isLive ? '1px solid #22c55e44' : '1px solid #1F41BB1A',
         height: '10.5rem',
         cursor: 'pointer',
         display: 'flex',
@@ -50,6 +72,15 @@ const VSMatchCard = ({ match, category, venue, scheduleId }) => {
 
         {/* Center - VS */}
         <Col xs={4} className="text-center">
+          {isLive && (
+            <div className="d-flex align-items-center justify-content-center gap-1 mb-1">
+              <span style={{
+                width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e',
+                display: 'inline-block', animation: 'livePulse 1.2s ease-in-out infinite'
+              }} />
+              <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#22c55e', letterSpacing: '0.5px' }}>LIVE</span>
+            </div>
+          )}
           <div
             className="d-flex align-items-center justify-content-center mx-auto"
             style={{
@@ -78,7 +109,22 @@ const VSMatchCard = ({ match, category, venue, scheduleId }) => {
             )}
           </div>
           <small className='fw-semibold text-nowrap' style={{ fontSize: '0.7rem' }}>{category}</small>
-          <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '4px' }}>{venue}</div>
+          {matchId && (
+            <div
+              className="d-flex align-items-center gap-1"
+              style={{ fontSize: '10px', color: '#6b7280', padding: '4px 8px', borderRadius: '4px' }}
+            >
+              <span style={{ fontFamily: 'monospace', maxWidth: '80px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {matchId}
+              </span>
+              <IoCopyOutline
+                size={12}
+                style={{ cursor: 'pointer', color: copied ? '#22c55e' : '#6b7280', flexShrink: 0 }}
+                onClick={handleCopyScheduleId}
+                title="Copy Schedule ID"
+              />
+            </div>
+          )}
         </Col>
 
         {/* Team B */}
@@ -122,7 +168,7 @@ const formatDate = (dateString) => {
   });
 };
 
-const DateSection = ({ dateGroup, tournamentName }) => {
+const DateSection = ({ dateGroup, tournamentName, onMatchClick }) => {
   return (
     <div className="mb-4">
       <div className="mb-3">
@@ -147,6 +193,9 @@ const DateSection = ({ dateGroup, tournamentName }) => {
                 category={schedule.categoryType}
                 venue={schedule.venue}
                 scheduleId={schedule._id}
+                matchId={schedule?.matchId}
+                isLive={schedule.matchStatus === 'live' || match.status === 'live'}
+                onClick={() => onMatchClick(match, schedule)}
               />
             </Col>
           ))
@@ -156,7 +205,7 @@ const DateSection = ({ dateGroup, tournamentName }) => {
   );
 };
 
-const SchedulesTab = ({ tournamentId, categories, selectedRound }) => {
+const SchedulesTab = ({ tournamentId, categories, selectedRound, onMatchClick }) => {
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(false);
   const [tournamentName, setTournamentName] = useState('');
@@ -223,6 +272,7 @@ const SchedulesTab = ({ tournamentId, categories, selectedRound }) => {
               key={dateGroup.date || index}
               dateGroup={dateGroup}
               tournamentName={tournamentName}
+              onMatchClick={onMatchClick}
             />
           ))}
         </div>
@@ -341,6 +391,10 @@ const ViewTournament = () => {
   const [selectedRound, setSelectedRound] = useState('regular');
   const [showImportResultModal, setShowImportResultModal] = useState(false);
   const [importResult, setImportResult] = useState(null);
+  const [livestreamModal, setLivestreamModal] = useState({ show: false, match: null, schedule: null });
+  const [livestreamForm, setLivestreamForm] = useState({ streamKey: '' });
+  const [copied, setCopied] = useState(false);
+  const [loadingLivestream, setLoadingLivestream] = useState(false);
 
   const categories = currentTournament?.category || [];
 
@@ -360,6 +414,46 @@ const ViewTournament = () => {
   };
 
   const hasActiveFilters = filters.categoryType || filters.gender;
+
+  const handleMatchClick = (match, schedule) => {
+    setLivestreamModal({ show: true, match, schedule });
+    setLivestreamForm({ streamKey: schedule?.streamKey || '' });
+  };
+
+  const handleCopy = (text) => {
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(text);
+    } else {
+      const el = document.createElement('textarea');
+      el.value = text;
+      el.style.position = 'fixed';
+      el.style.opacity = '0';
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleLivestreamSubmit = async () => {
+    setLoadingLivestream(true);
+    try {
+      const response = await ownerAxios.post('/api/tournament-schedules/livestream', {
+        scheduleId: livestreamModal.schedule?._id,
+        streamKey: livestreamForm.streamKey,
+      });
+      if (response.data) {
+        showSuccess('Livestream setup successful');
+        setLivestreamModal({ show: false, match: null, schedule: null });
+      }
+    } catch (error) {
+      showError(error.response?.data?.message || 'Failed to setup livestream');
+    } finally {
+      setLoadingLivestream(false);
+    }
+  };
 
   useEffect(() => {
     if (tournamentId) {
@@ -483,7 +577,7 @@ const ViewTournament = () => {
               ) : (
                 <>
                   {activeTab === 0 && <PlayersTab tournamentId={tournamentId} filters={filters} handleFilterChange={handleFilterChange} clearFilters={clearFilters} hasActiveFilters={hasActiveFilters} categories={categories} refreshTrigger={refreshPlayers} />}
-                  {activeTab === 1 && <SchedulesTab tournamentId={tournamentId} categories={categories} selectedRound={selectedRound} />}
+                  {activeTab === 1 && <SchedulesTab tournamentId={tournamentId} categories={categories} selectedRound={selectedRound} onMatchClick={handleMatchClick} />}
                   {activeTab === 2 && (
                     <Card className="border-0 shadow-sm">
                       <Card.Body className="p-4">
@@ -520,6 +614,63 @@ const ViewTournament = () => {
         onHide={() => setShowImportResultModal(false)}
         result={importResult}
       />
+
+      {/* Livestream Modal */}
+      <Modal show={livestreamModal.show} onHide={() => setLivestreamModal({ show: false, match: null, schedule: null })} centered>
+        <Modal.Header closeButton style={{ borderBottom: '1px solid #f3f4f6', padding: '1.25rem 1.5rem', background: '#f9fafb', borderRadius: '16px 16px 0 0' }}>
+          <Modal.Title style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 600, fontSize: '16px', color: '#1f2937', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            Setup Livestream
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body style={{ padding: '1.5rem' }}>
+          <Form.Group className="mb-3">
+            <Form.Label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+              Scoreboard URL
+            </Form.Label>
+            {!livestreamModal.schedule?.scoreboardUrl ? (
+              <div className="alert alert-info mb-0" style={{ fontSize: '13px', padding: '10px' }}>
+                The scoreboard URL will be available once the match begins.
+              </div>
+            ) : (
+              <div className="input-group">
+                <Form.Control
+                  value={livestreamModal.schedule?.scoreboardUrl || ''}
+                  readOnly
+                  style={{ fontSize: '13px', background: '#f9fafb' }}
+                />
+                <button
+                  className="btn btn-outline-secondary"
+                  type="button"
+                  title="Copy scoreboard URL"
+                  onClick={() => handleCopy(livestreamModal.schedule?.scoreboardUrl || '')}
+                  style={{ transition: 'color 0.2s', color: copied ? '#22c55e' : undefined }}
+                >
+                  {copied
+                    ? <IoCheckmarkOutline size={16} color="#22c55e" />
+                    : <IoCopyOutline size={16} />}
+                </button>
+              </div>
+            )}
+          </Form.Group>
+          <Form.Group>
+            <Form.Label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+              Stream Key <span className="text-danger">*</span>
+            </Form.Label>
+            <Form.Control
+              value={livestreamForm.streamKey}
+              onChange={(e) => setLivestreamForm(prev => ({ ...prev, streamKey: e.target.value }))}
+              placeholder="Enter your stream key"
+              style={{ fontSize: '14px' }}
+            />
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer style={{ borderTop: '1px solid #f3f4f6', padding: '1rem 1.5rem', background: '#f9fafb', borderRadius: '0 0 16px 16px' }}>
+          <Button variant="secondary" onClick={() => setLivestreamModal({ show: false, match: null, schedule: null })} style={{ fontSize: '13px', fontWeight: 500 }}>Cancel</Button>
+          <Button variant="primary" onClick={handleLivestreamSubmit} disabled={loadingLivestream || !livestreamForm.streamKey} style={{ fontSize: '13px', fontWeight: 500 }}>
+            {loadingLivestream ? 'Submitting...' : 'Submit'}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };
