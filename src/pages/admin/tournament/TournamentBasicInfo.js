@@ -151,6 +151,14 @@ const TournamentBasicInfo = ({ onNext }) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
+  const validatePassword = (password) => {
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    return hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar;
+  };
+
   const validate = () => {
     const e = {};
     if (!formData.tournamentName.trim()) e.tournamentName = 'Tournament name is required';
@@ -163,6 +171,8 @@ const TournamentBasicInfo = ({ onNext }) => {
         if (!validateEmail(u.email)) errs.email = 'Invalid email format';
         if (!u.password && !(currentTournament?.umpire?.[idx] || currentTournament?.umpires?.[idx])) {
           errs.password = 'Password is required';
+        } else if (u.password && !validatePassword(u.password)) {
+          errs.password = 'Password must contain 1 uppercase, 1 lowercase, 1 number, and 1 special character';
         }
       }
       return errs;
@@ -231,7 +241,11 @@ const TournamentBasicInfo = ({ onNext }) => {
                   type="text"
                   placeholder="Enter tournament name"
                   value={formData.tournamentName}
-                  onChange={e => set('tournamentName', e.target.value)}
+                  onChange={e => {
+                    const value = e.target.value;
+                    const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
+                    set('tournamentName', capitalized);
+                  }}
                   style={inputStyle(errors.tournamentName)}
                 />
                 {errors.tournamentName && <div className="text-danger mt-1" style={{ fontSize: '12px' }}>{errors.tournamentName}</div>}
@@ -384,7 +398,7 @@ const TournamentBasicInfo = ({ onNext }) => {
                       value={umpire.email}
                       onChange={e => {
                         const updated = [...umpires];
-                        updated[index].email = e.target.value;
+                        updated[index].email = e.target.value.toLowerCase();
                         setUmpires(updated);
                         if (umpireErrors[index]?.email) {
                           const updatedErrors = [...umpireErrors];

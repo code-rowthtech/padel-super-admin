@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getTournaments, getTournamentById, createTournament, updateTournament, deleteTournament, saveTournamentSchedule, getTournamentSchedules, exportPlayersCSV, uploadPlayersCSV, getPlayersByCategoryGender, addTournamentPlayers } from "./thunk";
+import { getTournaments, getTournamentById, createTournament, updateTournament, deleteTournament, deleteTournamentSchedule, saveTournamentSchedule, getTournamentSchedules, exportPlayersCSV, uploadPlayersCSV, getPlayersByCategoryGender, addTournamentPlayers } from "./thunk";
 
 const initialState = {
   tournaments: [],
@@ -55,6 +55,14 @@ const tournamentSlice = createSlice({
         state.tournaments = { ...state.tournaments, data: data.filter(t => t._id !== action.payload) };
       })
       .addCase(deleteTournament.rejected, (state, action) => { state.loading = false; state.error = action.payload; })
+
+      .addCase(deleteTournamentSchedule.pending, (state) => { state.loading = true; state.error = null; })
+      .addCase(deleteTournamentSchedule.fulfilled, (state, action) => {
+        state.loading = false;
+        const data = Array.isArray(state.tournaments?.data) ? state.tournaments.data : [];
+        state.tournaments = { ...state.tournaments, data: data.filter(t => t._id !== action.payload) };
+      })
+      .addCase(deleteTournamentSchedule.rejected, (state, action) => { state.loading = false; state.error = action.payload; })
 
       .addCase(saveTournamentSchedule.pending, (state) => { state.loadingSchedule = true; })
       .addCase(saveTournamentSchedule.fulfilled, (state) => { state.loadingSchedule = false; })

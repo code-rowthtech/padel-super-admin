@@ -249,7 +249,7 @@ const PlayersTab = ({ tournamentId, filters, handleFilterChange, clearFilters, h
     const params = { tournamentId };
     if (filters.categoryType) params.categoryType = filters.categoryType;
     if (filters.gender) params.gender = filters.gender;
-    
+
     dispatch(getPlayersByCategoryGender(params));
   }, [tournamentId, filters, refreshTrigger, dispatch]);
 
@@ -289,7 +289,7 @@ const PlayersTab = ({ tournamentId, filters, handleFilterChange, clearFilters, h
                       <tr key={player._id} className="table-data border-bottom align-middle text-center">
                         <td style={{ padding: '12px', fontSize: '13px' }}>{idx + 1}</td>
                         <td style={{ padding: '12px', fontSize: '13px' }} className="text-start">
-                          <div className="fw-semibold">{player.playerName}</div>
+                          <div className="fw-semibold text-capitalize">{player.playerName}</div>
                         </td>
                         <td style={{ padding: '12px', fontSize: '13px' }}>{player.phoneNumber || '—'}</td>
                         <td style={{ padding: '12px', fontSize: '13px' }}>{player.email || '—'}</td>
@@ -593,10 +593,10 @@ const ManagePlayersOffcanvas = ({ show, onHide, tournamentId, onPlayersAdded, on
     if (!validatePlayers()) return;
 
     const result = await dispatch(addTournamentPlayers({ tournamentId, players }));
-    
+
     if (result.meta.requestStatus === 'fulfilled') {
       const data = result.payload;
-      
+
       // Reset form
       setPlayers([{
         playerName: '',
@@ -611,7 +611,7 @@ const ManagePlayersOffcanvas = ({ show, onHide, tournamentId, onPlayersAdded, on
       }
 
       onHide();
-      
+
       // Show result modal if there are added or skipped players
       if (onImportResult && (data?.added?.length > 0 || data?.skipped?.length > 0)) {
         onImportResult(data);

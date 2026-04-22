@@ -7,6 +7,7 @@ export const GET_TOURNAMENTS = "/api/tournaments/getAllTournaments";
 export const GET_TOURNAMENT_BY_ID = "/api/tournaments/getTournamentById";
 export const UPDATE_TOURNAMENT = "/api/tournaments/updateTournament";
 export const DELETE_TOURNAMENT = "/api/tournaments/deleteTournament";
+export const DELETE_TOURNAMENT_SCHEDULE = "/api/tournament-schedules/deleteScheduleTournament";
 export const SAVE_TOURNAMENT_SCHEDULE = "/api/tournament-schedules/saveSchedule";
 export const GET_TOURNAMENT_SCHEDULES = "/api/tournament-schedules/getSchedules";
 export const EXPORT_PLAYERS_CSV = "/api/tournament-players/exportCSV";
@@ -94,6 +95,23 @@ export const deleteTournament = createAsyncThunk(
       if (response?.status === 200 && response?.data?.success) {
         showSuccess(response?.data?.message || "Tournament deleted successfully");
         return tournamentId;
+      }
+      showError(response?.data?.message || "Failed to delete tournament");
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      showError(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+export const deleteTournamentSchedule = createAsyncThunk(
+  "tournament/deleteTournamentSchedule",
+  async (scheduleId, { rejectWithValue }) => {
+    try {
+      const response = await ownerApi.delete(DELETE_TOURNAMENT_SCHEDULE, { _id: scheduleId });
+      if (response?.status === 200 && response?.data?.success) {
+        showSuccess(response?.data?.message || "Tournament deleted successfully");
+        return scheduleId;
       }
       showError(response?.data?.message || "Failed to delete tournament");
       return rejectWithValue(response?.data?.message);
@@ -217,7 +235,7 @@ export const addTournamentPlayers = createAsyncThunk(
         const data = response.data;
         const addedCount = data.added?.length || 0;
         const skippedCount = data.skipped?.length || 0;
-        
+
         // Show toast messages
         if (addedCount > 0 && skippedCount > 0) {
           showSuccess(`${addedCount} player(s) added successfully, ${skippedCount} skipped`);
@@ -226,7 +244,7 @@ export const addTournamentPlayers = createAsyncThunk(
         } else if (skippedCount > 0) {
           showError(`All ${skippedCount} player(s) were skipped`);
         }
-        
+
         return data;
       }
       showError(response?.data?.message || 'Failed to create players');

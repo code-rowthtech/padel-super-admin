@@ -13,7 +13,6 @@ const DeleteScheduleModal = ({
   if (!scheduleData) return null;
 
   const { match } = scheduleData;
-
   const formatMatchDate = (dateStr) => {
     if (!dateStr) return '—';
     const parts = dateStr.split('/');
@@ -100,7 +99,7 @@ const DeleteScheduleModal = ({
           <div className="d-flex align-items-center justify-content-center gap-3 mb-4">
             <div style={{ flex: 1, textAlign: 'center' }}>
               <div style={{ fontSize: '14px', fontWeight: '600', color: '#1F41BB', marginBottom: '4px' }}>
-                {match.homeVenue || match.homeTeam?.teamName || 'Team 1'}
+                {match.homeVenue || match.homeTeam?.teamName || match?.teamA?.teamName || 'Team 1'}
               </div>
               {match.homeTeam?.players && match.homeTeam.players.length > 0 && (
                 <div style={{ fontSize: '12px', color: '#666' }}>
@@ -124,7 +123,7 @@ const DeleteScheduleModal = ({
             </div>
             <div style={{ flex: 1, textAlign: 'center' }}>
               <div style={{ fontSize: '14px', fontWeight: '600', color: '#1a1a1a', marginBottom: '4px' }}>
-                {match.awayVenue || match.awayTeam?.teamName || 'Team 2'}
+                {match.awayVenue || match.awayTeam?.teamName || match?.teamB?.teamName || 'Team 2'}
               </div>
               {match.awayTeam?.players && match.awayTeam.players.length > 0 && (
                 <div style={{ fontSize: '12px', color: '#666' }}>

@@ -113,7 +113,7 @@ const StructureCategories = ({ onNext, onBack }) => {
         if (!registrationDates.endDate) {
             errors.endDate = 'End date is required';
         }
-        
+
         setDateErrors(errors);
         if (errors.startDate || errors.endDate) {
             return;
