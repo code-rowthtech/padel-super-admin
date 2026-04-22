@@ -38,12 +38,29 @@ const SectionHeader = ({ title, onAdd, addLabel }) => (
   </div>
 );
 
-const Counter = ({ value, onDecrement, onIncrement }) => (
+const Counter = ({ value, onDecrement, onIncrement, onChange }) => (
   <div className="d-flex align-items-center justify-content-center gap-2 p-1 rounded-3" style={{ backgroundColor: '#fff' }}>
     <button type="button" className="btn btn-light btn-sm" style={{ width: '28px', height: '28px', padding: 0, border: '1px solid #E5E7EB' }} onClick={() => onDecrement(2)}>
       <AiOutlineMinus size={12} />
     </button>
-    <span style={{ minWidth: '28px', textAlign: 'center', fontWeight: '600', fontSize: '14px' }}>{value}</span>
+    <input
+      type="number"
+      value={value}
+      onChange={(e) => {
+        const val = e.target.value;
+        if (val === '' || val === '0') {
+          onChange(2);
+        } else {
+          onChange(Math.max(2, parseInt(val) || 2));
+        }
+      }}
+      onBlur={(e) => {
+        const val = parseInt(e.target.value);
+        if (!val || val < 2) onChange(2);
+      }}
+      style={{ width: '50px', textAlign: 'center', fontWeight: '600', fontSize: '14px', border: '1px solid #E5E7EB', borderRadius: '4px', padding: '4px' }}
+      min="2"
+    />
     <button type="button" className="btn btn-light btn-sm" style={{ width: '28px', height: '28px', padding: 0, border: '1px solid #E5E7EB' }} onClick={() => onIncrement(2)}>
       <AiOutlinePlus size={12} />
     </button>
@@ -252,6 +269,7 @@ const TournamentCategories = ({ onNext, onBack }) => {
                     value={cat.maxParticipants}
                     onDecrement={(step) => { const u = [...category]; u[i] = { ...u[i], maxParticipants: Math.max(2, cat.maxParticipants - step) }; setCategory(u); }}
                     onIncrement={(step) => { const u = [...category]; u[i] = { ...u[i], maxParticipants: cat.maxParticipants + step }; setCategory(u); }}
+                    onChange={(val) => { const u = [...category]; u[i] = { ...u[i], maxParticipants: val }; setCategory(u); }}
                   />
                 </div>
                 <div className='bg-white' style={{ flex: '1', padding: '8px 14px', borderLeft: '1px solid #E5E7EB' }}>

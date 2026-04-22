@@ -91,7 +91,7 @@ const TournamentBasicInfo = ({ onNext }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { id } = useParams();
-  const { states } = useSelector(state => state.league);
+  const { states, sponsorCategories } = useSelector(state => state.league);
   const { loading, currentTournament } = useSelector(state => state.tournament);
 
   const [formData, setFormData] = useState({
@@ -107,6 +107,8 @@ const TournamentBasicInfo = ({ onNext }) => {
   const [leagueLogo, setLeagueLogo] = useState(null);
   const [webLogo, setWebLogo] = useState(null);
   const [ourLogo, setOurLogo] = useState(null);
+  const [sponsors, setSponsors] = useState([{ name: '', category: '', image: null, url: '' }]);
+  const [titleSponsorBanner, setTitleSponsorBanner] = useState(null);
   const [umpires, setUmpires] = useState([{ email: '', password: '' }]);
   const [showPasswords, setShowPasswords] = useState([false]);
   const [errors, setErrors] = useState({});
@@ -115,7 +117,7 @@ const TournamentBasicInfo = ({ onNext }) => {
   useEffect(() => {
     if (!id) {
       setFormData({ tournamentName: '', stateId: '', startDate: '', endDate: '', sportType: 'padel', seasonType: '', status: 'active', tournamentStatus: true });
-      setLeagueLogo(null); setWebLogo(null); setOurLogo(null); setUmpires([{ email: '', password: '' }]); setShowPasswords([false]); setErrors({});
+      setLeagueLogo(null); setWebLogo(null); setOurLogo(null); setSponsors([{ name: '', category: '', image: null, url: '' }]); setTitleSponsorBanner(null); setUmpires([{ email: '', password: '' }]); setShowPasswords([false]); setErrors({});
     }
   }, [id]);
 
@@ -134,6 +136,17 @@ const TournamentBasicInfo = ({ onNext }) => {
       if (currentTournament.leagueLogo) setLeagueLogo(currentTournament.leagueLogo);
       if (currentTournament.webLogo) setWebLogo(currentTournament.webLogo);
       if (currentTournament.ourLogo) setOurLogo(currentTournament.ourLogo);
+      if (currentTournament.titleSponsor?.titleSponsorBanner) setTitleSponsorBanner(currentTournament.titleSponsor.titleSponsorBanner);
+      
+      if (currentTournament.titleSponsor?.name) {
+        setSponsors([{
+          name: currentTournament.titleSponsor.name,
+          category: currentTournament.titleSponsor.categoryId || '',
+          image: currentTournament.titleSponsor.logo || null,
+          url: currentTournament.titleSponsor.url || ''
+        }]);
+      }
+      
       const umpireData = currentTournament.umpire || currentTournament.umpires;
       if (umpireData && umpireData.length > 0) {
         setUmpires(umpireData.map(u => ({ email: u.email || '', password: '' })));
@@ -178,6 +191,13 @@ const TournamentBasicInfo = ({ onNext }) => {
       return errs;
     });
 
+    sponsors.forEach((sponsor, index) => {
+      if (sponsor.name.trim()) {
+        if (!sponsor.category) e.sponsor_category = 'Category is required';
+        if (!sponsor.image) e.sponsor_image = 'Logo is required';
+      }
+    });
+
     setErrors(e);
     setUmpireErrors(umpireErrs);
     return Object.keys(e).length === 0 && !umpireErrs.some(err => err.email || err.password);
@@ -198,6 +218,23 @@ const TournamentBasicInfo = ({ onNext }) => {
     if (leagueLogo instanceof File) fd.append('leagueLogo', leagueLogo);
     if (webLogo instanceof File) fd.append('webLogo', webLogo);
     if (ourLogo instanceof File) fd.append('ourLogo', ourLogo);
+    
+    if (sponsors[0]?.name) {
+      fd.append('titleSponsor[name]', sponsors[0].name);
+      if (sponsors[0].category) fd.append('titleSponsor[categoryId]', sponsors[0].category);
+      if (sponsors[0].url) fd.append('titleSponsor[url]', sponsors[0].url);
+      if (sponsors[0].image instanceof File) {
+        fd.append('titleSponsorLogo', sponsors[0].image);
+      } else if (sponsors[0].image && typeof sponsors[0].image === 'string') {
+        fd.append('titleSponsor[logo]', sponsors[0].image);
+      }
+      if (titleSponsorBanner instanceof File) {
+        fd.append('titleSponsorBanner', titleSponsorBanner);
+      } else if (titleSponsorBanner && typeof titleSponsorBanner === 'string') {
+        fd.append('titleSponsor[titleSponsorBanner]', titleSponsorBanner);
+      }
+    }
+    
     umpires.forEach((umpire, index) => {
       if (umpire.email) {
         fd.append(`umpires[${index}][email]`, umpire.email);
@@ -345,7 +382,199 @@ const TournamentBasicInfo = ({ onNext }) => {
           </Row>
         </div>
 
-        {/* ── Section 2: Umpires ── */}
+        {/* ── Section 2: Sponsors ── */}
+        <div className="mb-4 p-3 rounded-3" style={{ backgroundColor: '#F8FAFC', border: '1px solid #E5E7EB' }}>
+          <div className="d-flex align-items-center mb-3">
+            <h6 className="mb-0 fw-semibold" style={{ fontSize: '15px', color: '#1a1a1a' }}>Title Sponsor</h6>
+            <span style={{ backgroundColor: '#E0E7FF', color: '#1F41BB', borderRadius: '12px', padding: '2px 12px', fontSize: '11px', fontWeight: '600', marginLeft: '12px' }}>Tier 1 Only</span>
+          </div>
+          <div className="p-3 rounded-2" style={{ backgroundColor: 'white', border: '1px solid #E5E7EB' }}>
+            <Row className="g-3">
+              <Col md={3}>
+                <Form.Group>
+                  <Form.Label style={labelStyle}>Sponsor Name</Form.Label>
+                  <Form.Control
+                    type="text"
+                    placeholder="Enter name"
+                    value={sponsors[0].name}
+                    onChange={e => {
+                      const updated = [...sponsors];
+                      updated[0].name = e.target.value;
+                      setSponsors(updated);
+                      if (!e.target.value.trim()) {
+                        const newErrors = { ...errors };
+                        delete newErrors.sponsor_category;
+                        delete newErrors.sponsor_image;
+                        setErrors(newErrors);
+                      }
+                    }}
+                    style={inputStyle(false)}
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={2}>
+                <Form.Group>
+                  <Form.Label style={labelStyle}>Category</Form.Label>
+                  <Form.Select
+                    value={sponsors[0].category}
+                    onChange={e => {
+                      const updated = [...sponsors];
+                      updated[0].category = e.target.value;
+                      setSponsors(updated);
+                      const newErrors = { ...errors };
+                      delete newErrors.sponsor_category;
+                      setErrors(newErrors);
+                    }}
+                    style={inputStyle(errors.sponsor_category)}
+                  >
+                    <option value="">Select</option>
+                    {Array.isArray(sponsorCategories) && sponsorCategories.map(cat => {
+                      if (cat?.name === 'Tier 1') {
+                        return <option key={cat?._id} value={cat?._id}>{cat?.name}</option>;
+                      }
+                      return null;
+                    })}
+                  </Form.Select>
+                  {errors.sponsor_category && (
+                    <div className="text-danger mt-1" style={{ fontSize: '12px' }}>
+                      {errors.sponsor_category}
+                    </div>
+                  )}
+                </Form.Group>
+              </Col>
+              <Col md={3}>
+                <Form.Group>
+                  <Form.Label style={labelStyle}>URL</Form.Label>
+                  <Form.Control
+                    type="text"
+                    placeholder="Enter URL"
+                    value={sponsors[0].url || ''}
+                    onChange={e => {
+                      const updated = [...sponsors];
+                      updated[0].url = e.target.value;
+                      setSponsors(updated);
+                    }}
+                    style={inputStyle(false)}
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={2}>
+                <Form.Group>
+                  <Form.Label style={labelStyle}>Logo</Form.Label>
+                  <input
+                    type="file"
+                    id="sponsorFile"
+                    accept="image/png,image/jpeg"
+                    style={{ display: 'none' }}
+                    onChange={e => {
+                      const updated = [...sponsors];
+                      updated[0].image = e.target.files[0];
+                      setSponsors(updated);
+                      if (errors.sponsor_image) {
+                        const newErrors = { ...errors };
+                        delete newErrors.sponsor_image;
+                        setErrors(newErrors);
+                      }
+                    }}
+                  />
+                  <div style={{ position: 'relative' }}>
+                    <div
+                      onClick={() => document.getElementById('sponsorFile').click()}
+                      style={{
+                        border: errors.sponsor_image ? '2px dashed #dc3545' : '2px dashed #D1D5DB',
+                        borderRadius: '8px',
+                        padding: '8px',
+                        textAlign: 'center',
+                        backgroundColor: '#FAFAFA',
+                        cursor: 'pointer',
+                        height: '44px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '12px',
+                        color: '#6B7280'
+                      }}
+                    >
+                      {sponsors[0].image ? (
+                        <span style={{ color: '#1F41BB', fontWeight: '500', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {sponsors[0].image.name || 'Logo'}
+                        </span>
+                      ) : (
+                        <span>Sponsor Logo</span>
+                      )}
+                    </div>
+                    {sponsors[0].image && (
+                      <FiEye
+                        size={20}
+                        color="#1F41BB"
+                        style={{ position: 'absolute', top: '-8px', right: '-8px', cursor: 'pointer', background: '#e8edff', borderRadius: '50%', padding: '4px' }}
+                        onClick={e => {
+                          e.stopPropagation();
+                          window.open(sponsors[0].image instanceof File ? URL.createObjectURL(sponsors[0].image) : sponsors[0].image, '_blank');
+                        }}
+                      />
+                    )}
+                  </div>
+                  {errors.sponsor_image && (
+                    <div className="text-danger mt-1" style={{ fontSize: '12px' }}>{errors.sponsor_image}</div>
+                  )}
+                </Form.Group>
+              </Col>
+              <Col md={2}>
+                <Form.Group>
+                  <Form.Label style={labelStyle}>Banner</Form.Label>
+                  <input
+                    type="file"
+                    id="titleSponsorBanner"
+                    accept="image/png,image/jpeg"
+                    style={{ display: 'none' }}
+                    onChange={e => setTitleSponsorBanner(e.target.files[0])}
+                  />
+                  <div style={{ position: 'relative' }}>
+                    <div
+                      onClick={() => document.getElementById('titleSponsorBanner').click()}
+                      style={{
+                        border: '2px dashed #D1D5DB',
+                        borderRadius: '8px',
+                        padding: '8px',
+                        textAlign: 'center',
+                        backgroundColor: '#FAFAFA',
+                        cursor: 'pointer',
+                        height: '44px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '12px',
+                        color: '#6B7280'
+                      }}
+                    >
+                      {titleSponsorBanner ? (
+                        <span style={{ color: '#1F41BB', fontWeight: '500', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {titleSponsorBanner.name || 'Banner'}
+                        </span>
+                      ) : (
+                        <span>Sponsor Banner</span>
+                      )}
+                    </div>
+                    {titleSponsorBanner && (
+                      <FiEye
+                        size={20}
+                        color="#1F41BB"
+                        style={{ position: 'absolute', top: '-8px', right: '-8px', cursor: 'pointer', background: '#e8edff', borderRadius: '50%', padding: '4px' }}
+                        onClick={e => {
+                          e.stopPropagation();
+                          window.open(titleSponsorBanner instanceof File ? URL.createObjectURL(titleSponsorBanner) : titleSponsorBanner, '_blank');
+                        }}
+                      />
+                    )}
+                  </div>
+                </Form.Group>
+              </Col>
+            </Row>
+          </div>
+        </div>
+
+        {/* ── Section 3: Umpires ── */}
         <div className="mb-4 p-3 rounded-3" style={{ backgroundColor: '#F8FAFC', border: '1px solid #E5E7EB' }}>
           <div className="d-flex align-items-center justify-content-between mb-3">
             <h6 className="mb-0 fw-semibold" style={{ fontSize: '15px', color: '#1a1a1a' }}>Umpire Details</h6>
@@ -460,7 +689,7 @@ const TournamentBasicInfo = ({ onNext }) => {
           ))}
         </div>
 
-        {/* ── Section 3: Logos ── */}
+        {/* ── Section 4: Logos ── */}
         <div className="p-3 rounded-3" style={{ backgroundColor: '#F8FAFC', border: '1px solid #E5E7EB' }}>
           <p className="fw-semibold mb-3" style={{ fontSize: '13px', color: '#6B7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
             Tournament Logos

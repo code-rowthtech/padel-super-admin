@@ -143,7 +143,7 @@ const TournamentCreation = () => {
       <input ref={fileInputRef} type="file" accept=".csv" style={{ display: 'none' }} onChange={handleFileChange} />
       <Row className="mb-0">
         {statsCards.map((card, idx) => (
-          <Col key={idx} md={3} sm={6} className="py-4">
+          <Col key={idx} lg={3} md={6} sm={6} className="py-4">
             <Card style={{ background: card.tileBg, border: card.cardBorder, boxShadow: '0px 0px 8.8px 0px #0000001A' }} className="border-0 h-100 rounded-4">
               <Card.Body className="d-flex flex-column gap-3">
                 <p className="rounded-2 m-0 d-flex align-items-center justify-content-center p-2" style={{ background: card.iconBg, width: 'fit-content' }}>{card.icon}</p>
