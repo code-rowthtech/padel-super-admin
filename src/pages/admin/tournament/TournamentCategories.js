@@ -6,12 +6,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { updateTournament } from '../../../redux/admin/tournament/thunk';
 
-const TAG_OPTIONS = ["Men's Doubles", "Women's Doubles", 'Mixed Doubles'];
+const TAG_OPTIONS = ["Men's Doubles", "Women's Doubles", 'Mixed Doubles', "Hybrid"];
 
 const DEFAULT_CATEGORY = [
   { categoryType: '', maxParticipants: 16, tag: "Men's Doubles" },
   { categoryType: '', maxParticipants: 16, tag: "Women's Doubles" },
   { categoryType: '', maxParticipants: 16, tag: 'Mixed Doubles' },
+  { categoryType: '', maxParticipants: 16, tag: "Hybrid" },
 ];
 
 const inputStyle = { backgroundColor: '', border: '1px solid #E5E7EB', borderRadius: '8px', padding: '12px', fontSize: '14px' };
@@ -210,7 +211,7 @@ const TournamentCategories = ({ onNext, onBack }) => {
                   />
                 </div>
                 <Form.Control
-                  type="number" placeholder="₹ 0"
+                  type="number" placeholder="Enter amount"
                   value={registration.fee}
                   onChange={e => setRegistration({ ...registration, fee: e.target.value })}
                   disabled={!registration.isEnabled}
@@ -291,7 +292,7 @@ const TournamentCategories = ({ onNext, onBack }) => {
                   </div>
                   <Form.Control
                     type="text"
-                    placeholder="₹ 0"
+                    placeholder="Enter amount"
                     value={prize.amount ? Number(prize.amount).toLocaleString('en-IN') : ''}
                     onChange={e => { const u = prizeDistribution.map((p, idx) => idx === i ? { ...p, amount: Number(e.target.value.replace(/,/g, '')) || 0 } : p); setPrizeDistribution(u); }}
                     style={{ textAlign: 'center', fontWeight: '600', fontSize: '16px', border: '1px solid #E5E7EB', backgroundColor: '#FFFFFF', borderRadius: '8px', padding: '10px' }}
