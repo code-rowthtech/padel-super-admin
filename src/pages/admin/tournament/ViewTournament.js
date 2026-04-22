@@ -194,7 +194,7 @@ const DateSection = ({ dateGroup, tournamentName, onMatchClick }) => {
                 venue={schedule.venue}
                 scheduleId={schedule._id}
                 matchId={schedule?.matchId}
-                isLive={schedule.matchStatus === 'live' || match.status === 'live'}
+                isLive={schedule.matchStatus === 'LIVE' || match.status === 'LIVE'}
                 onClick={() => onMatchClick(match, schedule)}
               />
             </Col>
