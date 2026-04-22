@@ -4,11 +4,12 @@ import { FiPlus, FiTrash2, FiCheck, FiX, FiEdit2, FiUsers } from 'react-icons/fi
 import { IoCalendarClearOutline } from 'react-icons/io5';
 import { MdClose } from 'react-icons/md';
 import { useDispatch, useSelector } from 'react-redux';
-import { getTournaments, saveTournamentSchedule, getTournamentSchedules } from '../../../redux/admin/tournament/thunk';
+import { getTournaments, saveTournamentSchedule, getTournamentSchedules, getPlayersByCategoryGender, addTournamentPlayers } from '../../../redux/admin/tournament/thunk';
 import { showError, showSuccess } from '../../../helpers/Toast';
 import { DataLoading } from '../../../helpers/loading/Loaders';
 import '../league/LeagueScheduleMatch.css';
 import { ownerAxios } from '../../../helpers/api/apiCore';
+import PlayerImportResultModal from '../../../components/PlayerImportResultModal';
 
 // ─── pure helpers (module-level, never recreated) ────────────────────────────
 
@@ -296,7 +297,9 @@ const AddDateModal = ({ show, onHide, onConfirm }) => {
 
 // ─── ManagePlayersOffcanvas — module-level ───────────────────────────────────
 
-const ManagePlayersOffcanvas = ({ show, onHide, selectedTournamentId, activeCategory, onPlayersAdded }) => {
+const ManagePlayersOffcanvas = ({ show, onHide, selectedTournamentId, activeCategory, onPlayersAdded, onImportResult }) => {
+  const dispatch = useDispatch();
+  const { addingPlayers } = useSelector(s => s.tournament);
   const [players, setPlayers] = useState([{
     playerName: '',
     phoneNumber: '',
@@ -331,6 +334,14 @@ const ManagePlayersOffcanvas = ({ show, onHide, selectedTournamentId, activeCate
         showError(`Player ${i + 1}: Name is required`);
         return false;
       }
+      if (p.playerName.trim().length < 3) {
+        showError(`Player ${i + 1}: Name must be at least 3 characters`);
+        return false;
+      }
+      if (!/^[a-zA-Z\s]+$/.test(p.playerName.trim())) {
+        showError(`Player ${i + 1}: Name must contain only alphabets`);
+        return false;
+      }
       if (!p.phoneNumber.trim()) {
         showError(`Player ${i + 1}: Phone number is required`);
         return false;
@@ -354,21 +365,11 @@ const ManagePlayersOffcanvas = ({ show, onHide, selectedTournamentId, activeCate
   const handleSubmit = async () => {
     if (!validatePlayers()) return;
 
-    const payload = {
-      tournamentId: selectedTournamentId,
-      players: players.map(p => ({
-        playerName: p.playerName.trim(),
-        phoneNumber: p.phoneNumber.trim(),
-        email: p.email.trim(),
-        gender: p.gender.toLowerCase()
-      }))
-    };
-
-
-    try {
-      const response = await ownerAxios.post('/api/tournament-players/addPlayer', payload);
-      showSuccess(`${players.length} player(s) created successfully`);
-
+    const result = await dispatch(addTournamentPlayers({ tournamentId: selectedTournamentId, players }));
+    
+    if (result.meta.requestStatus === 'fulfilled') {
+      const data = result.payload;
+      
       // Reset form
       setPlayers([{
         playerName: '',
@@ -383,8 +384,11 @@ const ManagePlayersOffcanvas = ({ show, onHide, selectedTournamentId, activeCate
       }
 
       onHide();
-    } catch (error) {
-      showError(error.response?.data?.message || 'Failed to create players');
+      
+      // Show result modal if there are added or skipped players
+      if (onImportResult && (data?.added?.length > 0 || data?.skipped?.length > 0)) {
+        onImportResult(data);
+      }
     }
   };
 
@@ -443,7 +447,10 @@ const ManagePlayersOffcanvas = ({ show, onHide, selectedTournamentId, activeCate
                       type="text"
                       placeholder="Enter player name"
                       value={player.playerName}
-                      onChange={(e) => updatePlayer(index, 'playerName', e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                        updatePlayer(index, 'playerName', value);
+                      }}
                       style={{ fontSize: 13, backgroundColor: '#fff', border: '1px solid #ddd' }}
                     />
                   </Form.Group>
@@ -506,8 +513,9 @@ const ManagePlayersOffcanvas = ({ show, onHide, selectedTournamentId, activeCate
             className="flex-grow-1"
             style={{ backgroundColor: '#1F41BB', border: 'none', fontWeight: 600, padding: 12 }}
             onClick={handleSubmit}
+            disabled={addingPlayers}
           >
-            Create {players.length} Player{players.length > 1 ? 's' : ''}
+            {addingPlayers ? 'Creating...' : `Create ${players.length} Player${players.length > 1 ? 's' : ''}`}
           </Button>
           <Button
             variant="outline-secondary"
@@ -527,7 +535,7 @@ const ManagePlayersOffcanvas = ({ show, onHide, selectedTournamentId, activeCate
 
 const TournamentSchedule = () => {
   const dispatch = useDispatch();
-  const { tournaments, loadingTournament, schedules, loadingSchedule } = useSelector(s => s.tournament);
+  const { tournaments, loadingTournament, schedules, loadingSchedule, players: availablePlayers, loadingPlayers } = useSelector(s => s.tournament);
 
   const [selectedTournamentId, setSelectedTournamentId] = useState('');
   const [selectedRound, setSelectedRound] = useState('regular');
@@ -535,9 +543,9 @@ const TournamentSchedule = () => {
   const [matchesByCategory, setMatchesByCategory] = useState({});
   const [editingId, setEditingId] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [availablePlayers, setAvailablePlayers] = useState([]);
-  const [loadingPlayers, setLoadingPlayers] = useState(false);
   const [showPlayersOffcanvas, setShowPlayersOffcanvas] = useState(false);
+  const [showImportResultModal, setShowImportResultModal] = useState(false);
+  const [importResult, setImportResult] = useState(null);
 
   const tournamentsData = Array.isArray(tournaments?.data) ? tournaments.data : [];
   const selectedTournament = tournamentsData.find(t => t._id === selectedTournamentId);
@@ -559,39 +567,14 @@ const TournamentSchedule = () => {
   }, [dispatch, selectedTournamentId, selectedRound]);
 
   useEffect(() => {
-    const fetchPlayers = async () => {
-      if (!selectedTournamentId || !activeTab) return;
-      setLoadingPlayers(true);
-      try {
-        const response = await ownerAxios.get('/api/tournament-players/getPlayersByCategoryGender', {
-          params: { tournamentId: selectedTournamentId, categoryType: activeTab }
-        });
-        setAvailablePlayers(response.data?.data || []);
-      } catch (error) {
-        showError('Failed to load players');
-        setAvailablePlayers([]);
-      } finally {
-        setLoadingPlayers(false);
-      }
-    };
-    fetchPlayers();
-  }, [selectedTournamentId, activeTab]);
+    if (!selectedTournamentId || !activeTab) return;
+    dispatch(getPlayersByCategoryGender({ tournamentId: selectedTournamentId, categoryType: activeTab }));
+  }, [selectedTournamentId, activeTab, dispatch]);
 
   const refetchPlayers = useCallback(async () => {
     if (!selectedTournamentId || !activeTab) return;
-    setLoadingPlayers(true);
-    try {
-      const response = await ownerAxios.get('/api/tournament-players/getPlayersByCategoryGender', {
-        params: { tournamentId: selectedTournamentId, categoryType: activeTab }
-      });
-      setAvailablePlayers(response.data?.data || []);
-    } catch (error) {
-      showError('Failed to load players');
-      setAvailablePlayers([]);
-    } finally {
-      setLoadingPlayers(false);
-    }
-  }, [selectedTournamentId, activeTab]);
+    dispatch(getPlayersByCategoryGender({ tournamentId: selectedTournamentId, categoryType: activeTab }));
+  }, [selectedTournamentId, activeTab, dispatch]);
 
   const existingMatches = React.useMemo(() => {
     const map = {};
@@ -868,6 +851,15 @@ const TournamentSchedule = () => {
         selectedTournamentId={selectedTournamentId}
         activeCategory={activeTab}
         onPlayersAdded={refetchPlayers}
+        onImportResult={(result) => {
+          setImportResult(result);
+          setShowImportResultModal(true);
+        }}
+      />
+      <PlayerImportResultModal
+        show={showImportResultModal}
+        onHide={() => setShowImportResultModal(false)}
+        result={importResult}
       />
     </Container>
   );

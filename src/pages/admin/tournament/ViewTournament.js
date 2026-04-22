@@ -3,10 +3,11 @@ import { Container, Row, Col, Card, Form, Table, Button, Offcanvas } from 'react
 import { Tabs, Tab } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { getTournamentById, getTournamentSchedules } from '../../../redux/admin/tournament/thunk';
+import { getTournamentById, getTournamentSchedules, getPlayersByCategoryGender, addTournamentPlayers } from '../../../redux/admin/tournament/thunk';
 import { DataLoading } from '../../../helpers/loading/Loaders';
 import { ownerAxios } from '../../../helpers/api/apiCore';
 import { showError, showSuccess } from '../../../helpers/Toast';
+import PlayerImportResultModal from '../../../components/PlayerImportResultModal';
 
 const VSMatchCard = ({ match, category, venue, scheduleId }) => {
   const getTeamPlayers = (team) => {
@@ -240,30 +241,17 @@ const SchedulesTab = ({ tournamentId, categories, selectedRound }) => {
 };
 
 const PlayersTab = ({ tournamentId, filters, handleFilterChange, clearFilters, hasActiveFilters, categories, refreshTrigger }) => {
-  const [players, setPlayers] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
+  const { players, loadingPlayers } = useSelector(state => state.tournament);
 
   useEffect(() => {
-    fetchPlayers();
-  }, [tournamentId, filters, refreshTrigger]);
-
-  const fetchPlayers = async () => {
     if (!tournamentId) return;
-    setLoading(true);
-    try {
-      const params = { tournamentId };
-      if (filters.categoryType) params.categoryType = filters.categoryType;
-      if (filters.gender) params.gender = filters.gender;
-
-      const response = await ownerAxios.get('/api/tournament-players/getPlayersByCategoryGender', { params });
-      setPlayers(response.data?.data || []);
-    } catch (error) {
-      showError('Failed to load players');
-      setPlayers([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    const params = { tournamentId };
+    if (filters.categoryType) params.categoryType = filters.categoryType;
+    if (filters.gender) params.gender = filters.gender;
+    
+    dispatch(getPlayersByCategoryGender(params));
+  }, [tournamentId, filters, refreshTrigger, dispatch]);
 
   return (
     <div className="py-2">
@@ -284,7 +272,7 @@ const PlayersTab = ({ tournamentId, filters, handleFilterChange, clearFilters, h
                   </tr>
                 </thead>
                 <tbody>
-                  {loading ? (
+                  {loadingPlayers ? (
                     <tr>
                       <td colSpan="6" className="text-center py-5">
                         <DataLoading />
@@ -351,6 +339,8 @@ const ViewTournament = () => {
   const [showPlayersOffcanvas, setShowPlayersOffcanvas] = useState(false);
   const [refreshPlayers, setRefreshPlayers] = useState(0);
   const [selectedRound, setSelectedRound] = useState('regular');
+  const [showImportResultModal, setShowImportResultModal] = useState(false);
+  const [importResult, setImportResult] = useState(null);
 
   const categories = currentTournament?.category || [];
 
@@ -518,12 +508,25 @@ const ViewTournament = () => {
         onHide={() => setShowPlayersOffcanvas(false)}
         tournamentId={tournamentId}
         onPlayersAdded={() => setRefreshPlayers(prev => prev + 1)}
+        onImportResult={(result) => {
+          setImportResult(result);
+          setShowImportResultModal(true);
+        }}
+      />
+
+      {/* Import Result Modal */}
+      <PlayerImportResultModal
+        show={showImportResultModal}
+        onHide={() => setShowImportResultModal(false)}
+        result={importResult}
       />
     </div>
   );
 };
 
-const ManagePlayersOffcanvas = ({ show, onHide, tournamentId, onPlayersAdded }) => {
+const ManagePlayersOffcanvas = ({ show, onHide, tournamentId, onPlayersAdded, onImportResult }) => {
+  const dispatch = useDispatch();
+  const { addingPlayers } = useSelector(state => state.tournament);
   const [players, setPlayers] = useState([{
     playerName: '',
     phoneNumber: '',
@@ -558,6 +561,14 @@ const ManagePlayersOffcanvas = ({ show, onHide, tournamentId, onPlayersAdded }) 
         showError(`Player ${i + 1}: Name is required`);
         return false;
       }
+      if (p.playerName.trim().length < 3) {
+        showError(`Player ${i + 1}: Name must be at least 3 characters`);
+        return false;
+      }
+      if (!/^[a-zA-Z\s]+$/.test(p.playerName.trim())) {
+        showError(`Player ${i + 1}: Name must contain only alphabets`);
+        return false;
+      }
       if (!p.phoneNumber.trim()) {
         showError(`Player ${i + 1}: Phone number is required`);
         return false;
@@ -581,20 +592,11 @@ const ManagePlayersOffcanvas = ({ show, onHide, tournamentId, onPlayersAdded }) 
   const handleSubmit = async () => {
     if (!validatePlayers()) return;
 
-    const payload = {
-      tournamentId: tournamentId,
-      players: players.map(p => ({
-        playerName: p.playerName.trim(),
-        phoneNumber: p.phoneNumber.trim(),
-        email: p.email.trim(),
-        gender: p.gender.toLowerCase()
-      }))
-    };
-
-    try {
-      const response = await ownerAxios.post('/api/tournament-players/addPlayer', payload);
-      showSuccess(`${players.length} player(s) created successfully`);
-
+    const result = await dispatch(addTournamentPlayers({ tournamentId, players }));
+    
+    if (result.meta.requestStatus === 'fulfilled') {
+      const data = result.payload;
+      
       // Reset form
       setPlayers([{
         playerName: '',
@@ -609,8 +611,11 @@ const ManagePlayersOffcanvas = ({ show, onHide, tournamentId, onPlayersAdded }) 
       }
 
       onHide();
-    } catch (error) {
-      showError(error.response?.data?.message || 'Failed to create players');
+      
+      // Show result modal if there are added or skipped players
+      if (onImportResult && (data?.added?.length > 0 || data?.skipped?.length > 0)) {
+        onImportResult(data);
+      }
     }
   };
 
@@ -669,9 +674,8 @@ const ManagePlayersOffcanvas = ({ show, onHide, tournamentId, onPlayersAdded }) 
                       placeholder="Enter player name"
                       value={player.playerName}
                       onChange={(e) => {
-                        const value = e.target.value;
-                        const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
-                        updatePlayer(index, 'playerName', capitalized);
+                        const value = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                        updatePlayer(index, 'playerName', value);
                       }}
                       style={{ fontSize: 13, backgroundColor: '#fff', border: '1px solid #ddd' }}
                     />
@@ -735,8 +739,9 @@ const ManagePlayersOffcanvas = ({ show, onHide, tournamentId, onPlayersAdded }) 
             className="flex-grow-1"
             style={{ backgroundColor: '#1F41BB', border: 'none', fontWeight: 600, padding: 12 }}
             onClick={handleSubmit}
+            disabled={addingPlayers}
           >
-            Create {players.length} Player{players.length > 1 ? 's' : ''}
+            {addingPlayers ? 'Creating...' : `Create ${players.length} Player${players.length > 1 ? 's' : ''}`}
           </Button>
           <Button
             variant="outline-secondary"

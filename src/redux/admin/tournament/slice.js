@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getTournaments, getTournamentById, createTournament, updateTournament, deleteTournament, saveTournamentSchedule, getTournamentSchedules, exportPlayersCSV, uploadPlayersCSV } from "./thunk";
+import { getTournaments, getTournamentById, createTournament, updateTournament, deleteTournament, saveTournamentSchedule, getTournamentSchedules, exportPlayersCSV, uploadPlayersCSV, getPlayersByCategoryGender, addTournamentPlayers } from "./thunk";
 
 const initialState = {
   tournaments: [],
@@ -11,6 +11,9 @@ const initialState = {
   loadingSchedule: false,
   exportingCSV: false,
   uploadingCSV: false,
+  players: [],
+  loadingPlayers: false,
+  addingPlayers: false,
   error: null,
 };
 
@@ -67,7 +70,15 @@ const tournamentSlice = createSlice({
 
       .addCase(uploadPlayersCSV.pending, (state) => { state.uploadingCSV = true; })
       .addCase(uploadPlayersCSV.fulfilled, (state) => { state.uploadingCSV = false; })
-      .addCase(uploadPlayersCSV.rejected, (state) => { state.uploadingCSV = false; });
+      .addCase(uploadPlayersCSV.rejected, (state) => { state.uploadingCSV = false; })
+
+      .addCase(getPlayersByCategoryGender.pending, (state) => { state.loadingPlayers = true; state.error = null; })
+      .addCase(getPlayersByCategoryGender.fulfilled, (state, action) => { state.loadingPlayers = false; state.players = action.payload; })
+      .addCase(getPlayersByCategoryGender.rejected, (state, action) => { state.loadingPlayers = false; state.error = action.payload; })
+
+      .addCase(addTournamentPlayers.pending, (state) => { state.addingPlayers = true; state.error = null; })
+      .addCase(addTournamentPlayers.fulfilled, (state) => { state.addingPlayers = false; })
+      .addCase(addTournamentPlayers.rejected, (state, action) => { state.addingPlayers = false; state.error = action.payload; });
   },
 });
 
