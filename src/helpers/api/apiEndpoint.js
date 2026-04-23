@@ -72,12 +72,12 @@ export const GET_ALL_PACKAGES = "/api/package/getAllPackages";
 export const UPDATE_PACKAGE = "/api/package/editPackage";
 export const DELETE_PACKAGE = "/api/package/deletePackage";
 
-export const GET_COUNT_DASHBOARD = "/api/booking/dashboardData";
+export const GET_COUNT_DASHBOARD = "/api/super-admin/club-dashboard-data";
 export const GET_CANCELLATION_BOOKING_DASHBOARD =
-  "/api/booking/dashboardCancellationBooking";
+  "/api/super-admin/club-dashboard-cancellations";
 export const GET_RECENT_BOOKING_DASHBOARD =
-  "/api/booking/dashboardShowCurrentBooking";
-export const GET_REVENUE_DASHBOARD = "/api/booking/monthWiseBookings";
+  "/api/super-admin/club-dashboard-current-bookings";
+export const GET_REVENUE_DASHBOARD = "/api/super-admin/club-monthwise-booking";
 export const GET_REVIEWS_FOR_OWNER = "/api/review/getownerClubReview";
 
 export const GET_NOTIFICATION_VIEW = "/api/adminNotification/markAsRead";

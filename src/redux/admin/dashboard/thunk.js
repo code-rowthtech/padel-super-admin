@@ -7,18 +7,29 @@ export const getCountDataForDashboard = createAsyncThunk(
   "dashboard/getCountDataForDashboard",
   async (params = {}, { rejectWithValue }) => {
     try {
-      // ✅ SUPER ADMIN: Always use Super Admin global dashboard API
-      const url = Url.SUPER_ADMIN_GLOBAL_DASHBOARD;
+      let url = Url.GET_COUNT_DASHBOARD;
+      const queryParams = [];
+      
+      if (params.ownerId) {
+        queryParams.push(`ownerId=${params.ownerId}`);
+      }
+      if (params.clubId) {
+        queryParams.push(`clubId=${params.clubId}`);
+      }
+      
+      if (queryParams.length > 0) {
+        url += `?${queryParams.join("&")}`;
+      }
+      
       const res = await ownerApi.get(url);
       const { status, data, message } = res || {};
       if (status === 200 || "200") {
-        // Map Super Admin response to dashboard format
-        const stats = data?.data?.stats || {};
+        const stats = data?.data?.stats || data?.data || {};
         return {
           totalBookingHours: stats.totalBookings || 0,
           upcomingBookingHours: stats.todayBookings || 0,
           totalRevenue: stats.totalRevenue || 0,
-          cancellationRequestCount: 0 // Will be fetched separately
+          cancellationRequestCount: 0
         };
       }
       const errorMessage = message || "error fetching Data";
@@ -34,14 +45,24 @@ export const getCancelledBookingsForDashboard = createAsyncThunk(
   "dashboard/getCancelledBookingsForDashboard",
   async (params = {}, { rejectWithValue }) => {
     try {
-      // ✅ SUPER ADMIN: Use Super Admin booking API with cancellation filter
-      const url = params.ownerId
-        ? `${Url.SUPER_ADMIN_GET_ALL_BOOKINGS}?ownerId=${params.ownerId}&bookingStatus=in-progress&limit=10`
-        : `${Url.SUPER_ADMIN_GET_ALL_BOOKINGS}?bookingStatus=in-progress&limit=10`;
+      let url = Url.GET_CANCELLATION_BOOKING_DASHBOARD;
+      const queryParams = [];
+      
+      if (params.ownerId) {
+        queryParams.push(`ownerId=${params.ownerId}`);
+      }
+      if (params.clubId) {
+        queryParams.push(`clubId=${params.clubId}`);
+      }
+      
+      if (queryParams.length > 0) {
+        url += `?${queryParams.join("&")}`;
+      }
+      
       const res = await ownerApi.get(url);
       const { status, data, message } = res || {};
       if (status === 200 || "200") {
-        return data?.data?.bookings || [];
+        return data?.data?.bookings || data?.data || [];
       }
       const errorMessage = message || "error fetching Bookings";
       showError(errorMessage);
@@ -56,14 +77,24 @@ export const getRecentBookingsForDashboard = createAsyncThunk(
   "dashboard/getRecentBookingsForDashboard",
   async (params = {}, { rejectWithValue }) => {
     try {
-      // ✅ SUPER ADMIN: Use Super Admin booking API for recent bookings
-      const url = params.ownerId
-        ? `${Url.SUPER_ADMIN_GET_ALL_BOOKINGS}?ownerId=${params.ownerId}&bookingStatus=upcoming&limit=6`
-        : `${Url.SUPER_ADMIN_GET_ALL_BOOKINGS}?bookingStatus=upcoming&limit=6`;
+      let url = Url.GET_RECENT_BOOKING_DASHBOARD;
+      const queryParams = [];
+      
+      if (params.ownerId) {
+        queryParams.push(`ownerId=${params.ownerId}`);
+      }
+      if (params.clubId) {
+        queryParams.push(`clubId=${params.clubId}`);
+      }
+      
+      if (queryParams.length > 0) {
+        url += `?${queryParams.join("&")}`;
+      }
+      
       const res = await ownerApi.get(url);
       const { status, data, message } = res || {};
       if (status === 200 || "200") {
-        return data?.data?.bookings || [];
+        return data?.data?.bookings || data?.data || [];
       }
       const errorMessage = message || "error fetching Bookings";
       showError(errorMessage);
@@ -77,9 +108,23 @@ export const getRecentBookingsForDashboard = createAsyncThunk(
 
 export const getRevenueForDashboard = createAsyncThunk(
   "dashboard/getRevenueForDashboard",
-  async (params, { rejectWithValue }) => {
+  async (params = {}, { rejectWithValue }) => {
     try {
-      const res = await ownerApi.get(Url.GET_REVENUE_DASHBOARD);
+      let url = Url.GET_REVENUE_DASHBOARD;
+      const queryParams = [];
+      
+      if (params.ownerId) {
+        queryParams.push(`ownerId=${params.ownerId}`);
+      }
+      if (params.clubId) {
+        queryParams.push(`clubId=${params.clubId}`);
+      }
+      
+      if (queryParams.length > 0) {
+        url += `?${queryParams.join("&")}`;
+      }
+      
+      const res = await ownerApi.get(url);
       const { status, data, message } = res || {};
       if (status === 200 || "200") {
         return data?.data;
@@ -93,4 +138,3 @@ export const getRevenueForDashboard = createAsyncThunk(
     }
   }
 );
-
