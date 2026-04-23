@@ -137,7 +137,7 @@ const TournamentBasicInfo = ({ onNext }) => {
       if (currentTournament.webLogo) setWebLogo(currentTournament.webLogo);
       if (currentTournament.ourLogo) setOurLogo(currentTournament.ourLogo);
       if (currentTournament.titleSponsor?.titleSponsorBanner) setTitleSponsorBanner(currentTournament.titleSponsor.titleSponsorBanner);
-      
+
       if (currentTournament.titleSponsor?.name) {
         setSponsors([{
           name: currentTournament.titleSponsor.name,
@@ -146,7 +146,7 @@ const TournamentBasicInfo = ({ onNext }) => {
           url: currentTournament.titleSponsor.url || ''
         }]);
       }
-      
+
       const umpireData = currentTournament.umpire || currentTournament.umpires;
       if (umpireData && umpireData.length > 0) {
         setUmpires(umpireData.map(u => ({ email: u.email || '', password: '' })));
@@ -218,7 +218,7 @@ const TournamentBasicInfo = ({ onNext }) => {
     if (leagueLogo instanceof File) fd.append('leagueLogo', leagueLogo);
     if (webLogo instanceof File) fd.append('webLogo', webLogo);
     if (ourLogo instanceof File) fd.append('ourLogo', ourLogo);
-    
+
     if (sponsors[0]?.name) {
       fd.append('titleSponsor[name]', sponsors[0].name);
       if (sponsors[0].category) fd.append('titleSponsor[categoryId]', sponsors[0].category);
@@ -234,7 +234,7 @@ const TournamentBasicInfo = ({ onNext }) => {
         fd.append('titleSponsor[titleSponsorBanner]', titleSponsorBanner);
       }
     }
-    
+
     umpires.forEach((umpire, index) => {
       if (umpire.email) {
         fd.append(`umpires[${index}][email]`, umpire.email);
@@ -696,7 +696,7 @@ const TournamentBasicInfo = ({ onNext }) => {
           </p>
           <Row className="g-3">
             <Col md={4} sm={6}>
-              <LogoUpload inputId="leagueLogo" label="League Logo" value={leagueLogo} onChange={setLeagueLogo} />
+              <LogoUpload inputId="leagueLogo" label="Tournament Logo" value={leagueLogo} onChange={setLeagueLogo} />
             </Col>
             <Col md={4} sm={6}>
               <LogoUpload inputId="webLogo" label="Web Logo" value={webLogo} onChange={setWebLogo} />
