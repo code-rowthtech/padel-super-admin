@@ -208,7 +208,7 @@ const TournamentBasicInfo = ({ onNext }) => {
       if (sponsor.name.trim()) {
         if (!sponsor.category) e[`sponsor_${index}_category`] = 'Category is required when sponsor name is entered';
         if (!sponsor.image) e[`sponsor_${index}_image`] = 'Logo is required when sponsor name is entered';
-        
+
         if (sponsor.category) {
           const selectedCategory = sponsorCategories.find(cat => cat._id === sponsor.category);
           if (selectedCategory && selectedCategory.name === 'Tier 1') {
