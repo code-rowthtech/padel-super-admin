@@ -152,7 +152,8 @@ export const GET_LEAGUE_BY_ID = "/api/leagues/getLeagueById";
 export const DELETE_LEAGUE = "/api/leagues/deleteLeague";
 export const GET_SPONSOR_CATEGORIES = "/api/sponsor-categories";
 
-
+// Category Management
+export const GET_CATEGORY_LIST = "/api/category/list";
 // version
 
 export const GET_VERSION = "/api/app-version/all";

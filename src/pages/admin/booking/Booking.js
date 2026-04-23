@@ -11,7 +11,7 @@ import {
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { MdOutlineDateRange } from "react-icons/md";
-import { FaTimes } from "react-icons/fa";
+import { FaTimes, FaSearch } from "react-icons/fa";
 import { AppBar, Tabs, Tab, Box } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -20,9 +20,9 @@ import {
   getBookingByStatus,
   getBookingDetailsById,
   updateBookingStatus,
+  getCategoryList,
+  getAllClubs,
 } from "../../../redux/thunks";
-import { SUPER_ADMIN_GET_ALL_CLUBS } from "../../../helpers/api/apiEndpoint";
-import { ownerApi } from "../../../helpers/api/apiCore";
 import { FaEye } from "react-icons/fa";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import {
@@ -34,23 +34,21 @@ import { formatDate, formatTime } from "../../../helpers/Formatting";
 import { MdOutlineCancel } from "react-icons/md";
 import { resetBookingData } from "../../../redux/admin/booking/slice";
 import Pagination from "../../../helpers/Pagination";
-import { resetOwnerClub } from "../../../redux/admin/manualBooking/slice";
 import { useSuperAdminContext } from "../../../contexts/SuperAdminContext";
 
 const Booking = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const { selectedOwnerId } = useSuperAdminContext();
   const Owner = getOwnerFromSession();
   const ownerData = Owner?.user || Owner;
   const isSuperAdmin = ownerData?.role === 'super_admin';
+  // ✅ SUPER ADMIN: Use selectedOwnerId if explicitly set, otherwise null (for "All Owners")
+  // For non-super-admin, use logged-in owner's ID
   const ownerId = isSuperAdmin
-    ? (selectedOwnerId || null)
+    ? (selectedOwnerId || null)  // null when "All Owners" is selected
     : (getOwnerFromSession()?._id);
   const [currentPage, setCurrentPage] = useState(1);
-  const [clubs, setClubs] = useState([]);
-  const [selectedClubId, setSelectedClubId] = useState("all");
-  const [loadingClubs, setLoadingClubs] = useState(false);
+  const [selectedClubId, setSelectedClubId] = useState("");
 
   const [showBookingDetails, setShowBookingDetails] = useState(false);
   const [showBookingCancel, setShowBookingCancel] = useState(false);
@@ -59,6 +57,25 @@ const Booking = () => {
   const [dateRange, setDateRange] = useState([null, null]);
   const [startDate, endDate] = dateRange;
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [category, setCategory] = useState("");
+
+  useEffect(() => {
+    dispatch(getCategoryList());
+    dispatch(getAllClubs());
+  }, [dispatch]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch, category, selectedClubId]);
 
   const {
     getBookingData,
@@ -66,6 +83,8 @@ const Booking = () => {
     getBookingDetailsData,
     updateBookingLoading,
     bookingCount: tabCount,
+    categoryList,
+    clubs,
   } = useSelector((state) => state.booking);
 
   const bookings = getBookingData?.bookings || [];
@@ -84,32 +103,15 @@ const Booking = () => {
 
   const defaultLimit = 20;
 
-  useEffect(() => {
-    const fetchClubs = async () => {
-      try {
-        setLoadingClubs(true);
-        const url = selectedOwnerId
-          ? `${SUPER_ADMIN_GET_ALL_CLUBS}?ownerId=${selectedOwnerId}`
-          : SUPER_ADMIN_GET_ALL_CLUBS;
-        const res = await ownerApi.get(url);
-        const clubsData = res?.data?.data || [];
-        setClubs(clubsData);
-      } catch (error) {
-        console.error("Error fetching clubs:", error);
-        setClubs([]);
-      } finally {
-        setLoadingClubs(false);
-      }
-    };
-    fetchClubs();
-  }, [selectedOwnerId]);
-
+  // Effect for fetching bookings when status, page, or filters change
   useEffect(() => {
     const payload = {
       ...(ownerId ? { ownerId } : {}),
-      ...(selectedClubId !== "all" ? { clubId: selectedClubId } : {}),
       page: currentPage,
       limit: defaultLimit,
+      ...(debouncedSearch ? { search: debouncedSearch } : {}),
+      ...(category ? { category: category } : {}),
+      ...(selectedClubId ? { clubId: selectedClubId } : {}),
     };
 
     if (tab !== 0) {
@@ -128,16 +130,42 @@ const Booking = () => {
       payload.endDate = formatToYYYYMMDD(endDate);
     }
 
-    dispatch(
-      bookingCount({
-        ownerId: ownerId || undefined,
-        ...(selectedClubId !== "all" ? { clubId: selectedClubId } : {}),
-        ...(sendDate ? { startDate: payload.startDate, endDate: payload.endDate } : {}),
-      })
-    );
     dispatch(resetBookingData());
     dispatch(getBookingByStatus(payload));
-  }, [tab, currentPage, dispatch, ownerId, sendDate, isSuperAdmin, selectedClubId]);
+  }, [
+    tab,
+    currentPage,
+    ownerId,
+    debouncedSearch,
+    category,
+    selectedClubId,
+    startDate,
+    endDate,
+    dispatch,
+  ]);
+
+  // Effect for fetching counts (only when filters or owner change)
+  useEffect(() => {
+    const countPayload = {
+      ownerId: ownerId || undefined,
+      ...(debouncedSearch ? { search: debouncedSearch } : {}),
+      ...(category ? { category: category } : {}),
+      ...(selectedClubId ? { clubId: selectedClubId } : {}),
+    };
+
+    if (sendDate) {
+      const formatToYYYYMMDD = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      };
+      countPayload.startDate = formatToYYYYMMDD(startDate);
+      countPayload.endDate = formatToYYYYMMDD(endDate);
+    }
+
+    dispatch(bookingCount(countPayload));
+  }, [ownerId, debouncedSearch, category, selectedClubId, startDate, endDate, dispatch]);
 
   useEffect(() => {
     if (tabCount) {
@@ -162,6 +190,7 @@ const Booking = () => {
     }
   };
 
+  // Helper function to parse time to minutes for comparison
   const parseTimeToMinutes = (timeStr) => {
     if (!timeStr) return null;
 
@@ -183,6 +212,7 @@ const Booking = () => {
 
     if (isNaN(hour)) return null;
 
+    // Convert to 24-hour format
     if (period === "pm" && hour !== 12) hour += 12;
     if (period === "am" && hour === 12) hour = 0;
 
@@ -192,6 +222,7 @@ const Booking = () => {
   const renderSlotTimes = (slotTimes) => {
     if (!slotTimes?.length) return "-";
 
+    // Sort slots by time
     const sortedSlots = [...slotTimes].sort((a, b) => {
       const timeA = parseTimeToMinutes(a.time);
       const timeB = parseTimeToMinutes(b.time);
@@ -212,6 +243,7 @@ const Booking = () => {
         const currentTime = parseTimeToMinutes(slot.time);
         const timeDiff = currentTime - lastTime;
 
+        // Check if slots are consecutive (60 minutes apart)
         if (timeDiff === 60) {
           currentGroup.push(slot);
         } else {
@@ -221,10 +253,12 @@ const Booking = () => {
       }
     }
 
+    // Add remaining group
     if (currentGroup.length > 0) {
       groups.push(currentGroup);
     }
 
+    // Format groups as ranges or individual times
     return groups.map(group => {
       if (group.length === 1) {
         return group[0].time;
@@ -232,6 +266,7 @@ const Booking = () => {
         const startTime = group[0].time;
         const lastSlot = group[group.length - 1];
 
+        // Calculate end time (add 1 hour to last slot)
         const lastTimeMinutes = parseTimeToMinutes(lastSlot.time);
         const endTimeMinutes = lastTimeMinutes + 60;
         const endHour = Math.floor(endTimeMinutes / 60);
@@ -312,7 +347,7 @@ const Booking = () => {
                   <Tab
                     label={
                       <>
-                        <span>
+                        <span className="pe-3 ps-2">
                           Completed{" "}
                           <b style={{ color: "#16a34a" }}>({completedCount})</b>{" "}
                         </span>
@@ -324,102 +359,204 @@ const Booking = () => {
               </AppBar>
             </Box>
 
-            <div className="d-flex align-items-center gap-2 col-md-6 col-12 d-flex align-items-center justify-content-end flex-wrap">
+            <div className="d-flex align-items-center gap-2 col-md-8 col-12 d-flex align-items-center justify-content-end flex-wrap">
+              <div className="d-flex align-items-center gap-2 flex-grow-1 flex-md-grow-0 mb-2 mb-md-0">
 
-              <div style={{ minWidth: "200px" }}>
-                <Form.Group className="mb-0">
-                  <Form.Select
-                    value={selectedClubId}
-                    onChange={(e) => {
-                      setSelectedClubId(e.target.value);
-                      setCurrentPage(1);
-                    }}
-                    disabled={loadingClubs}
+
+                <div style={{ position: "relative", width: "100%", maxWidth: "250px" }}>
+                  <Form.Control
+                    type="text"
+                    placeholder="Search bookings..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="ps-5"
                     style={{
-                      fontSize: "13px",
-                      borderRadius: "6px",
-                      border: "2px solid #dee2e6",
-                      padding: "8px 12px",
-                      backgroundColor: "#fff",
-                      fontWeight: "500", boxShadow: "none"
+                      height: "38px",
+                      borderRadius: "8px",
+                      fontSize: "14px",
+                      border: "1px solid #dee2e6",
+                      backgroundColor: "#FAFBFF",boxShadow:"none"
                     }}
-                  >
-                    {clubs?.length === 0 ? (
-                      <option value="">No Available Clubs</option>
-                    ) : (
-                      <>
-                        <option value="all">All Clubs</option>
-                        {clubs.map((club) => (
-                          <option key={club?._id} value={club?._id}>
-                            {club?.clubName}
-                          </option>
-                        ))}
-                      </>
-                    )}
-                  </Form.Select>
-                </Form.Group>
+                  />
+                  <FaSearch
+                    size={14}
+                    className="text-muted"
+                    style={{ position: "absolute", left: "15px", top: "12px" }}
+                  />
+                </div>
+                <Form.Select
+                  value={selectedClubId}
+                  onChange={(e) => setSelectedClubId(e.target.value)}
+                  style={{
+                    height: "38px",
+                    width: "120px",
+                    borderRadius: "8px",
+                    fontSize: "14px",
+                    border: "1px solid #dee2e6",
+                    backgroundColor: "#FAFBFF",
+                    cursor: "pointer",boxShadow:"none"
+                  }}
+                >
+                  <option value="">All Clubs</option>
+                  {clubs?.map((club) => (
+                    <option key={club._id} value={club._id}>
+                      {club.clubName}
+                    </option>
+                  ))}
+                </Form.Select>
+                <Form.Select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  style={{
+                    height: "38px",
+                    width: "120px",
+                    borderRadius: "8px",
+                    fontSize: "14px",
+                    border: "1px solid #dee2e6",
+                    backgroundColor: "#FAFBFF",
+                    cursor: "pointer",boxShadow:"none"
+                  }}
+                >
+                  <option value="">Category</option>
+                  {categoryList?.map((cat) => (
+                    <option key={cat._id} value={cat._id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </Form.Select>
               </div>
 
-              {!showDatePicker && !startDate && !endDate ? (
-                <div
-                  className="d-flex align-items-center justify-content-center rounded p-2"
-                  style={{
-                    backgroundColor: "#FAFBFF",
-                    width: "40px",
-                    height: "38px",
-                    border: "1px solid #dee2e6",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => setShowDatePicker(true)}
-                >
-                  <MdOutlineDateRange size={16} className="text-muted" />
-                </div>
-              ) : (
-                <div
-                  className="d-flex align-items-center justify-content-center rounded p-1"
-                  style={{
-                    backgroundColor: "#FAFBFF",
-                    maxWidth: "280px",
-                    height: "38px",
-                    border: "1px solid #dee2e6",
-                    gap: "8px",
-                  }}
-                >
-                  <div className="px-2">
+              <div className="d-flex align-items-center gap-2 mb-2 mb-md-0">
+                {!showDatePicker && !startDate && !endDate ? (
+                  <div
+                    className="d-flex align-items-center justify-content-center rounded p-2"
+                    style={{
+                      backgroundColor: "#FAFBFF",
+                      width: "40px",
+                      height: "38px",
+                      border: "1px solid #dee2e6",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => setShowDatePicker(true)}
+                  >
                     <MdOutlineDateRange size={16} className="text-muted" />
                   </div>
-                  <DatePicker
-                    selectsRange
-                    startDate={startDate}
-                    endDate={endDate}
-                    onChange={(update) => {
-                      setDateRange(update);
-                      const [start, end] = update;
-                      if (start && end) {
-                        setShowDatePicker(false);
-                      }
+                ) : (
+                  <div
+                    className="d-flex align-items-center justify-content-center rounded p-1"
+                    style={{
+                      backgroundColor: "#FAFBFF",
+                      maxWidth: "280px",
+                      height: "38px",
+                      border: "1px solid #dee2e6",
+                      gap: "8px",
                     }}
-                    dateFormat="dd/MM/yy"
-                    placeholderText="DD/MM/YY – DD/MM/YY"
-                    className="form-control border-0 bg-transparent shadow-none custom-datepicker-input"
-                    open={showDatePicker}
-                    onClickOutside={() => setShowDatePicker(false)}
-                  />
-                  {(startDate || endDate) && (
-                    <div
-                      className="px-2"
-                      onClick={() => {
-                        setDateRange([null, null]);
-                        setShowDatePicker(false);
-                        setCurrentPage(1);
-                      }}
-                      style={{ cursor: "pointer" }}
-                    >
-                      <FaTimes size={14} className="text-danger" />
+                  >
+                    <div className="px-2">
+                      <MdOutlineDateRange size={16} className="text-muted" />
                     </div>
-                  )}
-                </div>
+                    <DatePicker
+                      selectsRange
+                      startDate={startDate}
+                      endDate={endDate}
+                      onChange={(update) => {
+                        setDateRange(update);
+                        const [start, end] = update;
+                        if (start && end) {
+                          setShowDatePicker(false);
+                        }
+                      }}
+                      dateFormat="dd/MM/yy"
+                      placeholderText="DD/MM/YY – DD/MM/YY"
+                      className="form-control border-0 bg-transparent shadow-none custom-datepicker-input"
+                      open={showDatePicker}
+                      onClickOutside={() => setShowDatePicker(false)}
+                    />
+                    {(startDate || endDate) && (
+                      <div
+                        className="px-2"
+                        onClick={() => {
+                          setDateRange([null, null]);
+                          setShowDatePicker(false);
+                          setCurrentPage(1);
+                        }}
+                        style={{ cursor: "pointer" }}
+                      >
+                        <FaTimes size={14} className="text-danger" />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {(searchTerm || category || startDate || endDate) && (
+                <button
+                  onClick={() => {
+                    setSearchTerm("");
+                    setCategory("");
+                    setDateRange([null, null]);
+                    setCurrentPage(1);
+                  }}
+                  className="btn btn-link text-danger p-0 text-decoration-none small fw-medium"
+                  style={{ fontSize: "13px" }}
+                >
+                  Clear Filters
+                </button>
               )}
+
+              {/* <button
+                className="d-flex align-items-center position-relative p-0 border-0"
+                style={{
+                  borderRadius: "20px 10px 10px 20px",
+                  background: "none",
+                  overflow: "hidden",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease",
+                  flexShrink: 0,
+                }}
+                onClick={() => {
+                  navigate("/admin/manualbooking");
+                  dispatch(resetOwnerClub());
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.opacity = "0.9";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.opacity = "1";
+                  e.currentTarget.style.transform = "translateY(0)";
+                }}
+              >
+                <div
+                  className="p-md-1 p-2 rounded-circle bg-light"
+                  style={{ position: "relative", left: "10px" }}
+                >
+                  <div
+                    className="d-flex justify-content-center align-items-center text-white fw-bold"
+                    style={{
+                      backgroundColor: "#1F41BB",
+                      width: "36px",
+                      height: "36px",
+                      borderRadius: "50%",
+                      fontSize: "20px",
+                    }}
+                  >
+                    <span className="mb-1">+</span>
+                  </div>
+                </div>
+                <div
+                  className="d-flex align-items-center text-white fw-medium rounded-end-3"
+                  style={{
+                    backgroundColor: "#1F41BB",
+                    padding: "0 16px",
+                    height: "36px",
+                    fontSize: "14px",
+                    fontFamily: "Nunito, sans-serif",
+                  }}
+                >
+                  Manual Booking
+                </div>
+              </button> */}
             </div>
           </div>
         </Col>
@@ -469,6 +606,7 @@ const Booking = () => {
                         <th className="d-none d-md-table-cell">Contact</th>
                         <th>Booking Date</th>
                         <th>Club Name</th>
+                        <th>Game Type</th>
                         <th className="d-none d-lg-table-cell">Court No</th>
                         <th className="d-lg-none">Court</th>
                         <th>Status</th>
@@ -491,6 +629,7 @@ const Booking = () => {
                             className="text-truncate"
                             style={{ maxWidth: "120px" }}
                           >
+                            {/* ✅ SUPER ADMIN: Handle both old format (userId) and new format (user) */}
                             {(item?.userId?.name || item?.user?.name || item?.userName)
                               ? (item?.userId?.name || item?.user?.name || item?.userName).charAt(0).toUpperCase() +
                               (item?.userId?.name || item?.user?.name || item?.userName)?.slice(1)
@@ -532,7 +671,8 @@ const Booking = () => {
                                       overlay={<Tooltip>{allTimes}</Tooltip>}
                                     >
                                       <span className="text-muted small ms-2">
-                                        {displayTime}
+                                        {/* {displayTime} */}
+                                        {item?.startTime + ' - ' + item?.endTime}
                                       </span>
                                     </OverlayTrigger>
                                   ) : (
@@ -548,12 +688,21 @@ const Booking = () => {
                             className="text-truncate"
                             style={{ maxWidth: "80px" }}
                           >
+                            {/* ✅ SUPER ADMIN: Handle both old format and new format */}
                             {item?.club?.clubName || item?.clubName || "-"}
+                          </td>
+                          <td
+                            className="text-truncate text-capitalize"
+                            style={{ maxWidth: "80px" }}
+                          >
+                            {/* ✅ SUPER ADMIN: Handle both old format and new format */}
+                            {item?.category?.name || "-"}
                           </td>
                           <td
                             className="text-truncate"
                             style={{ maxWidth: "80px" }}
                           >
+                            {/* ✅ SUPER ADMIN: Handle both old format and new format */}
                             {item?.slot?.[0]?.courtName || "-"}
                           </td>
                           <td className="text-truncate">
@@ -575,6 +724,30 @@ const Booking = () => {
                               <ButtonLoading color="blue" size={8} />
                             ) : (
                               <div className="d-flex justify-content-center gap-1">
+                                {/* {tab !== 2 &&
+                                  item?.bookingStatus !== "rejected" &&
+                                  item?.bookingStatus !== "completed" &&
+                                  item?.bookingStatus !== "in-progress" &&
+                                  item?.bookingType !== "open Match" &&
+                                  item?.bookingStatus !== "cancelled" && (
+                                    <OverlayTrigger
+                                      placement="left"
+                                      overlay={<Tooltip>Cancel</Tooltip>}
+                                    >
+                                      <MdOutlineCancel
+                                        onClick={() =>
+                                          handleBookingDetails(
+                                            item?._id,
+                                            "cancel"
+                                          )
+                                        }
+                                        className="text-danger"
+                                        style={{ cursor: "pointer" }}
+                                        size={16}
+                                      />
+                                    </OverlayTrigger>
+                                  )} */}
+
                                 <OverlayTrigger
                                   placement="bottom"
                                   overlay={<Tooltip>View Details</Tooltip>}
