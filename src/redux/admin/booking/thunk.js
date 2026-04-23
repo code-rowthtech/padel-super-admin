@@ -15,7 +15,6 @@ export const getBookingByStatus = createAsyncThunk(
       const buildQuery = (params) => {
         const query = new URLSearchParams();
 
-        // ✅ SUPER ADMIN: Map status to bookingStatus
         if (params?.status) {
           if (params.status === "upcoming") {
             query.append("bookingStatus", "upcoming");
@@ -36,13 +35,11 @@ export const getBookingByStatus = createAsyncThunk(
         return query.toString();
       };
       
-      // ✅ SUPER ADMIN: Use Super Admin booking API
       const res = await ownerApi.get(
         `${Url.SUPER_ADMIN_GET_ALL_BOOKINGS}?${buildQuery(params)}`
       );
       const { status, data, message } = res || {};
       if (status === 200 || "200") {
-        // Map Super Admin response format to expected format
         return {
           bookings: data?.data?.bookings || [],
           totalItems: data?.data?.pagination?.totalItems || 0,
@@ -60,6 +57,7 @@ export const getBookingByStatus = createAsyncThunk(
     }
   }
 );
+
 export const getBookingDetailsById = createAsyncThunk(
   "manualBooking/getBookingDetailsById",
   async (params, { rejectWithValue }) => {
@@ -99,7 +97,6 @@ export const bookingCount = createAsyncThunk(
   "manualBooking/bookingCount",
   async (data, { rejectWithValue }) => {
     try {
-      // ✅ SUPER ADMIN: Use Super Admin booking API to get counts
       const buildUrl = (params = {}) => {
         const query = new URLSearchParams(params);
         const queryString = query.toString();
@@ -109,6 +106,7 @@ export const bookingCount = createAsyncThunk(
       };
       const baseParams = {
         ...(data?.ownerId ? { ownerId: data.ownerId } : {}),
+        ...(data?.clubId ? { clubId: data.clubId } : {}),
         ...(data?.startDate ? { startDate: data.startDate } : {}),
         ...(data?.endDate ? { endDate: data.endDate } : {}),
       };

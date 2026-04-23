@@ -6,6 +6,7 @@ import {
   Table,
   OverlayTrigger,
   Tooltip,
+  Form,
 } from "react-bootstrap";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -20,6 +21,8 @@ import {
   getBookingDetailsById,
   updateBookingStatus,
 } from "../../../redux/thunks";
+import { SUPER_ADMIN_GET_ALL_CLUBS } from "../../../helpers/api/apiEndpoint";
+import { ownerApi } from "../../../helpers/api/apiCore";
 import { FaEye } from "react-icons/fa";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import {
@@ -41,12 +44,13 @@ const Booking = () => {
   const Owner = getOwnerFromSession();
   const ownerData = Owner?.user || Owner;
   const isSuperAdmin = ownerData?.role === 'super_admin';
-  // ✅ SUPER ADMIN: Use selectedOwnerId if explicitly set, otherwise null (for "All Owners")
-  // For non-super-admin, use logged-in owner's ID
-  const ownerId = isSuperAdmin 
-    ? (selectedOwnerId || null)  // null when "All Owners" is selected
+  const ownerId = isSuperAdmin
+    ? (selectedOwnerId || null)
     : (getOwnerFromSession()?._id);
   const [currentPage, setCurrentPage] = useState(1);
+  const [clubs, setClubs] = useState([]);
+  const [selectedClubId, setSelectedClubId] = useState("all");
+  const [loadingClubs, setLoadingClubs] = useState(false);
 
   const [showBookingDetails, setShowBookingDetails] = useState(false);
   const [showBookingCancel, setShowBookingCancel] = useState(false);
@@ -81,10 +85,29 @@ const Booking = () => {
   const defaultLimit = 20;
 
   useEffect(() => {
-    const payload: any = {
-      // ✅ SUPER ADMIN: Only include ownerId if explicitly set (not null)
-      // If ownerId is null (All Owners selected), don't include it in payload
+    const fetchClubs = async () => {
+      try {
+        setLoadingClubs(true);
+        const url = selectedOwnerId
+          ? `${SUPER_ADMIN_GET_ALL_CLUBS}?ownerId=${selectedOwnerId}`
+          : SUPER_ADMIN_GET_ALL_CLUBS;
+        const res = await ownerApi.get(url);
+        const clubsData = res?.data?.data || [];
+        setClubs(clubsData);
+      } catch (error) {
+        console.error("Error fetching clubs:", error);
+        setClubs([]);
+      } finally {
+        setLoadingClubs(false);
+      }
+    };
+    fetchClubs();
+  }, [selectedOwnerId]);
+
+  useEffect(() => {
+    const payload = {
       ...(ownerId ? { ownerId } : {}),
+      ...(selectedClubId !== "all" ? { clubId: selectedClubId } : {}),
       page: currentPage,
       limit: defaultLimit,
     };
@@ -105,16 +128,16 @@ const Booking = () => {
       payload.endDate = formatToYYYYMMDD(endDate);
     }
 
-    // ✅ SUPER ADMIN: Fetch counts for global view or selected owner
     dispatch(
       bookingCount({
         ownerId: ownerId || undefined,
+        ...(selectedClubId !== "all" ? { clubId: selectedClubId } : {}),
         ...(sendDate ? { startDate: payload.startDate, endDate: payload.endDate } : {}),
       })
     );
     dispatch(resetBookingData());
     dispatch(getBookingByStatus(payload));
-  }, [tab, currentPage, dispatch, ownerId, sendDate, isSuperAdmin]);
+  }, [tab, currentPage, dispatch, ownerId, sendDate, isSuperAdmin, selectedClubId]);
 
   useEffect(() => {
     if (tabCount) {
@@ -139,7 +162,6 @@ const Booking = () => {
     }
   };
 
-  // Helper function to parse time to minutes for comparison
   const parseTimeToMinutes = (timeStr) => {
     if (!timeStr) return null;
 
@@ -161,7 +183,6 @@ const Booking = () => {
 
     if (isNaN(hour)) return null;
 
-    // Convert to 24-hour format
     if (period === "pm" && hour !== 12) hour += 12;
     if (period === "am" && hour === 12) hour = 0;
 
@@ -171,7 +192,6 @@ const Booking = () => {
   const renderSlotTimes = (slotTimes) => {
     if (!slotTimes?.length) return "-";
 
-    // Sort slots by time
     const sortedSlots = [...slotTimes].sort((a, b) => {
       const timeA = parseTimeToMinutes(a.time);
       const timeB = parseTimeToMinutes(b.time);
@@ -192,7 +212,6 @@ const Booking = () => {
         const currentTime = parseTimeToMinutes(slot.time);
         const timeDiff = currentTime - lastTime;
 
-        // Check if slots are consecutive (60 minutes apart)
         if (timeDiff === 60) {
           currentGroup.push(slot);
         } else {
@@ -202,12 +221,10 @@ const Booking = () => {
       }
     }
 
-    // Add remaining group
     if (currentGroup.length > 0) {
       groups.push(currentGroup);
     }
 
-    // Format groups as ranges or individual times
     return groups.map(group => {
       if (group.length === 1) {
         return group[0].time;
@@ -215,7 +232,6 @@ const Booking = () => {
         const startTime = group[0].time;
         const lastSlot = group[group.length - 1];
 
-        // Calculate end time (add 1 hour to last slot)
         const lastTimeMinutes = parseTimeToMinutes(lastSlot.time);
         const endTimeMinutes = lastTimeMinutes + 60;
         const endHour = Math.floor(endTimeMinutes / 60);
@@ -308,7 +324,42 @@ const Booking = () => {
               </AppBar>
             </Box>
 
-            <div className="d-flex align-items-center gap-2 col-md-6 col-12 d-flex align-items-center justify-content-end">
+            <div className="d-flex align-items-center gap-2 col-md-6 col-12 d-flex align-items-center justify-content-end flex-wrap">
+
+              <div style={{ minWidth: "200px" }}>
+                <Form.Group className="mb-0">
+                  <Form.Select
+                    value={selectedClubId}
+                    onChange={(e) => {
+                      setSelectedClubId(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    disabled={loadingClubs}
+                    style={{
+                      fontSize: "13px",
+                      borderRadius: "6px",
+                      border: "2px solid #dee2e6",
+                      padding: "8px 12px",
+                      backgroundColor: "#fff",
+                      fontWeight: "500", boxShadow: "none"
+                    }}
+                  >
+                    {clubs?.length === 0 ? (
+                      <option value="">No Available Clubs</option>
+                    ) : (
+                      <>
+                        <option value="all">All Clubs</option>
+                        {clubs.map((club) => (
+                          <option key={club?._id} value={club?._id}>
+                            {club?.clubName}
+                          </option>
+                        ))}
+                      </>
+                    )}
+                  </Form.Select>
+                </Form.Group>
+              </div>
+
               {!showDatePicker && !startDate && !endDate ? (
                 <div
                   className="d-flex align-items-center justify-content-center rounded p-2"
@@ -369,60 +420,6 @@ const Booking = () => {
                   )}
                 </div>
               )}
-
-              {/* <button
-                className="d-flex align-items-center position-relative p-0 border-0"
-                style={{
-                  borderRadius: "20px 10px 10px 20px",
-                  background: "none",
-                  overflow: "hidden",
-                  cursor: "pointer",
-                  transition: "all 0.3s ease",
-                  flexShrink: 0,
-                }}
-                onClick={() => {
-                  navigate("/admin/manualbooking");
-                  dispatch(resetOwnerClub());
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.opacity = "0.9";
-                  e.currentTarget.style.transform = "translateY(-1px)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.opacity = "1";
-                  e.currentTarget.style.transform = "translateY(0)";
-                }}
-              >
-                <div
-                  className="p-md-1 p-2 rounded-circle bg-light"
-                  style={{ position: "relative", left: "10px" }}
-                >
-                  <div
-                    className="d-flex justify-content-center align-items-center text-white fw-bold"
-                    style={{
-                      backgroundColor: "#1F41BB",
-                      width: "36px",
-                      height: "36px",
-                      borderRadius: "50%",
-                      fontSize: "20px",
-                    }}
-                  >
-                    <span className="mb-1">+</span>
-                  </div>
-                </div>
-                <div
-                  className="d-flex align-items-center text-white fw-medium rounded-end-3"
-                  style={{
-                    backgroundColor: "#1F41BB",
-                    padding: "0 16px",
-                    height: "36px",
-                    fontSize: "14px",
-                    fontFamily: "Nunito, sans-serif",
-                  }}
-                >
-                  Manual Booking
-                </div>
-              </button> */}
             </div>
           </div>
         </Col>
@@ -494,7 +491,6 @@ const Booking = () => {
                             className="text-truncate"
                             style={{ maxWidth: "120px" }}
                           >
-                            {/* ✅ SUPER ADMIN: Handle both old format (userId) and new format (user) */}
                             {(item?.userId?.name || item?.user?.name || item?.userName)
                               ? (item?.userId?.name || item?.user?.name || item?.userName).charAt(0).toUpperCase() +
                               (item?.userId?.name || item?.user?.name || item?.userName)?.slice(1)
@@ -552,15 +548,13 @@ const Booking = () => {
                             className="text-truncate"
                             style={{ maxWidth: "80px" }}
                           >
-                            {/* ✅ SUPER ADMIN: Handle both old format and new format */}
-                            { item?.club?.clubName || item?.clubName || "-"}
+                            {item?.club?.clubName || item?.clubName || "-"}
                           </td>
                           <td
                             className="text-truncate"
                             style={{ maxWidth: "80px" }}
                           >
-                            {/* ✅ SUPER ADMIN: Handle both old format and new format */}
-                            {item?.slot?.[0]?.courtName ||"-"}
+                            {item?.slot?.[0]?.courtName || "-"}
                           </td>
                           <td className="text-truncate">
                             {item?.bookingStatus === "in-progress" ? (
@@ -581,30 +575,6 @@ const Booking = () => {
                               <ButtonLoading color="blue" size={8} />
                             ) : (
                               <div className="d-flex justify-content-center gap-1">
-                                {/* {tab !== 2 &&
-                                  item?.bookingStatus !== "rejected" &&
-                                  item?.bookingStatus !== "completed" &&
-                                  item?.bookingStatus !== "in-progress" &&
-                                  item?.bookingType !== "open Match" &&
-                                  item?.bookingStatus !== "cancelled" && (
-                                    <OverlayTrigger
-                                      placement="left"
-                                      overlay={<Tooltip>Cancel</Tooltip>}
-                                    >
-                                      <MdOutlineCancel
-                                        onClick={() =>
-                                          handleBookingDetails(
-                                            item?._id,
-                                            "cancel"
-                                          )
-                                        }
-                                        className="text-danger"
-                                        style={{ cursor: "pointer" }}
-                                        size={16}
-                                      />
-                                    </OverlayTrigger>
-                                  )} */}
-
                                 <OverlayTrigger
                                   placement="bottom"
                                   overlay={<Tooltip>View Details</Tooltip>}

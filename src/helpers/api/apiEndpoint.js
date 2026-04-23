@@ -73,10 +73,8 @@ export const UPDATE_PACKAGE = "/api/package/editPackage";
 export const DELETE_PACKAGE = "/api/package/deletePackage";
 
 export const GET_COUNT_DASHBOARD = "/api/booking/dashboardData";
-export const GET_CANCELLATION_BOOKING_DASHBOARD =
-  "/api/booking/dashboardCancellationBooking";
-export const GET_RECENT_BOOKING_DASHBOARD =
-  "/api/booking/dashboardShowCurrentBooking";
+export const GET_CANCELLATION_BOOKING_DASHBOARD = "/api/booking/dashboardCancellationBooking";
+export const GET_RECENT_BOOKING_DASHBOARD = "/api/booking/dashboardShowCurrentBooking";
 export const GET_REVENUE_DASHBOARD = "/api/booking/monthWiseBookings";
 export const GET_REVIEWS_FOR_OWNER = "/api/review/getownerClubReview";
 
@@ -128,6 +126,12 @@ export const SUPER_ADMIN_GET_ALL_SLOTS = "/api/super-admin/slots";
 export const SUPER_ADMIN_GET_ALL_PRICING = "/api/super-admin/pricing";
 export const SUPER_ADMIN_GET_ALL_CLUBS = "/api/super-admin/clubs";
 export const SUPER_ADMIN_PAYMENT_DASHBOARD_COUNTS = "/api/super-admin/payment-dashboard-counts";
+
+// Club Dashboard Endpoints
+export const SUPER_ADMIN_CLUB_DASHBOARD_DATA = "/api/super-admin/club-dashboard-data";
+export const SUPER_ADMIN_DASHBOARD_CANCELLATIONS = "/api/super-admin/club-dashboard-cancellations";
+export const SUPER_ADMIN_DASHBOARD_CURRENT_BOOKINGS = "/api/super-admin/club-dashboard-current-bookings";
+export const SUPER_ADMIN_CLUB_DASHBOARD_PAYMENT = "/api/super-admin/club-dashboard-payment";
 
 // Club Payments (Settlements)
 export const SUPER_ADMIN_GET_CLUB_PAYMENTS = "/api/super-admin/club-payments";
