@@ -533,7 +533,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               >
                 Registration
               </NavLink>
-              <NavLink
+              {/* <NavLink
                 to="/admin/league/team-creation"
                 className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
                 style={{
@@ -546,7 +546,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
                 onClick={() => window.innerWidth <= 768 && onClose()}
               >
                 Team Creation
-              </NavLink>
+              </NavLink> */}
               <NavLink
                 to="/admin/league/schedule"
                 className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
