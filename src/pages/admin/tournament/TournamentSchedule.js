@@ -4,7 +4,7 @@ import { FiPlus, FiTrash2, FiCheck, FiX, FiEdit2, FiUsers } from 'react-icons/fi
 import { IoCalendarClearOutline } from 'react-icons/io5';
 import { MdClose } from 'react-icons/md';
 import { useDispatch, useSelector } from 'react-redux';
-import { getTournaments, saveTournamentSchedule, getTournamentSchedules, getPlayersByCategoryGender, addTournamentPlayers, deleteTournamentSchedule } from '../../../redux/admin/tournament/thunk';
+import { getTournaments, saveTournamentSchedule, getTournamentSchedules, getPlayersByCategoryGender, addTournamentPlayers, deleteTournamentSchedule, getTournamentTeams } from '../../../redux/admin/tournament/thunk';
 import { showError, showSuccess } from '../../../helpers/Toast';
 import { DataLoading } from '../../../helpers/loading/Loaders';
 import '../league/LeagueScheduleMatch.css';
@@ -38,115 +38,73 @@ const EMPTY_MATCH = (id) => ({
   teamB: { teamName: 'Team B', players: [EMPTY_PLAYER(), EMPTY_PLAYER()] },
 });
 
-const ROUNDS = [
-  { key: 'regular', label: 'Regular' },
-  { key: 'quarterfinal', label: 'Quarter-Final' },
-  { key: 'semifinal', label: 'Semi-Final' },
-  { key: 'final', label: 'Final' },
-];
+// Dynamic rounds will be calculated based on selectedTournament.matchRules
+const ROUND_CONFIG = {
+  regularRound: { key: 'regular', label: 'Regular' },
+  quarterfinal: { key: 'quarterfinal', label: 'Quarter-Final' },
+  semifinal: { key: 'semifinal', label: 'Semi-Final' },
+  final: { key: 'final', label: 'Final' },
+};
 
-// ─── TeamInput — defined at module level so identity is stable ───────────────
+// ─── TeamSelector — for selecting from existing teams ───────────────────────
 
-const TeamInput = ({ team, matchId, side, onUpdateMatch, availablePlayers, allMatches, currentMatch }) => {
-  // Get all selected player IDs from the current match
-  const getSelectedPlayerIds = () => {
-    const ids = new Set();
-    if (currentMatch.teamA?.players) {
-      currentMatch.teamA.players.forEach(p => p.playerId && ids.add(p.playerId));
-    }
-    if (currentMatch.teamB?.players) {
-      currentMatch.teamB.players.forEach(p => p.playerId && ids.add(p.playerId));
-    }
-    return ids;
-  };
-
-  // Get players already scheduled at the same time
-  const getPlayersScheduledAtSameTime = () => {
-    const ids = new Set();
-    if (!currentMatch.date || !currentMatch.time) return ids;
-
-    const currentDate = currentMatch.date;
-    const currentTime = currentMatch.time;
-
-    allMatches.forEach(match => {
-      if (match.id === matchId) return; // Skip current match
-      if (match.date === currentDate && match.time === currentTime) {
-        match.teamA?.players?.forEach(p => p.playerId && ids.add(p.playerId));
-        match.teamB?.players?.forEach(p => p.playerId && ids.add(p.playerId));
-      }
-    });
-    return ids;
-  };
-
-  const selectedInMatch = getSelectedPlayerIds();
-  const scheduledAtSameTime = getPlayersScheduledAtSameTime();
-
+const TeamSelector = ({ team, matchId, side, onUpdateMatch, availableTeams }) => {
   return (
-    <div style={{ minWidth: 200, maxWidth: 220 }}>
-      <input
-        className="form-control form-control-sm mb-2"
-        placeholder={`${side === 'teamA' ? 'Team A' : 'Team B'} Name`}
-        value={team.teamName}
-        onChange={e => onUpdateMatch(matchId, prev => ({
-          ...prev,
-          [side]: { ...prev[side], teamName: e.target.value }
-        }))}
-        style={{ fontSize: 12, backgroundColor: '#F3F4F6', border: 'none' }}
-      />
-      {team.players.map((p, i) => {
-        const currentPlayerId = p.playerId;
-        return (
-          <div key={i} className="mb-2">
-            <select
-              className="form-select form-select-sm text-capitalize"
-              value={p.playerId}
-              onChange={e => {
-                const selectedPlayer = availablePlayers.find(pl => pl._id === e.target.value);
-                onUpdateMatch(matchId, prev => {
-                  const players = [...prev[side].players];
-                  players[i] = {
-                    playerId: selectedPlayer?._id || '',
-                    playerName: selectedPlayer?.playerName || '',
-                    phoneNumber: selectedPlayer?.phoneNumber || ''
-                  };
-                  return { ...prev, [side]: { ...prev[side], players } };
-                });
-              }}
-              style={{ fontSize: 11, backgroundColor: '#F3F4F6', border: 'none', maxWidth: '220px' }}
-            >
-              <option value="">Select Player {i + 1}</option>
-              {availablePlayers.map(player => {
-                const isSelectedInMatch = selectedInMatch.has(player._id) && player._id !== currentPlayerId;
-                const isScheduledAtSameTime = scheduledAtSameTime.has(player._id);
-                const isDisabled = isSelectedInMatch || isScheduledAtSameTime;
-
-                return (
-                  <option
-                    key={player._id}
-                    value={player._id}
-                    disabled={isDisabled}
-                    className='text-capitalize'
-                  >
-                    {player.playerName} ({player.phoneNumber || 'N/A'})
-                  </option>
-                );
-              })}
-            </select>
-          </div>
-        );
-      })}
+    <div style={{ minWidth: 220 }}>
+      <select
+        className="form-select text-center rounded-2 form-select-sm text-capitalize"
+        value={team.teamId || ''}
+        onChange={e => {
+          const selectedTeam = availableTeams.find(t => t._id === e.target.value);
+          if (selectedTeam) {
+            onUpdateMatch(matchId, prev => ({
+              ...prev,
+              [side]: {
+                teamId: selectedTeam._id,
+                teamName: selectedTeam.teamName,
+                players: selectedTeam.players.map(p => ({
+                  playerId: p.playerId,
+                  playerName: p.playerName,
+                  phoneNumber: p.phoneNumber
+                }))
+              }
+            }));
+          }
+        }}
+        style={{ fontSize: 13, minWidth: '220px', margin: '0 auto' }}
+      >
+        <option value="">Select {side === 'teamA' ? 'Team A' : 'Team B'}</option>
+        {availableTeams.map(t => (
+          <option key={t._id} value={t._id} className="text-capitalize">
+            {t.teamName} • {t.players.map(p => p.playerName).join(' & ')}
+          </option>
+        ))}
+      </select>
+      {team.players && team.players.length > 0 && (
+        <div className='fw-semibold' style={{ marginTop: '6px', textAlign: 'center', color: '#1F41BB', fontSize: 14 }}>
+          {team.players.map(p => p.playerName).join(' & ')}
+        </div>
+      )}
     </div>
   );
 };
 
 const TeamDisplay = ({ team }) => (
-  <div style={{ minWidth: 180 }}>
-    <div style={{ fontWeight: 600, fontSize: 13, color: '#1F2937', marginBottom: 2 }}>{team?.teamName || '—'}</div>
-    {team?.players?.map((p, i) => (
-      <div className='text-capitalize' key={i} style={{ fontSize: 11, color: '#6B7280', lineHeight: '1.5' }}>
-        {p.playerName || `Player ${i + 1}`}{p.phoneNumber ? ` · ${p.phoneNumber}` : ''}
+  <div style={{ minWidth: 200 }}>
+    <div style={{
+      fontWeight: 600,
+      fontSize: 13,
+      color: '#1F2937',
+      marginBottom: 4,
+      textAlign: 'center'
+    }}>
+      {team?.teamName || '—'}
+    </div>
+    {team?.players && team.players.length > 0 && (
+      <div style={{ fontSize: 11, color: '#666', textAlign: 'center' }}>
+        {team.players.map(p => p.playerName).join(' & ')}
       </div>
-    ))}
+    )}
   </div>
 );
 
@@ -173,7 +131,7 @@ const TableHead = () => (
 
 // ─── MatchRow — module-level, receives all callbacks as stable props ──────────
 
-const MatchRow = ({ match, index, editable, isEditing, onUpdateMatch, onDelete, onCancelEdit, onEditExisting, availablePlayers, allMatches }) => {
+const MatchRow = ({ match, index, editable, isEditing, onUpdateMatch, onDelete, onCancelEdit, onEditExisting, availableTeams, allMatches }) => {
   const m = match;
   return (
     <tr style={{ backgroundColor: index % 2 === 1 ? 'rgba(242,242,242,0.7)' : '#fff', verticalAlign: 'middle' }}>
@@ -183,17 +141,17 @@ const MatchRow = ({ match, index, editable, isEditing, onUpdateMatch, onDelete, 
 
       <td style={{ padding: '12px', borderBottom: '1px solid #ddd', width: '220px', textAlign: 'center' }}>
         {editable
-          ? <TeamInput team={m.teamA} matchId={m.id} side="teamA" onUpdateMatch={onUpdateMatch} availablePlayers={availablePlayers} allMatches={allMatches} currentMatch={m} />
+          ? <TeamSelector team={m.teamA} matchId={m.id} side="teamA" onUpdateMatch={onUpdateMatch} availableTeams={availableTeams} />
           : <TeamDisplay team={m.teamA} />}
       </td>
 
       <td style={{ padding: '12px', textAlign: 'center', borderBottom: '1px solid #ddd', width: '60px' }}>
-        <div style={{ width: 34, height: 34, borderRadius: 6, background: '#1F41BB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 11, margin: '0 auto', color: '#fff' }}>VS</div>
+        <div className='rounded-3 text-white' style={{ backgroundColor: "#1F41BB", opacity: "0.1", width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '12px', margin: '0 auto', color: '#1F41BB' }}>VS</div>
       </td>
 
       <td style={{ padding: '12px', borderBottom: '1px solid #ddd', width: '220px', textAlign: 'center' }}>
         {editable
-          ? <TeamInput team={m.teamB} matchId={m.id} side="teamB" onUpdateMatch={onUpdateMatch} availablePlayers={availablePlayers} allMatches={allMatches} currentMatch={m} />
+          ? <TeamSelector team={m.teamB} matchId={m.id} side="teamB" onUpdateMatch={onUpdateMatch} availableTeams={availableTeams} />
           : <TeamDisplay team={m.teamB} />}
       </td>
 
@@ -260,13 +218,37 @@ const MatchRow = ({ match, index, editable, isEditing, onUpdateMatch, onDelete, 
 
 // ─── AddDateModal — module-level ─────────────────────────────────────────────
 
-const AddDateModal = ({ show, onHide, onConfirm }) => {
+const AddDateModal = ({ show, onHide, onConfirm, categories = [], activeTab, selectedRound }) => {
   const [date, setDate] = useState('');
   const [venue, setVenue] = useState('');
+  const [selectedCats, setSelectedCats] = useState([]);
+
+  useEffect(() => {
+    if (show) {
+      if (selectedRound === 'final') {
+        // For finals, default to either activeTab or all
+        if (activeTab === 'all') {
+          setSelectedCats(categories.map(c => c._id));
+        } else {
+          setSelectedCats([activeTab]);
+        }
+      } else {
+        // For non-finals, default to ALL categories as requested
+        setSelectedCats(categories.map(c => c._id));
+      }
+    }
+  }, [show, activeTab, categories, selectedRound]);
 
   const handleConfirm = () => {
     if (!date) { showError('Please select a date'); return; }
-    onConfirm({ date, venue });
+    
+    let catsToUse = selectedCats;
+    if (selectedRound !== 'final') {
+      catsToUse = categories.map(c => c._id);
+    }
+
+    if (catsToUse.length === 0) { showError('Please select at least one category'); return; }
+    onConfirm({ date, venue, selectedCats: catsToUse });
     setDate(''); setVenue('');
   };
 
@@ -285,6 +267,32 @@ const AddDateModal = ({ show, onHide, onConfirm }) => {
             onChange={e => setDate(e.target.value)}
             style={{ backgroundColor: 'rgba(204,210,221,0.43)', border: '1px solid #ddd', boxShadow: 'none' }} />
         </Form.Group>
+        
+        {selectedRound === 'final' && (
+          <Form.Group className="mb-3">
+            <Form.Label style={{ fontWeight: 600, fontSize: 14 }}>Categories <span className="text-danger">*</span></Form.Label>
+            <div style={{ maxHeight: '150px', overflowY: 'auto', border: '1px solid #ddd', borderRadius: '6px', padding: '10px', backgroundColor: 'rgba(204,210,221,0.2)' }}>
+              {categories.map(cat => (
+                <Form.Check
+                  key={cat._id}
+                  type="checkbox"
+                  id={`modal-cat-${cat._id}`}
+                  label={`${cat.categoryType} (${cat.tag})`}
+                  checked={selectedCats.includes(cat._id)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedCats([...selectedCats, cat._id]);
+                    } else {
+                      setSelectedCats(selectedCats.filter(id => id !== cat._id));
+                    }
+                  }}
+                  style={{ fontSize: 13 }}
+                />
+              ))}
+            </div>
+          </Form.Group>
+        )}
+
         <Form.Group className="mb-4">
           <Form.Label style={{ fontWeight: 600, fontSize: 14 }}>Venue</Form.Label>
           <Form.Control type="text" placeholder="e.g. Court 1 - Main Arena" value={venue}
@@ -292,7 +300,7 @@ const AddDateModal = ({ show, onHide, onConfirm }) => {
             style={{ backgroundColor: 'rgba(204,210,221,0.43)', border: '1px solid #ddd', boxShadow: 'none' }} />
         </Form.Group>
         <Button className="w-100" style={{ backgroundColor: '#1F41BB', border: 'none', fontWeight: 600, padding: 12 }}
-          onClick={handleConfirm} disabled={!date}>
+          onClick={handleConfirm} disabled={!date || (selectedRound === 'final' && selectedCats.length === 0)}>
           Add Match Row
         </Button>
       </Modal.Body>
@@ -540,7 +548,7 @@ const ManagePlayersOffcanvas = ({ show, onHide, selectedTournamentId, activeCate
 
 const TournamentSchedule = () => {
   const dispatch = useDispatch();
-  const { tournaments, loadingTournament, schedules, loadingSchedule, players: availablePlayers, loadingPlayers } = useSelector(s => s.tournament);
+  const { tournaments, loadingTournament, schedules, loadingSchedule, players: availablePlayers, loadingPlayers, teamsData, loadingTeams } = useSelector(s => s.tournament);
 
   const [selectedTournamentId, setSelectedTournamentId] = useState('');
   const [selectedRound, setSelectedRound] = useState('regular');
@@ -558,6 +566,25 @@ const TournamentSchedule = () => {
   const tournamentsData = Array.isArray(tournaments?.data) ? tournaments.data : [];
   const selectedTournament = tournamentsData.find(t => t._id === selectedTournamentId);
   const categories = selectedTournament?.category || [];
+  const availableTeams = teamsData?.teams || [];
+
+  const dynamicRounds = React.useMemo(() => {
+    if (!selectedTournament?.matchRules) return [];
+    return Object.entries(selectedTournament.matchRules)
+      .filter(([_, rule]) => rule.status)
+      .map(([key, _]) => ROUND_CONFIG[key])
+      .filter(Boolean);
+  }, [selectedTournament]);
+
+  // Update selectedRound if current one is not available in dynamicRounds
+  useEffect(() => {
+    if (dynamicRounds.length > 0) {
+      const isCurrentRoundAvailable = dynamicRounds.find(r => r.key === selectedRound);
+      if (!isCurrentRoundAvailable) {
+        setSelectedRound(dynamicRounds[0].key);
+      }
+    }
+  }, [dynamicRounds, selectedRound]);
 
   useEffect(() => { dispatch(getTournaments({ page: 1, limit: 100 })); }, [dispatch]);
 
@@ -566,18 +593,36 @@ const TournamentSchedule = () => {
   }, [tournamentsData]);
 
   useEffect(() => {
-    if (categories.length > 0) setActiveTab(categories[0].tag);
+    if (categories.length > 0) setActiveTab('all');
     else setActiveTab('');
   }, [selectedTournamentId]);
 
   useEffect(() => {
-    if (selectedTournamentId) dispatch(getTournamentSchedules({ tournamentId: selectedTournamentId, roundType: selectedRound }));
-  }, [dispatch, selectedTournamentId, selectedRound]);
+    if (selectedTournamentId) {
+      const params = { tournamentId: selectedTournamentId, roundType: selectedRound };
+      if (activeTab && activeTab !== 'all') {
+        const activeCategory = categories.find(cat => cat._id === activeTab);
+        if (activeCategory) {
+          params.categoryType = activeCategory.categoryType;
+          params.tag = activeCategory.tag;
+        }
+      }
+      dispatch(getTournamentSchedules(params));
+    }
+  }, [dispatch, selectedTournamentId, selectedRound, activeTab, categories]);
 
+  // Fetch teams when tournament or category changes
   useEffect(() => {
     if (!selectedTournamentId || !activeTab) return;
-    dispatch(getPlayersByCategoryGender({ tournamentId: selectedTournamentId, categoryType: activeTab }));
-  }, [selectedTournamentId, activeTab, dispatch]);
+    const selectedCategory = categories.find(cat => cat._id === activeTab);
+    if (selectedCategory) {
+      dispatch(getTournamentTeams({
+        tournamentId: selectedTournamentId,
+        categoryType: selectedCategory.categoryType,
+        tag: selectedCategory.tag
+      }));
+    }
+  }, [selectedTournamentId, activeTab, dispatch, categories]);
 
   const refetchPlayers = useCallback(async () => {
     if (!selectedTournamentId || !activeTab) return;
@@ -588,8 +633,11 @@ const TournamentSchedule = () => {
     const map = {};
     if (!Array.isArray(schedules)) return map;
     schedules.forEach(s => {
-      const tag = s.categoryType;
-      if (!map[tag]) map[tag] = [];
+      const category = categories.find(c => c.categoryType === s.categoryType && (s.tag ? c.tag === s.tag : true));
+      const categoryId = category ? category._id : null;
+      if (!categoryId) return;
+
+      if (!map[categoryId]) map[categoryId] = [];
       (s.matches || []).forEach((m, i) => {
         const parseTime = (str) => {
           if (!str) return '09:00';
@@ -599,7 +647,7 @@ const TournamentSchedule = () => {
           if (mod === 'AM' && hh === 12) hh = 0;
           return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
         };
-        map[tag].push({
+        map[categoryId].push({
           id: `existing_${s._id}_${i}`,
           scheduleId: s._id,
           date: s.date ? s.date.split('T')[0] : '',
@@ -615,20 +663,36 @@ const TournamentSchedule = () => {
       });
     });
     return map;
-  }, [schedules]);
+  }, [schedules, categories]);
 
-  const currentNew = (matchesByCategory[activeTab] || []).filter(m => !m.isExisting);
-  const currentExisting = existingMatches[activeTab] || [];
+  const currentNew = activeTab === 'all' 
+    ? Object.keys(matchesByCategory).filter(key => key !== 'all').flatMap(key => (matchesByCategory[key] || []).filter(m => !m.isExisting))
+    : (matchesByCategory[activeTab] || []).filter(m => !m.isExisting);
+
+  const currentExisting = activeTab === 'all'
+    ? Object.keys(existingMatches).filter(key => key !== 'all').flatMap(key => existingMatches[key] || [])
+    : existingMatches[activeTab] || [];
 
   // ── stable callbacks via useCallback ────────────────────────────────────────
 
-  const handleAddDate = useCallback(({ date, venue }) => {
-    setMatchesByCategory(prev => ({
-      ...prev,
-      [activeTab]: [...(prev[activeTab] || []), { ...EMPTY_MATCH(Date.now()), date, venue, availablePlayers }],
-    }));
+  const handleAddDate = useCallback(({ date, venue, selectedCats }) => {
+    const catsToAdd = categories.filter(c => selectedCats.includes(c._id));
+    const newMatchesByCategory = {};
+    
+    catsToAdd.forEach(category => {
+      const categoryId = category._id;
+      const existingMatches = matchesByCategory[categoryId] || [];
+      const baseId = existingMatches.length > 0 ? Math.max(...existingMatches.map(m => m.id)) + 1 : Date.now() + Math.random();
+      
+      newMatchesByCategory[categoryId] = [
+        ...existingMatches,
+        { ...EMPTY_MATCH(baseId), date, venue }
+      ];
+    });
+    
+    setMatchesByCategory(prev => ({ ...prev, ...newMatchesByCategory }));
     setShowModal(false);
-  }, [activeTab, availablePlayers]);
+  }, [categories, matchesByCategory]);
 
   const onUpdateMatch = useCallback((id, updater) => {
     setMatchesByCategory(prev => ({
@@ -663,41 +727,90 @@ const TournamentSchedule = () => {
 
   const handleSave = async () => {
     if (!selectedTournamentId) { showError('No tournament selected'); return; }
-    if (currentNew.length === 0) { showError('No new matches to save'); return; }
-    for (let i = 0; i < currentNew.length; i++) {
-      const m = currentNew[i];
-      if (!m.date) { showError(`Match ${i + 1}: date is required`); return; }
-      if (!m.teamA.teamName || !m.teamB.teamName) { showError(`Match ${i + 1}: both team names are required`); return; }
-      for (let j = 0; j < 2; j++) {
-        if (!m.teamA.players[j]?.playerName) { showError(`Match ${i + 1} Team A: player ${j + 1} name required`); return; }
-        if (!m.teamB.players[j]?.playerName) { showError(`Match ${i + 1} Team B: player ${j + 1} name required`); return; }
-        const phoneA = m.teamA.players[j]?.phoneNumber;
-        const phoneB = m.teamB.players[j]?.phoneNumber;
-        // if (phoneA && (!/^[6-9]/.test(phoneA) || phoneA.length !== 10)) { showError(`Match ${i + 1} Team A player ${j + 1}: invalid phone number`); return; }
-        // if (phoneB && (!/^[6-9]/.test(phoneB) || phoneB.length !== 10)) { showError(`Match ${i + 1} Team B player ${j + 1}: invalid phone number`); return; }
+    
+    // Filter categories to only those that have at least one match with BOTH teams selected
+    const categoriesToSave = categories.filter(cat => {
+      const catMatches = (matchesByCategory[cat._id] || []).filter(m => !m.isExisting);
+      return catMatches.some(m => m.teamA?.teamId && m.teamB?.teamId);
+    });
+    
+    if (categoriesToSave.length === 0) { 
+      showError('Please select both teams for at least one match before saving.'); 
+      return; 
+    }
+    
+    // Validation for dates (every category to save must have matches with dates, which they do by default)
+    for (const category of categoriesToSave) {
+      const validMatches = (matchesByCategory[category._id] || [])
+        .filter(m => !m.isExisting && m.teamA?.teamId && m.teamB?.teamId);
+      
+      for (let i = 0; i < validMatches.length; i++) {
+        if (!validMatches[i].date) { 
+          showError(`${category.categoryType} - Match ${i + 1}: date is required`); 
+          return; 
+        }
       }
     }
-    const payload = {
-      tournamentId: selectedTournamentId,
-      categoryType: activeTab,
-      roundType: selectedRound,
-      date: currentNew[0].date,
-      venue: currentNew[0].venue,
-      matches: currentNew.map((m, i) => ({
-        matchNo: i + 1,
-        startTime: convertTo12Hour(m.time),
-        endTime: convertTo12Hour(m.endTime || calcEndTime(m.time, m.duration)),
-        duration: m.duration,
-        time: convertTo12Hour(m.time),
-        teamA: { teamName: m.teamA.teamName, players: m.teamA.players.map(p => ({ playerId: p.playerId, playerName: p.playerName, phoneNumber: p.phoneNumber })) },
-        teamB: { teamName: m.teamB.teamName, players: m.teamB.players.map(p => ({ playerId: p.playerId, playerName: p.playerName, phoneNumber: p.phoneNumber })) },
-      })),
-    };
-    const result = await dispatch(saveTournamentSchedule(payload));
-    if (result.meta.requestStatus === 'fulfilled') {
-      setMatchesByCategory(prev => ({ ...prev, [activeTab]: [] }));
-      dispatch(getTournamentSchedules({ tournamentId: selectedTournamentId, roundType: selectedRound }));
+    
+    // Save all categories
+    for (const category of categoriesToSave) {
+      const validCatMatches = (matchesByCategory[category._id] || [])
+        .filter(m => !m.isExisting && m.teamA?.teamId && m.teamB?.teamId);
+      
+      if (validCatMatches.length === 0) continue;
+
+      const payload = {
+        tournamentId: selectedTournamentId,
+        categoryType: category.categoryType,
+        tag: category.tag,
+        roundType: selectedRound,
+        date: validCatMatches[0].date,
+        venue: validCatMatches[0].venue,
+        matches: validCatMatches.map((m, i) => ({
+          matchNo: i + 1,
+          startTime: convertTo12Hour(m.time),
+          endTime: convertTo12Hour(m.endTime || calcEndTime(m.time, m.duration)),
+          duration: m.duration,
+          time: convertTo12Hour(m.time),
+          teamA: { 
+            teamId: m.teamA.teamId,
+            teamName: m.teamA.teamName, 
+            players: m.teamA.players.map(p => ({ playerId: p.playerId, playerName: p.playerName, phoneNumber: p.phoneNumber })) 
+          },
+          teamB: { 
+            teamId: m.teamB.teamId,
+            teamName: m.teamB.teamName, 
+            players: m.teamB.players.map(p => ({ playerId: p.playerId, playerName: p.playerName, phoneNumber: p.phoneNumber })) 
+          },
+        })),
+      };
+      
+      const result = await dispatch(saveTournamentSchedule(payload));
+      if (result.meta.requestStatus !== 'fulfilled') {
+        showError(`Failed to save schedule for ${category.categoryType}`);
+        return;
+      }
     }
+    
+    showSuccess(`Schedules saved successfully for ${categoriesToSave.length} ${categoriesToSave.length === 1 ? 'category' : 'categories'}`);
+    
+    // Clear all saved categories new matches
+    categoriesToSave.forEach(cat => {
+      setMatchesByCategory(prev => {
+        const existingOnly = (prev[cat._id] || []).filter(m => m.isExisting);
+        return { ...prev, [cat._id]: existingOnly };
+      });
+    });
+    
+    const params = { tournamentId: selectedTournamentId, roundType: selectedRound };
+    if (activeTab && activeTab !== 'all') {
+      const activeCategory = categories.find(cat => cat._id === activeTab);
+      if (activeCategory) {
+        params.categoryType = activeCategory.categoryType;
+        params.tag = activeCategory.tag;
+      }
+    }
+    dispatch(getTournamentSchedules(params));
   };
 
   const confirmDeleteSchedule = async () => {
@@ -710,7 +823,16 @@ const TournamentSchedule = () => {
     if (result.type === 'tournament/deleteTournamentSchedule/fulfilled') {
       setShowDeleteModal(false);
       setScheduleToDelete(null);
-      dispatch(getTournamentSchedules({ tournamentId: selectedTournamentId, roundType: selectedRound }));
+      
+      const params = { tournamentId: selectedTournamentId, roundType: selectedRound };
+      if (activeTab && activeTab !== 'all') {
+        const activeCategory = categories.find(cat => cat._id === activeTab);
+        if (activeCategory) {
+          params.categoryType = activeCategory.categoryType;
+          params.tag = activeCategory.tag;
+        }
+      }
+      dispatch(getTournamentSchedules(params));
     }
   };
 
@@ -720,7 +842,7 @@ const TournamentSchedule = () => {
         <Col className="py-3">
           <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div className="d-flex gap-2 flex-wrap">
-              {ROUNDS.map(({ key, label }) => (
+              {dynamicRounds.map(({ key, label }) => (
                 <button key={key} onClick={() => { setSelectedRound(key); setMatchesByCategory({}); }}
                   className={`round-tab ${selectedRound === key ? 'active' : ''}`}>
                   {label}
@@ -733,14 +855,14 @@ const TournamentSchedule = () => {
                 <option value="">Select Tournament</option>
                 {tournamentsData.map(t => <option key={t._id} value={t._id}>{t.tournamentName}</option>)}
               </select>
-              <button
+              {/* <button
                 className="export-btn"
                 onClick={() => setShowPlayersOffcanvas(true)}
                 disabled={!selectedTournamentId || !activeTab}
                 title="Add players to this category"
               >
                 <FiUsers size={15} /> Manage Players
-              </button>
+              </button> */}
               <button className="export-btn" onClick={() => setShowModal(true)} disabled={!activeTab}>
                 <FiPlus size={15} /> Add Date
               </button>
@@ -754,19 +876,30 @@ const TournamentSchedule = () => {
           {categories.length > 0 && (
             <Nav variant="tabs" activeKey={activeTab} onSelect={setActiveTab} className="level-tabs border-0 mb-3">
               {categories.map(cat => (
-                <Nav.Item key={cat.tag}>
+                <Nav.Item key={cat._id}>
                   <Nav.Link
-                    eventKey={cat.tag}
-                    className={activeTab === cat.tag ? 'active' : ''}
-                    style={{ color: activeTab === cat.tag ? '#1F41BB' : '#666' }}
+                    eventKey={cat._id}
+                    className={activeTab === cat._id ? 'active' : ''}
+                    style={{ color: activeTab === cat._id ? '#1F41BB' : '#666' }}
                   >
-                    {cat.tag}
-                    {(existingMatches[cat.tag] || []).length > 0 && (
-                      <span className="fw-semibold ms-1" style={{ color: '#1F41BB' }}>({(existingMatches[cat.tag] || []).length})</span>
+                    {cat.categoryType} ({cat.tag})
+                    {(existingMatches[cat._id] || []).length > 0 && (
+                      <span className="fw-semibold ms-1" style={{ color: '#1F41BB' }}>({(existingMatches[cat._id] || []).length})</span>
                     )}
                   </Nav.Link>
                 </Nav.Item>
               ))}
+              {categories.length > 0 && (
+                <Nav.Item>
+                  <Nav.Link eventKey="all" className={activeTab === 'all' ? 'active' : ''}>
+                    All <span className='fw-semibold' style={{ color: '#1F41BB' }}>
+                      {Object.keys(existingMatches).reduce((acc, key) => acc + (existingMatches[key] || []).length, 0) > 0 
+                        ? `(${Object.keys(existingMatches).reduce((acc, key) => acc + (existingMatches[key] || []).length, 0)})` 
+                        : ''}
+                    </span>
+                  </Nav.Link>
+                </Nav.Item>
+              )}
             </Nav>
           )}
 
@@ -788,10 +921,23 @@ const TournamentSchedule = () => {
                       style={{ background: '#1F41BB', color: 'white', border: 'none', borderRadius: 6, padding: '4px 12px', fontSize: 12, fontWeight: 600 }}
                       onClick={() => {
                         const last = currentNew[currentNew.length - 1];
-                        setMatchesByCategory(prev => ({
-                          ...prev,
-                          [activeTab]: [...(prev[activeTab] || []), { ...EMPTY_MATCH(Date.now()), date: last?.date || '', venue: last?.venue || '', availablePlayers }]
-                        }));
+                        // Add more rows only to current category/categories based on activeTab
+                        const catsToAdd = activeTab === 'all' ? categories : categories.filter(c => c._id === activeTab);
+                        
+                        const newMatchesByCategory = {};
+                        
+                        catsToAdd.forEach(category => {
+                          const categoryId = category._id;
+                          const existingMatches = matchesByCategory[categoryId] || [];
+                          const baseId = existingMatches.length > 0 ? Math.max(...existingMatches.map(m => m.id)) + 1 : Date.now() + Math.random();
+                          
+                          newMatchesByCategory[categoryId] = [
+                            ...existingMatches,
+                            { ...EMPTY_MATCH(baseId), date: last?.date || '', venue: last?.venue || '' }
+                          ];
+                        });
+                        
+                        setMatchesByCategory(prev => ({ ...prev, ...newMatchesByCategory }));
                       }}
                     >
                       <FiPlus size={13} /> Add More
@@ -813,12 +959,30 @@ const TournamentSchedule = () => {
                       </colgroup>
                       <TableHead />
                       <tbody>
-                        {currentNew.map((m, i) => (
-                          <MatchRow key={m.id} match={m} index={i} editable isEditing={false}
-                            onUpdateMatch={onUpdateMatch} onDelete={onDelete}
-                            onCancelEdit={onCancelEdit} onEditExisting={onEditExisting}
-                            availablePlayers={availablePlayers} allMatches={[...currentNew, ...currentExisting]} />
-                        ))}
+                        {categories
+                          .filter(cat => activeTab === 'all' || activeTab === cat._id)
+                          .map((category) => {
+                            const categoryMatches = (matchesByCategory[category._id] || []).filter(m => !m.isExisting);
+                            if (categoryMatches.length === 0) return null;
+
+                            return (
+                              <React.Fragment key={category._id}>
+                                {activeTab === 'all' && (
+                                  <tr style={{ backgroundColor: '#f8f9fa' }}>
+                                    <td colSpan="10" style={{ padding: '8px 12px', textAlign: 'center', fontWeight: 'bold', fontSize: '13px', color: 'rgba(31, 65, 187, 1)', borderBottom: '1px solid #ddd' }}>
+                                      {category.categoryType} ({category.tag})
+                                    </td>
+                                  </tr>
+                                )}
+                                {categoryMatches.map((m, i) => (
+                                  <MatchRow key={m.id} match={m} index={i} editable isEditing={false}
+                                    onUpdateMatch={onUpdateMatch} onDelete={onDelete}
+                                    onCancelEdit={onCancelEdit} onEditExisting={onEditExisting}
+                                    availableTeams={availableTeams} allMatches={[...currentNew, ...currentExisting]} />
+                                ))}
+                              </React.Fragment>
+                            );
+                          })}
                       </tbody>
                     </table>
                   </div>
@@ -854,7 +1018,7 @@ const TournamentSchedule = () => {
                             editable={editingId === m.id} isEditing={editingId === m.id}
                             onUpdateMatch={onUpdateMatch} onDelete={onDelete}
                             onCancelEdit={onCancelEdit} onEditExisting={onEditExisting}
-                            availablePlayers={availablePlayers} allMatches={[...currentNew, ...currentExisting]} />
+                            availableTeams={availableTeams} allMatches={[...currentNew, ...currentExisting]} />
                         ))}
                       </tbody>
                     </table>
@@ -872,7 +1036,14 @@ const TournamentSchedule = () => {
         </Col>
       </Row>
 
-      <AddDateModal show={showModal} onHide={() => setShowModal(false)} onConfirm={handleAddDate} />
+      <AddDateModal 
+        show={showModal} 
+        onHide={() => setShowModal(false)} 
+        onConfirm={handleAddDate} 
+        categories={categories}
+        activeTab={activeTab}
+        selectedRound={selectedRound}
+      />
       <ManagePlayersOffcanvas
         show={showPlayersOffcanvas}
         onHide={() => setShowPlayersOffcanvas(false)}

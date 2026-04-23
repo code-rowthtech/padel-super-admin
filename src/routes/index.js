@@ -21,11 +21,12 @@ const NewLeague = React.lazy(() => import("../pages/admin/league/NewLeagueCreati
 const LeagueCreation = React.lazy(() => import("../pages/admin/league/LeagueCreation"));
 const LeagueRegistration = React.lazy(() => import("../pages/admin/league/LeagueRegistration"));
 const LeagueSchedule = React.lazy(() => import("../pages/admin/league/LeagueSchedule"));
-// const TeamCreation = React.lazy(() => import("../pages/admin/league/TeamCreation"));
+const TeamCreation = React.lazy(() => import("../pages/admin/league/TeamCreation"));
 const ViewLeagueSchedule = React.lazy(() => import("../pages/admin/league/ViewLeagueSchedule"));
 const TournamentCreation = React.lazy(() => import("../pages/admin/tournament/TournamentCreation"));
 const NewTournament = React.lazy(() => import("../pages/admin/tournament/NewTournamentCreation"));
 const TournamentSchedule = React.lazy(() => import("../pages/admin/tournament/TournamentSchedule"));
+const TournamentTeamCreation = React.lazy(() => import("../pages/admin/tournament/TournamentTeamCreation"));
 const ViewTournament = React.lazy(() => import("../pages/admin/tournament/ViewTournament"));
 const PointsTablePage = React.lazy(() => import("../pages/admin/league/PointsTablePage"));
 const Notifications = React.lazy(() => import("../pages/admin/notifications/Notifications"));
@@ -104,10 +105,10 @@ const AllRoutes = () => {
               path: "league/schedule",
               element: LoadComponent(LeagueSchedule),
             },
-            // {
-            //   path: "league/team-creation",
-            //   element: LoadComponent(TeamCreation),
-            // },
+            {
+              path: "league/team-creation",
+              element: LoadComponent(TeamCreation),
+            },
             {
               path: "league/points-table",
               element: LoadComponent(PointsTablePage),
@@ -141,6 +142,10 @@ const AllRoutes = () => {
               element: LoadComponent(TournamentSchedule),
             },
             {
+              path: "tournament/team-creation",
+              element: LoadComponent(TournamentTeamCreation),
+            },
+            {
               path: "view-tournament/:tournamentId",
               element: LoadComponent(ViewTournament),
             },
@@ -152,7 +157,7 @@ const AllRoutes = () => {
               path: "app-users",
               element: LoadComponent(AppUsers),
             },
-             {
+            {
               path: "app-version",
               element: LoadComponent(AppVersion),
             },
