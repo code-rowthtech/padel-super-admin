@@ -21,6 +21,7 @@ import {
   getBookingDetailsById,
   updateBookingStatus,
   getCategoryList,
+  getAllClubs,
 } from "../../../redux/thunks";
 import { FaEye } from "react-icons/fa";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
@@ -43,10 +44,11 @@ const Booking = () => {
   const isSuperAdmin = ownerData?.role === 'super_admin';
   // ✅ SUPER ADMIN: Use selectedOwnerId if explicitly set, otherwise null (for "All Owners")
   // For non-super-admin, use logged-in owner's ID
-  const ownerId = isSuperAdmin 
+  const ownerId = isSuperAdmin
     ? (selectedOwnerId || null)  // null when "All Owners" is selected
     : (getOwnerFromSession()?._id);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedClubId, setSelectedClubId] = useState("");
 
   const [showBookingDetails, setShowBookingDetails] = useState(false);
   const [showBookingCancel, setShowBookingCancel] = useState(false);
@@ -60,6 +62,11 @@ const Booking = () => {
   const [category, setCategory] = useState("");
 
   useEffect(() => {
+    dispatch(getCategoryList());
+    dispatch(getAllClubs());
+  }, [dispatch]);
+
+  useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchTerm);
     }, 500);
@@ -67,12 +74,8 @@ const Booking = () => {
   }, [searchTerm]);
 
   useEffect(() => {
-    dispatch(getCategoryList());
-  }, [dispatch]);
-
-  useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch, category]);
+  }, [debouncedSearch, category, selectedClubId]);
 
   const {
     getBookingData,
@@ -81,7 +84,7 @@ const Booking = () => {
     updateBookingLoading,
     bookingCount: tabCount,
     categoryList,
-    categoryListLoading,
+    clubs,
   } = useSelector((state) => state.booking);
 
   const bookings = getBookingData?.bookings || [];
@@ -108,6 +111,7 @@ const Booking = () => {
       limit: defaultLimit,
       ...(debouncedSearch ? { search: debouncedSearch } : {}),
       ...(category ? { category: category } : {}),
+      ...(selectedClubId ? { clubId: selectedClubId } : {}),
     };
 
     if (tab !== 0) {
@@ -134,6 +138,7 @@ const Booking = () => {
     ownerId,
     debouncedSearch,
     category,
+    selectedClubId,
     startDate,
     endDate,
     dispatch,
@@ -145,6 +150,7 @@ const Booking = () => {
       ownerId: ownerId || undefined,
       ...(debouncedSearch ? { search: debouncedSearch } : {}),
       ...(category ? { category: category } : {}),
+      ...(selectedClubId ? { clubId: selectedClubId } : {}),
     };
 
     if (sendDate) {
@@ -159,7 +165,7 @@ const Booking = () => {
     }
 
     dispatch(bookingCount(countPayload));
-  }, [ownerId, debouncedSearch, category, startDate, endDate, dispatch]);
+  }, [ownerId, debouncedSearch, category, selectedClubId, startDate, endDate, dispatch]);
 
   useEffect(() => {
     if (tabCount) {
@@ -341,7 +347,7 @@ const Booking = () => {
                   <Tab
                     label={
                       <>
-                        <span>
+                        <span className="pe-3 ps-2">
                           Completed{" "}
                           <b style={{ color: "#16a34a" }}>({completedCount})</b>{" "}
                         </span>
@@ -355,6 +361,8 @@ const Booking = () => {
 
             <div className="d-flex align-items-center gap-2 col-md-8 col-12 d-flex align-items-center justify-content-end flex-wrap">
               <div className="d-flex align-items-center gap-2 flex-grow-1 flex-md-grow-0 mb-2 mb-md-0">
+
+
                 <div style={{ position: "relative", width: "100%", maxWidth: "250px" }}>
                   <Form.Control
                     type="text"
@@ -367,7 +375,7 @@ const Booking = () => {
                       borderRadius: "8px",
                       fontSize: "14px",
                       border: "1px solid #dee2e6",
-                      backgroundColor: "#FAFBFF",
+                      backgroundColor: "#FAFBFF",boxShadow:"none"
                     }}
                   />
                   <FaSearch
@@ -376,7 +384,26 @@ const Booking = () => {
                     style={{ position: "absolute", left: "15px", top: "12px" }}
                   />
                 </div>
-
+                <Form.Select
+                  value={selectedClubId}
+                  onChange={(e) => setSelectedClubId(e.target.value)}
+                  style={{
+                    height: "38px",
+                    width: "120px",
+                    borderRadius: "8px",
+                    fontSize: "14px",
+                    border: "1px solid #dee2e6",
+                    backgroundColor: "#FAFBFF",
+                    cursor: "pointer",boxShadow:"none"
+                  }}
+                >
+                  <option value="">All Clubs</option>
+                  {clubs?.map((club) => (
+                    <option key={club._id} value={club._id}>
+                      {club.clubName}
+                    </option>
+                  ))}
+                </Form.Select>
                 <Form.Select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
@@ -387,7 +414,7 @@ const Booking = () => {
                     fontSize: "14px",
                     border: "1px solid #dee2e6",
                     backgroundColor: "#FAFBFF",
-                    cursor: "pointer",
+                    cursor: "pointer",boxShadow:"none"
                   }}
                 >
                   <option value="">Category</option>
@@ -401,66 +428,66 @@ const Booking = () => {
 
               <div className="d-flex align-items-center gap-2 mb-2 mb-md-0">
                 {!showDatePicker && !startDate && !endDate ? (
-                <div
-                  className="d-flex align-items-center justify-content-center rounded p-2"
-                  style={{
-                    backgroundColor: "#FAFBFF",
-                    width: "40px",
-                    height: "38px",
-                    border: "1px solid #dee2e6",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => setShowDatePicker(true)}
-                >
-                  <MdOutlineDateRange size={16} className="text-muted" />
-                </div>
-              ) : (
-                <div
-                  className="d-flex align-items-center justify-content-center rounded p-1"
-                  style={{
-                    backgroundColor: "#FAFBFF",
-                    maxWidth: "280px",
-                    height: "38px",
-                    border: "1px solid #dee2e6",
-                    gap: "8px",
-                  }}
-                >
-                  <div className="px-2">
+                  <div
+                    className="d-flex align-items-center justify-content-center rounded p-2"
+                    style={{
+                      backgroundColor: "#FAFBFF",
+                      width: "40px",
+                      height: "38px",
+                      border: "1px solid #dee2e6",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => setShowDatePicker(true)}
+                  >
                     <MdOutlineDateRange size={16} className="text-muted" />
                   </div>
-                  <DatePicker
-                    selectsRange
-                    startDate={startDate}
-                    endDate={endDate}
-                    onChange={(update) => {
-                      setDateRange(update);
-                      const [start, end] = update;
-                      if (start && end) {
-                        setShowDatePicker(false);
-                      }
+                ) : (
+                  <div
+                    className="d-flex align-items-center justify-content-center rounded p-1"
+                    style={{
+                      backgroundColor: "#FAFBFF",
+                      maxWidth: "280px",
+                      height: "38px",
+                      border: "1px solid #dee2e6",
+                      gap: "8px",
                     }}
-                    dateFormat="dd/MM/yy"
-                    placeholderText="DD/MM/YY – DD/MM/YY"
-                    className="form-control border-0 bg-transparent shadow-none custom-datepicker-input"
-                    open={showDatePicker}
-                    onClickOutside={() => setShowDatePicker(false)}
-                  />
-                  {(startDate || endDate) && (
-                    <div
-                      className="px-2"
-                      onClick={() => {
-                        setDateRange([null, null]);
-                        setShowDatePicker(false);
-                        setCurrentPage(1);
-                      }}
-                      style={{ cursor: "pointer" }}
-                    >
-                      <FaTimes size={14} className="text-danger" />
+                  >
+                    <div className="px-2">
+                      <MdOutlineDateRange size={16} className="text-muted" />
                     </div>
-                  )}
-                </div>
-              )}
-            </div>
+                    <DatePicker
+                      selectsRange
+                      startDate={startDate}
+                      endDate={endDate}
+                      onChange={(update) => {
+                        setDateRange(update);
+                        const [start, end] = update;
+                        if (start && end) {
+                          setShowDatePicker(false);
+                        }
+                      }}
+                      dateFormat="dd/MM/yy"
+                      placeholderText="DD/MM/YY – DD/MM/YY"
+                      className="form-control border-0 bg-transparent shadow-none custom-datepicker-input"
+                      open={showDatePicker}
+                      onClickOutside={() => setShowDatePicker(false)}
+                    />
+                    {(startDate || endDate) && (
+                      <div
+                        className="px-2"
+                        onClick={() => {
+                          setDateRange([null, null]);
+                          setShowDatePicker(false);
+                          setCurrentPage(1);
+                        }}
+                        style={{ cursor: "pointer" }}
+                      >
+                        <FaTimes size={14} className="text-danger" />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
 
               {(searchTerm || category || startDate || endDate) && (
                 <button
@@ -662,21 +689,21 @@ const Booking = () => {
                             style={{ maxWidth: "80px" }}
                           >
                             {/* ✅ SUPER ADMIN: Handle both old format and new format */}
-                            { item?.club?.clubName || item?.clubName || "-"}
+                            {item?.club?.clubName || item?.clubName || "-"}
                           </td>
-                           <td
+                          <td
                             className="text-truncate text-capitalize"
                             style={{ maxWidth: "80px" }}
                           >
                             {/* ✅ SUPER ADMIN: Handle both old format and new format */}
-                            { item?.category?.name || "-"}
+                            {item?.category?.name || "-"}
                           </td>
                           <td
                             className="text-truncate"
                             style={{ maxWidth: "80px" }}
                           >
                             {/* ✅ SUPER ADMIN: Handle both old format and new format */}
-                            {item?.slot?.[0]?.courtName ||"-"}
+                            {item?.slot?.[0]?.courtName || "-"}
                           </td>
                           <td className="text-truncate">
                             {item?.bookingStatus === "in-progress" ? (

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   Container,
   Row,
@@ -7,6 +7,7 @@ import {
   Table,
   OverlayTrigger,
   Tooltip as BootstrapTooltip,
+  Form,
 } from "react-bootstrap";
 import {
   ResponsiveContainer,
@@ -34,6 +35,8 @@ import {
   updateBookingStatus,
   getRevenueForDashboard,
 } from "../../../redux/thunks";
+import { SUPER_ADMIN_GET_ALL_CLUBS } from "../../../helpers/api/apiEndpoint";
+import { ownerApi } from "../../../helpers/api/apiCore";
 import { useSelector, useDispatch } from "react-redux";
 import { formatDate, formatTime } from "../../../helpers/Formatting";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
@@ -54,6 +57,9 @@ const AdminDashboard = () => {
   const Owner = getOwnerFromSession();
   const ownerData = Owner?.user || Owner;
   const isSuperAdmin = ownerData?.role === 'super_admin';
+  const [clubs, setClubs] = useState([]);
+  const [selectedClubId, setSelectedClubId] = useState("all");
+  const [loadingClubs, setLoadingClubs] = useState(false);
 
   const {
     dashboardLoading,
@@ -180,15 +186,39 @@ const AdminDashboard = () => {
   const [showCancellation, setShowCancellation] = useState(false);
   const [showRequest, setShowRequest] = useState(false);
 
+  // Fetch clubs for filter
+  useEffect(() => {
+    const fetchClubs = async () => {
+      try {
+        setLoadingClubs(true);
+        const url = selectedOwnerId
+          ? `${SUPER_ADMIN_GET_ALL_CLUBS}?ownerId=${selectedOwnerId}`
+          : SUPER_ADMIN_GET_ALL_CLUBS;
+        const res = await ownerApi.get(url);
+        const clubsData = res?.data?.data || [];
+        setClubs(clubsData);
+      } catch (error) {
+        console.error("Error fetching clubs:", error);
+        setClubs([]);
+      } finally {
+        setLoadingClubs(false);
+      }
+    };
+    fetchClubs();
+  }, [selectedOwnerId]);
+
   useEffect(() => {
     // ✅ SUPER ADMIN: Pass ownerId ONLY if selectedOwnerId is explicitly set (not null/undefined)
     // If selectedOwnerId is null, don't pass ownerId to show all data
     const params = selectedOwnerId ? { ownerId: selectedOwnerId } : {};
+    if (selectedClubId !== "all") {
+      params.clubId = selectedClubId;
+    }
     dispatch(getCountDataForDashboard(params));
     dispatch(getCancelledBookingsForDashboard(params));
     dispatch(getRecentBookingsForDashboard(params));
     dispatch(getRevenueForDashboard(params));
-  }, [dispatch, selectedOwnerId]);
+  }, [dispatch, selectedOwnerId, selectedClubId]);
 
   const renderSlotTimes = (slotTimes) =>
     slotTimes?.length ? slotTimes?.map((slot) => slot?.time).join(", ") : "-";
@@ -278,7 +308,9 @@ const AdminDashboard = () => {
     year: 2025,
   }));
 
-  dashboardRevenue?.forEach((item) => {
+  const revenueArray = Array.isArray(dashboardRevenue) ? dashboardRevenue : [];
+
+  revenueArray.forEach((item) => {
     const shortMonth = monthMap[item?.month];
     const monthIndex = chartData.findIndex((d) => d?.month === shortMonth);
     if (monthIndex !== -1) {
@@ -290,7 +322,7 @@ const AdminDashboard = () => {
     }
   });
 
-  dashboardRevenue?.forEach((item) => {
+  revenueArray.forEach((item) => {
     const shortMonth = monthMap[item.month];
     const monthIndex = chartData.findIndex((d) => d?.month === shortMonth);
     if (monthIndex !== -1) {
@@ -313,13 +345,49 @@ const AdminDashboard = () => {
   return (
     <Container
       fluid
-      className="p-2 p-md-4"
+      className="p-2 pt-md-0 p-md-4"
       style={{ background: "#f9fafb", minHeight: "100vh" }}
     >
       {dashboardLoading ? (
         <DataLoading height="80vh" />
       ) : (
         <>
+          <Row className="mb-3">
+            <Col className="d-flex justify-content-end">
+              <div style={{ minWidth: "220px" }}>
+                <Form.Group className="mb-0">
+                  <Form.Select
+                    value={selectedClubId}
+                    onChange={(e) => setSelectedClubId(e.target.value)}
+                    disabled={loadingClubs || clubs.length === 0}
+                    style={{
+                      fontSize: "13px",
+                      fontFamily: "Poppins",
+                      borderRadius: "6px",
+                      border: "2px solid #dee2e6",
+                      padding: "10px 12px",
+                      backgroundColor: "#fff",
+                      fontWeight: "500",
+                      boxShadow: "none",
+                    }}
+                  >
+                    {clubs.length === 0 ? (
+                      <option value="">No Available Clubs</option>
+                    ) : (
+                      <>
+                        <option value="all">All Clubs</option>
+                        {clubs.map((club) => (
+                          <option key={club._id} value={club._id}>
+                            {club?.clubName}
+                          </option>
+                        ))}
+                      </>
+                    )}
+                  </Form.Select>
+                </Form.Group>
+              </div>
+            </Col>
+          </Row>
           <Row className="mb-4 g-3">
             {summaryCards?.map((card, index) => (
               <Col key={index} xs={12} sm={6} lg={3} className="fade-in-up">
