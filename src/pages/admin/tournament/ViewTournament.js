@@ -194,7 +194,7 @@ const DateSection = ({ dateGroup, tournamentName, onMatchClick }) => {
                 venue={schedule.venue}
                 scheduleId={schedule._id}
                 matchId={schedule?.matchId}
-                isLive={schedule.matchStatus === 'LIVE' || match.status === 'LIVE'}
+                isLive={schedule.matchStatus === 'live' || match.status === 'live'}
                 onClick={() => onMatchClick(match, schedule)}
               />
             </Col>
@@ -307,13 +307,13 @@ const PlayersTab = ({ tournamentId, filters, handleFilterChange, clearFilters, h
   useEffect(() => {
     if (!tournamentId) return;
     const params = { tournamentId, page: currentPage, limit: itemsPerPage };
-    
+
     // Find the selected category from filters using _id
     if (filters.categoryType) {
       const selectedCategory = categories.find(cat => cat._id === filters.categoryType);
       if (selectedCategory) {
         params.categoryType = selectedCategory.categoryType;
-        
+
         // Add gender based on tag
         if (selectedCategory.tag === "Men's Doubles") {
           params.gender = "Male";
@@ -323,7 +323,7 @@ const PlayersTab = ({ tournamentId, filters, handleFilterChange, clearFilters, h
         // For Mixed Doubles and Hybrid, don't send gender (means all)
       }
     }
-    
+
     // Override with explicit gender filter if provided
     if (filters.gender) {
       params.gender = filters.gender;
