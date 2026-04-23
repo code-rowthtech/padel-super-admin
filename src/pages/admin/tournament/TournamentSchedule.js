@@ -29,13 +29,13 @@ const calcEndTime = (start, dur = 60) => {
 };
 
 const EMPTY_PLAYER = () => ({ playerId: '', playerName: '', phoneNumber: '' });
-const EMPTY_TEAM = () => ({ teamName: 'Team A', players: [EMPTY_PLAYER(), EMPTY_PLAYER()] });
-const EMPTY_MATCH = (id) => ({
+const EMPTY_TEAM = (name = 'Team A') => ({ teamName: name, players: [EMPTY_PLAYER(), EMPTY_PLAYER()] });
+const EMPTY_MATCH = (id, teamAName = 'Team A', teamBName = 'Team B') => ({
   id, date: '', venue: '', venueClubId: '',
   time: '09:00', duration: 60,
   endTime: calcEndTime('09:00', 60),
-  teamA: { teamName: 'Team A', players: [EMPTY_PLAYER(), EMPTY_PLAYER()] },
-  teamB: { teamName: 'Team B', players: [EMPTY_PLAYER(), EMPTY_PLAYER()] },
+  teamA: EMPTY_TEAM(teamAName),
+  teamB: EMPTY_TEAM(teamBName),
 });
 
 // Dynamic rounds will be calculated based on selectedTournament.matchRules
@@ -80,7 +80,12 @@ const TeamSelector = ({ team, matchId, side, onUpdateMatch, availableTeams }) =>
           </option>
         ))}
       </select>
-      {team.players && team.players.length > 0 && (
+      {!team.teamId && team.teamName && !['Team A', 'Team B'].includes(team.teamName) && (
+        <div className='fw-semibold' style={{ marginTop: '6px', textAlign: 'center', color: '#1F41BB', fontSize: 13 }}>
+          {team.teamName}
+        </div>
+      )}
+      {team.players && team.players.length > 0 && team.players.some(p => p.playerName) && (
         <div className='fw-semibold' style={{ marginTop: '6px', textAlign: 'center', color: '#1F41BB', fontSize: 14 }}>
           {team.players.map(p => p.playerName).join(' & ')}
         </div>
@@ -678,21 +683,31 @@ const TournamentSchedule = () => {
   const handleAddDate = useCallback(({ date, venue, selectedCats }) => {
     const catsToAdd = categories.filter(c => selectedCats.includes(c._id));
     const newMatchesByCategory = {};
+    const isKnockout = ['quarterfinal', 'semifinal', 'final'].includes(selectedRound);
     
     catsToAdd.forEach(category => {
       const categoryId = category._id;
-      const existingMatches = matchesByCategory[categoryId] || [];
-      const baseId = existingMatches.length > 0 ? Math.max(...existingMatches.map(m => m.id)) + 1 : Date.now() + Math.random();
+      const existingMatchesInCategory = matchesByCategory[categoryId] || [];
+      const baseId = existingMatchesInCategory.length > 0 ? Math.max(...existingMatchesInCategory.map(m => m.id)) + 1 : Date.now() + Math.random();
       
+      let teamAName = 'Team A';
+      let teamBName = 'Team B';
+
+      if (isKnockout) {
+        const matchIndex = existingMatchesInCategory.length;
+        teamAName = `Winner ${(matchIndex * 2) + 1}`;
+        teamBName = `Winner ${(matchIndex * 2) + 2}`;
+      }
+
       newMatchesByCategory[categoryId] = [
-        ...existingMatches,
-        { ...EMPTY_MATCH(baseId), date, venue }
+        ...existingMatchesInCategory,
+        { ...EMPTY_MATCH(baseId, teamAName, teamBName), date, venue }
       ];
     });
     
     setMatchesByCategory(prev => ({ ...prev, ...newMatchesByCategory }));
     setShowModal(false);
-  }, [categories, matchesByCategory]);
+  }, [categories, matchesByCategory, selectedRound]);
 
   const onUpdateMatch = useCallback((id, updater) => {
     setMatchesByCategory(prev => ({
@@ -728,21 +743,29 @@ const TournamentSchedule = () => {
   const handleSave = async () => {
     if (!selectedTournamentId) { showError('No tournament selected'); return; }
     
-    // Filter categories to only those that have at least one match with BOTH teams selected
+    const isKnockout = ['quarterfinal', 'semifinal', 'final'].includes(selectedRound);
+
+    // For knockout rounds: include any category with at least one unsaved match (teams optional)
+    // For regular rounds: require both teams to be selected
     const categoriesToSave = categories.filter(cat => {
       const catMatches = (matchesByCategory[cat._id] || []).filter(m => !m.isExisting);
+      if (catMatches.length === 0) return false;
+      if (isKnockout) return true;
       return catMatches.some(m => m.teamA?.teamId && m.teamB?.teamId);
     });
     
     if (categoriesToSave.length === 0) { 
-      showError('Please select both teams for at least one match before saving.'); 
+      showError(isKnockout
+        ? 'Please add at least one match before saving.'
+        : 'Please select both teams for at least one match before saving.'
+      );
       return; 
     }
     
-    // Validation for dates (every category to save must have matches with dates, which they do by default)
+    // Validate dates for all matches
     for (const category of categoriesToSave) {
       const validMatches = (matchesByCategory[category._id] || [])
-        .filter(m => !m.isExisting && m.teamA?.teamId && m.teamB?.teamId);
+        .filter(m => !m.isExisting && (isKnockout || (m.teamA?.teamId && m.teamB?.teamId)));
       
       for (let i = 0; i < validMatches.length; i++) {
         if (!validMatches[i].date) { 
@@ -755,9 +778,20 @@ const TournamentSchedule = () => {
     // Save all categories
     for (const category of categoriesToSave) {
       const validCatMatches = (matchesByCategory[category._id] || [])
-        .filter(m => !m.isExisting && m.teamA?.teamId && m.teamB?.teamId);
+        .filter(m => !m.isExisting && (isKnockout || (m.teamA?.teamId && m.teamB?.teamId)));
       
       if (validCatMatches.length === 0) continue;
+
+      const buildTeamPayload = (team) => {
+        const payload = { teamName: team.teamName };
+        if (team.teamId) {
+          payload.teamId = team.teamId;
+          payload.players = (team.players || [])
+            .filter(p => p.playerId)
+            .map(p => ({ playerId: p.playerId, playerName: p.playerName, phoneNumber: p.phoneNumber }));
+        }
+        return payload;
+      };
 
       const payload = {
         tournamentId: selectedTournamentId,
@@ -772,16 +806,8 @@ const TournamentSchedule = () => {
           endTime: convertTo12Hour(m.endTime || calcEndTime(m.time, m.duration)),
           duration: m.duration,
           time: convertTo12Hour(m.time),
-          teamA: { 
-            teamId: m.teamA.teamId,
-            teamName: m.teamA.teamName, 
-            players: m.teamA.players.map(p => ({ playerId: p.playerId, playerName: p.playerName, phoneNumber: p.phoneNumber })) 
-          },
-          teamB: { 
-            teamId: m.teamB.teamId,
-            teamName: m.teamB.teamName, 
-            players: m.teamB.players.map(p => ({ playerId: p.playerId, playerName: p.playerName, phoneNumber: p.phoneNumber })) 
-          },
+          teamA: buildTeamPayload(m.teamA),
+          teamB: buildTeamPayload(m.teamB),
         })),
       };
       

@@ -111,6 +111,7 @@ export const bookingCount = createAsyncThunk(
       };
       const baseParams = {
         ...(data?.ownerId ? { ownerId: data.ownerId } : {}),
+        ...(data?.clubId ? { clubId: data.clubId } : {}),
         ...(data?.startDate ? { startDate: data.startDate } : {}),
         ...(data?.endDate ? { endDate: data.endDate } : {}),
         ...(data?.search ? { search: data.search } : {}),
@@ -149,6 +150,22 @@ export const getCategoryList = createAsyncThunk(
         return data?.data || [];
       }
       return rejectWithValue("Failed to fetch categories");
+    } catch (error) {
+      return rejectWithValue(error?.response?.data?.message || "Network error");
+    }
+  }
+);
+
+export const getAllClubs = createAsyncThunk(
+  "booking/getAllClubs",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await ownerApi.get(Url.SUPER_ADMIN_GET_ALL_CLUBS);
+      const { status, data } = res || {};
+      if (status === 200) {
+        return data?.data || [];
+      }
+      return rejectWithValue("Failed to fetch clubs");
     } catch (error) {
       return rejectWithValue(error?.response?.data?.message || "Network error");
     }

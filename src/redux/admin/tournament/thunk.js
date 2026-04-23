@@ -230,10 +230,12 @@ export const getPlayersByCategoryGender = createAsyncThunk(
 
 export const addTournamentPlayers = createAsyncThunk(
   "tournament/addTournamentPlayers",
-  async ({ tournamentId, players }, { rejectWithValue, dispatch }) => {
+  async ({ tournamentId, players, categoryType, tag }, { rejectWithValue, dispatch }) => {
     try {
       const payload = {
         tournamentId,
+        ...(categoryType && { categoryType }),
+        ...(tag && { tag }),
         players: players.map(p => ({
           playerName: p.playerName.trim(),
           phoneNumber: p.phoneNumber.trim(),

@@ -103,20 +103,22 @@ const TournamentTeamCreation = () => {
         if (!selectedTournamentId || !activeTab) return;
         const selectedCategory = categories.find(cat => cat._id === activeTab);
         if (selectedCategory) {
-            const params = { 
-                tournamentId: selectedTournamentId, 
+            const params = {
+                tournamentId: selectedTournamentId,
                 categoryType: selectedCategory.categoryType,
                 page: playerPage,
                 limit: 50,
                 search: debouncedSearch
             };
-            
+
             if (selectedCategory.tag === "Men's Doubles") {
                 params.gender = "Male";
             } else if (selectedCategory.tag === "Women's Doubles") {
                 params.gender = "Female";
+            } else {
+                params.categoryType = 'all';
             }
-            
+
             dispatch(getPlayersByCategoryGender(params));
         }
     }, [selectedTournamentId, activeTab, dispatch, categories, debouncedSearch, playerPage]);
@@ -284,7 +286,7 @@ const TournamentTeamCreation = () => {
     };
 
     const selectedPlayerIds = getSelectedPlayerIds();
-    
+
     // Combine base players (from teams) and all players (from API)
     const combinedPlayers = useMemo(() => {
         const map = new Map();
@@ -378,10 +380,6 @@ const TournamentTeamCreation = () => {
                     <div className="text-center py-5">
                         <h5 className="text-muted">No categories found for this tournament</h5>
                     </div>
-                ) : loadingPlayers ? (
-                    <DataLoading height="50vh" />
-                ) : loadingTeams ? (
-                    <DataLoading height="50vh" />
                 ) : (
                     <>
                         {selectedCategory && (
@@ -530,10 +528,10 @@ const TournamentTeamCreation = () => {
                                                                                         {availablePlayer.playerName}
                                                                                     </Dropdown.Item>
                                                                                 ))}
-                                                                                
+
                                                                                 {playersPagination && playersPagination.page < playersPagination.totalPages && (
                                                                                     <div className="p-2 border-top text-center">
-                                                                                        <button 
+                                                                                        <button
                                                                                             className="btn btn-link btn-sm text-decoration-none"
                                                                                             onClick={(e) => {
                                                                                                 e.stopPropagation();
