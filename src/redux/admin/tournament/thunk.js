@@ -14,6 +14,8 @@ export const EXPORT_PLAYERS_CSV = "/api/tournament-players/exportCSV";
 export const UPLOAD_PLAYERS_CSV = "/api/tournament-players/uploadCSV";
 export const GET_PLAYERS_BY_CATEGORY_GENDER = "/api/tournament-players/getPlayersByCategoryGender";
 export const ADD_TOURNAMENT_PLAYERS = "/api/tournament-players/addPlayer";
+export const SAVE_TOURNAMENT_TEAMS = "/api/tournament-teams/saveTeams";
+export const GET_TOURNAMENT_TEAMS = "/api/tournament-teams/getTeams";
 
 export const getTournaments = createAsyncThunk(
   "tournament/getTournaments",
@@ -128,6 +130,7 @@ export const saveTournamentSchedule = createAsyncThunk(
     try {
       const response = await ownerApi.post(SAVE_TOURNAMENT_SCHEDULE, scheduleData);
       if (response?.status === 200 || response?.status === 201) {
+        console.log({ response })
         showSuccess(response?.data?.message || "Schedule saved successfully");
         return response.data;
       }
@@ -209,7 +212,15 @@ export const getPlayersByCategoryGender = createAsyncThunk(
       const query = new URLSearchParams();
       Object.keys(params).forEach(k => { if (params[k]) query.append(k, params[k]); });
       const response = await ownerApi.get(`${GET_PLAYERS_BY_CATEGORY_GENDER}${query.toString() ? `?${query.toString()}` : ''}`);
-      if (response?.status === 200) return response.data?.data || [];
+      if (response?.status === 200) {
+        return {
+          data: response.data?.data || [],
+          total: response.data?.total || 0,
+          page: response.data?.page || 1,
+          limit: response.data?.limit || 10,
+          totalPages: response.data?.totalPages || 1
+        };
+      }
       return rejectWithValue(response?.data?.message);
     } catch (error) {
       return rejectWithValue(error);
@@ -251,6 +262,43 @@ export const addTournamentPlayers = createAsyncThunk(
       return rejectWithValue(response?.data?.message);
     } catch (error) {
       showError(error?.response?.data?.message || error || 'Failed to create players');
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const saveTournamentTeams = createAsyncThunk(
+  "tournament/saveTournamentTeams",
+  async ({ tournamentId, categoryType, tag, teams }, { rejectWithValue }) => {
+    try {
+      const payload = { tournamentId, categoryType, tag, teams };
+      const response = await ownerApi.post(SAVE_TOURNAMENT_TEAMS, payload);
+      if (response?.status === 200 || response?.status === 201) {
+        showSuccess(response?.data?.message || "Teams saved successfully");
+        return response.data;
+      }
+      showError(response?.data?.message || "Failed to save teams");
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      showError(error?.response?.data?.message || error || "Failed to save teams");
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const getTournamentTeams = createAsyncThunk(
+  "tournament/getTournamentTeams",
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const query = new URLSearchParams();
+      Object.keys(params).forEach(k => { if (params[k]) query.append(k, params[k]); });
+      const response = await ownerApi.get(`${GET_TOURNAMENT_TEAMS}${query.toString() ? `?${query.toString()}` : ''}`);
+      if (response?.status === 200) {
+        // API returns { success: true, data: { teams: [...] } }
+        return response.data?.data || null;
+      }
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
       return rejectWithValue(error);
     }
   }

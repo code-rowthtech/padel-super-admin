@@ -205,28 +205,36 @@ const DateSection = ({ dateGroup, tournamentName, onMatchClick }) => {
   );
 };
 
-const SchedulesTab = ({ tournamentId, categories, selectedRound, onMatchClick }) => {
+const ROUND_CONFIG = {
+  regularRound: { key: 'regular', label: 'Regular' },
+  quarterfinal: { key: 'quarterfinal', label: 'Quarter-Final' },
+  semifinal: { key: 'semifinal', label: 'Semi-Final' },
+  final: { key: 'final', label: 'Final' },
+};
+
+const SchedulesTab = ({ tournamentId, categories, selectedRound, categoryId, onMatchClick }) => {
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(false);
   const [tournamentName, setTournamentName] = useState('');
 
-  const ROUNDS = [
-    { key: 'regular', label: 'Regular' },
-    { key: 'quarterfinal', label: 'Quarter-Final' },
-    { key: 'semifinal', label: 'Semi-Final' },
-    { key: 'final', label: 'Final' },
-  ];
-
   useEffect(() => {
     fetchSchedules();
-  }, [tournamentId, selectedRound]);
+  }, [tournamentId, selectedRound, categoryId]);
 
   const fetchSchedules = async () => {
     if (!tournamentId) return;
     setLoading(true);
     try {
+      const params = { tournamentId, roundType: selectedRound };
+      if (categoryId) {
+        const selectedCategory = categories.find(cat => cat._id === categoryId);
+        if (selectedCategory) {
+          params.categoryType = selectedCategory.categoryType;
+          params.tag = selectedCategory.tag;
+        }
+      }
       const response = await ownerAxios.get('/api/tournament-schedules/getSchedules', {
-        params: { tournamentId, roundType: selectedRound }
+        params
       });
       const data = response.data?.data || [];
       setSchedules(data);
@@ -281,7 +289,7 @@ const SchedulesTab = ({ tournamentId, categories, selectedRound, onMatchClick })
           <Card.Body>
             <h5 className="mb-2">No Schedules Found</h5>
             <p className="text-muted mb-0">
-              There are no schedules for {ROUNDS.find(r => r.key === selectedRound)?.label} round yet.
+              There are no schedules for this selection yet.
             </p>
           </Card.Body>
         </Card>
@@ -292,16 +300,51 @@ const SchedulesTab = ({ tournamentId, categories, selectedRound, onMatchClick })
 
 const PlayersTab = ({ tournamentId, filters, handleFilterChange, clearFilters, hasActiveFilters, categories, refreshTrigger }) => {
   const dispatch = useDispatch();
-  const { players, loadingPlayers } = useSelector(state => state.tournament);
+  const { players, loadingPlayers, playersPagination } = useSelector(state => state.tournament);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
 
   useEffect(() => {
     if (!tournamentId) return;
-    const params = { tournamentId };
-    if (filters.categoryType) params.categoryType = filters.categoryType;
-    if (filters.gender) params.gender = filters.gender;
+    const params = { tournamentId, page: currentPage, limit: itemsPerPage };
+    
+    // Find the selected category from filters using _id
+    if (filters.categoryType) {
+      const selectedCategory = categories.find(cat => cat._id === filters.categoryType);
+      if (selectedCategory) {
+        params.categoryType = selectedCategory.categoryType;
+        
+        // Add gender based on tag
+        if (selectedCategory.tag === "Men's Doubles") {
+          params.gender = "Male";
+        } else if (selectedCategory.tag === "Women's Doubles") {
+          params.gender = "Female";
+        }
+        // For Mixed Doubles and Hybrid, don't send gender (means all)
+      }
+    }
+    
+    // Override with explicit gender filter if provided
+    if (filters.gender) {
+      params.gender = filters.gender;
+    }
 
     dispatch(getPlayersByCategoryGender(params));
-  }, [tournamentId, filters, refreshTrigger, dispatch]);
+  }, [tournamentId, filters, refreshTrigger, currentPage, dispatch, categories]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const totalItems = playersPagination?.total || 0;
+  const totalPages = playersPagination?.totalPages || 1;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
 
   return (
     <div className="py-2">
@@ -337,7 +380,7 @@ const PlayersTab = ({ tournamentId, filters, handleFilterChange, clearFilters, h
                   ) : (
                     players.map((player, idx) => (
                       <tr key={player._id} className="table-data border-bottom align-middle text-center">
-                        <td style={{ padding: '12px', fontSize: '13px' }}>{idx + 1}</td>
+                        <td style={{ padding: '12px', fontSize: '13px' }}>{startIndex + idx + 1}</td>
                         <td style={{ padding: '12px', fontSize: '13px' }} className="text-start">
                           <div className="fw-semibold text-capitalize">{player.playerName}</div>
                         </td>
@@ -371,6 +414,77 @@ const PlayersTab = ({ tournamentId, filters, handleFilterChange, clearFilters, h
               </Table>
             </div>
           </div>
+
+          {/* Pagination */}
+          {totalItems > itemsPerPage && (
+            <div className="d-flex justify-content-between align-items-center mt-3 px-2">
+              <div style={{ fontSize: '13px', color: '#6b7280' }}>
+                Showing {startIndex + 1} to {Math.min(endIndex, totalItems)} of {totalItems} players
+              </div>
+              <div className="d-flex gap-1">
+                <button
+                  className="btn btn-sm"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  style={{
+                    backgroundColor: currentPage === 1 ? '#f3f4f6' : '#fff',
+                    border: '1px solid #e5e7eb',
+                    color: currentPage === 1 ? '#9ca3af' : '#374151',
+                    fontSize: '12px',
+                    padding: '4px 12px',
+                    cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  Previous
+                </button>
+                {[...Array(totalPages)].map((_, index) => {
+                  const page = index + 1;
+                  // Show first page, last page, current page, and pages around current
+                  if (
+                    page === 1 ||
+                    page === totalPages ||
+                    (page >= currentPage - 1 && page <= currentPage + 1)
+                  ) {
+                    return (
+                      <button
+                        key={page}
+                        className="btn btn-sm"
+                        onClick={() => handlePageChange(page)}
+                        style={{
+                          backgroundColor: currentPage === page ? '#1F41BB' : '#fff',
+                          border: '1px solid #e5e7eb',
+                          color: currentPage === page ? '#fff' : '#374151',
+                          fontSize: '12px',
+                          padding: '4px 12px',
+                          minWidth: '32px'
+                        }}
+                      >
+                        {page}
+                      </button>
+                    );
+                  } else if (page === currentPage - 2 || page === currentPage + 2) {
+                    return <span key={page} style={{ padding: '4px 8px', color: '#9ca3af' }}>...</span>;
+                  }
+                  return null;
+                })}
+                <button
+                  className="btn btn-sm"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  style={{
+                    backgroundColor: currentPage === totalPages ? '#f3f4f6' : '#fff',
+                    border: '1px solid #e5e7eb',
+                    color: currentPage === totalPages ? '#9ca3af' : '#374151',
+                    fontSize: '12px',
+                    padding: '4px 12px',
+                    cursor: currentPage === totalPages ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </Card.Body>
       </Card>
     </div>
@@ -398,12 +512,23 @@ const ViewTournament = () => {
 
   const categories = currentTournament?.category || [];
 
-  const ROUNDS = [
-    { key: 'regular', label: 'Regular' },
-    { key: 'quarterfinal', label: 'Quarter-Final' },
-    { key: 'semifinal', label: 'Semi-Final' },
-    { key: 'final', label: 'Final' },
-  ];
+  const dynamicRounds = React.useMemo(() => {
+    if (!currentTournament?.matchRules) return [];
+    return Object.entries(currentTournament.matchRules)
+      .filter(([_, rule]) => rule.status)
+      .map(([key, _]) => ROUND_CONFIG[key])
+      .filter(Boolean);
+  }, [currentTournament]);
+
+  // Reset selectedRound if current one is not available in dynamicRounds
+  useEffect(() => {
+    if (dynamicRounds.length > 0) {
+      const isCurrentRoundAvailable = dynamicRounds.find(r => r.key === selectedRound);
+      if (!isCurrentRoundAvailable) {
+        setSelectedRound(dynamicRounds[0].key);
+      }
+    }
+  }, [dynamicRounds, selectedRound]);
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -498,11 +623,11 @@ const ViewTournament = () => {
                           size="sm"
                           value={filters.categoryType}
                           onChange={(e) => handleFilterChange('categoryType', e.target.value)}
-                          style={{ width: '180px', fontSize: '12px' }}
+                          style={{ width: '220px', fontSize: '12px' }}
                         >
                           <option value="">All Categories</option>
                           {categories.map(cat => (
-                            <option key={cat.tag} value={cat.tag}>{cat.tag}</option>
+                            <option key={cat._id} value={cat._id}>{cat.categoryType} ({cat.tag})</option>
                           ))}
                         </Form.Select>
 
@@ -533,25 +658,49 @@ const ViewTournament = () => {
                       </>
                     )}
                     {activeTab === 1 && (
-                      <div className="d-flex gap-2">
-                        {ROUNDS.map(({ key, label }) => (
+                      <div className="d-flex gap-2 align-items-center">
+                        <Form.Select
+                          size="sm"
+                          value={filters.categoryType}
+                          onChange={(e) => handleFilterChange('categoryType', e.target.value)}
+                          style={{ width: '220px', fontSize: '12px' }}
+                        >
+                          <option value="">All Categories</option>
+                          {categories.map(cat => (
+                            <option key={cat._id} value={cat._id}>{cat.categoryType} ({cat.tag})</option>
+                          ))}
+                        </Form.Select>
+
+                        <div className="d-flex gap-2">
+                          {dynamicRounds.map(({ key, label }) => (
+                            <button
+                              key={key}
+                              onClick={() => setSelectedRound(key)}
+                              className="btn btn-sm"
+                              style={{
+                                backgroundColor: selectedRound === key ? '#1F41BB' : '#f8f9fa',
+                                color: selectedRound === key ? 'white' : '#666',
+                                border: 'none',
+                                fontWeight: 600,
+                                fontSize: '13px',
+                                padding: '6px 16px',
+                                borderRadius: '6px'
+                              }}
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+
+                        {hasActiveFilters && (
                           <button
-                            key={key}
-                            onClick={() => setSelectedRound(key)}
-                            className="btn btn-sm"
-                            style={{
-                              backgroundColor: selectedRound === key ? '#1F41BB' : '#f8f9fa',
-                              color: selectedRound === key ? 'white' : '#666',
-                              border: 'none',
-                              fontWeight: 600,
-                              fontSize: '13px',
-                              padding: '6px 16px',
-                              borderRadius: '6px'
-                            }}
+                            onClick={clearFilters}
+                            className="btn text-danger fw-semibold btn-sm"
+                            style={{ fontSize: '12px', border: '1px solid #dc3545' }}
                           >
-                            {label}
+                            Clear
                           </button>
-                        ))}
+                        )}
                       </div>
                     )}
                   </div>
@@ -577,7 +726,7 @@ const ViewTournament = () => {
               ) : (
                 <>
                   {activeTab === 0 && <PlayersTab tournamentId={tournamentId} filters={filters} handleFilterChange={handleFilterChange} clearFilters={clearFilters} hasActiveFilters={hasActiveFilters} categories={categories} refreshTrigger={refreshPlayers} />}
-                  {activeTab === 1 && <SchedulesTab tournamentId={tournamentId} categories={categories} selectedRound={selectedRound} onMatchClick={handleMatchClick} />}
+                  {activeTab === 1 && <SchedulesTab tournamentId={tournamentId} categories={categories} selectedRound={selectedRound} categoryId={filters.categoryType} onMatchClick={handleMatchClick} />}
                   {activeTab === 2 && (
                     <Card className="border-0 shadow-sm">
                       <Card.Body className="p-4">

@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getTournaments, getTournamentById, createTournament, updateTournament, deleteTournament, deleteTournamentSchedule, saveTournamentSchedule, getTournamentSchedules, exportPlayersCSV, uploadPlayersCSV, getPlayersByCategoryGender, addTournamentPlayers } from "./thunk";
+import { getTournaments, getTournamentById, createTournament, updateTournament, deleteTournament, deleteTournamentSchedule, saveTournamentSchedule, getTournamentSchedules, exportPlayersCSV, uploadPlayersCSV, getPlayersByCategoryGender, addTournamentPlayers, saveTournamentTeams, getTournamentTeams } from "./thunk";
 
 const initialState = {
   tournaments: [],
@@ -12,8 +12,12 @@ const initialState = {
   exportingCSV: false,
   uploadingCSV: false,
   players: [],
+  playersPagination: { total: 0, page: 1, limit: 10, totalPages: 1 },
   loadingPlayers: false,
   addingPlayers: false,
+  savingTeams: false,
+  teamsData: null, // Full teams data object from API
+  loadingTeams: false,
   error: null,
 };
 
@@ -81,12 +85,29 @@ const tournamentSlice = createSlice({
       .addCase(uploadPlayersCSV.rejected, (state) => { state.uploadingCSV = false; })
 
       .addCase(getPlayersByCategoryGender.pending, (state) => { state.loadingPlayers = true; state.error = null; })
-      .addCase(getPlayersByCategoryGender.fulfilled, (state, action) => { state.loadingPlayers = false; state.players = action.payload; })
+      .addCase(getPlayersByCategoryGender.fulfilled, (state, action) => {
+        state.loadingPlayers = false;
+        state.players = action.payload.data || [];
+        state.playersPagination = {
+          total: action.payload.total || 0,
+          page: action.payload.page || 1,
+          limit: action.payload.limit || 10,
+          totalPages: action.payload.totalPages || 1
+        };
+      })
       .addCase(getPlayersByCategoryGender.rejected, (state, action) => { state.loadingPlayers = false; state.error = action.payload; })
 
       .addCase(addTournamentPlayers.pending, (state) => { state.addingPlayers = true; state.error = null; })
       .addCase(addTournamentPlayers.fulfilled, (state) => { state.addingPlayers = false; })
-      .addCase(addTournamentPlayers.rejected, (state, action) => { state.addingPlayers = false; state.error = action.payload; });
+      .addCase(addTournamentPlayers.rejected, (state, action) => { state.addingPlayers = false; state.error = action.payload; })
+
+      .addCase(saveTournamentTeams.pending, (state) => { state.savingTeams = true; state.error = null; })
+      .addCase(saveTournamentTeams.fulfilled, (state) => { state.savingTeams = false; })
+      .addCase(saveTournamentTeams.rejected, (state, action) => { state.savingTeams = false; state.error = action.payload; })
+
+      .addCase(getTournamentTeams.pending, (state) => { state.loadingTeams = true; state.error = null; })
+      .addCase(getTournamentTeams.fulfilled, (state, action) => { state.loadingTeams = false; state.teamsData = action.payload; })
+      .addCase(getTournamentTeams.rejected, (state, action) => { state.loadingTeams = false; state.error = action.payload; });
   },
 });
 
