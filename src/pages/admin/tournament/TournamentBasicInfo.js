@@ -161,7 +161,7 @@ const TournamentBasicInfo = ({ onNext }) => {
 
       const umpireData = currentTournament.umpire || currentTournament.umpires;
       if (umpireData && umpireData.length > 0) {
-        setUmpires(umpireData.map(u => ({ email: u.email || '', password: '' })));
+        setUmpires(umpireData.map(u => ({ _id: u._id || '', email: u.email || '', password: '' })));
         setShowPasswords(new Array(umpireData.length).fill(false));
       }
     }
@@ -274,6 +274,7 @@ const TournamentBasicInfo = ({ onNext }) => {
 
     umpires.forEach((umpire, index) => {
       if (umpire.email) {
+        if (umpire._id) fd.append(`umpires[${index}][_id]`, umpire._id);
         fd.append(`umpires[${index}][email]`, umpire.email);
         if (umpire.password) fd.append(`umpires[${index}][password]`, umpire.password);
       }
