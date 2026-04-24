@@ -29,6 +29,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   const Owner = getOwnerFromSession();
   const ownerData = Owner?.user || Owner;
   const isSuperAdmin = ownerData?.role === 'super_admin';
+  const isSubAdmin = ownerData?.isSubAdmin === true;
   const { selectedOwnerId, updateSelectedOwner } = useSuperAdminContext();
   const [hoveredItem, setHoveredItem] = useState(null);
   const [owners, setOwners] = useState([]);
@@ -101,7 +102,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
       <div
         className="d-flex align-items-center justify-content-center mb-4 pb-3 border-bottom"
         style={{ marginTop: "20px", cursor: 'pointer', borderColor: 'rgba(255,255,255,0.1)' }}
-        onClick={() => navigate('/admin/dashboard')}
+        onClick={() => navigate(isSubAdmin ? '/admin/tournament/creation' : '/admin/dashboard')}
       >
         <div className={`position-relative ${isCollapsed ? "" : "me-3"}`}>
           {/* <div
@@ -121,7 +122,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
         <div className="px-3 mb-3">
           <div
             className="text-white p-2 rounded text-center small fw-bold"
-            onClick={() => navigate('/admin/dashboard')}
+            onClick={() => navigate(isSubAdmin ? '/admin/tournament/creation' : '/admin/dashboard')}
             style={{
               cursor: 'pointer',
               background: 'rgb(31, 65, 187)',
@@ -134,7 +135,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
       )}
 
       {/* Owner Selector */}
-      {isSuperAdmin && !isCollapsed && (
+      {isSuperAdmin && !isSubAdmin && !isCollapsed && (
         <div className="px-3 mb-3">
           <Form.Label className="text-white small mb-1 d-block">Select Owner</Form.Label>
           {loadingOwners ? (
@@ -174,116 +175,119 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
           </p>
         )}
 
-        {/* Dashboard */}
-        <div
-          className="position-relative"
-          onMouseEnter={() =>
-            isCollapsed && window.innerWidth > 768 && setHoveredItem("dashboard")
-          }
-          onMouseLeave={() => setHoveredItem(null)}
-        >
-          <NavLink
-            to="/admin/dashboard"
-            end
-            className={
-              isCollapsed && window.innerWidth > 768
-                ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
-                : linkClasses(isActivePath("/admin/dashboard"))
+        {!isSubAdmin && (
+          <div
+            className="position-relative"
+            onMouseEnter={() =>
+              isCollapsed && window.innerWidth > 768 && setHoveredItem("dashboard")
             }
-            style={() => ({
-              backgroundColor: isActivePath("/admin/dashboard") ? "rgba(31, 65, 187, 0.15)" : "transparent",
-              color: "#CCD2DD",
-              fontSize: "15px",
-              fontWeight: "500",
-              fontFamily: "Poppins",
-              boxShadow: isActivePath("/admin/dashboard") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
-              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-              width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-            })}
-            onClick={() => window.innerWidth <= 768 && onClose()}
+            onMouseLeave={() => setHoveredItem(null)}
           >
-            <FaTachometerAlt
-              className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
-              size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
-            />
-            {(!isCollapsed || window.innerWidth <= 768) && "Dashboard"}
-          </NavLink>
-          {isCollapsed && window.innerWidth > 768 && hoveredItem === "dashboard" && (
-            <div
-              className="position-absolute bg-dark px-2 py-1 rounded"
-              style={{
-                left: "75px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                zIndex: 1200,
+            <NavLink
+              to="/admin/dashboard"
+              end
+              className={
+                isCollapsed && window.innerWidth > 768
+                  ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
+                  : linkClasses(isActivePath("/admin/dashboard"))
+              }
+              style={() => ({
+                backgroundColor: isActivePath("/admin/dashboard") ? "rgba(31, 65, 187, 0.15)" : "transparent",
+                color: "#CCD2DD",
                 fontSize: "15px",
                 fontWeight: "500",
                 fontFamily: "Poppins",
-                color: "#CCD2DD",
-                whiteSpace: "nowrap",
-              }}
+                boxShadow: isActivePath("/admin/dashboard") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
+                minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+                width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              })}
+              onClick={() => window.innerWidth <= 768 && onClose()}
             >
-              Dashboard
-            </div>
-          )}
-        </div>
+              <FaTachometerAlt
+                className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
+                size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
+              />
+              {(!isCollapsed || window.innerWidth <= 768) && "Dashboard"}
+            </NavLink>
+            {isCollapsed && window.innerWidth > 768 && hoveredItem === "dashboard" && (
+              <div
+                className="position-absolute bg-dark px-2 py-1 rounded"
+                style={{
+                  left: "75px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  zIndex: 1200,
+                  fontSize: "15px",
+                  fontWeight: "500",
+                  fontFamily: "Poppins",
+                  color: "#CCD2DD",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Dashboard
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Bookings */}
-        <div
-          className="position-relative"
-          onMouseEnter={() =>
-            isCollapsed && window.innerWidth > 768 && setHoveredItem("booking")
-          }
-          onMouseLeave={() => setHoveredItem(null)}
-        >
-          <NavLink
-            to="/admin/booking"
-            end
-            className={
-              isCollapsed && window.innerWidth > 768
-                ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
-                : linkClasses(isActivePath("/admin/booking"))
+        {!isSubAdmin && (
+          <div
+            className="position-relative"
+            onMouseEnter={() =>
+              isCollapsed && window.innerWidth > 768 && setHoveredItem("booking")
             }
-            style={() => ({
-              backgroundColor: isActivePath("/admin/booking") ? "rgba(31, 65, 187, 0.15)" : "transparent",
-              color: "#CCD2DD",
-              fontSize: "15px",
-              fontWeight: "500",
-              fontFamily: "Poppins",
-              boxShadow: isActivePath("/admin/booking") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
-              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-              width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-            })}
-            onClick={() => window.innerWidth <= 768 && onClose()}
+            onMouseLeave={() => setHoveredItem(null)}
           >
-            <FaCalendarAlt
-              className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
-              size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
-            />
-            {(!isCollapsed || window.innerWidth <= 768) && "Bookings"}
-          </NavLink>
-          {isCollapsed && window.innerWidth > 768 && hoveredItem === "booking" && (
-            <div
-              className="position-absolute bg-dark px-2 py-1 rounded"
-              style={{
-                left: "75px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                zIndex: 1200,
+            <NavLink
+              to="/admin/booking"
+              end
+              className={
+                isCollapsed && window.innerWidth > 768
+                  ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
+                  : linkClasses(isActivePath("/admin/booking"))
+              }
+              style={() => ({
+                backgroundColor: isActivePath("/admin/booking") ? "rgba(31, 65, 187, 0.15)" : "transparent",
+                color: "#CCD2DD",
                 fontSize: "15px",
                 fontWeight: "500",
                 fontFamily: "Poppins",
-                color: "#CCD2DD",
-                whiteSpace: "nowrap",
-              }}
+                boxShadow: isActivePath("/admin/booking") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
+                minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+                width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              })}
+              onClick={() => window.innerWidth <= 768 && onClose()}
             >
-              Bookings
-            </div>
-          )}
-        </div>
+              <FaCalendarAlt
+                className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
+                size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
+              />
+              {(!isCollapsed || window.innerWidth <= 768) && "Bookings"}
+            </NavLink>
+            {isCollapsed && window.innerWidth > 768 && hoveredItem === "booking" && (
+              <div
+                className="position-absolute bg-dark px-2 py-1 rounded"
+                style={{
+                  left: "75px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  zIndex: 1200,
+                  fontSize: "15px",
+                  fontWeight: "500",
+                  fontFamily: "Poppins",
+                  color: "#CCD2DD",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Bookings
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Owners Management */}
-        {isSuperAdmin && (
+        {isSuperAdmin && !isSubAdmin && (
           <div
             className="position-relative"
             onMouseEnter={() =>
@@ -339,245 +343,251 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
         )}
 
         {/* Payments */}
-        <div
-          className="position-relative"
-          onMouseEnter={() =>
-            isCollapsed && window.innerWidth > 768 && setHoveredItem("payments")
-          }
-          onMouseLeave={() => setHoveredItem(null)}
-        >
-          <NavLink
-            to="/admin/payments"
-            end
-            className={
-              isCollapsed && window.innerWidth > 768
-                ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
-                : linkClasses(isActivePath("/admin/payments"))
-            }
-            style={() => ({
-              backgroundColor: isActivePath("/admin/payments") ? "rgba(31, 65, 187, 0.15)" : "transparent",
-              color: "#CCD2DD",
-              fontSize: "15px",
-              fontWeight: "500",
-              fontFamily: "Poppins",
-              boxShadow: isActivePath("/admin/payments") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
-              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-              width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-            })}
-            onClick={() => window.innerWidth <= 768 && onClose()}
-          >
-            <RiWallet3Line
-              className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
-              size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
-            />
-            {(!isCollapsed || window.innerWidth <= 768) && "Payments"}
-          </NavLink>
-          {isCollapsed && window.innerWidth > 768 && hoveredItem === "payments" && (
-            <div
-              className="position-absolute bg-dark px-2 py-1 rounded"
-              style={{
-                left: "75px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                zIndex: 1200,
-                fontSize: "15px",
-                fontWeight: "500",
-                fontFamily: "Poppins",
-                color: "#CCD2DD",
-                whiteSpace: "nowrap",
-              }}
-            >
-              Payments
-            </div>
-          )}
-        </div>
-
-        {/* Payment Reconciliation */}
-        <div
-          className="position-relative"
-          onMouseEnter={() =>
-            isCollapsed && window.innerWidth > 768 && setHoveredItem("reconciliation")
-          }
-          onMouseLeave={() => setHoveredItem(null)}
-        >
-          <NavLink
-            to="/admin/payment-reconciliation"
-            end
-            className={
-              isCollapsed && window.innerWidth > 768
-                ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
-                : linkClasses(isActivePath("/admin/payment-reconciliation"))
-            }
-            style={() => ({
-              backgroundColor: isActivePath("/admin/payment-reconciliation") ? "rgba(31, 65, 187, 0.15)" : "transparent",
-              color: "#CCD2DD",
-              fontSize: "15px",
-              fontWeight: "500",
-              fontFamily: "Poppins",
-              boxShadow: isActivePath("/admin/payment-reconciliation") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
-              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-              width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-            })}
-            onClick={() => window.innerWidth <= 768 && onClose()}
-          >
-            <RiWalletLine
-              className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
-              size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
-            />
-            {(!isCollapsed || window.innerWidth <= 768) && "Payment Reconciliation"}
-          </NavLink>
-          {isCollapsed && window.innerWidth > 768 && hoveredItem === "reconciliation" && (
-            <div
-              className="position-absolute bg-dark px-2 py-1 rounded"
-              style={{
-                left: "75px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                zIndex: 1200,
-                fontSize: "15px",
-                fontWeight: "500",
-                fontFamily: "Poppins",
-                color: "#CCD2DD",
-                whiteSpace: "nowrap",
-              }}
-            >
-              Payment Reconciliation
-            </div>
-          )}
-        </div>
-
-        {/* League with Submenu */}
-        <div
-          className="position-relative"
-          onMouseEnter={() =>
-            isCollapsed && window.innerWidth > 768 && setHoveredItem("league")
-          }
-          onMouseLeave={() => setHoveredItem(null)}
-        >
+        {!isSubAdmin && (
           <div
-            className={
-              isCollapsed && window.innerWidth > 768
-                ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
-                : linkClasses(isLeagueActive)
+            className="position-relative"
+            onMouseEnter={() =>
+              isCollapsed && window.innerWidth > 768 && setHoveredItem("payments")
             }
-            style={{
-              backgroundColor: isLeagueActive ? "rgba(31, 65, 187, 0.15)" : "transparent",
-              color: "#CCD2DD",
-              fontSize: "15px",
-              fontWeight: "500",
-              fontFamily: "Poppins",
-              boxShadow: isLeagueActive ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
-              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-              width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-              cursor: "pointer"
-            }}
-            onClick={() => !isCollapsed && setLeagueExpanded(!leagueExpanded)}
+            onMouseLeave={() => setHoveredItem(null)}
           >
-            <FaTrophy
-              className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
-              size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
-            />
-            {(!isCollapsed || window.innerWidth <= 768) && (
-              <>
-                <span className="flex-grow-1">League</span>
-                {leagueExpanded ? <FaChevronUp size={14} /> : <FaChevronDown size={14} />}
-              </>
+            <NavLink
+              to="/admin/payments"
+              end
+              className={
+                isCollapsed && window.innerWidth > 768
+                  ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
+                  : linkClasses(isActivePath("/admin/payments"))
+              }
+              style={() => ({
+                backgroundColor: isActivePath("/admin/payments") ? "rgba(31, 65, 187, 0.15)" : "transparent",
+                color: "#CCD2DD",
+                fontSize: "15px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+                boxShadow: isActivePath("/admin/payments") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
+                minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+                width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              })}
+              onClick={() => window.innerWidth <= 768 && onClose()}
+            >
+              <RiWallet3Line
+                className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
+                size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
+              />
+              {(!isCollapsed || window.innerWidth <= 768) && "Payments"}
+            </NavLink>
+            {isCollapsed && window.innerWidth > 768 && hoveredItem === "payments" && (
+              <div
+                className="position-absolute bg-dark px-2 py-1 rounded"
+                style={{
+                  left: "75px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  zIndex: 1200,
+                  fontSize: "15px",
+                  fontWeight: "500",
+                  fontFamily: "Poppins",
+                  color: "#CCD2DD",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Payments
+              </div>
             )}
           </div>
-          {isCollapsed && window.innerWidth > 768 && hoveredItem === "league" && (
-            <div
-              className="position-absolute bg-dark px-2 py-1 rounded"
-              style={{
-                left: "75px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                zIndex: 1200,
+        )}
+
+        {/* Payment Reconciliation */}
+        {!isSubAdmin && (
+          <div
+            className="position-relative"
+            onMouseEnter={() =>
+              isCollapsed && window.innerWidth > 768 && setHoveredItem("reconciliation")
+            }
+            onMouseLeave={() => setHoveredItem(null)}
+          >
+            <NavLink
+              to="/admin/payment-reconciliation"
+              end
+              className={
+                isCollapsed && window.innerWidth > 768
+                  ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
+                  : linkClasses(isActivePath("/admin/payment-reconciliation"))
+              }
+              style={() => ({
+                backgroundColor: isActivePath("/admin/payment-reconciliation") ? "rgba(31, 65, 187, 0.15)" : "transparent",
+                color: "#CCD2DD",
                 fontSize: "15px",
                 fontWeight: "500",
                 fontFamily: "Poppins",
-                color: "#CCD2DD",
-                whiteSpace: "nowrap",
-              }}
+                boxShadow: isActivePath("/admin/payment-reconciliation") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
+                minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+                width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              })}
+              onClick={() => window.innerWidth <= 768 && onClose()}
             >
-              League
-            </div>
-          )}
-          {leagueExpanded && (!isCollapsed || window.innerWidth <= 768) && (
-            <div className="ms-4">
-              <NavLink
-                to="/admin/league/creation"
-                end
-                className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
+              <RiWalletLine
+                className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
+                size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
+              />
+              {(!isCollapsed || window.innerWidth <= 768) && "Payment Reconciliation"}
+            </NavLink>
+            {isCollapsed && window.innerWidth > 768 && hoveredItem === "reconciliation" && (
+              <div
+                className="position-absolute bg-dark px-2 py-1 rounded"
                 style={{
-                  backgroundColor: isActivePath("/admin/league") ? "rgba(31, 65, 187, 0.1)" : "transparent",
-                  color: "#CCD2DD",
-                  fontSize: "14px",
-                  fontWeight: "400",
+                  left: "75px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  zIndex: 1200,
+                  fontSize: "15px",
+                  fontWeight: "500",
                   fontFamily: "Poppins",
+                  color: "#CCD2DD",
+                  whiteSpace: "nowrap",
                 }}
-                onClick={() => window.innerWidth <= 768 && onClose()}
+              >
+                Payment Reconciliation
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* League with Submenu */}
+        {!isSubAdmin && (
+          <div
+            className="position-relative"
+            onMouseEnter={() =>
+              isCollapsed && window.innerWidth > 768 && setHoveredItem("league")
+            }
+            onMouseLeave={() => setHoveredItem(null)}
+          >
+            <div
+              className={
+                isCollapsed && window.innerWidth > 768
+                  ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
+                  : linkClasses(isLeagueActive)
+              }
+              style={{
+                backgroundColor: isLeagueActive ? "rgba(31, 65, 187, 0.15)" : "transparent",
+                color: "#CCD2DD",
+                fontSize: "15px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+                boxShadow: isLeagueActive ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
+                minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+                width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+                cursor: "pointer"
+              }}
+              onClick={() => !isCollapsed && setLeagueExpanded(!leagueExpanded)}
+            >
+              <FaTrophy
+                className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
+                size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
+              />
+              {(!isCollapsed || window.innerWidth <= 768) && (
+                <>
+                  <span className="flex-grow-1">League</span>
+                  {leagueExpanded ? <FaChevronUp size={14} /> : <FaChevronDown size={14} />}
+                </>
+              )}
+            </div>
+            {isCollapsed && window.innerWidth > 768 && hoveredItem === "league" && (
+              <div
+                className="position-absolute bg-dark px-2 py-1 rounded"
+                style={{
+                  left: "75px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  zIndex: 1200,
+                  fontSize: "15px",
+                  fontWeight: "500",
+                  fontFamily: "Poppins",
+                  color: "#CCD2DD",
+                  whiteSpace: "nowrap",
+                }}
               >
                 League
-              </NavLink>
-              <NavLink
-                to="/admin/league/registration"
-                className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
-                style={{
-                  backgroundColor: isActivePath("/admin/league/registration") ? "rgba(31, 65, 187, 0.1)" : "transparent",
-                  color: "#CCD2DD",
-                  fontSize: "14px",
-                  fontWeight: "400",
-                  fontFamily: "Poppins",
-                }}
-                onClick={() => window.innerWidth <= 768 && onClose()}
-              >
-                Registration
-              </NavLink>
-              {/* <NavLink
-                to="/admin/league/team-creation"
-                className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
-                style={{
-                  backgroundColor: isActivePath("/admin/league/team-creation") ? "rgba(31, 65, 187, 0.1)" : "transparent",
-                  color: "#CCD2DD",
-                  fontSize: "14px",
-                  fontWeight: "400",
-                  fontFamily: "Poppins",
-                }}
-                onClick={() => window.innerWidth <= 768 && onClose()}
-              >
-                Team Creation
-              </NavLink> */}
-              <NavLink
-                to="/admin/league/schedule"
-                className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
-                style={{
-                  backgroundColor: isActivePath("/admin/league/schedule") ? "rgba(31, 65, 187, 0.1)" : "transparent",
-                  color: "#CCD2DD",
-                  fontSize: "14px",
-                  fontWeight: "400",
-                  fontFamily: "Poppins",
-                }}
-                onClick={() => window.innerWidth <= 768 && onClose()}
-              >
-                Schedule
-              </NavLink>
-              <NavLink
-                to="/admin/league/points-table"
-                className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
-                style={{
-                  backgroundColor: isActivePath("/admin/league/points-table") ? "rgba(31, 65, 187, 0.1)" : "transparent",
-                  color: "#CCD2DD",
-                  fontSize: "14px",
-                  fontWeight: "400",
-                  fontFamily: "Poppins",
-                }}
-                onClick={() => window.innerWidth <= 768 && onClose()}
-              >
-                Points Table
-              </NavLink>
-            </div>
-          )}
-        </div>
+              </div>
+            )}
+            {leagueExpanded && (!isCollapsed || window.innerWidth <= 768) && (
+              <div className="ms-4">
+                <NavLink
+                  to="/admin/league/creation"
+                  end
+                  className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
+                  style={{
+                    backgroundColor: isActivePath("/admin/league") ? "rgba(31, 65, 187, 0.1)" : "transparent",
+                    color: "#CCD2DD",
+                    fontSize: "14px",
+                    fontWeight: "400",
+                    fontFamily: "Poppins",
+                  }}
+                  onClick={() => window.innerWidth <= 768 && onClose()}
+                >
+                  League
+                </NavLink>
+                <NavLink
+                  to="/admin/league/registration"
+                  className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
+                  style={{
+                    backgroundColor: isActivePath("/admin/league/registration") ? "rgba(31, 65, 187, 0.1)" : "transparent",
+                    color: "#CCD2DD",
+                    fontSize: "14px",
+                    fontWeight: "400",
+                    fontFamily: "Poppins",
+                  }}
+                  onClick={() => window.innerWidth <= 768 && onClose()}
+                >
+                  Registration
+                </NavLink>
+                {/* <NavLink
+                  to="/admin/league/team-creation"
+                  className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
+                  style={{
+                    backgroundColor: isActivePath("/admin/league/team-creation") ? "rgba(31, 65, 187, 0.1)" : "transparent",
+                    color: "#CCD2DD",
+                    fontSize: "14px",
+                    fontWeight: "400",
+                    fontFamily: "Poppins",
+                  }}
+                  onClick={() => window.innerWidth <= 768 && onClose()}
+                >
+                  Team Creation
+                </NavLink> */}
+                <NavLink
+                  to="/admin/league/schedule"
+                  className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
+                  style={{
+                    backgroundColor: isActivePath("/admin/league/schedule") ? "rgba(31, 65, 187, 0.1)" : "transparent",
+                    color: "#CCD2DD",
+                    fontSize: "14px",
+                    fontWeight: "400",
+                    fontFamily: "Poppins",
+                  }}
+                  onClick={() => window.innerWidth <= 768 && onClose()}
+                >
+                  Schedule
+                </NavLink>
+                <NavLink
+                  to="/admin/league/points-table"
+                  className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
+                  style={{
+                    backgroundColor: isActivePath("/admin/league/points-table") ? "rgba(31, 65, 187, 0.1)" : "transparent",
+                    color: "#CCD2DD",
+                    fontSize: "14px",
+                    fontWeight: "400",
+                    fontFamily: "Poppins",
+                  }}
+                  onClick={() => window.innerWidth <= 768 && onClose()}
+                >
+                  Points Table
+                </NavLink>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Tournament with Submenu */}
         <div
@@ -623,165 +633,171 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
         </div>
 
         {/* Wallet */}
-        <div
-          className="position-relative"
-          onMouseEnter={() =>
-            isCollapsed && window.innerWidth > 768 && setHoveredItem("wallet")
-          }
-          onMouseLeave={() => setHoveredItem(null)}
-        >
-          <NavLink
-            to="/admin/wallet"
-            end
-            className={
-              isCollapsed && window.innerWidth > 768
-                ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
-                : linkClasses(isActivePath("/admin/wallet"))
+        {!isSubAdmin && (
+          <div
+            className="position-relative"
+            onMouseEnter={() =>
+              isCollapsed && window.innerWidth > 768 && setHoveredItem("wallet")
             }
-            style={() => ({
-              backgroundColor: isActivePath("/admin/wallet") ? "rgba(31, 65, 187, 0.15)" : "transparent",
-              color: "#CCD2DD",
-              fontSize: "15px",
-              fontWeight: "500",
-              fontFamily: "Poppins",
-              boxShadow: isActivePath("/admin/wallet") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
-              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-              width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-            })}
-            onClick={() => window.innerWidth <= 768 && onClose()}
+            onMouseLeave={() => setHoveredItem(null)}
           >
-            <RiWalletLine
-              className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
-              size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
-            />
-            {(!isCollapsed || window.innerWidth <= 768) && "Wallet"}
-          </NavLink>
-          {isCollapsed && window.innerWidth > 768 && hoveredItem === "wallet" && (
-            <div
-              className="position-absolute bg-dark px-2 py-1 rounded"
-              style={{
-                left: "75px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                zIndex: 1200,
+            <NavLink
+              to="/admin/wallet"
+              end
+              className={
+                isCollapsed && window.innerWidth > 768
+                  ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
+                  : linkClasses(isActivePath("/admin/wallet"))
+              }
+              style={() => ({
+                backgroundColor: isActivePath("/admin/wallet") ? "rgba(31, 65, 187, 0.15)" : "transparent",
+                color: "#CCD2DD",
                 fontSize: "15px",
                 fontWeight: "500",
                 fontFamily: "Poppins",
-                color: "#CCD2DD",
-                whiteSpace: "nowrap",
-              }}
+                boxShadow: isActivePath("/admin/wallet") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
+                minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+                width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              })}
+              onClick={() => window.innerWidth <= 768 && onClose()}
             >
-              Wallet
-            </div>
-          )}
-        </div>
+              <RiWalletLine
+                className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
+                size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
+              />
+              {(!isCollapsed || window.innerWidth <= 768) && "Wallet"}
+            </NavLink>
+            {isCollapsed && window.innerWidth > 768 && hoveredItem === "wallet" && (
+              <div
+                className="position-absolute bg-dark px-2 py-1 rounded"
+                style={{
+                  left: "75px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  zIndex: 1200,
+                  fontSize: "15px",
+                  fontWeight: "500",
+                  fontFamily: "Poppins",
+                  color: "#CCD2DD",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Wallet
+              </div>
+            )}
+          </div>
+        )}
 
         {/* App Users */}
-        <div
-          className="position-relative"
-          onMouseEnter={() =>
-            isCollapsed && window.innerWidth > 768 && setHoveredItem("appUsers")
-          }
-          onMouseLeave={() => setHoveredItem(null)}
-        >
-          <NavLink
-            to="/admin/app-users"
-            end
-            className={
-              isCollapsed && window.innerWidth > 768
-                ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
-                : linkClasses(isActivePath("/admin/app-users"))
+        {!isSubAdmin && (
+          <div
+            className="position-relative"
+            onMouseEnter={() =>
+              isCollapsed && window.innerWidth > 768 && setHoveredItem("appUsers")
             }
-            style={() => ({
-              backgroundColor: isActivePath("/admin/app-users") ? "rgba(31, 65, 187, 0.15)" : "transparent",
-              color: "#CCD2DD",
-              fontSize: "15px",
-              fontWeight: "500",
-              fontFamily: "Poppins",
-              boxShadow: isActivePath("/admin/app-users") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
-              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-              width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-            })}
-            onClick={() => window.innerWidth <= 768 && onClose()}
+            onMouseLeave={() => setHoveredItem(null)}
           >
-            <FaUsers
-              className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
-              size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
-            />
-            {(!isCollapsed || window.innerWidth <= 768) && "App Users"}
-          </NavLink>
-          {isCollapsed && window.innerWidth > 768 && hoveredItem === "appUsers" && (
-            <div
-              className="position-absolute bg-dark px-2 py-1 rounded"
-              style={{
-                left: "75px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                zIndex: 1200,
+            <NavLink
+              to="/admin/app-users"
+              end
+              className={
+                isCollapsed && window.innerWidth > 768
+                  ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
+                  : linkClasses(isActivePath("/admin/app-users"))
+              }
+              style={() => ({
+                backgroundColor: isActivePath("/admin/app-users") ? "rgba(31, 65, 187, 0.15)" : "transparent",
+                color: "#CCD2DD",
                 fontSize: "15px",
                 fontWeight: "500",
                 fontFamily: "Poppins",
-                color: "#CCD2DD",
-                whiteSpace: "nowrap",
-              }}
+                boxShadow: isActivePath("/admin/app-users") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
+                minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+                width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              })}
+              onClick={() => window.innerWidth <= 768 && onClose()}
             >
-              App Users
-            </div>
-          )}
-        </div>
+              <FaUsers
+                className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
+                size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
+              />
+              {(!isCollapsed || window.innerWidth <= 768) && "App Users"}
+            </NavLink>
+            {isCollapsed && window.innerWidth > 768 && hoveredItem === "appUsers" && (
+              <div
+                className="position-absolute bg-dark px-2 py-1 rounded"
+                style={{
+                  left: "75px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  zIndex: 1200,
+                  fontSize: "15px",
+                  fontWeight: "500",
+                  fontFamily: "Poppins",
+                  color: "#CCD2DD",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                App Users
+              </div>
+            )}
+          </div>
+        )}
         {/* Notifications */}
-        <div
-          className="position-relative"
-          onMouseEnter={() =>
-            isCollapsed && window.innerWidth > 768 && setHoveredItem("notifications")
-          }
-          onMouseLeave={() => setHoveredItem(null)}
-        >
-          <NavLink
-            to="/admin/notifications"
-            end
-            className={
-              isCollapsed && window.innerWidth > 768
-                ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
-                : linkClasses(isActivePath("/admin/notifications"))
+        {!isSubAdmin && (
+          <div
+            className="position-relative"
+            onMouseEnter={() =>
+              isCollapsed && window.innerWidth > 768 && setHoveredItem("notifications")
             }
-            style={() => ({
-              backgroundColor: isActivePath("/admin/notifications") ? "rgba(31, 65, 187, 0.15)" : "transparent",
-              color: "#CCD2DD",
-              fontSize: "15px",
-              fontWeight: "500",
-              fontFamily: "Poppins",
-              boxShadow: isActivePath("/admin/notifications") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
-              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-              width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-            })}
-            onClick={() => window.innerWidth <= 768 && onClose()}
+            onMouseLeave={() => setHoveredItem(null)}
           >
-            <MdNotificationsActive
-              className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
-              size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
-            />
-            {(!isCollapsed || window.innerWidth <= 768) && "Notifications"}
-          </NavLink>
-          {isCollapsed && window.innerWidth > 768 && hoveredItem === "notifications" && (
-            <div
-              className="position-absolute bg-dark px-2 py-1 rounded"
-              style={{
-                left: "75px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                zIndex: 1200,
+            <NavLink
+              to="/admin/notifications"
+              end
+              className={
+                isCollapsed && window.innerWidth > 768
+                  ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
+                  : linkClasses(isActivePath("/admin/notifications"))
+              }
+              style={() => ({
+                backgroundColor: isActivePath("/admin/notifications") ? "rgba(31, 65, 187, 0.15)" : "transparent",
+                color: "#CCD2DD",
                 fontSize: "15px",
                 fontWeight: "500",
                 fontFamily: "Poppins",
-                color: "#CCD2DD",
-                whiteSpace: "nowrap",
-              }}
+                boxShadow: isActivePath("/admin/notifications") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
+                minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+                width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              })}
+              onClick={() => window.innerWidth <= 768 && onClose()}
             >
-              Notifications
-            </div>
-          )}
-        </div>
+              <MdNotificationsActive
+                className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
+                size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
+              />
+              {(!isCollapsed || window.innerWidth <= 768) && "Notifications"}
+            </NavLink>
+            {isCollapsed && window.innerWidth > 768 && hoveredItem === "notifications" && (
+              <div
+                className="position-absolute bg-dark px-2 py-1 rounded"
+                style={{
+                  left: "75px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  zIndex: 1200,
+                  fontSize: "15px",
+                  fontWeight: "500",
+                  fontFamily: "Poppins",
+                  color: "#CCD2DD",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Notifications
+              </div>
+            )}
+          </div>
+        )}
         {/* Profile */}
         <div
           className="position-relative"
@@ -836,95 +852,99 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
           )}
         </div>
         {/* Version */}
-        <div
-          className="position-relative"
-          onMouseEnter={() =>
-            isCollapsed && window.innerWidth > 768 && setHoveredItem("appVersion")
-          }
-          onMouseLeave={() => setHoveredItem(null)}
-        >
-          <NavLink
-            to="/admin/app-version"
-            end
-            className={
-              isCollapsed && window.innerWidth > 768
-                ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
-                : linkClasses(isActivePath("/admin/app-version"))
+        {!isSubAdmin && (
+          <div
+            className="position-relative"
+            onMouseEnter={() =>
+              isCollapsed && window.innerWidth > 768 && setHoveredItem("appVersion")
             }
-            style={() => ({
-              backgroundColor: isActivePath("/admin/app-version") ? "rgba(31, 65, 187, 0.15)" : "transparent",
-              color: "#CCD2DD",
-              fontSize: "15px",
-              fontWeight: "500",
-              fontFamily: "Poppins",
-              boxShadow: isActivePath("/admin/app-version") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
-              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-              width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-            })}
-            onClick={() => window.innerWidth <= 768 && onClose()}
+            onMouseLeave={() => setHoveredItem(null)}
           >
-            <GoVersions
-              className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
-              size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
-            />
-            {(!isCollapsed || window.innerWidth <= 768) && "Version"}
-          </NavLink>
-          {isCollapsed && window.innerWidth > 768 && hoveredItem === "appVersion" && (
-            <div
-              className="position-absolute bg-dark px-2 py-1 rounded"
-              style={{
-                left: "75px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                zIndex: 1200,
+            <NavLink
+              to="/admin/app-version"
+              end
+              className={
+                isCollapsed && window.innerWidth > 768
+                  ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
+                  : linkClasses(isActivePath("/admin/app-version"))
+              }
+              style={() => ({
+                backgroundColor: isActivePath("/admin/app-version") ? "rgba(31, 65, 187, 0.15)" : "transparent",
+                color: "#CCD2DD",
                 fontSize: "15px",
                 fontWeight: "500",
                 fontFamily: "Poppins",
-                color: "#CCD2DD",
-                whiteSpace: "nowrap",
-              }}
+                boxShadow: isActivePath("/admin/app-version") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
+                minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+                width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              })}
+              onClick={() => window.innerWidth <= 768 && onClose()}
             >
-              Version
-            </div>
-          )}
-        </div>
+              <GoVersions
+                className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
+                size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
+              />
+              {(!isCollapsed || window.innerWidth <= 768) && "Version"}
+            </NavLink>
+            {isCollapsed && window.innerWidth > 768 && hoveredItem === "appVersion" && (
+              <div
+                className="position-absolute bg-dark px-2 py-1 rounded"
+                style={{
+                  left: "75px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  zIndex: 1200,
+                  fontSize: "15px",
+                  fontWeight: "500",
+                  fontFamily: "Poppins",
+                  color: "#CCD2DD",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Version
+              </div>
+            )}
+          </div>
+        )}
 
         {/* XP Settings */}
-        <div
-          className="position-relative"
-          onMouseEnter={() => isCollapsed && window.innerWidth > 768 && setHoveredItem("xpSettings")}
-          onMouseLeave={() => setHoveredItem(null)}
-        >
-          <NavLink
-            to="/admin/settings/xp"
-            end
-            className={
-              isCollapsed && window.innerWidth > 768
-                ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
-                : linkClasses(isActivePath("/admin/settings/xp"))
-            }
-            style={() => ({
-              backgroundColor: isActivePath("/admin/settings/xp") ? "rgba(31, 65, 187, 0.15)" : "transparent",
-              color: "#CCD2DD",
-              fontSize: "15px",
-              fontWeight: "500",
-              fontFamily: "Poppins",
-              boxShadow: isActivePath("/admin/settings/xp") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
-              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-              width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-            })}
-            onClick={() => window.innerWidth <= 768 && onClose()}
+        {!isSubAdmin && (
+          <div
+            className="position-relative"
+            onMouseEnter={() => isCollapsed && window.innerWidth > 768 && setHoveredItem("xpSettings")}
+            onMouseLeave={() => setHoveredItem(null)}
           >
-            <span className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"} style={{ fontSize: isCollapsed && window.innerWidth > 768 ? 18 : 20 }}>⚙️</span>
-            {(!isCollapsed || window.innerWidth <= 768) && "XP Settings"}
-          </NavLink>
-          {isCollapsed && window.innerWidth > 768 && hoveredItem === "xpSettings" && (
-            <div className="position-absolute bg-dark px-2 py-1 rounded"
-              style={{ left: "75px", top: "50%", transform: "translateY(-50%)", zIndex: 1200, fontSize: "15px", fontWeight: "500", fontFamily: "Poppins", color: "#CCD2DD", whiteSpace: "nowrap" }}>
-              XP Settings
-            </div>
-          )}
-        </div>
+            <NavLink
+              to="/admin/settings/xp"
+              end
+              className={
+                isCollapsed && window.innerWidth > 768
+                  ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
+                  : linkClasses(isActivePath("/admin/settings/xp"))
+              }
+              style={() => ({
+                backgroundColor: isActivePath("/admin/settings/xp") ? "rgba(31, 65, 187, 0.15)" : "transparent",
+                color: "#CCD2DD",
+                fontSize: "15px",
+                fontWeight: "500",
+                fontFamily: "Poppins",
+                boxShadow: isActivePath("/admin/settings/xp") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
+                minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+                width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
+              })}
+              onClick={() => window.innerWidth <= 768 && onClose()}
+            >
+              <span className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"} style={{ fontSize: isCollapsed && window.innerWidth > 768 ? 18 : 20 }}>⚙️</span>
+              {(!isCollapsed || window.innerWidth <= 768) && "XP Settings"}
+            </NavLink>
+            {isCollapsed && window.innerWidth > 768 && hoveredItem === "xpSettings" && (
+              <div className="position-absolute bg-dark px-2 py-1 rounded"
+                style={{ left: "75px", top: "50%", transform: "translateY(-50%)", zIndex: 1200, fontSize: "15px", fontWeight: "500", fontFamily: "Poppins", color: "#CCD2DD", whiteSpace: "nowrap" }}>
+                XP Settings
+              </div>
+            )}
+          </div>
+        )}
 
       </nav>
     </aside>
