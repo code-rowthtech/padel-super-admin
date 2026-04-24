@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getTournaments, getTournamentById, createTournament, updateTournament, deleteTournament, deleteTournamentSchedule, saveTournamentSchedule, getTournamentSchedules, exportPlayersCSV, uploadPlayersCSV, getPlayersByCategoryGender, addTournamentPlayers, saveTournamentTeams, getTournamentTeams } from "./thunk";
+import { getTournaments, getTournamentById, createTournament, updateTournament, deleteTournament, deleteTournamentSchedule, saveTournamentSchedule, getTournamentSchedules, exportPlayersCSV, uploadPlayersCSV, getPlayersByCategoryGender, addTournamentPlayers, saveTournamentTeams, getTournamentTeams, exportScheduleCSV, importScheduleFromCSV } from "./thunk";
 
 const initialState = {
   tournaments: [],
@@ -11,6 +11,8 @@ const initialState = {
   loadingSchedule: false,
   exportingCSV: false,
   uploadingCSV: false,
+  exportingScheduleCSV: false,
+  importingScheduleCSV: false,
   players: [],
   playersPagination: { total: 0, page: 1, limit: 10, totalPages: 1 },
   loadingPlayers: false,
@@ -107,7 +109,15 @@ const tournamentSlice = createSlice({
 
       .addCase(getTournamentTeams.pending, (state) => { state.loadingTeams = true; state.error = null; })
       .addCase(getTournamentTeams.fulfilled, (state, action) => { state.loadingTeams = false; state.teamsData = action.payload; })
-      .addCase(getTournamentTeams.rejected, (state, action) => { state.loadingTeams = false; state.error = action.payload; });
+      .addCase(getTournamentTeams.rejected, (state, action) => { state.loadingTeams = false; state.error = action.payload; })
+
+      .addCase(exportScheduleCSV.pending, (state) => { state.exportingScheduleCSV = true; })
+      .addCase(exportScheduleCSV.fulfilled, (state) => { state.exportingScheduleCSV = false; })
+      .addCase(exportScheduleCSV.rejected, (state) => { state.exportingScheduleCSV = false; })
+
+      .addCase(importScheduleFromCSV.pending, (state) => { state.importingScheduleCSV = true; })
+      .addCase(importScheduleFromCSV.fulfilled, (state) => { state.importingScheduleCSV = false; })
+      .addCase(importScheduleFromCSV.rejected, (state) => { state.importingScheduleCSV = false; });
   },
 });
 
