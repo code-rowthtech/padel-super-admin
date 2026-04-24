@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Container, Row, Col, Nav, Modal, Form, Button, Offcanvas, Table } from 'react-bootstrap';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Container, Row, Col, Nav, Modal, Form, Button, Offcanvas, Table, Spinner } from 'react-bootstrap';
 import { FiPlus, FiTrash2, FiCheck, FiX, FiEdit2, FiUsers } from 'react-icons/fi';
 import { IoCalendarClearOutline } from 'react-icons/io5';
 import { MdClose } from 'react-icons/md';
+import { FiDownload, FiUpload } from 'react-icons/fi';
 import { useDispatch, useSelector } from 'react-redux';
-import { getTournaments, saveTournamentSchedule, getTournamentSchedules, getPlayersByCategoryGender, addTournamentPlayers, deleteTournamentSchedule, getTournamentTeams } from '../../../redux/admin/tournament/thunk';
+import { getTournaments, saveTournamentSchedule, updateTournamentSchedule, getTournamentSchedules, getPlayersByCategoryGender, addTournamentPlayers, deleteTournamentSchedule, getTournamentTeams, exportScheduleCSV, importScheduleFromCSV } from '../../../redux/admin/tournament/thunk';
 import { showError, showSuccess } from '../../../helpers/Toast';
 import { DataLoading } from '../../../helpers/loading/Loaders';
 import '../league/LeagueScheduleMatch.css';
@@ -136,7 +137,7 @@ const TableHead = () => (
 
 // ─── MatchRow — module-level, receives all callbacks as stable props ──────────
 
-const MatchRow = ({ match, index, editable, isEditing, onUpdateMatch, onDelete, onCancelEdit, onEditExisting, availableTeams, allMatches }) => {
+const MatchRow = ({ match, index, editable, isEditing, onUpdateMatch, onDelete, onCancelEdit, onEditExisting, onSaveExisting, availableTeams, allMatches }) => {
   const m = match;
   return (
     <tr style={{ backgroundColor: index % 2 === 1 ? 'rgba(242,242,242,0.7)' : '#fff', verticalAlign: 'middle' }}>
@@ -207,7 +208,7 @@ const MatchRow = ({ match, index, editable, isEditing, onUpdateMatch, onDelete, 
           <Button variant="link" size="sm" className="p-0 text-danger" onClick={() => onDelete(match.id, match)}><FiTrash2 size={15} /></Button>
         ) : isEditing ? (
           <div className="d-flex gap-1 justify-content-center">
-            <Button variant="link" size="sm" className="p-0 text-success"><FiCheck size={15} /></Button>
+            <Button variant="link" size="sm" className="p-0 text-success" onClick={() => onSaveExisting(match)}><FiCheck size={15} /></Button>
             <Button variant="link" size="sm" className="p-0 text-secondary" onClick={() => onCancelEdit(match.id)}><FiX size={15} /></Button>
           </div>
         ) : (
@@ -246,7 +247,7 @@ const AddDateModal = ({ show, onHide, onConfirm, categories = [], activeTab, sel
 
   const handleConfirm = () => {
     if (!date) { showError('Please select a date'); return; }
-    
+
     let catsToUse = selectedCats;
     if (selectedRound !== 'final') {
       catsToUse = categories.map(c => c._id);
@@ -272,7 +273,7 @@ const AddDateModal = ({ show, onHide, onConfirm, categories = [], activeTab, sel
             onChange={e => setDate(e.target.value)}
             style={{ backgroundColor: 'rgba(204,210,221,0.43)', border: '1px solid #ddd', boxShadow: 'none' }} />
         </Form.Group>
-        
+
         {selectedRound === 'final' && (
           <Form.Group className="mb-3">
             <Form.Label style={{ fontWeight: 600, fontSize: 14 }}>Categories <span className="text-danger">*</span></Form.Label>
@@ -553,7 +554,9 @@ const ManagePlayersOffcanvas = ({ show, onHide, selectedTournamentId, activeCate
 
 const TournamentSchedule = () => {
   const dispatch = useDispatch();
-  const { tournaments, loadingTournament, schedules, loadingSchedule, players: availablePlayers, loadingPlayers, teamsData, loadingTeams } = useSelector(s => s.tournament);
+  const { tournaments, loadingTournament, schedules, loadingSchedule, players: availablePlayers, loadingPlayers, teamsData, loadingTeams, exportingScheduleCSV, importingScheduleCSV } = useSelector(s => s.tournament);
+
+  const importFileRef = useRef(null);
 
   const [selectedTournamentId, setSelectedTournamentId] = useState('');
   const [selectedRound, setSelectedRound] = useState('regular');
@@ -670,13 +673,25 @@ const TournamentSchedule = () => {
     return map;
   }, [schedules, categories]);
 
-  const currentNew = activeTab === 'all' 
+  const currentNew = activeTab === 'all'
     ? Object.keys(matchesByCategory).filter(key => key !== 'all').flatMap(key => (matchesByCategory[key] || []).filter(m => !m.isExisting))
     : (matchesByCategory[activeTab] || []).filter(m => !m.isExisting);
 
+  // For existing matches, prefer the locally-edited copy from matchesByCategory
+  // so that in-progress edits are reflected in the UI.
   const currentExisting = activeTab === 'all'
-    ? Object.keys(existingMatches).filter(key => key !== 'all').flatMap(key => existingMatches[key] || [])
-    : existingMatches[activeTab] || [];
+    ? Object.keys(existingMatches).filter(key => key !== 'all').flatMap(key => {
+      const localEdits = matchesByCategory[key] || [];
+      return (existingMatches[key] || []).map(m => {
+        const edited = localEdits.find(lm => lm.id === m.id && lm.isExisting);
+        return edited || m;
+      });
+    })
+    : (existingMatches[activeTab] || []).map(m => {
+      const localEdits = matchesByCategory[activeTab] || [];
+      const edited = localEdits.find(lm => lm.id === m.id && lm.isExisting);
+      return edited || m;
+    });
 
   // ── stable callbacks via useCallback ────────────────────────────────────────
 
@@ -684,12 +699,12 @@ const TournamentSchedule = () => {
     const catsToAdd = categories.filter(c => selectedCats.includes(c._id));
     const newMatchesByCategory = {};
     const isKnockout = ['quarterfinal', 'semifinal', 'final'].includes(selectedRound);
-    
+
     catsToAdd.forEach(category => {
       const categoryId = category._id;
       const existingMatchesInCategory = matchesByCategory[categoryId] || [];
       const baseId = existingMatchesInCategory.length > 0 ? Math.max(...existingMatchesInCategory.map(m => m.id)) + 1 : Date.now() + Math.random();
-      
+
       let teamAName = 'Team A';
       let teamBName = 'Team B';
 
@@ -704,16 +719,24 @@ const TournamentSchedule = () => {
         { ...EMPTY_MATCH(baseId, teamAName, teamBName), date, venue }
       ];
     });
-    
+
     setMatchesByCategory(prev => ({ ...prev, ...newMatchesByCategory }));
     setShowModal(false);
   }, [categories, matchesByCategory, selectedRound]);
 
   const onUpdateMatch = useCallback((id, updater) => {
-    setMatchesByCategory(prev => ({
-      ...prev,
-      [activeTab]: (prev[activeTab] || []).map(m => m.id === id ? updater(m) : m),
-    }));
+    setMatchesByCategory(prev => {
+      const next = { ...prev };
+      if (activeTab && activeTab !== 'all') {
+        next[activeTab] = (next[activeTab] || []).map(m => m.id === id ? updater(m) : m);
+      } else {
+        // In 'all' tab, search across all category buckets
+        Object.keys(next).forEach(catId => {
+          next[catId] = (next[catId] || []).map(m => m.id === id ? updater(m) : m);
+        });
+      }
+      return next;
+    });
   }, [activeTab]);
 
   const onDelete = useCallback((id, match) => {
@@ -722,27 +745,103 @@ const TournamentSchedule = () => {
       setScheduleToDelete({ scheduleId, match });
       setShowDeleteModal(true);
     } else {
-      setMatchesByCategory(prev => ({ ...prev, [activeTab]: (prev[activeTab] || []).filter(m => m.id !== id) }));
+      setMatchesByCategory(prev => {
+        const next = { ...prev };
+        Object.keys(next).forEach(catId => {
+          next[catId] = (next[catId] || []).filter(m => m.id !== id);
+        });
+        return next;
+      });
     }
-  }, [activeTab]);
+  }, []);
 
   const onEditExisting = useCallback((match) => {
     setEditingId(match.id);
+    // Identify the correct category bucket for this existing match
+    let categoryId = activeTab;
+    if (activeTab === 'all') {
+      categoryId = Object.keys(existingMatches).find(catId =>
+        existingMatches[catId].some(m => m.id === match.id)
+      );
+    }
+    if (!categoryId) return;
+
     setMatchesByCategory(prev => {
-      const existing = prev[activeTab] || [];
-      if (!existing.find(m => m.id === match.id)) return { ...prev, [activeTab]: [...existing, { ...match }] };
-      return prev;
+      const existing = prev[categoryId] || [];
+      const withoutOld = existing.filter(m => !(m.id === match.id && m.isExisting));
+      return { ...prev, [categoryId]: [...withoutOld, { ...match }] };
     });
-  }, [activeTab]);
+  }, [activeTab, existingMatches]);
 
   const onCancelEdit = useCallback((id) => {
     setEditingId(null);
-    setMatchesByCategory(prev => ({ ...prev, [activeTab]: (prev[activeTab] || []).filter(m => !(m.id === id && m.isExisting)) }));
-  }, [activeTab]);
+    setMatchesByCategory(prev => {
+      const next = { ...prev };
+      Object.keys(next).forEach(catId => {
+        next[catId] = (next[catId] || []).filter(m => !(m.id === id && m.isExisting));
+      });
+      return next;
+    });
+  }, []);
+
+  const handleUpdateExistingMatch = async (match) => {
+    if (!match.scheduleId) return;
+
+    const buildTeamPayload = (team) => {
+      const payload = { teamName: team.teamName };
+      if (team.teamId) {
+        payload.teamId = team.teamId;
+        payload.players = (team.players || [])
+          .filter(p => p.playerId)
+          .map(p => ({ playerId: p.playerId, playerName: p.playerName, phoneNumber: p.phoneNumber }));
+      }
+      return payload;
+    };
+
+    const payload = {
+      scheduleId: match.scheduleId,
+      tournamentId: selectedTournamentId,
+      roundType: selectedRound,
+      date: match.date,
+      venue: match.venue,
+      matches: [{
+        matchNo: parseInt(match.id.split('_').pop()) + 1,
+        startTime: convertTo12Hour(match.time),
+        endTime: convertTo12Hour(match.endTime || calcEndTime(match.time, match.duration)),
+        duration: match.duration,
+        time: convertTo12Hour(match.time),
+        teamA: buildTeamPayload(match.teamA),
+        teamB: buildTeamPayload(match.teamB),
+      }]
+    };
+
+    const result = await dispatch(updateTournamentSchedule(payload));
+    if (result.meta.requestStatus === 'fulfilled') {
+      setEditingId(null);
+      // Remove from local edits
+      setMatchesByCategory(prev => {
+        const next = { ...prev };
+        Object.keys(next).forEach(catId => {
+          next[catId] = (next[catId] || []).filter(m => !(m.id === match.id && m.isExisting));
+        });
+        return next;
+      });
+      // Refresh
+      const params = { tournamentId: selectedTournamentId, roundType: selectedRound };
+      if (activeTab && activeTab !== 'all') {
+        const activeCategory = categories.find(cat => cat._id === activeTab);
+        if (activeCategory) {
+          params.categoryType = activeCategory.categoryType;
+          params.tag = activeCategory.tag;
+        }
+      }
+      dispatch(getTournamentSchedules(params));
+    }
+  };
 
   const handleSave = async () => {
     if (!selectedTournamentId) { showError('No tournament selected'); return; }
-    
+
     const isKnockout = ['quarterfinal', 'semifinal', 'final'].includes(selectedRound);
 
     // For knockout rounds: include any category with at least one unsaved match (teams optional)
@@ -753,33 +852,33 @@ const TournamentSchedule = () => {
       if (isKnockout) return true;
       return catMatches.some(m => m.teamA?.teamId && m.teamB?.teamId);
     });
-    
-    if (categoriesToSave.length === 0) { 
+
+    if (categoriesToSave.length === 0) {
       showError(isKnockout
         ? 'Please add at least one match before saving.'
         : 'Please select both teams for at least one match before saving.'
       );
-      return; 
+      return;
     }
-    
+
     // Validate dates for all matches
     for (const category of categoriesToSave) {
       const validMatches = (matchesByCategory[category._id] || [])
         .filter(m => !m.isExisting && (isKnockout || (m.teamA?.teamId && m.teamB?.teamId)));
-      
+
       for (let i = 0; i < validMatches.length; i++) {
-        if (!validMatches[i].date) { 
-          showError(`${category.categoryType} - Match ${i + 1}: date is required`); 
-          return; 
+        if (!validMatches[i].date) {
+          showError(`${category.categoryType} - Match ${i + 1}: date is required`);
+          return;
         }
       }
     }
-    
+
     // Save all categories
     for (const category of categoriesToSave) {
       const validCatMatches = (matchesByCategory[category._id] || [])
         .filter(m => !m.isExisting && (isKnockout || (m.teamA?.teamId && m.teamB?.teamId)));
-      
+
       if (validCatMatches.length === 0) continue;
 
       const buildTeamPayload = (team) => {
@@ -810,16 +909,16 @@ const TournamentSchedule = () => {
           teamB: buildTeamPayload(m.teamB),
         })),
       };
-      
+
       const result = await dispatch(saveTournamentSchedule(payload));
       if (result.meta.requestStatus !== 'fulfilled') {
         showError(`Failed to save schedule for ${category.categoryType}`);
         return;
       }
     }
-    
+
     showSuccess(`Schedules saved successfully for ${categoriesToSave.length} ${categoriesToSave.length === 1 ? 'category' : 'categories'}`);
-    
+
     // Clear all saved categories new matches
     categoriesToSave.forEach(cat => {
       setMatchesByCategory(prev => {
@@ -827,7 +926,7 @@ const TournamentSchedule = () => {
         return { ...prev, [cat._id]: existingOnly };
       });
     });
-    
+
     const params = { tournamentId: selectedTournamentId, roundType: selectedRound };
     if (activeTab && activeTab !== 'all') {
       const activeCategory = categories.find(cat => cat._id === activeTab);
@@ -849,7 +948,7 @@ const TournamentSchedule = () => {
     if (result.type === 'tournament/deleteTournamentSchedule/fulfilled') {
       setShowDeleteModal(false);
       setScheduleToDelete(null);
-      
+
       const params = { tournamentId: selectedTournamentId, roundType: selectedRound };
       if (activeTab && activeTab !== 'all') {
         const activeCategory = categories.find(cat => cat._id === activeTab);
@@ -881,6 +980,52 @@ const TournamentSchedule = () => {
                 <option value="">Select Tournament</option>
                 {tournamentsData.map(t => <option key={t._id} value={t._id}>{t.tournamentName}</option>)}
               </select>
+              {/* <button
+                className="export-btn"
+                disabled={!selectedTournamentId || exportingScheduleCSV}
+                title="Export schedules as CSV"
+                onClick={() => {
+                  const tournament = tournamentsData.find(t => t._id === selectedTournamentId);
+                  dispatch(exportScheduleCSV({ tournamentId: selectedTournamentId, tournamentName: tournament?.tournamentName || 'tournament' }));
+                }}
+              >
+                {exportingScheduleCSV
+                  ? <><Spinner size="sm" animation="border" className="me-1" />Exporting...</>
+                  : <><FiDownload size={15} /> Export CSV</>}
+              </button>
+              <button
+                className="export-btn"
+                disabled={!selectedTournamentId || importingScheduleCSV}
+                title="Import schedules from CSV"
+                onClick={() => importFileRef.current?.click()}
+              >
+                {importingScheduleCSV
+                  ? <><Spinner size="sm" animation="border" className="me-1" />Importing...</>
+                  : <><FiUpload size={15} /> Import CSV</>}
+              </button> */}
+              <input
+                ref={importFileRef}
+                type="file"
+                accept=".csv"
+                style={{ display: 'none' }}
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const result = await dispatch(importScheduleFromCSV({ file, tournamentId: selectedTournamentId }));
+                  e.target.value = '';
+                  if (result.meta.requestStatus === 'fulfilled') {
+                    const params = { tournamentId: selectedTournamentId, roundType: selectedRound };
+                    if (activeTab && activeTab !== 'all') {
+                      const activeCategory = categories.find(cat => cat._id === activeTab);
+                      if (activeCategory) {
+                        params.categoryType = activeCategory.categoryType;
+                        params.tag = activeCategory.tag;
+                      }
+                    }
+                    dispatch(getTournamentSchedules(params));
+                  }
+                }}
+              />
               {/* <button
                 className="export-btn"
                 onClick={() => setShowPlayersOffcanvas(true)}
@@ -919,8 +1064,8 @@ const TournamentSchedule = () => {
                 <Nav.Item>
                   <Nav.Link eventKey="all" className={activeTab === 'all' ? 'active' : ''}>
                     All <span className='fw-semibold' style={{ color: '#1F41BB' }}>
-                      {Object.keys(existingMatches).reduce((acc, key) => acc + (existingMatches[key] || []).length, 0) > 0 
-                        ? `(${Object.keys(existingMatches).reduce((acc, key) => acc + (existingMatches[key] || []).length, 0)})` 
+                      {Object.keys(existingMatches).reduce((acc, key) => acc + (existingMatches[key] || []).length, 0) > 0
+                        ? `(${Object.keys(existingMatches).reduce((acc, key) => acc + (existingMatches[key] || []).length, 0)})`
                         : ''}
                     </span>
                   </Nav.Link>
@@ -949,20 +1094,20 @@ const TournamentSchedule = () => {
                         const last = currentNew[currentNew.length - 1];
                         // Add more rows only to current category/categories based on activeTab
                         const catsToAdd = activeTab === 'all' ? categories : categories.filter(c => c._id === activeTab);
-                        
+
                         const newMatchesByCategory = {};
-                        
+
                         catsToAdd.forEach(category => {
                           const categoryId = category._id;
                           const existingMatches = matchesByCategory[categoryId] || [];
                           const baseId = existingMatches.length > 0 ? Math.max(...existingMatches.map(m => m.id)) + 1 : Date.now() + Math.random();
-                          
+
                           newMatchesByCategory[categoryId] = [
                             ...existingMatches,
                             { ...EMPTY_MATCH(baseId), date: last?.date || '', venue: last?.venue || '' }
                           ];
                         });
-                        
+
                         setMatchesByCategory(prev => ({ ...prev, ...newMatchesByCategory }));
                       }}
                     >
@@ -1044,6 +1189,7 @@ const TournamentSchedule = () => {
                             editable={editingId === m.id} isEditing={editingId === m.id}
                             onUpdateMatch={onUpdateMatch} onDelete={onDelete}
                             onCancelEdit={onCancelEdit} onEditExisting={onEditExisting}
+                            onSaveExisting={handleUpdateExistingMatch}
                             availableTeams={availableTeams} allMatches={[...currentNew, ...currentExisting]} />
                         ))}
                       </tbody>
@@ -1062,10 +1208,10 @@ const TournamentSchedule = () => {
         </Col>
       </Row>
 
-      <AddDateModal 
-        show={showModal} 
-        onHide={() => setShowModal(false)} 
-        onConfirm={handleAddDate} 
+      <AddDateModal
+        show={showModal}
+        onHide={() => setShowModal(false)}
+        onConfirm={handleAddDate}
         categories={categories}
         activeTab={activeTab}
         selectedRound={selectedRound}
