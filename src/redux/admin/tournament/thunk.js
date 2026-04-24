@@ -9,6 +9,7 @@ export const UPDATE_TOURNAMENT = "/api/tournaments/updateTournament";
 export const DELETE_TOURNAMENT = "/api/tournaments/deleteTournament";
 export const DELETE_TOURNAMENT_SCHEDULE = "/api/tournament-schedules/deleteScheduleTournament";
 export const SAVE_TOURNAMENT_SCHEDULE = "/api/tournament-schedules/saveSchedule";
+export const UPDATE_TOURNAMENT_SCHEDULE = "/api/tournament-schedules/updateSchedule";
 export const GET_TOURNAMENT_SCHEDULES = "/api/tournament-schedules/getSchedules";
 export const EXPORT_PLAYERS_CSV = "/api/tournament-players/exportCSV";
 export const UPLOAD_PLAYERS_CSV = "/api/tournament-players/uploadCSV";
@@ -16,6 +17,8 @@ export const GET_PLAYERS_BY_CATEGORY_GENDER = "/api/tournament-players/getPlayer
 export const ADD_TOURNAMENT_PLAYERS = "/api/tournament-players/addPlayer";
 export const SAVE_TOURNAMENT_TEAMS = "/api/tournament-teams/saveTeams";
 export const GET_TOURNAMENT_TEAMS = "/api/tournament-teams/getTeams";
+export const EXPORT_SCHEDULE_CSV = "/api/tournament-schedules/exportCSV";
+export const IMPORT_SCHEDULE_CSV = "/api/tournament-schedules/importCSV";
 
 export const getTournaments = createAsyncThunk(
   "tournament/getTournaments",
@@ -143,6 +146,24 @@ export const saveTournamentSchedule = createAsyncThunk(
   }
 );
 
+export const updateTournamentSchedule = createAsyncThunk(
+  "tournament/updateTournamentSchedule",
+  async (scheduleData, { rejectWithValue }) => {
+    try {
+      const response = await ownerApi.put(UPDATE_TOURNAMENT_SCHEDULE, scheduleData);
+      if (response?.status === 200 || response?.status === 201) {
+        showSuccess(response?.data?.message || "Schedule updated successfully");
+        return response.data;
+      }
+      showError(response?.data?.message || "Failed to update schedule");
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      showError(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
 export const getTournamentSchedules = createAsyncThunk(
   "tournament/getTournamentSchedules",
   async (params = {}, { rejectWithValue }) => {
@@ -230,10 +251,12 @@ export const getPlayersByCategoryGender = createAsyncThunk(
 
 export const addTournamentPlayers = createAsyncThunk(
   "tournament/addTournamentPlayers",
-  async ({ tournamentId, players }, { rejectWithValue, dispatch }) => {
+  async ({ tournamentId, players, categoryType, tag }, { rejectWithValue, dispatch }) => {
     try {
       const payload = {
         tournamentId,
+        ...(categoryType && { categoryType }),
+        ...(tag && { tag }),
         players: players.map(p => ({
           playerName: p.playerName.trim(),
           phoneNumber: p.phoneNumber.trim(),
@@ -299,6 +322,52 @@ export const getTournamentTeams = createAsyncThunk(
       }
       return rejectWithValue(response?.data?.message);
     } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const exportScheduleCSV = createAsyncThunk(
+  "tournament/exportScheduleCSV",
+  async ({ tournamentId, tournamentName }, { rejectWithValue }) => {
+    try {
+      const response = await ownerApi.getBlob(`${EXPORT_SCHEDULE_CSV}?tournamentId=${tournamentId}`);
+      if (response?.status === 200) {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${tournamentName || 'tournament'}-schedules.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        showSuccess('Schedule CSV exported successfully');
+        return { success: true };
+      }
+      showError('Failed to export schedule CSV');
+      return rejectWithValue('Failed to export schedule CSV');
+    } catch (error) {
+      showError(error || 'Failed to export schedule CSV');
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const importScheduleFromCSV = createAsyncThunk(
+  "tournament/importScheduleFromCSV",
+  async ({ file, tournamentId }, { rejectWithValue }) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await ownerApi.postFile(`${IMPORT_SCHEDULE_CSV}?tournamentId=${tournamentId}`, formData);
+      if (response?.status === 200 || response?.status === 201) {
+        showSuccess(response?.data?.message || 'Schedule imported successfully');
+        return response.data;
+      }
+      showError(response?.data?.message || 'Failed to import schedule');
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      showError(error?.response?.data?.message || error || 'Failed to import schedule');
       return rejectWithValue(error);
     }
   }

@@ -194,7 +194,7 @@ const DateSection = ({ dateGroup, tournamentName, onMatchClick }) => {
                 venue={schedule.venue}
                 scheduleId={schedule._id}
                 matchId={schedule?.matchId}
-                isLive={schedule.matchStatus === 'LIVE' || match.status === 'LIVE'}
+                isLive={schedule.matchStatus === 'live' || match.status === 'live'}
                 onClick={() => onMatchClick(match, schedule)}
               />
             </Col>
@@ -307,13 +307,13 @@ const PlayersTab = ({ tournamentId, filters, handleFilterChange, clearFilters, h
   useEffect(() => {
     if (!tournamentId) return;
     const params = { tournamentId, page: currentPage, limit: itemsPerPage };
-    
+
     // Find the selected category from filters using _id
     if (filters.categoryType) {
       const selectedCategory = categories.find(cat => cat._id === filters.categoryType);
       if (selectedCategory) {
         params.categoryType = selectedCategory.categoryType;
-        
+
         // Add gender based on tag
         if (selectedCategory.tag === "Men's Doubles") {
           params.gender = "Male";
@@ -323,7 +323,7 @@ const PlayersTab = ({ tournamentId, filters, handleFilterChange, clearFilters, h
         // For Mixed Doubles and Hybrid, don't send gender (means all)
       }
     }
-    
+
     // Override with explicit gender filter if provided
     if (filters.gender) {
       params.gender = filters.gender;
@@ -439,7 +439,6 @@ const PlayersTab = ({ tournamentId, filters, handleFilterChange, clearFilters, h
                 </button>
                 {[...Array(totalPages)].map((_, index) => {
                   const page = index + 1;
-                  // Show first page, last page, current page, and pages around current
                   if (
                     page === 1 ||
                     page === totalPages ||
@@ -750,6 +749,7 @@ const ViewTournament = () => {
         show={showPlayersOffcanvas}
         onHide={() => setShowPlayersOffcanvas(false)}
         tournamentId={tournamentId}
+        categories={categories}
         onPlayersAdded={() => setRefreshPlayers(prev => prev + 1)}
         onImportResult={(result) => {
           setImportResult(result);
@@ -824,15 +824,23 @@ const ViewTournament = () => {
   );
 };
 
-const ManagePlayersOffcanvas = ({ show, onHide, tournamentId, onPlayersAdded, onImportResult }) => {
+const ManagePlayersOffcanvas = ({ show, onHide, tournamentId, categories = [], onPlayersAdded, onImportResult }) => {
   const dispatch = useDispatch();
   const { addingPlayers } = useSelector(state => state.tournament);
+  const [selectedCategoryId, setSelectedCategoryId] = useState('');
   const [players, setPlayers] = useState([{
     playerName: '',
     phoneNumber: '',
     email: '',
     gender: ''
   }]);
+
+  // Reset category when offcanvas opens
+  useEffect(() => {
+    if (show) {
+      setSelectedCategoryId(categories.length > 0 ? categories[0]._id : '');
+    }
+  }, [show, categories]);
 
   const addPlayer = () => {
     setPlayers([...players, {
@@ -855,6 +863,10 @@ const ManagePlayersOffcanvas = ({ show, onHide, tournamentId, onPlayersAdded, on
   };
 
   const validatePlayers = () => {
+    if (!selectedCategoryId) {
+      showError('Please select a category');
+      return false;
+    }
     for (let i = 0; i < players.length; i++) {
       const p = players[i];
       if (!p.playerName.trim()) {
@@ -892,7 +904,15 @@ const ManagePlayersOffcanvas = ({ show, onHide, tournamentId, onPlayersAdded, on
   const handleSubmit = async () => {
     if (!validatePlayers()) return;
 
-    const result = await dispatch(addTournamentPlayers({ tournamentId, players }));
+    const selectedCategory = categories.find(cat => cat._id === selectedCategoryId);
+    const result = await dispatch(addTournamentPlayers({
+      tournamentId,
+      players,
+      ...(selectedCategory && {
+        categoryType: selectedCategory.categoryType,
+        tag: selectedCategory.tag
+      })
+    }));
 
     if (result.meta.requestStatus === 'fulfilled') {
       const data = result.payload;
@@ -937,6 +957,27 @@ const ManagePlayersOffcanvas = ({ show, onHide, tournamentId, onPlayersAdded, on
         </Offcanvas.Title>
       </Offcanvas.Header>
       <Offcanvas.Body style={{ padding: '20px', overflowY: 'auto' }}>
+        {/* Category Dropdown */}
+        {categories.length > 0 && (
+          <div className="mb-3">
+            <Form.Label style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+              Category <span className="text-danger">*</span>
+            </Form.Label>
+            <Form.Select
+              value={selectedCategoryId}
+              onChange={(e) => setSelectedCategoryId(e.target.value)}
+              style={{ fontSize: 13, border: '1px solid #ddd', borderRadius: '8px' }}
+            >
+              <option value="">Select Category</option>
+              {categories.map(cat => (
+                <option key={cat._id} value={cat._id}>
+                  {cat.categoryType} ({cat.tag})
+                </option>
+              ))}
+            </Form.Select>
+          </div>
+        )}
+
         <div className="mb-3 d-flex justify-content-between align-items-center">
           <span style={{ fontSize: 14, color: '#666' }}>Add multiple players at once</span>
           <Button

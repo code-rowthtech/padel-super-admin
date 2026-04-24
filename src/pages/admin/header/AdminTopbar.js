@@ -186,6 +186,10 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
     }
   }, [dispatch, loadNotifications]);
 
+  const owner = getOwnerFromSession();
+  const ownerData = owner?.user || owner;
+  const isSubAdmin = ownerData?.isSubAdmin === true;
+
   return (
     <header
       className={`admin-topbar d-flex justify-content-between align-items-center px-3 px-md-4 py-2 ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}
@@ -241,155 +245,157 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
       </div> */}
 
       <div className="d-flex align-items-center gap-2 gap-md-4">
-        <div className="position-relative" ref={dropdownRef}>
-          <div
-            className="d-flex rounded-circle  align-items-center"
-            style={{
-              cursor: "pointer",
-              // backgroundColor: open ? "black" : "white",
-              padding: "8px",
-              position: "relative",
-            }}
-            onClick={() => setOpen(!open)}
-          >
-            <Badge
-              badgeContent={
-                notificationCount?.unreadCount > 99
-                  ? '99+'
-                  : notificationCount?.unreadCount
-              }
-              color="error"
-            >
-              <NotificationsIcon
-                className={`${open ? 'text-dark' : 'text-dark'}`}
-                size={18}
-              />
-            </Badge>
-          </div>
-
-          {open && (
+        {!isSubAdmin && (
+          <div className="position-relative" ref={dropdownRef}>
             <div
-              className="shadow-sm p-2 add_position_notification"
+              className="d-flex rounded-circle  align-items-center"
               style={{
-                position: "absolute",
-                top: "50px",
-                right: 0,
-                width: "320px",
-                backgroundColor: "#fff",
-                borderRadius: "12px",
-                zIndex: 10,
+                cursor: "pointer",
+                // backgroundColor: open ? "black" : "white",
+                padding: "8px",
+                position: "relative",
               }}
+              onClick={() => setOpen(!open)}
             >
-              <div className="d-flex justify-content-between align-items-center mb-0 pt-1 ps-1">
-                <h6 style={{ fontWeight: 600, fontFamily: "Poppins" }}>Notifications</h6>
-                {notifications?.length > 0 && (
-                  <button
-                    className="btn btn-link p-0"
-                    style={{
-                      fontSize: "13px",
-                      fontWeight: 500,
-                      textDecoration: "none",
-                      color: "#007bff",
-                    }}
-                    onClick={handleMarkAllRead}
-                  >
-                    Mark all as read
-                  </button>
-                )}
-              </div>
+              <Badge
+                badgeContent={
+                  notificationCount?.unreadCount > 99
+                    ? '99+'
+                    : notificationCount?.unreadCount
+                }
+                color="error"
+              >
+                <NotificationsIcon
+                  className={`${open ? 'text-dark' : 'text-dark'}`}
+                  size={18}
+                />
+              </Badge>
+            </div>
 
-              <div style={{ maxHeight: "300px", overflowY: "auto" }} className="hide-notification-scrollbar">
-                {notificationLoading ? <ButtonLoading /> :
-                  notifications?.length > 0 ? (
-                    notifications?.map((note) => (
-                      <div
-                        key={note._id}
-                        className="d-flex gap-2 align-items-start justify-content-between p-3 mb-2 rounded "
-                        style={{
-                          borderBottom: "1px solid #f0f0f0",
-                          cursor: "pointer",
-                        }}
-                        onClick={() => handleViewNotification(note)}
-                      >
-                        {note?.userId?.profilePic ? (
-                          <img
-                            src={note?.userId?.profilePic}
-                            alt="user"
-                            style={{
-                              width: "35px",
-                              height: "35px",
-                              borderRadius: "50%",
-                              objectFit: "cover",
-                            }}
-                          />
-                        ) : (
-                          <div
-                            style={{
-                              width: "35px",
-                              height: "35px",
-                              borderRadius: "50%",
-                              backgroundColor: "#e5e7eb",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              fontWeight: "600",
-                              color: "#111",
-                            }}
-                          >
-                            {note?.userId?.name?.charAt(0).toUpperCase()}
-                          </div>
-                        )}
+            {open && (
+              <div
+                className="shadow-sm p-2 add_position_notification"
+                style={{
+                  position: "absolute",
+                  top: "50px",
+                  right: 0,
+                  width: "320px",
+                  backgroundColor: "#fff",
+                  borderRadius: "12px",
+                  zIndex: 10,
+                }}
+              >
+                <div className="d-flex justify-content-between align-items-center mb-0 pt-1 ps-1">
+                  <h6 style={{ fontWeight: 600, fontFamily: "Poppins" }}>Notifications</h6>
+                  {notifications?.length > 0 && (
+                    <button
+                      className="btn btn-link p-0"
+                      style={{
+                        fontSize: "13px",
+                        fontWeight: 500,
+                        textDecoration: "none",
+                        color: "#007bff",
+                      }}
+                      onClick={handleMarkAllRead}
+                    >
+                      Mark all as read
+                    </button>
+                  )}
+                </div>
 
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontWeight: 500, fontSize: "13px" }}>
-                            {note?.userId?.name?.trim() || "User"} – {note?.title}
-                          </div>
-                          {note?.message && (
+                <div style={{ maxHeight: "300px", overflowY: "auto" }} className="hide-notification-scrollbar">
+                  {notificationLoading ? <ButtonLoading /> :
+                    notifications?.length > 0 ? (
+                      notifications?.map((note) => (
+                        <div
+                          key={note._id}
+                          className="d-flex gap-2 align-items-start justify-content-between p-3 mb-2 rounded "
+                          style={{
+                            borderBottom: "1px solid #f0f0f0",
+                            cursor: "pointer",
+                          }}
+                          onClick={() => handleViewNotification(note)}
+                        >
+                          {note?.userId?.profilePic ? (
+                            <img
+                              src={note?.userId?.profilePic}
+                              alt="user"
+                              style={{
+                                width: "35px",
+                                height: "35px",
+                                borderRadius: "50%",
+                                objectFit: "cover",
+                              }}
+                            />
+                          ) : (
+                            <div
+                              style={{
+                                width: "35px",
+                                height: "35px",
+                                borderRadius: "50%",
+                                backgroundColor: "#e5e7eb",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontWeight: "600",
+                                color: "#111",
+                              }}
+                            >
+                              {note?.userId?.name?.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontWeight: 500, fontSize: "13px" }}>
+                              {note?.userId?.name?.trim() || "User"} – {note?.title}
+                            </div>
+                            {note?.message && (
+                              <p
+                                className="text-muted mb-1"
+                                style={{ fontSize: "12px", fontFamily: "Poppins" }}
+                              >
+                                {note?.message}
+                              </p>
+                            )}
                             <p
-                              className="text-muted mb-1"
+                              className="text-muted text-nowrap mb-0"
                               style={{ fontSize: "12px", fontFamily: "Poppins" }}
                             >
-                              {note?.message}
+                              {dayjs(note?.createdAt).fromNow()} <b>.</b>{" "}
+                              <OverlayTrigger
+                                placement="top"
+                                overlay={
+                                  <Tooltip id={`tooltip-${note._id}`}>
+                                    {note?.notificationType}
+                                  </Tooltip>
+                                }
+                              >
+                                <span style={{ cursor: "pointer" }}>
+                                  {note?.notificationType?.length > 12
+                                    ? note?.notificationType?.slice(0, 12) + "..."
+                                    : note?.notificationType}
+                                </span>
+                              </OverlayTrigger>
                             </p>
-                          )}
-                          <p
-                            className="text-muted text-nowrap mb-0"
-                            style={{ fontSize: "12px", fontFamily: "Poppins" }}
-                          >
-                            {dayjs(note?.createdAt).fromNow()} <b>.</b>{" "}
-                            <OverlayTrigger
-                              placement="top"
-                              overlay={
-                                <Tooltip id={`tooltip-${note._id}`}>
-                                  {note?.notificationType}
-                                </Tooltip>
-                              }
-                            >
-                              <span style={{ cursor: "pointer" }}>
-                                {note?.notificationType?.length > 12
-                                  ? note?.notificationType?.slice(0, 12) + "..."
-                                  : note?.notificationType}
-                              </span>
-                            </OverlayTrigger>
-                          </p>
+                          </div>
                         </div>
+                      ))
+                    ) : (
+                      <div
+                        className="text-center text-muted py-3"
+                        style={{
+                          fontWeight: 400,
+                          fontFamily: "Poppins",
+                        }}
+                      >
+                        No new notifications
                       </div>
-                    ))
-                  ) : (
-                    <div
-                      className="text-center text-muted py-3"
-                      style={{
-                        fontWeight: 400,
-                        fontFamily: "Poppins",
-                      }}
-                    >
-                      No new notifications
-                    </div>
-                  )}
+                    )}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
 
         <Dropdown align="end" onToggle={(isOpen) => setIsOpen(isOpen)}>
           <Dropdown.Toggle
@@ -401,10 +407,10 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
                 {user?.name || "Danielle Campbell"}
               </div>
               <div className="text-muted small">
-                {user?.role
+                {isSubAdmin ? "Sub Admin" : (user?.role
                   ?.slice(0, 1)
                   .toUpperCase()
-                  .concat(user?.role?.slice(1)) || "Owner"}
+                  .concat(user?.role?.slice(1)) || "Owner")}
               </div>
             </div>
             {user?.profilePic ? (
@@ -417,7 +423,7 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
                 loading="lazy"
               />
             ) : (
-              <div className="bg-secondary rounded-pill" style={{width:"40px!important",height:"40px!important"}}>
+              <div className="bg-secondary rounded-pill" style={{ width: "40px!important", height: "40px!important" }}>
                 <FaUserCircle size={30} />
               </div>
             )}
@@ -433,15 +439,19 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
             style={{ color: "#374151", minWidth: "200px" }}
           >
 
-            <Dropdown.Item as={NavLink} to="/admin/customer-reviews">
-              Review & Rating
-            </Dropdown.Item>
-            <Dropdown.Item as={NavLink} to="/admin/help-support">
-              Help & Support
-            </Dropdown.Item>
-            <Dropdown.Item as={NavLink} to="/admin/privacy">
-              Privacy
-            </Dropdown.Item>
+            {!isSubAdmin && (
+              <>
+                <Dropdown.Item as={NavLink} to="/admin/customer-reviews">
+                  Review & Rating
+                </Dropdown.Item>
+                <Dropdown.Item as={NavLink} to="/admin/help-support">
+                  Help & Support
+                </Dropdown.Item>
+                <Dropdown.Item as={NavLink} to="/admin/privacy">
+                  Privacy
+                </Dropdown.Item>
+              </>
+            )}
             <Dropdown.Item
               onClick={() => {
                 dispatch(logout());
