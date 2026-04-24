@@ -72,7 +72,7 @@ export const GET_ALL_PACKAGES = "/api/package/getAllPackages";
 export const UPDATE_PACKAGE = "/api/package/editPackage";
 export const DELETE_PACKAGE = "/api/package/deletePackage";
 
-export const GET_COUNT_DASHBOARD = "/api/super-admin/club-dashboard-data";
+export const GET_COUNT_DASHBOARD = "/api/super-admin/dashboard";
 export const GET_CANCELLATION_BOOKING_DASHBOARD =
   "/api/super-admin/club-dashboard-cancellations";
 export const GET_RECENT_BOOKING_DASHBOARD =
