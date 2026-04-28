@@ -260,6 +260,17 @@ const QuickiePointTab = ({ leagueId }) => {
     }, []);
   }, [schedulesData]);
 
+
+  const getDuration = (start, end) => {
+    const diffMs = new Date(end) - new Date(start);
+    const minutes = Math.floor(diffMs / (1000 * 60));
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+
+    return `${hours ? `${hours}h ` : ''}${remainingMinutes}m`;
+  };
+
+
   const matchesForDate = useMemo(() => {
     if (!formData.date) return [];
     const dateGroup = schedulesData.find(s => s.date === formData.date);
@@ -267,8 +278,13 @@ const QuickiePointTab = ({ leagueId }) => {
     return (dateGroup.schedules || []).flatMap(schedule =>
       (schedule.matches || []).map(match => ({
         matchId: match._id,
-        label: `${match.teamA?.clubId?.clubName || 'TBD'} vs ${match.teamB?.clubId?.clubName || 'TBD'} · ${schedule.roundType.charAt(0).toUpperCase() + schedule.roundType.slice(1)} @ ${schedule.playTime || 'TBD'}`,
-        teamA: match.teamA,
+        label: `${match.teamA?.clubId?.clubName || 'TBD'} vs ${match.teamB?.clubId?.clubName || 'TBD'
+          } · ${schedule.roundType.charAt(0).toUpperCase() +
+          schedule.roundType.slice(1)
+          } @ ${schedule.matchStartedAt && schedule.matchEndedAt
+            ? getDuration(schedule.matchStartedAt, schedule.matchEndedAt)
+            : 'TBD'
+          }`, teamA: match.teamA,
         teamB: match.teamB,
         scheduleId: schedule._id,
         categoryType: schedule.categoryType,
