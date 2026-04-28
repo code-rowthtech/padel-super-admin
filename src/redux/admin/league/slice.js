@@ -30,6 +30,11 @@ const initialState = {
   loadingLivestream: false,
   quickPoints: [],
   loadingQuickPoints: false,
+  schedulesPagination: {
+    page: 1,
+    totalPages: 1,
+    total: 0
+  },
   error: null,
 };
 
@@ -170,6 +175,11 @@ const leagueSlice = createSlice({
       .addCase(getAllSchedules.fulfilled, (state, action) => {
         state.loadingSchedules = false;
         state.schedules = action.payload?.data || [];
+        state.schedulesPagination = action.payload?.pagination || {
+          page: 1,
+          totalPages: 1,
+          total: (action.payload?.data || []).length
+        };
         state.categorySummary = action.payload?.categorySummary || [];
       })
       .addCase(getAllSchedules.rejected, (state, action) => {

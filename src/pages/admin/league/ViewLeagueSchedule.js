@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Container, Row, Col, Card, Form, Button, Modal, Table } from 'react-bootstrap';
 import { Tabs, Tab } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
@@ -55,7 +55,7 @@ const VSMatchCard = ({ match, category, roundType, matchId, isLive, onClick, sch
   return (
     <div
       onClick={onClick}
-      className="mb-3 shadow-sm rounded-3 position-relative overflow-hidden"
+      className="mb-3 shadow-sm rounded-3 position-relative overflow-hidden pt-0"
       style={{
         background: 'linear-gradient(100.97deg, rgb(253, 253, 255) 0%, rgb(158, 186, 255) 317.27%)',
         padding: '30px 16px 16px 16px',
@@ -66,8 +66,26 @@ const VSMatchCard = ({ match, category, roundType, matchId, isLive, onClick, sch
         flexDirection: 'column'
       }}
     >
-      <div className="vs-date-badge" >
+      {/* <div className="vs-date-badge" >
         {match?.startTime}
+      </div> */}
+      <div className="row">
+        <div className="col-12 d-flex justify-content-center">
+          <div
+            className="text-white fw-medium px-4 d-flex align-items-center justify-content-center"
+            style={{
+              fontSize: '13px',
+              paddingTop: '2px', paddingBottom: '2px',
+              backgroundColor: '#1F41BB',
+              borderTopLeftRadius: '0',
+              borderTopRightRadius: '0',
+              borderBottomLeftRadius: '110px',
+              borderBottomRightRadius: '110px'
+            }}
+          >
+            {match?.startTime}
+          </div>
+        </div>
       </div>
       <Row className="align-items-center" style={{ flex: 1 }}>
         {/* Team A */}
@@ -487,7 +505,7 @@ const TournamentBracket = () => {
 const ViewLeagueSchedule = () => {
   const dispatch = useDispatch();
   const { leagueId } = useParams();
-  const { schedules, loadingSchedules, loadingExport, currentLeague, loadingLivestream } = useSelector(state => state.league);
+  const { schedules, loadingSchedules, loadingExport, currentLeague, loadingLivestream, schedulesPagination } = useSelector(state => state.league);
   const [activeTab, setActiveTab] = useState(0);
   const [livestreamModal, setLivestreamModal] = useState({ show: false, match: null });
   const [livestreamForm, setLivestreamForm] = useState({ streamKey: '' });
@@ -499,6 +517,8 @@ const ViewLeagueSchedule = () => {
     endDate: null,
     matchStatus: ''
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
   const [showExportDropdown, setShowExportDropdown] = useState(false);
   const [exportFilters, setExportFilters] = useState({
     leagueId: leagueId,
@@ -526,6 +546,7 @@ const ViewLeagueSchedule = () => {
       startDate: '',
       endDate: ''
     });
+    setCurrentPage(1);
   }, [leagueId]);
 
   // Cleanup on unmount
@@ -571,7 +592,11 @@ const ViewLeagueSchedule = () => {
   }, [leagueId, dispatch])
 
   useEffect(() => {
-    const params = { leagueId };
+    setCurrentPage(1);
+  }, [filters]);
+
+  useEffect(() => {
+    const params = { leagueId, page: currentPage, limit: itemsPerPage };
     if (filters.categoryType) params.categoryType = filters.categoryType;
     if (filters.roundType) params.roundType = filters.roundType;
     if (filters.matchStatus) params.matchStatus = filters.matchStatus;
@@ -591,7 +616,7 @@ const ViewLeagueSchedule = () => {
     } else if (!hasStartDate && !hasEndDate) {
       dispatch(getAllSchedules(params));
     }
-  }, [dispatch, leagueId, filters]);
+  }, [dispatch, leagueId, filters, currentPage]);
 
   const handleMatchClick = (match, schedule) => {
     setLivestreamModal({ show: true, match, schedule });
@@ -842,52 +867,134 @@ const ViewLeagueSchedule = () => {
         </Row>
       </Container>
 
-      {/* Scrollable Content */}
-      <div style={{ flex: '1 1 auto', overflow: 'auto' }}>
-        <Container fluid className="px-3 px-md-4">
-          <Row>
-            <Col>
+      {/* Content Area */}
+      <div style={{ flex: '1 1 auto', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <Container fluid className="px-3 px-md-4 h-100" style={{ display: 'flex', flexDirection: 'column' }}>
+          <Row className="flex-grow-1" style={{ minHeight: 0 }}>
+            <Col className="h-100 d-flex flex-column">
               {activeTab === 0 && (
-                <div>
-                  {loadingSchedules ? (
-                    <Card className="text-center py-5 border-0 shadow-sm">
-                      <Card.Body>
-                        <DataLoading />
-                        <div className="mt-3 text-muted">Loading match schedules...</div>
-                      </Card.Body>
-                    </Card>
-                  ) : schedulesData.length > 0 ? (
-                    <div>
-                      {schedulesData.map((dateGroup, index) => (
-                        <DateSection
-                          key={dateGroup.date || index}
-                          dateGroup={dateGroup}
-                          onMatchClick={handleMatchClick}
-                        />
-                      ))}
+                <div className="d-flex flex-column h-100">
+                  <div style={{ flex: 1, overflowY: 'auto', paddingRight: '4px' }} className="custom-scrollbar py-3">
+                    {loadingSchedules ? (
+                      <Card className="text-center py-5 border-0 shadow-sm">
+                        <Card.Body>
+                          <DataLoading />
+                          <div className="mt-3 text-muted">Loading match schedules...</div>
+                        </Card.Body>
+                      </Card>
+                    ) : schedulesData.length > 0 ? (
+                      <div>
+                        {schedulesData.map((dateGroup, index) => (
+                          <DateSection
+                            key={dateGroup.date || index}
+                            dateGroup={dateGroup}
+                            onMatchClick={handleMatchClick}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <Card className="text-center py-5 shadow-none">
+                        <Card.Body>
+                          <h5 className="mb-2">No Matches Scheduled</h5>
+                          <p className="text-muted mb-0">
+                            There are no match schedules available for this league yet.
+                          </p>
+                        </Card.Body>
+                      </Card>
+                    )}
+                  </div>
+
+                  {/* Pagination - Fixed at bottom of tab content */}
+                  {!loadingSchedules && schedulesData.length > 0 && schedulesPagination.total > itemsPerPage && (
+                    <div className="border-top bg-white py-3 mt-auto">
+                      <div className="d-flex justify-content-between align-items-center px-2">
+                        <div style={{ fontSize: '13px', color: '#6b7280' }}>
+                          Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, schedulesPagination.total)} of {schedulesPagination.total} schedules
+                        </div>
+                        <div className="d-flex gap-1">
+                          <button
+                            className="btn btn-sm"
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            style={{
+                              backgroundColor: currentPage === 1 ? '#f3f4f6' : '#fff',
+                              border: '1px solid #e5e7eb',
+                              color: currentPage === 1 ? '#9ca3af' : '#374151',
+                              fontSize: '12px',
+                              padding: '4px 12px',
+                              cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
+                            }}
+                          >
+                            Previous
+                          </button>
+                          {[...Array(schedulesPagination.totalPages)].map((_, index) => {
+                            const pageNum = index + 1;
+                            if (
+                              pageNum === 1 ||
+                              pageNum === schedulesPagination.totalPages ||
+                              (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                            ) {
+                              return (
+                                <button
+                                  key={pageNum}
+                                  className="btn btn-sm"
+                                  onClick={() => setCurrentPage(pageNum)}
+                                  style={{
+                                    backgroundColor: currentPage === pageNum ? '#1F41BB' : '#fff',
+                                    border: '1px solid #e5e7eb',
+                                    color: currentPage === pageNum ? '#fff' : '#374151',
+                                    fontSize: '12px',
+                                    padding: '4px 12px',
+                                    minWidth: '32px'
+                                  }}
+                                >
+                                  {pageNum}
+                                </button>
+                              );
+                            } else if (pageNum === currentPage - 2 || pageNum === currentPage + 2) {
+                              return <span key={pageNum} style={{ padding: '4px 8px', color: '#9ca3af' }}>...</span>;
+                            }
+                            return null;
+                          })}
+                          <button
+                            className="btn btn-sm"
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, schedulesPagination.totalPages))}
+                            disabled={currentPage === schedulesPagination.totalPages}
+                            style={{
+                              backgroundColor: currentPage === schedulesPagination.totalPages ? '#f3f4f6' : '#fff',
+                              border: '1px solid #e5e7eb',
+                              color: currentPage === schedulesPagination.totalPages ? '#9ca3af' : '#374151',
+                              fontSize: '12px',
+                              padding: '4px 12px',
+                              cursor: currentPage === schedulesPagination.totalPages ? 'not-allowed' : 'pointer'
+                            }}
+                          >
+                            Next
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  ) : (
-                    <Card className="text-center py-5 shadow-none">
-                      <Card.Body>
-                        <h5 className="mb-2">No Matches Scheduled</h5>
-                        <p className="text-muted mb-0">
-                          There are no match schedules available for this league yet.
-                        </p>
-                      </Card.Body>
-                    </Card>
                   )}
                 </div>
               )}
 
               {activeTab === 1 && (
-                <PointsTable leagueId={leagueId} />
+                <div style={{ flex: 1, overflowY: 'auto' }} className="custom-scrollbar h-100 py-3">
+                  <PointsTable leagueId={leagueId} />
+                </div>
               )}
 
               {activeTab === 2 && (
-                <QuickiePointTab leagueId={leagueId} />
+                <div style={{ flex: 1, overflowY: 'auto' }} className="custom-scrollbar h-100 py-3">
+                  <QuickiePointTab leagueId={leagueId} />
+                </div>
               )}
 
-              {activeTab === 3 && <TournamentBracket />}
+              {activeTab === 3 && (
+                <div style={{ flex: 1, overflowY: 'auto' }} className="custom-scrollbar h-100 py-3">
+                  <TournamentBracket />
+                </div>
+              )}
             </Col>
           </Row>
         </Container>
