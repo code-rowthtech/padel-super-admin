@@ -138,3 +138,42 @@ export const getRevenueForDashboard = createAsyncThunk(
     }
   }
 );
+
+export const getDaywiseRevenueForDashboard = createAsyncThunk(
+  "dashboard/getDaywiseRevenueForDashboard",
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      let url = Url.GET_DAYWISE_DASHBOARD;
+      const queryParams = [];
+      
+      if (params.ownerId) {
+        queryParams.push(`ownerId=${params.ownerId}`);
+      }
+      if (params.clubId) {
+        queryParams.push(`clubId=${params.clubId}`);
+      }
+      if (params.month !== undefined) {
+        queryParams.push(`month=${params.month}`);
+      }
+      if (params.year) {
+        queryParams.push(`year=${params.year}`);
+      }
+      
+      if (queryParams.length > 0) {
+        url += `?${queryParams.join("&")}`;
+      }
+      
+      const res = await ownerApi.get(url);
+      const { status, data, message } = res || {};
+      if (status === 200 || "200") {
+        return data?.data;
+      }
+      const errorMessage = message || "error fetching Daywise Data";
+      showError(errorMessage);
+      return rejectWithValue(errorMessage);
+    } catch (error) {
+      const errorMessage = error?.response?.data?.message;
+      return rejectWithValue(errorMessage);
+    }
+  }
+);

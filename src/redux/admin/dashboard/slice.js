@@ -4,6 +4,7 @@ import {
   getCancelledBookingsForDashboard,
   getRecentBookingsForDashboard,
   getRevenueForDashboard,
+  getDaywiseRevenueForDashboard,
 } from "./thunk";
 
 const initialState = {
@@ -15,6 +16,9 @@ const initialState = {
   dashboardRevenue: null,
   dashboardRevenueLoading: false,
   dashboardRevenueError: null,
+  dashboardDaywiseRevenue: null,
+  dashboardDaywiseRevenueLoading: false,
+  dashboardDaywiseRevenueError: null,
 };
 
 const dashboardSlice = createSlice({
@@ -82,6 +86,19 @@ const dashboardSlice = createSlice({
       .addCase(getRevenueForDashboard.rejected, (state, action) => {
         state.ddashboardRevenueLoading = false;
         state.ddashboardRevenueError = action.payload;
+      })
+
+      .addCase(getDaywiseRevenueForDashboard.pending, (state) => {
+        state.dashboardDaywiseRevenueLoading = true;
+        state.dashboardDaywiseRevenueError = null;
+      })
+      .addCase(getDaywiseRevenueForDashboard.fulfilled, (state, action) => {
+        state.dashboardDaywiseRevenueLoading = false;
+        state.dashboardDaywiseRevenue = action.payload;
+      })
+      .addCase(getDaywiseRevenueForDashboard.rejected, (state, action) => {
+        state.dashboardDaywiseRevenueLoading = false;
+        state.dashboardDaywiseRevenueError = action.payload;
       });
   },
 });

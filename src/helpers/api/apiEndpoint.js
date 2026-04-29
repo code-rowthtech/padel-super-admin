@@ -78,6 +78,8 @@ export const GET_CANCELLATION_BOOKING_DASHBOARD =
 export const GET_RECENT_BOOKING_DASHBOARD =
   "/api/super-admin/club-dashboard-current-bookings";
 export const GET_REVENUE_DASHBOARD = "/api/super-admin/club-monthwise-booking";
+export const GET_DAYWISE_DASHBOARD = "/api/super-admin/club-daywise-booking";
+
 export const GET_REVIEWS_FOR_OWNER = "/api/review/getownerClubReview";
 
 export const GET_NOTIFICATION_VIEW = "/api/adminNotification/markAsRead";
