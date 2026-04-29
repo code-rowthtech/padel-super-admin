@@ -34,56 +34,55 @@ const PointsTable = ({ leagueId }) => {
       <div className="points-card">
 
         <div className="title">Points Table</div>
+        {(() => {
+          const categories = leaderboard?.standings?.[0]?.categoryWins
+            ? Object.keys(leaderboard.standings[0].categoryWins)
+            : [];
+          return (
+            <div className="table-container">
+              <table className="points-table">
+                <thead>
+                  <tr>
+                    <th>POS</th>
+                    <th className="team-col">Teams</th>
+                    <th>P</th>
+                    <th>W</th>
+                    <th>L</th>
+                    <th>PT</th>
+                    {categories.map((cat) => (
+                      <th key={cat}>{cat}</th>
+                    ))}
+                    <th>SD</th>
+                  </tr>
+                </thead>
 
-        {/* TABLE SCROLL WRAPPER */}
-        <div className="table-container">
-          <table className="points-table">
-            <thead>
-              <tr>
-                <th>POS</th>
-                <th className="team-col">Teams</th>
-                <th>P</th>
-                <th>W</th>
-                <th>L</th>
-                <th>PT</th>
-                <th>A/B</th>
-                <th>C/D</th>
-                <th>A/B MX</th>
-                <th>C/D MX</th>
-                <th>HY</th>
-                <th>SD</th>
-                <th>WM</th>
-              </tr>
-            </thead>
+                <tbody>
+                  {leaderboard.standings.map((team) => (
+                    <tr key={team.clubId}>
+                      <td className="pos">{team.position}</td>
 
-            <tbody>
-              {leaderboard.standings.map((team) => (
-                <tr key={team.clubId}>
-                  <td className="pos">{team.position}</td>
+                      <td className="team-col">
+                        <div className="team">
+                          {team.clubLogo && <img src={team.clubLogo} alt="logo" />}
+                          <span>{team.clubName}</span>
+                        </div>
+                      </td>
 
-                  <td className="team-col">
-                    <div className="team">
-                      {team.logo && <img src={team.logo} alt="logo" />}
-                      <span>{team.clubName}</span>
-                    </div>
-                  </td>
-
-                  <td>{team.played}</td>
-                  <td>{team.wins}</td>
-                  <td>{team.losses}</td>
-                  <td className="points">{team.points}</td>
-                  <td>{team.abWins}</td>
-                  <td>{team.cdWins}</td>
-                  <td>{team.mixedWins}</td>
-                  <td>{team.mixedWins}</td>
-                  <td>{team.hybridWins}</td>
-                  <td>{team.setDifference}</td>
-                  <td>{team.womensWins}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                      <td>{team.played}</td>
+                      <td>{team.wins}</td>
+                      <td>{team.losses}</td>
+                      <td className="points">{team.points}</td>
+                      {categories.map((cat) => (
+                        <td key={cat}>{team.categoryWins?.[cat] || 0}</td>
+                      ))}
+                      <td>{team.setDifference}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        })()}
       </div>
 
       <style jsx>{`
@@ -153,7 +152,8 @@ const PointsTable = ({ leagueId }) => {
         .team img {
           width: 26px;
           height: 26px;
-          object-fit: contain;
+          object-fit: cover;
+          border-radius: 50%;
         }
 
         .pos {
