@@ -4,12 +4,14 @@ import { FaUsers, FaEdit, FaTrash } from "react-icons/fa";
 import { HiOutlineTrophy } from "react-icons/hi2";
 import { BsRecordCircle } from "react-icons/bs";
 import { IoCashOutline } from "react-icons/io5";
+import { IoSettingsOutline } from "react-icons/io5";
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getLeagues, deleteLeague, updateLeague } from '../../../redux/admin/league/thunk';
 import { DataLoading } from '../../../helpers/loading/Loaders';
 import Pagination from '../../../helpers/Pagination';
 import { GrSchedules } from "react-icons/gr";
+import ObsSettingsModal from '../obsSettings/ObsSettingsModal';
 
 const League = () => {
   const navigate = useNavigate();
@@ -24,6 +26,7 @@ const League = () => {
   const [toggling, setToggling] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const defaultLimit = 15;
+  const [obsModal, setObsModal] = useState({ show: false, leagueId: null, title: '' });
 
   useEffect(() => {
     dispatch(getLeagues({ page: currentPage, limit: defaultLimit }));
@@ -222,6 +225,7 @@ const League = () => {
                           <div className="d-flex justify-content-center gap-2">
                             <GrSchedules style={{ cursor: "pointer", color: "#6b7280" }} onClick={() => navigate(`/admin/view-league-schedule/${league._id}`)} size={16} />
                             <FaEdit style={{ cursor: "pointer", color: "#6b7280" }} onClick={() => navigate(`/admin/new-league/${league._id}`)} size={16} />
+                            <IoSettingsOutline style={{ cursor: "pointer", color: "#6b7280" }} onClick={() => setObsModal({ show: true, leagueId: league._id, title: league.leagueName })} size={16} />
                             <FaTrash style={{ cursor: "pointer", color: "#6b7280" }} onClick={() => handleDeleteClick(league)} size={16} />
                           </div>
                         </td>
@@ -281,6 +285,14 @@ const League = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      <ObsSettingsModal
+        show={obsModal.show}
+        onHide={() => setObsModal({ show: false, leagueId: null, title: '' })}
+        leagueId={obsModal.leagueId}
+        isLeague={true}
+        title={obsModal.title}
+      />
     </Container>
   );
 };
