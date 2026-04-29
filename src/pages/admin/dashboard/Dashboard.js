@@ -15,10 +15,11 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Bar,
-  BarChart,
+  Area,
+  AreaChart,
 } from "recharts";
-import { FaArrowUp, FaArrowDown, FaEye } from "react-icons/fa";
+import { FaArrowUp, FaArrowDown, FaEye, FaCalendarAlt } from "react-icons/fa";
+import { BsCalendar2Check, BsFileText, BsCurrencyRupee, BsXCircle } from "react-icons/bs";
 import { Link, useLocation } from "react-router-dom";
 import {
   MdOutlineDateRange,
@@ -27,6 +28,7 @@ import {
   MdOutlineGroup,
   MdOutlineCancel,
 } from "react-icons/md";
+import "./Dashboard.css";
 import {
   getCountDataForDashboard,
   getCancelledBookingsForDashboard,
@@ -34,6 +36,7 @@ import {
   getBookingDetailsById,
   updateBookingStatus,
   getRevenueForDashboard,
+  getDaywiseRevenueForDashboard,
 } from "../../../redux/thunks";
 import { SUPER_ADMIN_GET_ALL_CLUBS } from "../../../helpers/api/apiEndpoint";
 import { ownerApi } from "../../../helpers/api/apiCore";
@@ -64,6 +67,7 @@ const AdminDashboard = () => {
   const {
     dashboardLoading,
     dashboardRevenue,
+    dashboardDaywiseRevenue,
     dashboardCounts,
     dashboardRecentBookings,
     dashboardCancelledBookings,
@@ -71,6 +75,18 @@ const AdminDashboard = () => {
   const formatNumber = (num) => {
     if (!num) return "0";
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
+
+  const formatRevenue = (num) => {
+    if (!num) return "0";
+    // Indian number format: 12,34,567
+    const numStr = num.toString();
+    const lastThree = numStr.substring(numStr.length - 3);
+    const otherNumbers = numStr.substring(0, numStr.length - 3);
+    if (otherNumbers !== '') {
+      return otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + "," + lastThree;
+    }
+    return lastThree;
   };
 
   const calculatePercentage = (current, previous) => {
@@ -108,7 +124,8 @@ const AdminDashboard = () => {
       ).startsWith("+")
         ? "success"
         : "danger",
-      bigicon: <MdOutlineDateRange size={35} />,
+      bigicon: <BsCalendar2Check size={28} />,
+      iconClass: "stat-icon-purple",
     },
     {
       title: "Upcoming Booking",
@@ -131,11 +148,12 @@ const AdminDashboard = () => {
       ).startsWith("+")
         ? "success"
         : "danger",
-      bigicon: <MdOutlineInsertDriveFile size={35} />,
+      bigicon: <BsFileText size={28} />,
+      iconClass: "stat-icon-green",
     },
     {
       title: "Total Revenue",
-      value: `₹ ${formatNumber(dashboardCounts?.totalRevenue) || 0}`,
+      value: `₹ ${formatRevenue(dashboardCounts?.totalRevenue)}`,
       percent: calculatePercentage(
         dashboardCounts?.totalRevenue || 0,
         previousPeriod?.totalRevenue
@@ -154,10 +172,11 @@ const AdminDashboard = () => {
       ).startsWith("+")
         ? "success"
         : "danger",
-      bigicon: <MdOutlineTrendingUp size={35} />,
+      bigicon: <BsCurrencyRupee size={28} />,
+      iconClass: "stat-icon-orange",
     },
     {
-      title: "Cancellation Request",
+      title: "Cancellation Requests",
       value: `${dashboardCounts?.cancellationRequestCount || 0}`,
       percent: calculatePercentage(
         dashboardCounts?.cancellationRequestCount || 0,
@@ -167,9 +186,9 @@ const AdminDashboard = () => {
         dashboardCounts?.cancellationRequestCount || 0,
         previousPeriod?.cancellationRequestCount
       ).startsWith("+") ? (
-        <FaArrowDown />
-      ) : (
         <FaArrowUp />
+      ) : (
+        <FaArrowDown />
       ),
       color: calculatePercentage(
         dashboardCounts?.cancellationRequestCount || 0,
@@ -177,7 +196,8 @@ const AdminDashboard = () => {
       ).startsWith("+")
         ? "danger"
         : "success",
-      bigicon: <MdOutlineGroup size={35} />,
+      bigicon: <BsXCircle size={28} />,
+      iconClass: "stat-icon-red",
     },
   ];
   const [loadingById, setLoadingById] = useState(null);
@@ -185,6 +205,9 @@ const AdminDashboard = () => {
   const [showBookingCancel, setShowBookingCancel] = useState(false);
   const [showCancellation, setShowCancellation] = useState(false);
   const [showRequest, setShowRequest] = useState(false);
+  const [chartView, setChartView] = useState("monthly");
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   // Fetch clubs for filter
   useEffect(() => {
@@ -208,8 +231,6 @@ const AdminDashboard = () => {
   }, [selectedOwnerId]);
 
   useEffect(() => {
-    // ✅ SUPER ADMIN: Pass ownerId ONLY if selectedOwnerId is explicitly set (not null/undefined)
-    // If selectedOwnerId is null, don't pass ownerId to show all data
     const params = selectedOwnerId ? { ownerId: selectedOwnerId } : {};
     if (selectedClubId !== "all") {
       params.clubId = selectedClubId;
@@ -219,6 +240,18 @@ const AdminDashboard = () => {
     dispatch(getRecentBookingsForDashboard(params));
     dispatch(getRevenueForDashboard(params));
   }, [dispatch, selectedOwnerId, selectedClubId]);
+
+  useEffect(() => {
+    if (chartView === "daily") {
+      const params = selectedOwnerId ? { ownerId: selectedOwnerId } : {};
+      if (selectedClubId !== "all") {
+        params.clubId = selectedClubId;
+      }
+      params.month = selectedMonth + 1;
+      params.year = selectedYear;
+      dispatch(getDaywiseRevenueForDashboard(params));
+    }
+  }, [dispatch, chartView, selectedMonth, selectedYear, selectedOwnerId, selectedClubId]);
 
   const renderSlotTimes = (slotTimes) =>
     slotTimes?.length ? slotTimes?.map((slot) => slot?.time).join(", ") : "-";
@@ -300,37 +333,50 @@ const AdminDashboard = () => {
     December: "Dec",
   };
 
-  let chartData = months?.map((month) => ({
-    month,
-    Booking: 0,
-    totalAmount: 0,
-    Cancelation: 0,
-    year: 2025,
-  }));
+  let chartData = [];
 
-  const revenueArray = Array.isArray(dashboardRevenue) ? dashboardRevenue : [];
+  if (chartView === "monthly") {
+    chartData = months?.map((month) => ({
+      month,
+      Booking: 0,
+      totalAmount: 0,
+      Cancelation: 0,
+      year: 2025,
+    }));
 
-  revenueArray.forEach((item) => {
-    const shortMonth = monthMap[item?.month];
-    const monthIndex = chartData.findIndex((d) => d?.month === shortMonth);
-    if (monthIndex !== -1) {
-      chartData[monthIndex].Booking =
-        (chartData[monthIndex].Booking || 0) + (item?.totalBookings || 0);
-      chartData[monthIndex].totalAmount =
-        (chartData[monthIndex].totalAmount || 0) + (item?.totalAmount || 0);
-      chartData[monthIndex].year = item.year || 2025;
-    }
-  });
+    const revenueArray = Array.isArray(dashboardRevenue) ? dashboardRevenue : [];
 
-  revenueArray.forEach((item) => {
-    const shortMonth = monthMap[item.month];
-    const monthIndex = chartData.findIndex((d) => d?.month === shortMonth);
-    if (monthIndex !== -1) {
-      chartData[monthIndex].Cancelation =
-        (chartData[monthIndex].Cancelation || 0) + (item?.cancelBookings || 0);
-      chartData[monthIndex].year = item?.year || 2025;
-    }
-  });
+    revenueArray.forEach((item) => {
+      const shortMonth = monthMap[item?.month];
+      const monthIndex = chartData.findIndex((d) => d?.month === shortMonth);
+      if (monthIndex !== -1) {
+        chartData[monthIndex].Booking =
+          (chartData[monthIndex].Booking || 0) + (item?.totalBookings || 0);
+        chartData[monthIndex].totalAmount =
+          (chartData[monthIndex].totalAmount || 0) + (item?.totalAmount || 0);
+        chartData[monthIndex].year = item.year || 2025;
+      }
+    });
+
+    revenueArray.forEach((item) => {
+      const shortMonth = monthMap[item.month];
+      const monthIndex = chartData.findIndex((d) => d?.month === shortMonth);
+      if (monthIndex !== -1) {
+        chartData[monthIndex].Cancelation =
+          (chartData[monthIndex].Cancelation || 0) + (item?.cancelBookings || 0);
+        chartData[monthIndex].year = item?.year || 2025;
+      }
+    });
+  } else {
+    const revenueArray = Array.isArray(dashboardDaywiseRevenue) ? dashboardDaywiseRevenue : [];
+
+    chartData = revenueArray.map((item) => ({
+      day: item?.day || "",
+      Booking: item?.totalBookings || 0,
+      totalAmount: item?.totalAmount || 0,
+      Cancelation: item?.cancelBookings || 0,
+    }));
+  }
 
   const { pathname } = useLocation();
 
@@ -391,18 +437,23 @@ const AdminDashboard = () => {
           <Row className="mb-4 g-3">
             {summaryCards?.map((card, index) => (
               <Col key={index} xs={12} sm={6} lg={3} className="fade-in-up">
-                <Card className="stat-card h-100 border-0">
-                  <Card.Body className="d-flex justify-content-between align-items-center">
+                <Card className="stat-card border-0">
+                  <Card.Body className="d-flex align-items-center gap-3 py-3">
+                    <div className={`stat-icon ${card?.iconClass}`}>
+                      {card?.bigicon}
+                    </div>
                     <div>
-                      <div className="text-muted mb-2" style={{ fontSize: "13px", fontWeight: "500" }}>
+                      <div className="text-muted mb-1" style={{ fontSize: "13px", fontWeight: "500" }}>
                         {card?.title}
                       </div>
-                      <div className="fw-bold mb-2" style={{ fontSize: "28px", color: "#1f2937" }}>
+                      <div className="fw-bold mb-1" style={{ fontSize: "24px", color: "#1f2937" }}>
                         {card?.value}
                       </div>
-                    </div>
-                    <div className="stat-icon">
-                      {card?.bigicon}
+                      <div className={`percent-badge ${card?.color}`}>
+                        {card?.icon}
+                        <span>{card?.percent}</span>
+                        <span style={{ fontSize: "11px", color: "#9ca3af", marginLeft: "4px" }}>vs last month</span>
+                      </div>
                     </div>
                   </Card.Body>
                 </Card>
@@ -417,154 +468,111 @@ const AdminDashboard = () => {
                   <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-sm-center mb-4">
                     <div>
                       <h5 className="mb-1 fw-bold" style={{ color: "#1f2937" }}>
-                        Monthly Booking Analytics
+                        {chartView === "monthly" ? "Monthly" : "Daily"} Booking Analytics
                       </h5>
                       <p className="text-muted mb-0" style={{ fontSize: "13px" }}>
                         Track your booking performance over time
                       </p>
                     </div>
+                    <div className="d-flex gap-2 align-items-center">
+                      {chartView === "daily" && (
+                        <Form.Select
+                          value={selectedMonth}
+                          onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                          style={{
+                            fontSize: "12px",
+                            padding: "6px 10px",
+                            borderRadius: "6px",
+                            fontWeight: "500",
+                            width: "100px",
+                            border: "1px solid #dee2e6",boxShadow:"none"
+                          }}
+                        >
+                          {months.map((month, index) => (
+                            <option key={index} value={index}>
+                              {month} {selectedYear}
+                            </option>
+                          ))}
+                        </Form.Select>
+                      )}
+                      <button
+                        className={`btn btn-sm ${chartView === "monthly" ? "btn-primary" : "btn-outline-secondary"}`}
+                        onClick={() => setChartView("monthly")}
+                        style={{
+                          fontSize: "12px",
+                          padding: "6px 16px",
+                          borderRadius: "6px",
+                          fontWeight: "500",
+                        }}
+                      >
+                        Monthly
+                      </button>
+                      <button
+                        className={`btn btn-sm ${chartView === "daily" ? "btn-primary" : "btn-outline-secondary"}`}
+                        onClick={() => setChartView("daily")}
+                        style={{
+                          fontSize: "12px",
+                          padding: "6px 16px",
+                          borderRadius: "6px",
+                          fontWeight: "500",
+                        }}
+                      >
+                        Daily
+                      </button>
+                    </div>
                   </div>
 
-                  <ResponsiveContainer width="100%" height={350}>
-                    <BarChart
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart
                       data={chartData}
-                      margin={{ top: 20, right: 20, left: 20, bottom: 20 }}
+                      margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                     >
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                      <defs>
+                        <linearGradient id="colorBooking" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
                       <XAxis
-                        dataKey="month"
+                        dataKey={chartView === "monthly" ? "month" : "day"}
                         tickLine={false}
-                        axisLine={{ stroke: "#e5e7eb" }}
+                        axisLine={false}
                         tick={{
-                          fill: "#6b7280",
+                          fill: "#9ca3af",
                           fontSize: 12,
-                          fontWeight: "500",
                         }}
-                        interval={0}
-                        height={50}
-                        padding={{ right: 10 }}
+                        interval={chartView === "daily" ? "preserveStartEnd" : 0}
                       />
                       <YAxis
-                        type="number"
-                        domain={[0, 50]}
-                        ticks={[
-                          0, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200,
-                        ]}
-                        allowDecimals={false}
                         tickLine={false}
-                        axisLine={{ stroke: "#e5e7eb" }}
-                        width={60}
+                        axisLine={false}
                         tick={{
-                          fill: "#6b7280",
+                          fill: "#9ca3af",
                           fontSize: 12,
-                          fontWeight: "500",
-                        }}
-                        label={{
-                          value: "Booking Count",
-                          angle: -90,
-                          position: "insideLeft",
-                          style: {
-                            textAnchor: "middle",
-                            fill: "#6b7280",
-                            fontSize: "12px",
-                            fontWeight: "600",
-                          },
                         }}
                       />
                       <Tooltip
-                        cursor={{ fill: "transparent" }}
                         contentStyle={{
-                          backgroundColor: "white",
-                          border: "none",
+                          backgroundColor: "#fff",
+                          border: "1px solid #e5e7eb",
+                          borderRadius: "8px",
+                          padding: "8px 12px",
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                         }}
-                        content={({ label, payload }) => {
-                          if (payload && payload?.length > 0) {
-                            const dataPoint = payload[0]?.payload;
-                            return (
-                              <div
-                                style={{
-                                  backgroundColor: "#fff",
-                                  border: "1px solid #e5e7eb",
-                                  borderRadius: "12px",
-                                  padding: "12px",
-                                  boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
-                                  fontSize: "13px",
-                                  minWidth: "180px",
-                                }}
-                              >
-                                <p
-                                  style={{
-                                    margin: "0 0 8px 0",
-                                    fontWeight: "600",
-                                    color: "#1f2937",
-                                  }}
-                                >
-                                  {label} 2024
-                                </p>
-                                <div className="d-flex justify-content-between align-items-center mb-1">
-                                  <span style={{ color: "#6b7280" }}>
-                                    📊 Bookings:
-                                  </span>
-                                  <span
-                                    style={{
-                                      fontWeight: "600",
-                                      color: "#3b82f6",
-                                    }}
-                                  >
-                                    {dataPoint?.Booking}
-                                  </span>
-                                </div>
-                                <div className="d-flex justify-content-between align-items-center mb-1">
-                                  <span style={{ color: "#6b7280" }}>
-                                    ❌ Cancellations:
-                                  </span>
-                                  <span
-                                    style={{
-                                      fontWeight: "600",
-                                      color: "#ef4444",
-                                    }}
-                                  >
-                                    {dataPoint?.Cancelation}
-                                  </span>
-                                </div>
-                                <hr
-                                  style={{
-                                    margin: "8px 0",
-                                    border: "none",
-                                    borderTop: "1px solid #f3f4f6",
-                                  }}
-                                />
-                                <div className="d-flex justify-content-between align-items-center">
-                                  <span style={{ color: "#6b7280" }}>
-                                    💰 Revenue:
-                                  </span>
-                                  <span
-                                    style={{
-                                      fontWeight: "700",
-                                      color: "#059669",
-                                    }}
-                                  >
-                                    ₹
-                                    {(
-                                      dataPoint?.totalAmount || 0
-                                    ).toLocaleString()}
-                                  </span>
-                                </div>
-                              </div>
-                            );
-                          }
-                          return null;
-                        }}
+                        labelStyle={{ fontWeight: 600, marginBottom: "4px" }}
                       />
-                      <Bar
+                      <Area
+                        type="monotone"
                         dataKey="Booking"
-                        name="Bookings"
-                        fill="#3b82f6"
-                        barSize={30}
-                        radius={[6, 6, 0, 0]}
-                        isAnimationActive={true}
+                        stroke="#6366f1"
+                        strokeWidth={3}
+                        fillOpacity={1}
+                        fill="url(#colorBooking)"
+                        dot={{ fill: "#6366f1", strokeWidth: 2, r: 4 }}
+                        activeDot={{ r: 6 }}
                       />
-                    </BarChart>
+                    </AreaChart>
                   </ResponsiveContainer>
                 </Card.Body>
               </Card>
@@ -760,8 +768,12 @@ const AdminDashboard = () => {
                         </div>
                       </>
                     ) : (
-                      <div className="d-flex text-danger small justify-content-center align-items-center mt-5 pt-5">
-                        <p className="mt-5">No cancellations were found !</p>
+                      <div className="empty-state">
+                        <div className="empty-state-icon">
+                          <FaCalendarAlt style={{ fontSize: "40px" }} />
+                        </div>
+                        <div className="empty-state-title">No cancellations were found!</div>
+                        <div className="empty-state-text">Enjoy your stress-free day.</div>
                       </div>
                     )}
                   </div>
@@ -803,11 +815,13 @@ const AdminDashboard = () => {
                         >
                           <thead>
                             <tr className="text-center">
-                              <th>Sr No.</th>
-                              <th>User Name</th>
-                              <th>Date</th>
-                              <th>Court No</th>
-                              <th>Action</th>
+                              <th>SR NO.</th>
+                              <th>USER NAME</th>
+                              <th>DATE</th>
+                              <th>COURT NO.</th>
+                              <th>TIME</th>
+                              <th>STATUS</th>
+                              <th>ACTION</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -816,17 +830,8 @@ const AdminDashboard = () => {
                                 key={item._id}
                                 className="table-data border-bottom align-middle text-center"
                               >
-                                <td
-                                  className="text-truncate"
-                                  style={{ maxWidth: "120px" }}
-                                >
-                                  {idx + 1}
-                                </td>
-                                <td
-                                  className="text-truncate"
-                                  style={{ maxWidth: "120px" }}
-                                >
-                                  {/* ✅ SUPER ADMIN: Handle both old format (userId) and new format (user/userName) */}
+                                <td>{idx + 1}</td>
+                                <td>
                                   {(item?.userId?.name || item?.user?.name || item?.userName)
                                     ?.slice(0, 1)
                                     ?.toUpperCase()
@@ -834,33 +839,47 @@ const AdminDashboard = () => {
                                     "N/A"}
                                 </td>
                                 <td>
-                                  <div className="d-flex justify-content-center">
-                                    <span className="fw-medium small">
-                                      {formatDateMonth(item?.bookingDate)}
-                                    </span>
-                                    <span className="text-muted small ms-2">
-                                      {formatTime(
-                                        renderSlotTimes(
-                                          item?.slot?.[0]?.slotTimes
-                                        )
-                                      )}
-                                    </span>
-                                  </div>
+                                  {formatDateMonth(item?.bookingDate)}
                                 </td>
-                                <td
-                                  className="text-truncate"
-                                  style={{ maxWidth: "80px" }}
-                                >
-                                  {/* ✅ SUPER ADMIN: Handle both old format and new format */}
+                                <td>
                                   {item?.slot?.[0]?.courtName || item?.club?.clubName || item?.clubName || "-"}
                                 </td>
-                                <td style={{ cursor: "pointer" }}>
+                                <td>
+                                  {formatTime(
+                                    renderSlotTimes(
+                                      item?.slot?.[0]?.slotTimes
+                                    )
+                                  )}
+                                </td>
+                                <td>
+                                  <span className="status-badge status-confirmed">Confirmed</span>
+                                </td>
+                                <td>
                                   {loadingById === item?._id ? (
                                     <ButtonLoading color="blue" size={7} />
                                   ) : (
                                     <>
                                       <OverlayTrigger
-                                        placement="left"
+                                        placement="top"
+                                        overlay={
+                                          <BootstrapTooltip>
+                                            View
+                                          </BootstrapTooltip>
+                                        }
+                                      >
+                                        <FaEye
+                                          className="action-icon text-primary"
+                                          onClick={() =>
+                                            handleBookingDetails(
+                                              item?._id,
+                                              "details"
+                                            )
+                                          }
+                                          size={16}
+                                        />
+                                      </OverlayTrigger>
+                                      <OverlayTrigger
+                                        placement="top"
                                         overlay={
                                           <BootstrapTooltip>
                                             Cancel
@@ -874,28 +893,8 @@ const AdminDashboard = () => {
                                               "cancel"
                                             )
                                           }
-                                          className="text-danger me-1"
-                                          style={{ cursor: "pointer" }}
-                                          size={16}
-                                        />
-                                      </OverlayTrigger>
-                                      <OverlayTrigger
-                                        placement="bottom"
-                                        overlay={
-                                          <BootstrapTooltip>
-                                            View Details
-                                          </BootstrapTooltip>
-                                        }
-                                      >
-                                        <FaEye
-                                          className="text-primary ms-1"
-                                          onClick={() =>
-                                            handleBookingDetails(
-                                              item?._id,
-                                              "details"
-                                            )
-                                          }
-                                          size={16}
+                                          className="action-icon text-danger"
+                                          size={18}
                                         />
                                       </OverlayTrigger>
                                     </>

@@ -288,7 +288,7 @@ const BasicInformation = ({ onNext }) => {
             if (result.meta.requestStatus === 'fulfilled') {
                 const newLeagueId = result.payload?.data?._id || result.payload?.id;
                 if (newLeagueId) {
-                    navigate(`/admin/new-league/${newLeagueId}`, { state: { step: 1 }, replace: true });
+                    navigate(`/admin/new-league/${newLeagueId}`, { state: { step: 1 } });
                 } else {
                     onNext();
                 }

@@ -1317,6 +1317,16 @@ const LeagueSchedule = () => {
                   value={selectedClubId}
                   onChange={(e) => setSelectedClubId(e.target.value)}
                   disabled={loadingClubs}
+                  style={{
+                    fontSize: "13px",
+                    fontFamily: "Poppins",
+                    borderRadius: "6px",
+                    border: "2px solid #dee2e6",
+                    padding: "5px 12px",
+                    backgroundColor: "#fff",
+                    fontWeight: "500",
+                    boxShadow: "none",
+                  }}
                 >
                   <option value="">{loadingClubs ? 'Loading...' : "Select Club"}</option>
                   {clubs?.map((club) => (
@@ -1331,6 +1341,16 @@ const LeagueSchedule = () => {
                 className="form-select form-select-sm league-select"
                 value={selectedLeagueId}
                 onChange={handleLeagueChange}
+                style={{
+                  fontSize: "13px",
+                  fontFamily: "Poppins",
+                  borderRadius: "6px",
+                  border: "2px solid #dee2e6",
+                  padding: "5px 12px",
+                  backgroundColor: "#fff",
+                  fontWeight: "500",
+                  boxShadow: "none",
+                }}
               >
                 <option value="">Select League</option>
                 {leaguesData.map((league) => (
@@ -1355,8 +1375,8 @@ const LeagueSchedule = () => {
           {/* Show category tabs for regular, quarter-final, and semi-final rounds */}
           {selectedRound !== 'final' && (
             <Nav variant="tabs" activeKey={activeTab} onSelect={handleTabChange} className="level-tabs border-0 mb-3">
-              {availableCategories.map((category) => {
-                const tabKey = category._id;
+              {availableCategories?.map((category) => {
+                const tabKey = category?._id;
 
                 if (!tabKey) return null;
                 const summaryMatch = categorySummary?.find(s => s.categoryType === category.categoryType);
@@ -1370,7 +1390,7 @@ const LeagueSchedule = () => {
                   </Nav.Item>
                 );
               })}
-              {availableCategories.length > 0 && (
+              {availableCategories?.length > 0 && (
                 <Nav.Item>
                   <Nav.Link eventKey="all" className={activeTab === 'all' ? 'active' : ''}>
                     All <span className='fw-semibold' style={{ color: '#1f41bb' }}>{categorySummary?.length > 0 ? `(${categorySummary.reduce((acc, curr) => acc + (curr.matchCount || 0), 0)})` : ''}</span>
