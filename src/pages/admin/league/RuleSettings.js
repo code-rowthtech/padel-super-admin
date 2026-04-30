@@ -289,6 +289,11 @@ const RuleSettings = ({ onBack }) => {
             validateRound('final', matchRules.final?.settings, 'final_');
         }
 
+        // Validate Bounty Criteria if Bounty is entered
+        if (bounty > 0 && !bountyCondition) {
+            newErrors.bountyCondition = 'Bounty criteria is required when bounty is entered';
+        }
+
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
             return;
@@ -593,13 +598,19 @@ const RuleSettings = ({ onBack }) => {
                         </Col>
                         <Col md={4} className="mb-3">
                             <Form.Group>
-                                <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '8px' }}>Bounty Criteria</Form.Label>
+                                <Form.Label style={{ fontSize: '13px', color: '#666', marginBottom: '8px' }}>Bounty Criteria {bounty > 0 && <span className="text-danger">*</span>}</Form.Label>
                                 <Form.Control 
                                     type="text" 
                                     placeholder="e.g., 6-0" 
                                     value={bountyCondition} 
+                                    isInvalid={!!errors.bountyCondition}
                                     onChange={(e) => {
                                         const value = e.target.value;
+                                        if (errors.bountyCondition) setErrors(prev => {
+                                            const newErrors = { ...prev };
+                                            delete newErrors.bountyCondition;
+                                            return newErrors;
+                                        });
                                         // Allow empty value
                                         if (value === '') {
                                             setBountyCondition('');
@@ -631,6 +642,7 @@ const RuleSettings = ({ onBack }) => {
                                     maxLength={3}
                                     style={{ borderRadius: '8px', padding: '10px', fontSize: '14px', backgroundColor: '#f8f9fa', border: '1px solid #e0e0e0', boxShadow: 'none' }} 
                                 />
+                                {errors.bountyCondition && <Form.Control.Feedback type="invalid">{errors.bountyCondition}</Form.Control.Feedback>}
                             </Form.Group>
                         </Col>
                         <Col md={4} className="mb-3">

@@ -151,8 +151,13 @@ export const GET_LEAGUES_IDS = "/api/leagues/getLeaguesIDS";
 export const UPDATE_LEAGUE = "/api/leagues/updateLeague";
 export const GET_LEAGUE_BY_ID = "/api/leagues/getLeagueById";
 export const DELETE_LEAGUE = "/api/leagues/deleteLeague";
+export const GET_AVAILABLE_PLAYERS = "/api/league-players/available-players";
+export const SAVE_TEAMS = "/api/league-players/teams";
+export const GET_TEAMS = "/api/league-players/teams";
 // League Schedule API endpoints
 export const GET_LEAGUE_CLUBS = "/api/league-schedules/clubs";
 export const GET_CLUB_TEAMS = "/api/league-schedules/teams";
 export const EXPORT_LEAGUE_SCHEDULES_PDF = "/api/league-schedules/export/pdf";
 export const GET_SPONSOR_CATEGORIES = "/api/sponsor-categories";
+export const GET_LEAGUE_SUMMARY = "/api/league-schedules/summary";
+export const GET_SCHEDULE_DATES = "/api/league-schedules/schedule-dates";

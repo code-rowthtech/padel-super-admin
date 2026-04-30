@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Container, Row, Col, Card, Badge, Form, Button } from 'react-bootstrap';
-import { AppBar, Tabs, Tab } from '@mui/material';
+import { Tabs, Tab } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { getAllSchedules, exportLeagueSchedulesPDF, getLeagueById } from '../../../redux/admin/league/thunk';
@@ -10,7 +10,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { DataLoading } from '../../../helpers/loading/Loaders';
 
-const VSMatchCard = ({ match, category }) => {
+const VSMatchCard = ({ match, category, roundType }) => {
   const getPlayerAvatar = (player) => {
     if (player?.avatar) return player.avatar;
     const name = player?.playerName || player?.name || 'P';
@@ -21,7 +21,6 @@ const VSMatchCard = ({ match, category }) => {
     if (!team?.players?.length) return [];
     return team.players.slice(0, 2); // Show max 2 players
   };
-
   return (
     <div
       className="mb-3 shadow-sm rounded-3 position-relative overflow-hidden"
@@ -60,16 +59,7 @@ const VSMatchCard = ({ match, category }) => {
 
         {/* Center - Date and VS */}
         <Col xs={4} className="text-center">
-          {/* <div
-            className="mx-auto mb-2 px-3 py-1 rounded-pill"
-            style={{
-              backgroundColor: 'rgba(255,255,255,0.2)',
-              fontSize: '11px',
-              fontWeight: '500'
-            }}
-          >
-            {formatDate(match.date)}
-          </div> */}
+          {/* <small className='fw-semibold text-capitalize' style={{ fontSize: '0.7rem' }}>{roundType}</small> */}
           <div
             className="d-flex align-items-center justify-content-center mx-auto"
             style={{
@@ -84,7 +74,7 @@ const VSMatchCard = ({ match, category }) => {
           >
             VS
           </div>
-          <small className='fw-semibold' style={{ fontSize: '0.7rem' }}>{category}</small>
+          <small className='fw-semibold' style={{ fontSize: '0.7rem' }}>{category} - <span className='text-capitalize'>{roundType}</span></small>
         </Col>
 
         {/* Team B */}
@@ -115,63 +105,64 @@ const VSMatchCard = ({ match, category }) => {
 
 
 
-const DateSection = ({ schedule }) => {
-  const formatDate = (dateString) => {
-    // Parse as UTC to avoid timezone issues
-    const date = new Date(dateString + (dateString.includes('T') ? '' : 'T00:00:00.000Z'));
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+const formatDate = (dateString) => {
+  const date = new Date(dateString + (dateString.includes('T') ? '' : 'T00:00:00.000Z'));
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
 
-    // Compare using UTC dates to avoid timezone issues
-    const dateUTC = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-    const todayUTC = new Date(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
-    const tomorrowUTC = new Date(tomorrow.getUTCFullYear(), tomorrow.getUTCMonth(), tomorrow.getUTCDate());
+  const dateUTC = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+  const todayUTC = new Date(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+  const tomorrowUTC = new Date(tomorrow.getUTCFullYear(), tomorrow.getUTCMonth(), tomorrow.getUTCDate());
 
-    if (dateUTC.getTime() === todayUTC.getTime()) return 'Today';
-    if (dateUTC.getTime() === tomorrowUTC.getTime()) return 'Tomorrow';
+  if (dateUTC.getTime() === todayUTC.getTime()) return 'Today';
+  if (dateUTC.getTime() === tomorrowUTC.getTime()) return 'Tomorrow';
 
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      timeZone: 'UTC'
-    });
-  };
+  return date.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC'
+  });
+};
+
+// Renders a date group: one date heading + all matches across all schedule entries in one flat Row
+const DateSection = ({ dateGroup }) => {
+  // Flatten all matches from all schedules into one list, attaching category/venue metadata
+  const allMatchCols = (dateGroup.schedules || []).flatMap((schedule) =>
+    (schedule.matches || []).map((match) => ({
+      match,
+      category: schedule.categoryType,
+      roundType: schedule.roundType,
+      venue: schedule.venue,
+      key: match._id,
+    }))
+  );
 
   return (
-    <div className="mb-3">
+    <div className="mb-4">
       {/* Date Header */}
-      <div className="mb-2">
-        <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-1">
-          <div className="d-flex flex-wrap align-items-center gap-2">
-            <h6 className="mb-0 fw-bold" style={{ color: '#2c3e50', fontSize: '16px' }}>
-              {formatDate(schedule.date)}
-            </h6>
+      <div className="mb-3">
+        <div className="d-flex align-items-center gap-2">
+          <h6 className="mb-0 fw-bold" style={{ color: '#2c3e50', fontSize: '16px' }}>
+            {formatDate(dateGroup.date)}
+          </h6>
+          {dateGroup.schedules?.[0]?.leagueId?.leagueName && (
             <span className="fw-medium text-muted d-none d-sm-inline" style={{ fontSize: '12px' }}>
-              {schedule.leagueId?.leagueName}
+              {dateGroup.schedules[0].leagueId.leagueName}
             </span>
-            {/* <Badge bg="primary" style={{ fontSize: '9px', padding: '4px 8px' }}>
-              {schedule.categoryType}
-            </Badge> */}
-          </div>
-          <div className="d-flex align-items-center gap-1 text-muted">
-            <IoLocationOutline size={12} />
-            <span style={{ fontSize: '11px' }}>{schedule.venue}</span>
-          </div>
+          )}
         </div>
       </div>
 
-      {/* Matches */}
-      <div>
-        <Row className="g-2">
-          {schedule.matches?.map((match) => (
-            <Col key={match._id} xs={12} sm={6} md={4} lg={3} xl={3}>
-              <VSMatchCard match={match} category={schedule.categoryType} />
-            </Col>
-          ))}
-        </Row>
-      </div>
+      {/* All matches in a single flat row grid */}
+      <Row className="g-2">
+        {allMatchCols.map(({ match, category, roundType, venue, key }) => (
+          <Col key={key} xs={12} sm={6} md={4} lg={3} xl={3}>
+            <VSMatchCard match={match} category={category} roundType={roundType} venue={venue} />
+          </Col>
+        ))}
+      </Row>
     </div>
   );
 };
@@ -323,7 +314,13 @@ const ViewLeagueSchedule = () => {
 
   const hasActiveFilters = filters.categoryType || filters.roundType || filters.startDate || filters.endDate;
 
-  const schedulesData = schedules?.data || schedules || [];
+  // New API format: { data: [{ date, schedules[] }], pagination: {} }
+  // Fall back gracefully if the old flat-array format is ever returned
+  const schedulesData = Array.isArray(schedules?.data)
+    ? schedules.data
+    : Array.isArray(schedules)
+    ? schedules
+    : [];
 
   return (
     <div style={{ backgroundColor: 'white', height: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -529,10 +526,10 @@ const ViewLeagueSchedule = () => {
                     </Card>
                   ) : schedulesData.length > 0 ? (
                     <div>
-                      {schedulesData.map((schedule) => (
+                      {schedulesData.map((dateGroup, index) => (
                         <DateSection
-                          key={schedule._id}
-                          schedule={schedule}
+                          key={dateGroup.date || index}
+                          dateGroup={dateGroup}
                         />
                       ))}
                     </div>
