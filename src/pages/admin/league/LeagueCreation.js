@@ -224,8 +224,12 @@ const League = () => {
                         <td>
                           <div className="d-flex justify-content-center gap-2">
                             <GrSchedules style={{ cursor: "pointer", color: "#6b7280" }} onClick={() => navigate(`/admin/view-league-schedule/${league._id}`)} size={16} />
+<<<<<<< HEAD
                             <FaEdit style={{ cursor: "pointer", color: "#6b7280" }} onClick={() => navigate(`/admin/new-league/${league._id}`)} size={16} />
                             <IoSettingsOutline style={{ cursor: "pointer", color: "#6b7280" }} onClick={() => setObsModal({ show: true, leagueId: league._id, title: league.leagueName })} size={16} />
+=======
+                            <FaEdit style={{ cursor: "pointer", color: "#6b7280" }} onClick={() => navigate(`/admin/new-league/${league._id}`, { state: { fromLeagueList: true } })} size={16} />
+>>>>>>> 3f2ff74ef695ae5a9d8d0a6d8bea32d69c549aa5
                             <FaTrash style={{ cursor: "pointer", color: "#6b7280" }} onClick={() => handleDeleteClick(league)} size={16} />
                           </div>
                         </td>

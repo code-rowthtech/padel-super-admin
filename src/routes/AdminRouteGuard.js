@@ -87,20 +87,36 @@ const AdminRouteGuard = ({ children }) => {
     }
   }, [location.pathname, authenticated, navigate]);
 
-  // Block browser back navigation for authenticated users who accessed dashboard
+  // Block browser back navigation ONLY for auth pages when dashboard was accessed
   useEffect(() => {
     if (!authenticated) return;
     
     const isDashboardContext = sessionStorage.getItem('dashboardAccessed') === 'true';
     if (!isDashboardContext) return;
 
+    const authPages = [
+      "/admin/login",
+      "/admin/sign-up",
+      "/admin/forgot-password",
+      "/admin/reset-password",
+      "/admin/verify-otp",
+      "/admin/register"
+    ];
+
     const handlePopState = (e) => {
-      e.preventDefault();
-      window.history.pushState(null, '', '/admin/dashboard');
-      navigate('/admin/dashboard', { replace: true });
+      const currentPath = window.location.pathname;
+      
+      // Only block back navigation if trying to go to auth pages
+      if (authPages.some(path => currentPath.includes(path))) {
+        e.preventDefault();
+        const owner = getOwnerFromSession();
+        const ownerData = owner?.user || owner;
+        const isSubAdmin = ownerData?.isSubAdmin === true;
+        window.history.pushState(null, '', isSubAdmin ? '/admin/tournament/creation' : '/admin/dashboard');
+        navigate(isSubAdmin ? '/admin/tournament/creation' : '/admin/dashboard', { replace: true });
+      }
     };
 
-    window.history.pushState(null, '', window.location.pathname);
     window.addEventListener('popstate', handlePopState);
 
     return () => {
