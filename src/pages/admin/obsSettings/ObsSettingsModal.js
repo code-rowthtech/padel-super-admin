@@ -8,7 +8,6 @@ const EMPTY_FORM = {
   court: '',
   streamKey: '',
   youtubeUrl: '',
-  date: '',
   isActive: true,
 };
 
@@ -51,7 +50,6 @@ const ObsSettingsModal = ({ show, onHide, leagueId, tournamentId, isLeague, titl
       court:      stream.court,
       streamKey:  stream.streamKey,
       youtubeUrl: stream.youtubeUrl,
-      date:       stream.date?.split('T')[0] || '',
       isActive:   stream.isActive,
     });
     setShowForm(true);
@@ -65,8 +63,8 @@ const ObsSettingsModal = ({ show, onHide, leagueId, tournamentId, isLeague, titl
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.court || !form.streamKey || !form.youtubeUrl || !form.date) {
-      showError('All fields are required');
+    if (!form.court || !form.streamKey || !form.youtubeUrl) {
+      showError('Court, Stream Key and YouTube URL are required');
       return;
     }
     setSaving(true);
@@ -87,7 +85,6 @@ const ObsSettingsModal = ({ show, onHide, leagueId, tournamentId, isLeague, titl
       handleCancel();
       fetchStreams();
     } catch (err) {
-      // ownerAxios interceptor rejects with the message string directly
       const msg = typeof err === 'string' ? err : (err?.response?.data?.message || err?.message || 'Failed to save');
       showError(msg);
     } finally {
@@ -150,7 +147,7 @@ const ObsSettingsModal = ({ show, onHide, leagueId, tournamentId, isLeague, titl
                 </Form.Select>
               </div>
 
-              <div className="col-md-3">
+              <div className="col-md-4">
                 <Form.Label style={{ fontSize: '12px', fontWeight: 600 }}>Stream Key *</Form.Label>
                 <Form.Control
                   size="sm"
@@ -162,7 +159,7 @@ const ObsSettingsModal = ({ show, onHide, leagueId, tournamentId, isLeague, titl
                 />
               </div>
 
-              <div className="col-md-3">
+              <div className="col-md-4">
                 <Form.Label style={{ fontSize: '12px', fontWeight: 600 }}>YouTube URL *</Form.Label>
                 <Form.Control
                   size="sm"
@@ -170,18 +167,6 @@ const ObsSettingsModal = ({ show, onHide, leagueId, tournamentId, isLeague, titl
                   value={form.youtubeUrl}
                   onChange={handleChange}
                   placeholder="https://youtube.com/..."
-                  required
-                />
-              </div>
-
-              <div className="col-md-2">
-                <Form.Label style={{ fontSize: '12px', fontWeight: 600 }}>Date *</Form.Label>
-                <Form.Control
-                  size="sm"
-                  type="date"
-                  name="date"
-                  value={form.date}
-                  onChange={handleChange}
                   required
                 />
               </div>
@@ -240,7 +225,6 @@ const ObsSettingsModal = ({ show, onHide, leagueId, tournamentId, isLeague, titl
                   <th>Court</th>
                   <th>Stream Key</th>
                   <th>YouTube URL</th>
-                  <th>Date</th>
                   <th>Active</th>
                   <th>Actions</th>
                 </tr>
@@ -257,11 +241,10 @@ const ObsSettingsModal = ({ show, onHide, leagueId, tournamentId, isLeague, titl
                     </td>
                     <td>
                       <a href={s.youtubeUrl} target="_blank" rel="noreferrer"
-                        style={{ fontSize: '11px', color: '#1F41BB', maxWidth: '180px', display: 'inline-block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        style={{ fontSize: '11px', color: '#1F41BB', maxWidth: '200px', display: 'inline-block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {s.youtubeUrl}
                       </a>
                     </td>
-                    <td>{new Date(s.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
                     <td>
                       <Form.Check
                         type="switch"
