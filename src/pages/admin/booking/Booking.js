@@ -15,6 +15,7 @@ import { FaTimes, FaSearch } from "react-icons/fa";
 import { AppBar, Tabs, Tab, Box } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { IoMdCloseCircleOutline } from "react-icons/io";
 import {
   bookingCount,
   getBookingByStatus,
@@ -366,16 +367,19 @@ const Booking = () => {
                 <div style={{ position: "relative", width: "100%", maxWidth: "250px" }}>
                   <Form.Control
                     type="text"
-                    placeholder="Search bookings..."
+                    placeholder="Search..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="ps-5"
                     style={{
-                      height: "38px",
-                      borderRadius: "8px",
-                      fontSize: "14px",
-                      border: "1px solid #dee2e6",
-                      backgroundColor: "#FAFBFF",boxShadow:"none"
+                      fontSize: "13px",
+                      fontFamily: "Poppins",
+                      borderRadius: "6px",
+                      border: "2px solid #dee2e6",
+                      padding: "10px 12px",
+                      backgroundColor: "#fff",
+                      fontWeight: "500",
+                      boxShadow: "none",
                     }}
                   />
                   <FaSearch
@@ -388,13 +392,14 @@ const Booking = () => {
                   value={selectedClubId}
                   onChange={(e) => setSelectedClubId(e.target.value)}
                   style={{
-                    height: "38px",
-                    width: "120px",
-                    borderRadius: "8px",
-                    fontSize: "14px",
-                    border: "1px solid #dee2e6",
-                    backgroundColor: "#FAFBFF",
-                    cursor: "pointer",boxShadow:"none"
+                    fontSize: "13px",
+                    fontFamily: "Poppins",
+                    borderRadius: "6px",
+                    border: "2px solid #dee2e6",
+                    padding: "10px 12px",
+                    backgroundColor: "#fff",
+                    fontWeight: "500",
+                    boxShadow: "none",
                   }}
                 >
                   <option value="">All Clubs</option>
@@ -408,13 +413,14 @@ const Booking = () => {
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
                   style={{
-                    height: "38px",
-                    width: "120px",
-                    borderRadius: "8px",
-                    fontSize: "14px",
-                    border: "1px solid #dee2e6",
-                    backgroundColor: "#FAFBFF",
-                    cursor: "pointer",boxShadow:"none"
+                    fontSize: "13px",
+                    fontFamily: "Poppins",
+                    borderRadius: "6px",
+                    border: "2px solid #dee2e6",
+                    padding: "10px 12px",
+                    backgroundColor: "#fff",
+                    fontWeight: "500",
+                    boxShadow: "none",
                   }}
                 >
                   <option value="">Category</option>
@@ -431,11 +437,16 @@ const Booking = () => {
                   <div
                     className="d-flex align-items-center justify-content-center rounded p-2"
                     style={{
-                      backgroundColor: "#FAFBFF",
+                      fontSize: "13px",
+                      fontFamily: "Poppins",
+                      borderRadius: "6px",
+                      border: "2px solid #dee2e6",
+                      padding: "10px 12px",
+                      backgroundColor: "#fff",
+                      fontWeight: "500",
+                      boxShadow: "none",
                       width: "40px",
-                      height: "38px",
-                      border: "1px solid #dee2e6",
-                      cursor: "pointer",
+                      height: "40px",
                     }}
                     onClick={() => setShowDatePicker(true)}
                   >
@@ -500,7 +511,7 @@ const Booking = () => {
                   className="btn btn-link text-danger p-0 text-decoration-none small fw-medium"
                   style={{ fontSize: "13px" }}
                 >
-                  Clear Filters
+                  <IoMdCloseCircleOutline className="text-danger" size={20} />
                 </button>
               )}
 

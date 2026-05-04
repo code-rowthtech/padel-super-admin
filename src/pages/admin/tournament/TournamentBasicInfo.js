@@ -287,7 +287,7 @@ const TournamentBasicInfo = ({ onNext }) => {
       const result = await dispatch(createTournament(fd));
       if (result.meta.requestStatus === 'fulfilled') {
         const newId = result.payload?.data?._id || result.payload?._id;
-        if (newId) navigate(`/admin/new-tournament/${newId}`, { state: { step: 1 }, replace: true });
+        if (newId) navigate(`/admin/new-tournament/${newId}`, { state: { step: 1 } });
         else onNext();
       }
     }

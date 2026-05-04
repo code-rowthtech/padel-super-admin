@@ -70,7 +70,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   };
 
   const isActivePath = (path) => location.pathname === path;
-  const isLeagueActive = location.pathname.startsWith('/admin/league');
+  const isLeagueActive = location.pathname.startsWith('/admin/league') || location.pathname.startsWith('/admin/new-league') || location.pathname.startsWith('/admin/view-league-schedule');
 
   useEffect(() => {
     if (isLeagueActive) {
@@ -518,7 +518,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
                   end
                   className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
                   style={{
-                    backgroundColor: isActivePath("/admin/league") ? "rgba(31, 65, 187, 0.1)" : "transparent",
+                    backgroundColor: (isActivePath("/admin/league/creation") || location.pathname.startsWith('/admin/new-league')) ? "rgba(31, 65, 187, 0.1)" : "transparent",
                     color: "#CCD2DD",
                     fontSize: "14px",
                     fontWeight: "400",

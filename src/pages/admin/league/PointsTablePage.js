@@ -22,14 +22,24 @@ const PointsTablePage = () => {
   };
 
   return (
-    <div style={{ backgroundColor: 'white', minHeight: '100vh' }}>
+    <div style={{ backgroundColor: 'white', height: '100vh', overflow: 'hidden' }}>
       <Container fluid className="p-3 p-md-4">
         <Row className="mb-4">
           <Col className='d-flex justify-content-end'>
             <Form.Select
               value={selectedLeagueId}
               onChange={handleLeagueChange}
-              style={{ maxWidth: '400px' }}
+              style={{
+                fontSize: "13px",
+                fontFamily: "Poppins",
+                borderRadius: "6px",
+                border: "2px solid #dee2e6",
+                padding: "5px 12px",
+                backgroundColor: "#fff",
+                fontWeight: "500",
+                boxShadow: "none",
+                maxWidth: '400px'
+              }}
             >
               <option value="">Select League</option>
               {leaguesIDS?.map((league) => (
@@ -44,16 +54,16 @@ const PointsTablePage = () => {
         <Row>
           <Col>
             {!selectedLeagueId ? (
-              <div className="text-center py-5">
-                <p className="text-muted">Please select a league to view the points table</p>
+              <div className="d-flex justify-content-center align-items-center" style={{ height: 'calc(100vh - 150px)' }}>
+                <p className="text-danger text-center" style={{fontFamily:"Poppins",fontWeight:"500", fontSize: '16px'}}>Please select a league to view the points table</p>
               </div>
             ) : loadingLeaderboard ? (
               <div className="points-wrapper">
                 <DataLoading />
               </div>
             ) : !leaderboard?.standings?.length ? (
-              <div className="points-wrapper">
-                <div className="empty-box py-5 py-5 h-100">🏆 No Points Data</div>
+              <div className="d-flex justify-content-center align-items-center" style={{ height: 'calc(100vh - 150px)' }}>
+                <div className="empty-box py-4 px-5">🏆 No Points Data</div>
               </div>
             ) : (
               <div className="points-wrapper">
