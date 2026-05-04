@@ -18,6 +18,7 @@ const VSMatchCard = ({ match, category, venue, scheduleId, matchId, isLive, onCl
     return team.players.slice(0, 2);
   };
 
+
   const handleCopyScheduleId = (e) => {
     e.stopPropagation();
     if (navigator.clipboard?.writeText) {
