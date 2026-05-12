@@ -183,6 +183,8 @@ export const UPDATE_QUICK_POINT = "/api/quick-points/updateQuickPoint";
 // App Users Management
 export const GET_APP_USERS = "/api/customer/getCustomersWithFcmTokens";
 export const GET_DEVICE_TYPE_COUNT = "/api/customer/getDeviceTypeCount";
+export const UPDATE_CUSTOMER = "/api/super-admin/customers";
+export const DELETE_CUSTOMER = "/api/super-admin/customers";
 
 // Category Management
 export const GET_CATEGORY_LIST = "/api/category/list";

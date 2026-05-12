@@ -366,7 +366,6 @@ const QuickiePointTab = ({ leagueId }) => {
     });
   };
 
-
   const handleCancelEdit = () => {
     setEditingId(null);
     setFormData({ date: '', matchId: '', teamId: '', points: 1 });

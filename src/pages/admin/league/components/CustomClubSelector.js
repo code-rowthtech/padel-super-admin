@@ -19,7 +19,7 @@ const CustomClubSelector = ({
   loadingTeamsState,
   activeTab
 }) => {
-  const dropdownId = `club_${matchId}_${venue}`;
+  const dropdownId = `club_${activeTab}_${matchId}_${venue}`;
   const isOpen = openDropdown === dropdownId;
   const [hoveredClub, setHoveredClub] = useState(currentClub || null);
   const toggleRef = useRef(null);
@@ -29,15 +29,28 @@ const CustomClubSelector = ({
   // Pre-fetch all clubs' players when dropdown opens and calculate pos
   useEffect(() => {
     if (isOpen) {
-      availableClubs.forEach(club => fetchPlayersForClub(club.name, categoryType));
+      availableClubs.forEach(club => fetchPlayersForClub(club.name, categoryType, activeTab));
       setHoveredClub(currentClub || availableClubs[0]?.name || null);
 
       if (toggleRef.current) {
         const rect = toggleRef.current.getBoundingClientRect();
-        setDropdownPos({
-          top: rect.bottom + window.scrollY + 5,
-          left: rect.left + window.scrollX
-        });
+        const dropdownHeight = 300; // Estimate based on 280px maxHeight + padding
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const spaceAbove = rect.top;
+
+        if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
+          // Position above if not enough space below
+          setDropdownPos({
+            top: rect.top + window.scrollY - dropdownHeight - 5,
+            left: rect.left + window.scrollX
+          });
+        } else {
+          // Position below
+          setDropdownPos({
+            top: rect.bottom + window.scrollY + 5,
+            left: rect.left + window.scrollX
+          });
+        }
       }
     }
   }, [isOpen]);
@@ -69,35 +82,52 @@ const CustomClubSelector = ({
   const handleClubClick = async (e, clubName) => {
     e.preventDefault();
     e.stopPropagation();
+    // Clear players for this match/venue when selecting a new club
     setSelectedPlayers(prev => ({
       ...prev,
       [activeTab]: { ...prev[activeTab], [`${matchId}_${venue}`]: [] }
     }));
-    onClubSelect(clubName);
-    const players = await fetchPlayersForClub(clubName, categoryType);
+    await onClubSelect(clubName);
+    const players = await fetchPlayersForClub(clubName, categoryType, activeTab);
     const activePlayers = (players || []).filter(p => p.playerStatus === 'active');
     if (activePlayers.length === 2) {
       setSelectedPlayers(prev => ({
         ...prev,
         [activeTab]: { ...prev[activeTab], [`${matchId}_${venue}`]: activePlayers.map(p => p._id) }
       }));
+      // If auto-selected 2 players, we can close the dropdown
+      setOpenDropdown(null);
     }
-    setOpenDropdown(null);
+    // If not auto-selected 2, keep open so user can pick players
   };
 
-  const handlePlayerClick = (e, playerId) => {
+  const handlePlayerClick = async (e, playerId) => {
     e.preventDefault();
     e.stopPropagation();
-    if (hoveredClub && hoveredClub !== currentClub) {
-      onClubSelect(hoveredClub);
+    
+    const alreadySelected = selectedPlayerIds.includes(playerId);
+    
+    // If selecting a new player and club hasn't been set/is different, set it first
+    // to ensure the table row updates and subsequent clear-on-change doesn't wipe this selection
+    if (!alreadySelected && hoveredClub && hoveredClub !== currentClub) {
+      await onClubSelect(hoveredClub);
     }
-    handlePlayerSelection(matchId, venue, playerId);
+
+    const willHaveTwo = alreadySelected
+      ? false
+      : selectedPlayerIds.length + 1 === 2;
+
+    handlePlayerSelection(matchId, venue, playerId, activeTab);
+    
+    if (willHaveTwo) {
+      setOpenDropdown(null);
+    }
   };
 
-  const selectedPlayerIds = selectedPlayers.map(p => p._id);
+  const selectedPlayerIds = (selectedPlayers || []).map(p => p?._id).filter(Boolean);
 
   const dropdownPanel = isOpen && typeof window !== 'undefined' ? createPortal(
-    <div ref={dropdownRef} style={{ position: 'absolute', top: dropdownPos.top, left: dropdownPos.left, zIndex: 99999, backgroundColor: 'white', border: '1px solid #ddd', borderRadius: '8px', boxShadow: '0 4px 16px rgba(0,0,0,0.15)', display: 'flex', minWidth: '460px' }}>
+    <div ref={dropdownRef} data-no-close="true" onClick={(e) => e.stopPropagation()} style={{ position: 'absolute', top: dropdownPos.top, left: dropdownPos.left, zIndex: 99999, backgroundColor: 'white', border: '1px solid #ddd', borderRadius: '8px', boxShadow: '0 4px 16px rgba(0,0,0,0.15)', display: 'flex', minWidth: '460px' }}>
       <div style={{ minWidth: '200px', borderRight: '1px solid #eee', maxHeight: '280px', overflowY: 'auto' }}>
         {availableClubs.map((clubItem, idx) => {
           const clubKey = `${clubItem.id}_${categoryType}`;
@@ -106,7 +136,7 @@ const CustomClubSelector = ({
             <div
               key={idx}
               onMouseEnter={() => setHoveredClub(clubItem.name)}
-              onMouseDown={(e) => handleClubClick(e, clubItem.name)}
+              onClick={(e) => handleClubClick(e, clubItem.name)}
               style={{ padding: '12px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', borderBottom: '1px solid #f5f5f5', backgroundColor: hoveredClub === clubItem.name ? '#f0f4ff' : 'white' }}
             >
               <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold', color: 'white', flexShrink: 0 }}>
@@ -135,10 +165,10 @@ const CustomClubSelector = ({
               return (
                 <div
                   key={player._id}
-                  onMouseDown={(e) => !isDisabled && handlePlayerClick(e, player._id)}
+                  onClick={(e) => !isDisabled && handlePlayerClick(e, player._id)}
                   style={{ padding: '8px 10px', borderRadius: '6px', marginBottom: '6px', border: isSelected ? '2px solid #1976d2' : '1px solid #e0e0e0', backgroundColor: isSelected ? '#e3f2fd' : 'white', cursor: isDisabled ? 'not-allowed' : 'pointer', opacity: isDisabled && !isSelected ? 0.5 : 1, display: 'flex', alignItems: 'center', gap: '8px' }}
                 >
-                  <div style={{ width: '30px', height: '30px', borderRadius: '50%', flexShrink: 0, background: isSelected ? '#1976d2' : '#e0e0e0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold', color: isSelected ? 'white' : '#555' }}>
+                  <div className='text-capitalize' style={{ width: '30px', height: '30px', borderRadius: '50%', flexShrink: 0, background: isSelected ? '#1976d2' : '#e0e0e0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold', color: isSelected ? 'white' : '#555' }}>
                     {isSelected ? '✓' : player.playerName?.charAt(0) || 'P'}
                   </div>
                   <div>
@@ -161,16 +191,16 @@ const CustomClubSelector = ({
   if (currentClub) {
     const club = availableClubs.find(c => c.name === currentClub);
     return (
-      <div style={{ position: 'relative' }} ref={toggleRef}>
+      <div style={{ position: 'relative' }} ref={toggleRef} data-no-close="true">
         <div onClick={handleDropdownClick} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{ width: '34px', height: '34px', borderRadius: '50%', border: venue === 'home' ? '2px solid rgba(31, 65, 187, 1)' : 'none', background: venue === 'home' ? 'transparent' : '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold', color: venue === 'home' ? 'rgba(31, 65, 187, 1)' : 'white' }}>
             {club?.logo || (venue === 'home' ? 'H' : 'A')}
           </div>
           <div>
             <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937' }}>{currentClub}</div>
-            {selectedPlayers.length > 0 && (
+            {(selectedPlayers || []).length > 0 && (
               <div className='text-capitalize' style={{ fontSize: '10px', color: '#666' }}>
-                {selectedPlayers.map(p => p.playerName?.split(' ')[0]).join(', ')}
+                {selectedPlayers.map(p => p?.playerName?.split(' ')[0]).join(', ')}
               </div>
             )}
           </div>
@@ -182,7 +212,7 @@ const CustomClubSelector = ({
   }
 
   return (
-    <div style={{ position: 'relative' }} ref={toggleRef}>
+    <div style={{ position: 'relative' }} ref={toggleRef} data-no-close="true">
       <div onClick={handleDropdownClick} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
         <div style={{ width: '34px', height: '34px', borderRadius: '50%', border: '2px solid rgba(31, 65, 187, 1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', color: 'rgba(31, 65, 187, 1)', fontWeight: 'bold' }}>+</div>
         <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937' }}>Add Club</div>

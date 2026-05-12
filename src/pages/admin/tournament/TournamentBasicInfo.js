@@ -785,7 +785,6 @@ const TournamentBasicInfo = ({ onNext }) => {
             </Col>
           </Row>
         </div>
-
       </div>
 
       <div style={{ height: '10%' }} className="text-end overflow-hidden mt-3">

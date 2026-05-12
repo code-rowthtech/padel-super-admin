@@ -6,9 +6,16 @@ import AdminSidebar from "../../pages/admin/sidebar/AdminSidebar";
 const AdminLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-    const { pathname } = useLocation();
+    const { pathname, search } = useLocation();
 
     const getPageName = (path) => {
+        const params = new URLSearchParams(search);
+        const status = params.get('status');
+
+        if (path === '/admin/payments') {
+            if (status === 'paid') return 'Paid Payments';
+            return 'Unpaid Payments';
+        }
         const pageMap = {
             '/admin/dashboard': 'Dashboard',
             '/admin/profile': 'My Profile',
@@ -23,7 +30,6 @@ const AdminLayout = () => {
             '/admin/packages': 'Packages',
             '/admin/package-details': 'Package Details',
             '/admin/users': 'Users',
-            '/admin/payments': 'Payment',
             '/admin/payment-reconciliation': 'Payment Reconciliation',
             '/admin/customer-reviews': 'Review & Rating',
             '/admin/help-support': 'Help & Support',
@@ -315,7 +321,7 @@ const AdminLayout = () => {
                         sidebarOpen={sidebarOpen}
                         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
                         sidebarCollapsed={sidebarCollapsed}
-                        pageName={getPageName(pathname)}
+        pageName={getPageName(pathname)}
                     />
                     <div className="admin-scrollable-content">
                         <Outlet key={pathname} />
