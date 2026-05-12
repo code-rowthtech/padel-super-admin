@@ -53,11 +53,13 @@ const LeagueSchedule = () => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Check if the click is on an element that should not close the dropdown
+      if (event.target.closest('[data-no-close="true"]')) return;
       setOpenDropdown(null);
     };
     if (openDropdown) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
     }
   }, [openDropdown]);
 
@@ -65,11 +67,11 @@ const LeagueSchedule = () => {
     dispatch(getLeagues({ page: currentPage, limit: defaultLimit }));
   }, [dispatch, currentPage]);
 
-  useEffect(() => {
-    if (selectedLeagueId && selectedRound === 'final') {
-      dispatch(getLeagueFinalists(selectedLeagueId));
-    }
-  }, [dispatch, selectedLeagueId, selectedRound]);
+  // useEffect(() => {
+  //   if (selectedLeagueId && selectedRound === 'final') {
+  //     dispatch(getLeagueFinalists(selectedLeagueId));
+  //   }
+  // }, [dispatch, selectedLeagueId, selectedRound]);
 
   const leaguesData = Array.isArray(leagues?.data) ? leagues.data : [];
 
@@ -100,7 +102,7 @@ const LeagueSchedule = () => {
   }, [dispatch, selectedLeagueId, activeTab, availableCategories, selectedRound]);
 
   const clubs = leagueClubs.map((club, index) => ({
-    id: club.clubId || index + 1,
+    id: club.clubId?._id || club.clubId || index + 1,
     name: club.clubName || 'Unknown Club',
     logo: club.clubName ? club.clubName.substring(0, 2).toUpperCase() : 'UC',
     location: club?.clubId?.locations?.[0]?.city,
@@ -149,7 +151,7 @@ const LeagueSchedule = () => {
         params.endDate = selectedScheduleDate;
       }
 
-      if (activeTab && activeTab !== 'all') {
+      if (activeTab && activeTab !== 'all' && selectedRound !== 'final') {
         const activeCategory = availableCategories.find(cat => cat._id === activeTab);
         if (activeCategory) params.categoryType = activeCategory.categoryType;
       }
@@ -257,18 +259,18 @@ const LeagueSchedule = () => {
   const isViewMode = !currentScheduleInfo.date && schedules && schedules.length > 0;
 
   // Get current new and existing matches for display
-  const currentNewMatches = activeTab === 'all'
+  const currentNewMatches = (activeTab === 'all' || selectedRound === 'final')
     ? Object.keys(newMatches).filter(key => key !== 'all').flatMap(key => newMatches[key] || [])
     : newMatches[activeTab] || [];
 
-  const currentExistingMatches = activeTab === 'all'
+  const currentExistingMatches = (activeTab === 'all' || selectedRound === 'final')
     ? Object.keys(existingMatches).filter(key => key !== 'all').flatMap(key => existingMatches[key] || [])
     : existingMatches[activeTab] || [];
 
   // Check if there are any new (unsaved) matches
   const hasUnsavedMatches = currentNewMatches.length > 0;
 
-  const fetchPlayersForClub = useCallback(async (clubName, categoryType) => {
+  const fetchPlayersForClub = useCallback(async (clubName, categoryType, categoryKey) => {
     const club = clubs.find(c => c.name === clubName);
 
     if (!club || !selectedLeagueId || !clubName) {
@@ -276,18 +278,18 @@ const LeagueSchedule = () => {
     }
 
     const key = `${club.id}_${categoryType}`;
-    const categoryKey = activeTab;
+    const resolvedCategoryKey = categoryKey || activeTab;
 
-    if (clubTeamsData[categoryKey]?.[key]) {
-      return clubTeamsData[categoryKey][key];
+    if (clubTeamsData[resolvedCategoryKey]?.[key]) {
+      return clubTeamsData[resolvedCategoryKey][key];
     }
-    if (loadingTeamsState[categoryKey]?.[key]) {
+    if (loadingTeamsState[resolvedCategoryKey]?.[key]) {
       return [];
     }
 
     setLoadingTeamsState(prev => ({
       ...prev,
-      [categoryKey]: { ...prev[categoryKey], [key]: true }
+      [resolvedCategoryKey]: { ...prev[resolvedCategoryKey], [key]: true }
     }));
 
     try {
@@ -306,7 +308,7 @@ const LeagueSchedule = () => {
 
       setClubTeamsData(prev => ({
         ...prev,
-        [categoryKey]: { ...prev[categoryKey], [key]: playersData }
+        [resolvedCategoryKey]: { ...prev[resolvedCategoryKey], [key]: playersData }
       }));
 
       return playersData;
@@ -314,22 +316,22 @@ const LeagueSchedule = () => {
     } catch (error) {
       setClubTeamsData(prev => ({
         ...prev,
-        [categoryKey]: { ...prev[categoryKey], [key]: [] }
+        [resolvedCategoryKey]: { ...prev[resolvedCategoryKey], [key]: [] }
       }));
       return [];
     } finally {
       setLoadingTeamsState(prev => ({
         ...prev,
-        [categoryKey]: { ...prev[categoryKey], [key]: false }
+        [resolvedCategoryKey]: { ...prev[resolvedCategoryKey], [key]: false }
       }));
     }
   }, [clubs, selectedLeagueId, loadingTeamsState, clubTeamsData, activeTab, dispatch]);
 
 
-  const handlePlayerSelection = (matchId, venue, playerId) => {
+  const handlePlayerSelection = (matchId, venue, playerId, categoryId = activeTab) => {
     setSelectedPlayers(prev => {
       const key = `${matchId}_${venue}`;
-      const currentPlayers = prev[activeTab]?.[key] || [];
+      const currentPlayers = prev[categoryId]?.[key] || [];
 
       let updatedPlayers;
       if (currentPlayers.includes(playerId)) {
@@ -342,8 +344,8 @@ const LeagueSchedule = () => {
 
       return {
         ...prev,
-        [activeTab]: {
-          ...prev[activeTab],
+        [categoryId]: {
+          ...prev[categoryId],
           [key]: updatedPlayers
         }
       };
@@ -492,7 +494,7 @@ const LeagueSchedule = () => {
       // Fetch home club players to populate clubTeamsData
       const categoryType = availableCategories.find(c => c._id === activeTab)?.categoryType;
       if (match.homeVenue && categoryType) {
-        await fetchPlayersForClub(match.homeVenue, categoryType);
+        await fetchPlayersForClub(match.homeVenue, categoryType, activeTab);
       }
     }
 
@@ -509,7 +511,7 @@ const LeagueSchedule = () => {
       // Fetch away club players to populate clubTeamsData
       const categoryType = availableCategories.find(c => c._id === activeTab)?.categoryType;
       if (match.awayVenue && categoryType) {
-        await fetchPlayersForClub(match.awayVenue, categoryType);
+        await fetchPlayersForClub(match.awayVenue, categoryType, activeTab);
       }
     }
   };
@@ -568,7 +570,7 @@ const LeagueSchedule = () => {
         params.startDate = selectedScheduleDate;
         params.endDate = selectedScheduleDate;
       }
-      if (activeTab && activeTab !== 'all') {
+      if (activeTab && activeTab !== 'all' && selectedRound !== 'final') {
         const activeCategory = availableCategories.find(cat => cat._id === activeTab);
         if (activeCategory) params.categoryType = activeCategory.categoryType;
       }
@@ -642,7 +644,7 @@ const LeagueSchedule = () => {
         params.startDate = selectedScheduleDate;
         params.endDate = selectedScheduleDate;
       }
-      if (activeTab && activeTab !== 'all') {
+      if (activeTab && activeTab !== 'all' && selectedRound !== 'final') {
         const activeCategory = availableCategories.find(cat => cat._id === activeTab);
         if (activeCategory) params.categoryType = activeCategory.categoryType;
       }
@@ -695,48 +697,55 @@ const LeagueSchedule = () => {
       const startTime = '09:00';
       const duration = 60;
 
+      // [FINALS - OLD FINALIST-BASED CREATION - COMMENTED OUT]
+      // if (selectedRound === 'final') {
+      //   if (!formCategory.length) { alert('Please select a category'); return; }
+      //   const newMatches = {};
+      //   const categoriesToCreate = formCategory.filter(categoryId => {
+      //     const hasUnsaved = (matchesByCategory[categoryId] || []).length > 0;
+      //     const hasExisting = (existingMatches[categoryId] || []).length > 0;
+      //     return !hasUnsaved && !hasExisting;
+      //   });
+      //   if (categoriesToCreate.length === 0) { setShowModal(false); return; }
+      //   categoriesToCreate.forEach(categoryId => {
+      //     const category = availableCategories.find(cat => cat._id === categoryId);
+      //     const maxParticipants = category?.maxParticipants || 2;
+      //     const numMatches = Math.max(1, Math.floor(maxParticipants / 2));
+      //     const prevCatMatches = matchesByCategory[categoryId] || [];
+      //     let currentBaseId = prevCatMatches.length > 0 ? Math.max(...prevCatMatches.map(m => typeof m.id === 'string' ? 0 : m.id)) + 1 : 1;
+      //     const catMatches = [];
+      //     for (let i = 0; i < numMatches; i++) {
+      //       const homeIdx = (i * 2) + 1;
+      //       const awayIdx = (i * 2) + 2;
+      //       const homeClubName = finalists?.data?.finalists?.[0]?.clubName || `Winner ${homeIdx}`;
+      //       const awayClubName = finalists?.data?.finalists?.[1]?.clubName || `Winner ${awayIdx}`;
+      //       catMatches.push({
+      //         id: `final_${categoryId}_${currentBaseId + i}`,
+      //         date: formDate, venue: formVenue, venueClubId: venueClub?.id,
+      //         homeVenue: homeClubName, awayVenue: awayClubName,
+      //         homeTeam: { teamName: homeClubName }, awayTeam: { teamName: awayClubName },
+      //         time: startTime, duration, endTime: calculateEndTime(startTime, duration)
+      //       });
+      //     }
+      //     newMatches[categoryId] = [...prevCatMatches, ...catMatches];
+      //   });
+      //   setMatchesByCategory(prev => ({ ...prev, ...newMatches }));
+      // } else {
       if (selectedRound === 'final') {
-        // Finals: use formCategory (multiple categories chosen in modal)
-        if (!formCategory.length) { alert('Please select a category'); return; }
-        const newMatches = {};
-        // Only process categories that don't already have a match (either unsaved or existing for final)
-        const categoriesToCreate = formCategory.filter(categoryId => {
-          const hasUnsaved = (matchesByCategory[categoryId] || []).length > 0;
-          const hasExisting = (existingMatches[categoryId] || []).length > 0;
-          return !hasUnsaved && !hasExisting;
+        // Finals: create exactly one blank row per SELECTED category only
+        const newMatchesByCategory = {};
+        formCategory.forEach((categoryId) => {
+          const existingCatMatches = matchesByCategory[categoryId] || [];
+          const numericIds = existingCatMatches.map(m => typeof m.id === 'number' ? m.id : 0);
+          const baseId = numericIds.length > 0 ? Math.max(...numericIds) + 1 : 1;
+          newMatchesByCategory[categoryId] = [...existingCatMatches, {
+            id: `final_${categoryId}_${baseId}`,
+            date: formDate, venue: formVenue, venueClubId: venueClub?.id,
+            homeVenue: null, awayVenue: null, homeTeam: null, awayTeam: null,
+            time: startTime, duration, endTime: calculateEndTime(startTime, duration)
+          }];
         });
-        if (categoriesToCreate.length === 0) { setShowModal(false); return; }
-        categoriesToCreate.forEach(categoryId => {
-          const category = availableCategories.find(cat => cat._id === categoryId);
-          const maxParticipants = category?.maxParticipants || 2;
-          const numMatches = Math.max(1, Math.floor(maxParticipants / 2));
-
-          const existingMatches = matchesByCategory[categoryId] || [];
-          let currentBaseId = existingMatches.length > 0 ? Math.max(...existingMatches.map(m => m.id)) + 1 : 1;
-
-          const catMatches = [];
-          for (let i = 0; i < numMatches; i++) {
-            const homeIdx = (i * 2) + 1;
-            const awayIdx = (i * 2) + 2;
-            const homeClubName = finalists?.data?.finalists?.[0]?.clubName || `Winner ${homeIdx}`;
-            const awayClubName = finalists?.data?.finalists?.[1]?.clubName || `Winner ${awayIdx}`;
-            catMatches.push({
-              id: currentBaseId + i,
-              date: formDate,
-              venue: formVenue,
-              venueClubId: venueClub?.id,
-              homeVenue: homeClubName,
-              awayVenue: awayClubName,
-              homeTeam: { teamName: homeClubName },
-              awayTeam: { teamName: awayClubName },
-              time: startTime,
-              duration,
-              endTime: calculateEndTime(startTime, duration)
-            });
-          }
-          newMatches[categoryId] = [...existingMatches, ...catMatches];
-        });
-        setMatchesByCategory(prev => ({ ...prev, ...newMatches }));
+        setMatchesByCategory(prev => ({ ...prev, ...newMatchesByCategory }));
       } else {
         // Non-finals: create a row in EVERY category simultaneously
         const newMatchesByCategory = {};
@@ -756,7 +765,7 @@ const LeagueSchedule = () => {
           let catPlayers = {};
 
           if (isHomeVenue) {
-            const players = await fetchPlayersForClub(formVenue, category.categoryType);
+            const players = await fetchPlayersForClub(formVenue, category.categoryType, categoryId);
             const activePlayers = (players || []).filter(p => p.playerStatus === 'active');
             if (activePlayers.length === 2) {
               catMatches = [{ ...baseMatch, id: baseId }];
@@ -803,7 +812,6 @@ const LeagueSchedule = () => {
     }
   };
 
-
   const handleTimeChange = (matchId, time) => {
     const currentMatches = matchesByCategory[activeTab] || [];
     const updatedMatches = currentMatches.map(match =>
@@ -826,15 +834,20 @@ const LeagueSchedule = () => {
     }));
   }
 
-  const handleAwayVenueChange = async (matchId, awayVenue) => {
-    const categoryId = activeTab;
+  const handleAwayVenueChange = async (matchId, awayVenue, categoryId = activeTab) => {
     const categoryType = availableCategories.find(c => c._id === categoryId)?.categoryType;
+    // Find current awayVenue to check if it actually changed
+    const allCatMatches = [...(matchesByCategory[categoryId] || []), ...(existingMatches[categoryId] || [])];
+    const currentMatch = allCatMatches.find(m => m.id === matchId);
+    const clubActuallyChanged = currentMatch?.awayVenue !== awayVenue;
 
-    // Clear previously selected players first
-    setSelectedPlayers(prev => ({
-      ...prev,
-      [categoryId]: { ...prev[categoryId], [`${matchId}_away`]: [] }
-    }));
+    // Only clear players if club actually changed
+    if (clubActuallyChanged) {
+      setSelectedPlayers(prev => ({
+        ...prev,
+        [categoryId]: { ...prev[categoryId], [`${matchId}_away`]: [] }
+      }));
+    }
 
     // Update in matchesByCategory
     setMatchesByCategory(prev => {
@@ -860,7 +873,7 @@ const LeagueSchedule = () => {
       return prev;
     });
 
-    const players = await fetchPlayersForClub(awayVenue, categoryType);
+    const players = await fetchPlayersForClub(awayVenue, categoryType, categoryId);
     const activePlayers = (players || []).filter(p => p.playerStatus === 'active');
     if (activePlayers.length === 2) {
       setSelectedPlayers(prev => ({
@@ -870,16 +883,20 @@ const LeagueSchedule = () => {
     }
   };
 
-  const handleHomeVenueChange = async (matchId, homeVenue) => {
-    const categoryId = activeTab;
+  const handleHomeVenueChange = async (matchId, homeVenue, categoryId = activeTab) => {
     const categoryType = availableCategories.find(c => c._id === categoryId)?.categoryType;
+    // Find current homeVenue to check if it actually changed
+    const allCatMatches = [...(matchesByCategory[categoryId] || []), ...(existingMatches[categoryId] || [])];
+    const currentMatch = allCatMatches.find(m => m.id === matchId);
+    const clubActuallyChanged = currentMatch?.homeVenue !== homeVenue;
 
-    // Clear previously selected players first
-    setSelectedPlayers(prev => ({
-      ...prev,
-      [categoryId]: { ...prev[categoryId], [`${matchId}_home`]: [] }
-    }));
-
+    // Only clear players if club actually changed
+    if (clubActuallyChanged) {
+      setSelectedPlayers(prev => ({
+        ...prev,
+        [categoryId]: { ...prev[categoryId], [`${matchId}_home`]: [] }
+      }));
+    }
     // Update in matchesByCategory
     setMatchesByCategory(prev => {
       const currentMatches = prev[categoryId] || [];
@@ -904,7 +921,7 @@ const LeagueSchedule = () => {
       return prev;
     });
 
-    const players = await fetchPlayersForClub(homeVenue, categoryType);
+    const players = await fetchPlayersForClub(homeVenue, categoryType, categoryId);
     const activePlayers = (players || []).filter(p => p.playerStatus === 'active');
     if (activePlayers.length === 2) {
       setSelectedPlayers(prev => ({
@@ -923,33 +940,28 @@ const LeagueSchedule = () => {
     const unsavedCategories = availableCategories.filter(cat => {
       const catMatches = (matchesByCategory[cat._id] || []).filter(m => !m.isExisting);
       if (catMatches.length === 0) return false;
-      if (roundType !== 'final') {
-        // For non-finals: only include category if at least one fully valid match exists
-        return catMatches.some(m =>
-          m.homeVenue && m.awayVenue &&
-          getSelectedPlayers(m.id, 'home', cat._id).length === 2 &&
-          getSelectedPlayers(m.id, 'away', cat._id).length === 2
-        );
-      }
-      return true;
+      // For all rounds including final: only include category if at least one fully valid match exists
+      return catMatches.some(m =>
+        m.homeVenue && m.awayVenue &&
+        getSelectedPlayers(m.id, 'home', cat._id).length === 2 &&
+        getSelectedPlayers(m.id, 'away', cat._id).length === 2
+      );
     });
 
     if (unsavedCategories.length === 0) { showError('No matches to save.'); return; }
 
-    // Validate: any match that has a club selected must have exactly 2 players
-    if (roundType !== 'final') {
-      for (const cat of unsavedCategories) {
-        const catMatches = (matchesByCategory[cat._id] || []).filter(m => !m.isExisting);
-        for (let i = 0; i < catMatches.length; i++) {
-          const m = catMatches[i];
-          if (m.homeVenue && getSelectedPlayers(m.id, 'home', cat._id).length !== 2) {
-            showError(`${cat.categoryType} — Match ${i + 1}: Select exactly 2 players for ${m.homeVenue} (Home)`);
-            return;
-          }
-          if (m.awayVenue && getSelectedPlayers(m.id, 'away', cat._id).length !== 2) {
-            showError(`${cat.categoryType} — Match ${i + 1}: Select exactly 2 players for ${m.awayVenue} (Away)`);
-            return;
-          }
+    // Validate: any match that has a club selected must have exactly 2 players (all rounds)
+    for (const cat of unsavedCategories) {
+      const catMatches = (matchesByCategory[cat._id] || []).filter(m => !m.isExisting);
+      for (let i = 0; i < catMatches.length; i++) {
+        const m = catMatches[i];
+        if (m.homeVenue && getSelectedPlayers(m.id, 'home', cat._id).length !== 2) {
+          showError(`${cat.categoryType} — Match ${i + 1}: Select exactly 2 players for ${m.homeVenue} (Home)`);
+          return;
+        }
+        if (m.awayVenue && getSelectedPlayers(m.id, 'away', cat._id).length !== 2) {
+          showError(`${cat.categoryType} — Match ${i + 1}: Select exactly 2 players for ${m.awayVenue} (Away)`);
+          return;
         }
       }
     }
@@ -962,11 +974,11 @@ const LeagueSchedule = () => {
     unsavedCategories.forEach(category => {
       const catMatches = (matchesByCategory[category._id] || [])
         .filter(m => !m.isExisting)
-        .filter(m => roundType === 'final' || (
+        .filter(m =>
           m.homeVenue && m.awayVenue &&
           getSelectedPlayers(m.id, 'home', category._id).length === 2 &&
           getSelectedPlayers(m.id, 'away', category._id).length === 2
-        ));
+        );
 
       catMatches.forEach((match, index) => {
         if (!match.date || !match.venue) return;
@@ -976,7 +988,7 @@ const LeagueSchedule = () => {
         const formattedUtcDate = new Date(Date.UTC(Number(fullYear), Number(month) - 1, Number(day))).toISOString();
         const currentVenueClub = clubs.find(c => c.name === match.venue);
 
-        const key = `${formattedUtcDate}_${currentVenueClub?.id || ''}`;
+        const key = `${formattedUtcDate}_${currentVenueClub?.id || ''}_${category.categoryType}`;
         if (!schedulesMap[key]) {
           schedulesMap[key] = {
             date: formattedUtcDate,
@@ -990,19 +1002,20 @@ const LeagueSchedule = () => {
           schedulesMap[key].categoriesMap[category.categoryType] = [];
         }
 
-        const homePlayers = selectedRound === 'final' ? match.homeTeam?.players || [] : getSelectedPlayers(match.id, 'home', category._id);
-        const awayPlayers = selectedRound === 'final' ? match.awayTeam?.players || [] : getSelectedPlayers(match.id, 'away', category._id);
+        // [FINALS - OLD FINALIST-BASED team building - COMMENTED OUT]
+        // const homePlayers = selectedRound === 'final' ? match.homeTeam?.players || [] : getSelectedPlayers(match.id, 'home', category._id);
+        // const awayPlayers = selectedRound === 'final' ? match.awayTeam?.players || [] : getSelectedPlayers(match.id, 'away', category._id);
+        // if (selectedRound === 'final') {
+        //   teamAData = { clubId: finalists?.data?.finalists?.[0]?.clubId || homeClubData?.id, teamName: match.homeTeam?.teamName || 'Winner 1', players: homePlayers.slice(0,2).map(p=>({playerId:p.playerId||p._id,playerName:p.playerName})) };
+        //   teamBData = { clubId: finalists?.data?.finalists?.[1]?.clubId || awayClubData?.id, teamName: match.awayTeam?.teamName || 'Winner 2', players: awayPlayers.slice(0,2).map(p=>({playerId:p.playerId||p._id,playerName:p.playerName})) };
+        // }
+        const homePlayers = getSelectedPlayers(match.id, 'home', category._id);
+        const awayPlayers = getSelectedPlayers(match.id, 'away', category._id);
         const homeClubData = clubs.find(c => c.name === match.homeVenue);
         const awayClubData = clubs.find(c => c.name === match.awayVenue);
 
         let teamAData = null;
-        if (selectedRound === 'final') {
-          teamAData = {
-            clubId: finalists?.data?.finalists?.[0]?.clubId || homeClubData?.id,
-            teamName: match.homeTeam?.teamName || `Winner 1`,
-            players: homePlayers.slice(0, 2).map(p => ({ playerId: p.playerId || p._id, playerName: p.playerName }))
-          };
-        } else if (homePlayers.length >= 2) {
+        if (homePlayers.length >= 2) {
           teamAData = {
             clubId: homeClubData?.id,
             clubType: match.homeVenue,
@@ -1012,13 +1025,7 @@ const LeagueSchedule = () => {
         }
 
         let teamBData = null;
-        if (selectedRound === 'final') {
-          teamBData = {
-            clubId: finalists?.data?.finalists?.[1]?.clubId || awayClubData?.id,
-            teamName: match.awayTeam?.teamName || `Winner 2`,
-            players: awayPlayers.slice(0, 2).map(p => ({ playerId: p.playerId || p._id, playerName: p.playerName }))
-          };
-        } else if (awayPlayers.length >= 2) {
+        if (awayPlayers.length >= 2) {
           teamBData = {
             clubId: awayClubData?.id,
             clubType: match.awayVenue,
@@ -1067,7 +1074,7 @@ const LeagueSchedule = () => {
       setIsHomeVenue(true);
       const params = { leagueId: selectedLeagueId, roundType };
       if (selectedScheduleDate) { params.startDate = selectedScheduleDate; params.endDate = selectedScheduleDate; }
-      if (activeTab && activeTab !== 'all') {
+      if (activeTab && activeTab !== 'all' && selectedRound !== 'final') {
         const activeCategory = availableCategories.find(cat => cat._id === activeTab);
         if (activeCategory) params.categoryType = activeCategory.categoryType;
       }
@@ -1105,7 +1112,7 @@ const LeagueSchedule = () => {
     setSelectedScheduleDate('');
     // Only finals collapse to the "All" tab — QF and SF keep per-category tabs
     if (newRound === 'final') {
-      setActiveTab('all');
+      setActiveTab(availableCategories.length > 0 ? availableCategories[0]._id : 'all');
     } else if (availableCategories.length > 0) {
       setActiveTab(availableCategories[0]._id);
     }
@@ -1161,9 +1168,8 @@ const LeagueSchedule = () => {
         setSelectedPlayers({});
         setClubTeamsData({});
         setLoadingTeamsState({});
-        // Only finals collapse to the "All" tab
         if (pendingAction.value === 'final') {
-          setActiveTab('all');
+          setActiveTab(availableCategories.length > 0 ? availableCategories[0]._id : 'all');
         } else if (availableCategories.length > 0) {
           setActiveTab(availableCategories[0]._id);
         }
@@ -1237,25 +1243,28 @@ const LeagueSchedule = () => {
 
     const categoryId = activeTab;
     const currentMatches = matchesByCategory[categoryId] || [];
-    const newMatchId = currentMatches.length > 0 ? Math.max(...currentMatches.map(m => m.id)) + 1 : 1;
+    const numericIds = currentMatches.map(m => typeof m.id === 'string' ? 0 : m.id);
+    const baseId = numericIds.length > 0 ? Math.max(...numericIds) + 1 : 1;
+    const newMatchId = selectedRound === 'final' ? `final_${categoryId}_${baseId}` : baseId;
     const startTime = '09:00';
     const duration = 60;
 
-    const nextIdx = (currentMatches.length * 2) + 1;
-    const homeClubName = finalists?.data?.finalists?.[0]?.clubName || `Winner ${nextIdx}`;
-    const awayClubName = finalists?.data?.finalists?.[1]?.clubName || `Winner ${nextIdx + 1}`;
+    // [FINALS - OLD FINALIST-BASED homeVenue/awayVenue - COMMENTED OUT]
+    // const nextIdx = (currentMatches.length * 2) + 1;
+    // const homeClubName = finalists?.data?.finalists?.[0]?.clubName || `Winner ${nextIdx}`;
+    // const awayClubName = finalists?.data?.finalists?.[1]?.clubName || `Winner ${nextIdx + 1}`;
     const newMatch = {
       id: newMatchId,
       date: formattedDate,
       venue: fallbackVenue,
-      homeVenue: selectedRound === 'final' ? homeClubName : null,
-      awayVenue: selectedRound === 'final' ? awayClubName : null,
-      homeTeam: selectedRound === 'final' ? { teamName: homeClubName } : null,
-      awayTeam: selectedRound === 'final' ? { teamName: awayClubName } : null,
+      homeVenue: null,
+      awayVenue: null,
+      homeTeam: null,
+      awayTeam: null,
       time: startTime,
       duration: duration,
       endTime: calculateEndTime(startTime, duration),
-      isAwayMatch: selectedRound !== 'final'
+      isAwayMatch: false
     };
 
     setMatchesByCategory(prev => ({
@@ -1468,7 +1477,7 @@ const LeagueSchedule = () => {
                         </thead>
                         <tbody>
                           {availableCategories
-                            .filter(cat => activeTab === 'all' || activeTab === cat._id)
+                            .filter(cat => activeTab === 'all' || selectedRound === 'final' || activeTab === cat._id)
                             .map((category) => {
                               const categoryMatches = (matchesByCategory[category._id] || []).filter(m => !m.isExisting);
                               if (categoryMatches.length === 0) return null;
@@ -1481,90 +1490,31 @@ const LeagueSchedule = () => {
                                     </td>
                                   </tr>
                                   {categoryMatches.map((match, index) => {
-                                    const selectedHomePlayers = getSelectedPlayers(match.id, 'home');
-                                    const selectedAwayPlayers = getSelectedPlayers(match.id, 'away');
+                                    const selectedHomePlayers = getSelectedPlayers(match.id, 'home', category._id);
+                                    const selectedAwayPlayers = getSelectedPlayers(match.id, 'away', category._id);
                                     return (
                                       <tr className='text-center' key={match.id} style={{ backgroundColor: index % 2 === 1 ? 'rgba(242, 242, 242, 0.7)' : 'white' }}>
                                         <td style={{ padding: '14px 12px', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', borderBottom: '1px solid #ddd' }}>{String(index + 1).padStart(2, '0')}</td>
 
                                         <td style={{ padding: '14px 12px', borderBottom: '1px solid #ddd' }}>
                                           <div className='d-flex justify-content-center align-items-center gap-2'>
-                                            {selectedRound === 'final' ? (
-                                              finalists?.data?.finalists?.[0] ? (
-                                                <FinalistTeamSelector
-                                                  matchId={match.id}
-                                                  venue="home"
-                                                  clubName={finalists.data.finalists[0].clubName}
-                                                  clubLogo={clubs.find(c => c.name === finalists.data.finalists[0].clubName)?.logo}
-                                                  availableTeams={finalists.data.finalists[0].categories.find(c => c.categoryType === category.categoryType)?.teams || []}
-                                                  selectedTeamName={match.homeTeam?.optionsSelected || match.homeTeam?.teamName || ''}
-                                                  onTeamSelect={(team) => {
-                                                    const matches = matchesByCategory[category._id] || [];
-                                                    const updated = matches.map(m =>
-                                                      m.id === match.id ? {
-                                                        ...m,
-                                                        homeTeam: { teamName: team.teamName, players: team.players || [], optionsSelected: team.teamName },
-                                                        homeVenue: finalists.data.finalists[0].clubName
-                                                      } : m
-                                                    );
-                                                    setMatchesByCategory(prev => ({ ...prev, [category._id]: updated }));
-                                                  }}
-                                                  openDropdown={openDropdown}
-                                                  setOpenDropdown={setOpenDropdown}
-                                                />
-                                              ) : match.homeTeam?.players && match.homeTeam.players.length > 0 && match.homeVenue && !match.homeVenue.startsWith('Winner') ? (
-                                                <div className="d-flex align-items-center">
-                                                  <div style={{ width: '34px', height: '34px', borderRadius: '50%', border: '2px solid rgba(31, 65, 187, 1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold', color: 'rgba(31, 65, 187, 1)' }}>
-                                                    {clubs.find(c => c.name === match.homeVenue)?.logo || 'H'}
-                                                  </div>
-                                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginLeft: '8px' }}>
-                                                    <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937', textAlign: 'left' }}>{match.homeVenue}</div>
-                                                    <div style={{ fontSize: '10px', color: '#666', marginTop: '2px', textAlign: 'left', lineHeight: '1.2' }}>
-                                                      <span style={{ fontWeight: '600', color: '#1F2937' }}>{match.homeTeam.teamName}</span>
-                                                      <span> • {match.homeTeam.players.map(p => p.playerName.split(' ')[0]).join(', ')}</span>
-                                                    </div>
-                                                  </div>
-                                                </div>
-                                              ) : (
-                                                <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937' }}>{match.homeTeam?.teamName || match.homeVenue || 'Winner 1'}</div>
-                                              )
-                                            ) : match.homeVenue ? (
-                                              <CustomClubSelector
-                                                matchId={match.id}
-                                                venue="home"
-                                                currentClub={match.homeVenue}
-                                                onClubSelect={(clubName) => handleHomeVenueChange(match.id, clubName)}
-                                                availableClubs={clubs}
-                                                selectedPlayers={selectedHomePlayers}
-                                                categoryType={category.categoryType}
-                                                openDropdown={openDropdown}
-                                                setOpenDropdown={setOpenDropdown}
-                                                fetchPlayersForClub={fetchPlayersForClub}
-                                                setSelectedPlayers={setSelectedPlayers}
-                                                handlePlayerSelection={handlePlayerSelection}
-                                                clubTeamsData={clubTeamsData}
-                                                loadingTeamsState={loadingTeamsState}
-                                                activeTab={category._id}
-                                              />
-                                            ) : (
-                                              <CustomClubSelector
-                                                matchId={match.id}
-                                                venue="home"
-                                                currentClub={null}
-                                                onClubSelect={(clubName) => handleHomeVenueChange(match.id, clubName)}
-                                                availableClubs={clubs}
-                                                selectedPlayers={[]}
-                                                categoryType={category.categoryType}
-                                                openDropdown={openDropdown}
-                                                setOpenDropdown={setOpenDropdown}
-                                                fetchPlayersForClub={fetchPlayersForClub}
-                                                setSelectedPlayers={setSelectedPlayers}
-                                                handlePlayerSelection={handlePlayerSelection}
-                                                clubTeamsData={clubTeamsData}
-                                                loadingTeamsState={loadingTeamsState}
-                                                activeTab={category._id}
-                                              />
-                                            )}
+                                            <CustomClubSelector
+                                              matchId={match.id}
+                                              venue="home"
+                                              currentClub={match.homeVenue || null}
+                                              onClubSelect={(clubName) => handleHomeVenueChange(match.id, clubName, category._id)}
+                                              availableClubs={clubs}
+                                              selectedPlayers={selectedHomePlayers}
+                                              categoryType={category.categoryType}
+                                              openDropdown={openDropdown}
+                                              setOpenDropdown={setOpenDropdown}
+                                              fetchPlayersForClub={fetchPlayersForClub}
+                                              setSelectedPlayers={setSelectedPlayers}
+                                              handlePlayerSelection={handlePlayerSelection}
+                                              clubTeamsData={clubTeamsData}
+                                              loadingTeamsState={loadingTeamsState}
+                                              activeTab={category._id}
+                                            />
                                           </div>
                                         </td>
                                         <td style={{ padding: '14px 12px', textAlign: 'center', borderBottom: '1px solid #ddd' }}>
@@ -1572,71 +1522,14 @@ const LeagueSchedule = () => {
                                         </td>
                                         <td style={{ padding: '14px 12px', borderBottom: '1px solid #ddd' }}>
                                           <div className='d-flex justify-content-center align-items-center gap-2'>
-                                            {selectedRound === 'final' ? (
-                                              finalists?.data?.finalists?.[1] ? (
-                                                <FinalistTeamSelector
-                                                  matchId={match.id}
-                                                  venue="away"
-                                                  clubName={finalists.data.finalists[1].clubName}
-                                                  clubLogo={clubs.find(c => c.name === finalists.data.finalists[1].clubName)?.logo}
-                                                  availableTeams={finalists.data.finalists[1].categories.find(c => c.categoryType === category.categoryType)?.teams || []}
-                                                  selectedTeamName={match.awayTeam?.optionsSelected || match.awayTeam?.teamName || ''}
-                                                  onTeamSelect={(team) => {
-                                                    const matches = matchesByCategory[category._id] || [];
-                                                    const updated = matches.map(m =>
-                                                      m.id === match.id ? {
-                                                        ...m,
-                                                        awayTeam: { teamName: team.teamName, players: team.players || [], optionsSelected: team.teamName },
-                                                        awayVenue: finalists.data.finalists[1].clubName
-                                                      } : m
-                                                    );
-                                                    setMatchesByCategory(prev => ({ ...prev, [category._id]: updated }));
-                                                  }}
-                                                  openDropdown={openDropdown}
-                                                  setOpenDropdown={setOpenDropdown}
-                                                />
-                                              ) : match.awayTeam?.players && match.awayTeam.players.length > 0 && match.awayVenue && !match.awayVenue.startsWith('Winner') ? (
-                                                <div className="d-flex align-items-center">
-                                                  <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 'bold', color: 'white' }}>
-                                                    {clubs.find(c => c.name === match.awayVenue)?.logo || 'A'}
-                                                  </div>
-                                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginLeft: '8px' }}>
-                                                    <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937', textAlign: 'left' }}>{match.awayVenue}</div>
-                                                    <div style={{ fontSize: '10px', color: '#666', marginTop: '2px', textAlign: 'left', lineHeight: '1.2' }}>
-                                                      <span style={{ fontWeight: '600', color: '#1F2937' }}>{match.awayTeam.teamName}</span>
-                                                      <span> • {match.awayTeam.players.map(p => p.playerName.split(' ')[0]).join(', ')}</span>
-                                                    </div>
-                                                  </div>
-                                                </div>
-                                              ) : (
-                                                <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937' }}>{match.awayTeam?.teamName || match.awayVenue || 'Winner 2'}</div>
-                                              )
-                                            ) : match.awayVenue ? (
+                                            {match.homeVenue ? (
                                               <CustomClubSelector
                                                 matchId={match.id}
                                                 venue="away"
-                                                currentClub={match.awayVenue}
-                                                onClubSelect={(clubName) => handleAwayVenueChange(match.id, clubName)}
+                                                currentClub={match.awayVenue || null}
+                                                onClubSelect={(clubName) => handleAwayVenueChange(match.id, clubName, category._id)}
                                                 availableClubs={getAvailableAwayClubs(match.homeVenue)}
                                                 selectedPlayers={selectedAwayPlayers}
-                                                categoryType={category.categoryType}
-                                                openDropdown={openDropdown}
-                                                setOpenDropdown={setOpenDropdown}
-                                                fetchPlayersForClub={fetchPlayersForClub}
-                                                setSelectedPlayers={setSelectedPlayers}
-                                                handlePlayerSelection={handlePlayerSelection}
-                                                clubTeamsData={clubTeamsData}
-                                                loadingTeamsState={loadingTeamsState}
-                                                activeTab={category._id}
-                                              />
-                                            ) : match.homeVenue ? (
-                                              <CustomClubSelector
-                                                matchId={match.id}
-                                                venue="away"
-                                                currentClub={null}
-                                                onClubSelect={(clubName) => handleAwayVenueChange(match.id, clubName)}
-                                                availableClubs={getAvailableAwayClubs(match.homeVenue)}
-                                                selectedPlayers={[]}
                                                 categoryType={category.categoryType}
                                                 openDropdown={openDropdown}
                                                 setOpenDropdown={setOpenDropdown}
@@ -1773,7 +1666,7 @@ const LeagueSchedule = () => {
                         <tbody>
                           {selectedRound === 'final' ? (
                             availableCategories
-                              .filter(cat => activeTab === 'all' || activeTab === cat._id)
+                              .filter(cat => activeTab === 'all' || selectedRound === 'final' || activeTab === cat._id)
                               .map((category) => {
                                 const rawMatches = existingMatches[category._id] || [];
                                 const categoryMatches = rawMatches.map(m => {
@@ -1798,27 +1691,28 @@ const LeagueSchedule = () => {
                                             <td style={{ padding: '14px 12px', fontWeight: '600', color: '#1a1a1a', fontSize: '13px', borderBottom: '1px solid #ddd' }}>{String(mIndex + 1).padStart(2, '0')}</td>
                                             <td style={{ padding: '14px 12px', borderBottom: '1px solid #ddd' }}>
                                               <div className='d-flex justify-content-center align-items-center gap-2'>
+                                                {/* [FINALS - OLD FINALIST TEAM SELECTOR WHEN EDITING - COMMENTED OUT]
                                                 {isEditing && finalists?.data?.finalists?.[0] ? (
-                                                  <FinalistTeamSelector
+                                                  <FinalistTeamSelector ... />
+                                                ) : ... }
+                                                */}
+                                                {isEditing ? (
+                                                  <CustomClubSelector
                                                     matchId={match.id}
                                                     venue="home"
-                                                    clubName={finalists.data.finalists[0].clubName}
-                                                    clubLogo={clubs.find(c => c.name === finalists.data.finalists[0].clubName)?.logo}
-                                                    availableTeams={finalists.data.finalists[0].categories.find(c => c.categoryType === category.categoryType)?.teams || []}
-                                                    selectedTeamName={match.homeTeam?.optionsSelected || match.homeTeam?.teamName || ''}
-                                                    onTeamSelect={(team) => {
-                                                      const matches = matchesByCategory[category._id] || [];
-                                                      const updated = matches.map(m =>
-                                                        m.id === match.id ? {
-                                                          ...m,
-                                                          homeTeam: { teamName: team.teamName, players: team.players || [], optionsSelected: team.teamName },
-                                                          homeVenue: finalists.data.finalists[0].clubName
-                                                        } : m
-                                                      );
-                                                      setMatchesByCategory(prev => ({ ...prev, [category._id]: updated }));
-                                                    }}
+                                                    currentClub={match.homeVenue}
+                                                    onClubSelect={(clubName) => handleHomeVenueChange(match.id, clubName)}
+                                                    availableClubs={clubs}
+                                                    selectedPlayers={getSelectedPlayers(match.id, 'home', category._id)}
+                                                    categoryType={category.categoryType}
                                                     openDropdown={openDropdown}
                                                     setOpenDropdown={setOpenDropdown}
+                                                    fetchPlayersForClub={fetchPlayersForClub}
+                                                    setSelectedPlayers={setSelectedPlayers}
+                                                    handlePlayerSelection={handlePlayerSelection}
+                                                    clubTeamsData={clubTeamsData}
+                                                    loadingTeamsState={loadingTeamsState}
+                                                    activeTab={category._id}
                                                   />
                                                 ) : match.homeTeam?.players && match.homeTeam.players.length > 0 && match.homeVenue && !match.homeVenue.startsWith('Winner') ? (
                                                   <div className="d-flex align-items-center">
@@ -1828,8 +1722,8 @@ const LeagueSchedule = () => {
                                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginLeft: '8px' }}>
                                                       <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937', textAlign: 'left' }}>{match.homeVenue}</div>
                                                       <div style={{ fontSize: '10px', color: '#666', marginTop: '2px', textAlign: 'left', lineHeight: '1.2' }}>
-                                                        <span style={{ fontWeight: '600', color: '#1F2937' }}>{match.homeTeam.teamName}</span>
-                                                        <span> • {match.homeTeam.players.map(p => p.playerName.split(' ')[0]).join(', ')}</span>
+                                                        <span className='text-capitalize' style={{ fontWeight: '600', color: '#1F2937' }}>{match.homeTeam.teamName}</span>
+                                                        <span className='text-capitalize'> &bull; {match.homeTeam.players.map(p => p.playerName.split(' ')[0]).join(', ')}</span>
                                                       </div>
                                                     </div>
                                                   </div>
@@ -1843,27 +1737,28 @@ const LeagueSchedule = () => {
                                             </td>
                                             <td style={{ padding: '14px 12px', borderBottom: '1px solid #ddd' }}>
                                               <div className='d-flex justify-content-center align-items-center gap-2'>
+                                                {/* [FINALS - OLD FINALIST TEAM SELECTOR WHEN EDITING - COMMENTED OUT]
                                                 {isEditing && finalists?.data?.finalists?.[1] ? (
-                                                  <FinalistTeamSelector
+                                                  <FinalistTeamSelector ... />
+                                                ) : ... }
+                                                */}
+                                                {isEditing ? (
+                                                  <CustomClubSelector
                                                     matchId={match.id}
                                                     venue="away"
-                                                    clubName={finalists.data.finalists[1].clubName}
-                                                    clubLogo={clubs.find(c => c.name === finalists.data.finalists[1].clubName)?.logo}
-                                                    availableTeams={finalists.data.finalists[1].categories.find(c => c.categoryType === category.categoryType)?.teams || []}
-                                                    selectedTeamName={match.awayTeam?.optionsSelected || match.awayTeam?.teamName || ''}
-                                                    onTeamSelect={(team) => {
-                                                      const matches = matchesByCategory[category._id] || [];
-                                                      const updated = matches.map(m =>
-                                                        m.id === match.id ? {
-                                                          ...m,
-                                                          awayTeam: { teamName: team.teamName, players: team.players || [], optionsSelected: team.teamName },
-                                                          awayVenue: finalists.data.finalists[1].clubName
-                                                        } : m
-                                                      );
-                                                      setMatchesByCategory(prev => ({ ...prev, [category._id]: updated }));
-                                                    }}
+                                                    currentClub={match.awayVenue}
+                                                    onClubSelect={(clubName) => handleAwayVenueChange(match.id, clubName)}
+                                                    availableClubs={getAvailableAwayClubs(match.homeVenue)}
+                                                    selectedPlayers={getSelectedPlayers(match.id, 'away', category._id)}
+                                                    categoryType={category.categoryType}
                                                     openDropdown={openDropdown}
                                                     setOpenDropdown={setOpenDropdown}
+                                                    fetchPlayersForClub={fetchPlayersForClub}
+                                                    setSelectedPlayers={setSelectedPlayers}
+                                                    handlePlayerSelection={handlePlayerSelection}
+                                                    clubTeamsData={clubTeamsData}
+                                                    loadingTeamsState={loadingTeamsState}
+                                                    activeTab={category._id}
                                                   />
                                                 ) : match.awayTeam?.players && match.awayTeam.players.length > 0 && match.awayVenue && !match.awayVenue.startsWith('Winner') ? (
                                                   <div className="d-flex align-items-center">
@@ -1873,8 +1768,8 @@ const LeagueSchedule = () => {
                                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginLeft: '8px' }}>
                                                       <div style={{ fontWeight: '600', fontSize: '13px', color: '#1F2937', textAlign: 'left' }}>{match.awayVenue}</div>
                                                       <div style={{ fontSize: '10px', color: '#666', marginTop: '2px', textAlign: 'left', lineHeight: '1.2' }}>
-                                                        <span style={{ fontWeight: '600', color: '#1F2937' }}>{match.awayTeam.teamName}</span>
-                                                        <span> • {match.awayTeam.players.map(p => p.playerName.split(' ')[0]).join(', ')}</span>
+                                                        <span className='text-capitalize' style={{ fontWeight: '600', color: '#1F2937' }}>{match.awayTeam.teamName}</span>
+                                                        <span className='text-capitalize'> &bull; {match.awayTeam.players.map(p => p.playerName.split(' ')[0]).join(', ')}</span>
                                                       </div>
                                                     </div>
                                                   </div>
@@ -2023,7 +1918,7 @@ const LeagueSchedule = () => {
                               })
                           ) : (
                             availableCategories
-                              .filter(cat => activeTab === 'all' || activeTab === cat._id)
+                              .filter(cat => activeTab === 'all' || selectedRound === 'final' || activeTab === cat._id)
                               .map((category) => {
                                 const rawMatches = existingMatches[category._id] || [];
                                 const categoryMatches = rawMatches.map(m => {
@@ -2044,8 +1939,8 @@ const LeagueSchedule = () => {
                                         const isEditing = editingMatchId === match.id;
                                         const homeClub = clubs.find(club => club.name === match.homeVenue);
                                         const awayClub = clubs.find(club => club.name === match.awayVenue);
-                                        const selectedHomePlayers = getSelectedPlayers(match.id, 'home');
-                                        const selectedAwayPlayers = getSelectedPlayers(match.id, 'away');
+                                        const selectedHomePlayers = getSelectedPlayers(match.id, 'home', category._id);
+                                        const selectedAwayPlayers = getSelectedPlayers(match.id, 'away', category._id);
 
                                         return (
                                           <tr className='text-center' key={match.id} style={{ backgroundColor: index % 2 === 1 ? 'rgba(242, 242, 242, 0.7)' : 'white' }}>
@@ -2065,7 +1960,7 @@ const LeagueSchedule = () => {
                                                             {match.homeVenue}
                                                           </div>
                                                           {match.homeTeam?.players && match.homeTeam.players.length > 0 && (
-                                                            <div style={{ fontSize: '10px', color: '#666', marginTop: '2px', textAlign: 'center' }}>
+                                                            <div className='text-capitalize' style={{ fontSize: '10px', color: '#666', marginTop: '2px', textAlign: 'center' }}>
                                                               {match.homeTeam.players.map(p => p.playerName.split(' ')[0]).join(', ')}
                                                             </div>
                                                           )}
@@ -2129,7 +2024,7 @@ const LeagueSchedule = () => {
                                                             {match.awayVenue}
                                                           </div>
                                                           {match.awayTeam?.players && match.awayTeam.players.length > 0 && (
-                                                            <div style={{ fontSize: '10px', color: '#666', marginTop: '2px', textAlign: 'center' }}>
+                                                            <div className='text-capitalize' style={{ fontSize: '10px', color: '#666', marginTop: '2px', textAlign: 'center' }}>
                                                               {match.awayTeam.players.map(p => p.playerName.split(' ')[0]).join(', ')}
                                                             </div>
                                                           )}
