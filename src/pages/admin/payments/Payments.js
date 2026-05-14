@@ -12,6 +12,7 @@ import {
   Badge,
   Offcanvas,
 } from "react-bootstrap";
+import { MdOutlinePayments } from "react-icons/md";
 import "bootstrap/dist/css/bootstrap.min.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -1147,20 +1148,20 @@ const Payments = () => {
                   )}
                 {paymentStatus === "paid" && selectedClubId && (
                   <Button
-                    variant="success"
+                    variant="outline-primary"
                     size="sm"
                     onClick={() => navigate(`/admin/payment-reconciliation?clubId=${selectedClubId}`)}
                     className="d-flex align-items-center gap-2"
                     style={{
                       borderRadius: "6px",
-                      fontWeight: "500",
                       fontSize: "13px",
                       height: "36px",
-                      padding: "0 16px",
+                      padding: "0 12px",
                       whiteSpace: "nowrap",
                     }}
                   >
-                    <span>Payment Reconciliation</span>
+                    <MdOutlinePayments size={12} />
+                    Payment Reconciliation
                   </Button>
                 )}
               </div>
