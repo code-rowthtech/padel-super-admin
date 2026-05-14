@@ -8,7 +8,7 @@ import {
   FaUserCircle,
   FaBars,
 } from "react-icons/fa";
-import { Dropdown, OverlayTrigger, Tooltip } from "react-bootstrap";
+import { Dropdown, Offcanvas, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../../redux/admin/auth/slice";
@@ -33,7 +33,6 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
   const dispatch = useDispatch();
   const handleClearSearch = () => setSearchValue("");
   const [open, setOpen] = useState(false);
-  const dropdownRef = useRef(null);
   const socketRef = useRef(null);
   const [notifications, setNotifications] = useState([]);
   const [notificationCount, setNotificationCount] = useState();
@@ -74,7 +73,7 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
         dispatch(getNotificationData()).unwrap(),
         dispatch(getNotificationCount()).unwrap()
       ]);
-      
+
       if (notificationRes?.notifications) {
         setNotifications(notificationRes.notifications);
       }
@@ -89,19 +88,19 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
   useEffect(() => {
     if (!userId) return;
 
-    const socket = io(SOCKET_URL, { 
+    const socket = io(SOCKET_URL, {
       transports: ["websocket"],
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000
     });
-    
+
     socketRef.current = socket;
-    
+
     socket.on('connect_error', (error) => {
       console.error('❌ Socket Connection Error:', error);
     });
-    
+
     socket.on('disconnect', (reason) => {
     });
 
@@ -150,26 +149,16 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
   }, [userId, loadNotifications]);
 
 
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   const handleViewNotification = useCallback(async (note) => {
     if (!note?._id) return;
-    
+
     try {
       await dispatch(getNotificationView({ noteId: note?._id })).unwrap();
-      
+
       if (note?.notificationUrl) {
         navigate(note?.notificationUrl);
       }
-      
+
       await loadNotifications();
       setOpen(false);
     } catch (error) {
@@ -246,16 +235,11 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
 
       <div className="d-flex align-items-center gap-2 gap-md-4">
         {!isSubAdmin && (
-          <div className="position-relative" ref={dropdownRef}>
+          <>
             <div
-              className="d-flex rounded-circle  align-items-center"
-              style={{
-                cursor: "pointer",
-                // backgroundColor: open ? "black" : "white",
-                padding: "8px",
-                position: "relative",
-              }}
-              onClick={() => setOpen(!open)}
+              className="d-flex rounded-circle align-items-center"
+              style={{ cursor: "pointer", padding: "8px", position: "relative" }}
+              onClick={() => setOpen(true)}
             >
               <Badge
                 badgeContent={
@@ -265,136 +249,130 @@ const AdminTopbar = ({ onToggleSidebar, sidebarOpen, onToggleCollapse, sidebarCo
                 }
                 color="error"
               >
-                <NotificationsIcon
-                  className={`${open ? 'text-dark' : 'text-dark'}`}
-                  size={18}
-                />
+                <NotificationsIcon className="text-dark" size={18} />
               </Badge>
             </div>
 
-            {open && (
-              <div
-                className="shadow-sm p-2 add_position_notification"
+            <Offcanvas
+              show={open}
+              onHide={() => setOpen(false)}
+              placement="end"
+              style={{ width: "360px" }}
+            >
+              <Offcanvas.Header
                 style={{
-                  position: "absolute",
-                  top: "50px",
-                  right: 0,
-                  width: "320px",
-                  backgroundColor: "#fff",
-                  borderRadius: "12px",
-                  zIndex: 10,
+                  borderBottom: "1px solid #e9ecef",
+                  padding: "16px 20px",
+                  backgroundColor: "#f8f9fa",
                 }}
               >
-                <div className="d-flex justify-content-between align-items-center mb-0 pt-1 ps-1">
-                  <h6 style={{ fontWeight: 600, fontFamily: "Poppins" }}>Notifications</h6>
+                <Offcanvas.Title className="d-flex align-items-center justify-content-between w-100" style={{ fontWeight: 600, fontFamily: "Poppins", fontSize: "16px" }}>
+                  Notifications
+                  {notificationCount?.unreadCount > 0 && (
+                    <span
+                      className="ms-2 badge bg-danger"
+                      style={{ fontSize: "11px", verticalAlign: "middle" }}
+                    >
+                      {notificationCount.unreadCount > 99 ? "99+" : notificationCount.unreadCount}
+                    </span>
+                  )}
+                </Offcanvas.Title>
+                <div className="d-flex align-items-center gap-2">
                   {notifications?.length > 0 && (
                     <button
                       className="btn btn-link p-0"
-                      style={{
-                        fontSize: "13px",
-                        fontWeight: 500,
-                        textDecoration: "none",
-                        color: "#007bff",
-                      }}
+                      style={{ fontSize: "13px", fontWeight: 500, textDecoration: "none", color: "#007bff" }}
                       onClick={handleMarkAllRead}
                     >
                       Mark all as read
                     </button>
                   )}
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setOpen(false)}
+                    aria-label="Close"
+                  />
                 </div>
-
-                <div style={{ maxHeight: "300px", overflowY: "auto" }} className="hide-notification-scrollbar">
-                  {notificationLoading ? <ButtonLoading /> :
-                    notifications?.length > 0 ? (
-                      notifications?.map((note) => (
+              </Offcanvas.Header>
+              <Offcanvas.Body className="p-0 hide-notification-scrollbar" style={{ overflowY: "auto" }}>
+                {notificationLoading ? (
+                  <div className="d-flex justify-content-center align-items-center" style={{ height: "200px" }}>
+                    <ButtonLoading />
+                  </div>
+                ) : notifications?.length > 0 ? (
+                  notifications.map((note) => (
+                    <div
+                      key={note._id}
+                      className="d-flex gap-2 align-items-start p-3"
+                      style={{
+                        borderBottom: "1px solid #f0f0f0",
+                        cursor: "pointer",
+                        backgroundColor: note?.isRead ? "#fff" : "#f0f7ff",
+                        transition: "background-color 0.2s",
+                      }}
+                      onClick={() => handleViewNotification(note)}
+                    >
+                      {note?.userId?.profilePic ? (
+                        <img
+                          src={note?.userId?.profilePic}
+                          alt="user"
+                          style={{ width: "38px", height: "38px", borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
+                        />
+                      ) : (
                         <div
-                          key={note._id}
-                          className="d-flex gap-2 align-items-start justify-content-between p-3 mb-2 rounded "
                           style={{
-                            borderBottom: "1px solid #f0f0f0",
-                            cursor: "pointer",
+                            width: "38px",
+                            height: "38px",
+                            borderRadius: "50%",
+                            backgroundColor: "#e5e7eb",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontWeight: "600",
+                            color: "#111",
+                            flexShrink: 0,
                           }}
-                          onClick={() => handleViewNotification(note)}
                         >
-                          {note?.userId?.profilePic ? (
-                            <img
-                              src={note?.userId?.profilePic}
-                              alt="user"
-                              style={{
-                                width: "35px",
-                                height: "35px",
-                                borderRadius: "50%",
-                                objectFit: "cover",
-                              }}
-                            />
-                          ) : (
-                            <div
-                              style={{
-                                width: "35px",
-                                height: "35px",
-                                borderRadius: "50%",
-                                backgroundColor: "#e5e7eb",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                fontWeight: "600",
-                                color: "#111",
-                              }}
-                            >
-                              {note?.userId?.name?.charAt(0).toUpperCase()}
-                            </div>
-                          )}
-
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontWeight: 500, fontSize: "13px" }}>
-                              {note?.userId?.name?.trim() || "User"} – {note?.title}
-                            </div>
-                            {note?.message && (
-                              <p
-                                className="text-muted mb-1"
-                                style={{ fontSize: "12px", fontFamily: "Poppins" }}
-                              >
-                                {note?.message}
-                              </p>
-                            )}
-                            <p
-                              className="text-muted text-nowrap mb-0"
-                              style={{ fontSize: "12px", fontFamily: "Poppins" }}
-                            >
-                              {dayjs(note?.createdAt).fromNow()} <b>.</b>{" "}
-                              <OverlayTrigger
-                                placement="top"
-                                overlay={
-                                  <Tooltip id={`tooltip-${note._id}`}>
-                                    {note?.notificationType}
-                                  </Tooltip>
-                                }
-                              >
-                                <span style={{ cursor: "pointer" }}>
-                                  {note?.notificationType?.length > 12
-                                    ? note?.notificationType?.slice(0, 12) + "..."
-                                    : note?.notificationType}
-                                </span>
-                              </OverlayTrigger>
-                            </p>
-                          </div>
+                          {note?.userId?.name?.charAt(0).toUpperCase()}
                         </div>
-                      ))
-                    ) : (
-                      <div
-                        className="text-center text-muted py-3"
-                        style={{
-                          fontWeight: 400,
-                          fontFamily: "Poppins",
-                        }}
-                      >
-                        No new notifications
+                      )}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 500, fontSize: "13px" }}>
+                          {note?.userId?.name?.trim() || "User"} – {note?.title}
+                        </div>
+                        {note?.message && (
+                          <p className="text-muted mb-1" style={{ fontSize: "12px", fontFamily: "Poppins" }}>
+                            {note?.message}
+                          </p>
+                        )}
+                        <p className="text-muted mb-0" style={{ fontSize: "11px", fontFamily: "Poppins" }}>
+                          {dayjs(note?.createdAt).fromNow()} <b>·</b>{" "}
+                          <OverlayTrigger
+                            placement="top"
+                            overlay={<Tooltip id={`tooltip-${note._id}`}>{note?.notificationType}</Tooltip>}
+                          >
+                            <span style={{ cursor: "pointer" }}>
+                              {note?.notificationType?.length > 12
+                                ? note?.notificationType?.slice(0, 12) + "..."
+                                : note?.notificationType}
+                            </span>
+                          </OverlayTrigger>
+                        </p>
                       </div>
-                    )}
-                </div>
-              </div>
-            )}
-          </div>
+                    </div>
+                  ))
+                ) : (
+                  <div
+                    className="text-center text-muted py-5"
+                    style={{ fontWeight: 400, fontFamily: "Poppins" }}
+                  >
+                    No new notifications
+                  </div>
+                )}
+              </Offcanvas.Body>
+            </Offcanvas>
+          </>
         )}
 
         <Dropdown align="end" onToggle={(isOpen) => setIsOpen(isOpen)}>

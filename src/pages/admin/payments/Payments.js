@@ -12,6 +12,7 @@ import {
   Badge,
   Offcanvas,
 } from "react-bootstrap";
+import { MdOutlinePayments } from "react-icons/md";
 import "bootstrap/dist/css/bootstrap.min.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -47,7 +48,7 @@ import {
 import { ownerApi } from "../../../helpers/api/apiCore";
 import { useDispatch, useSelector } from "react-redux";
 import { getCategoryList } from "../../../redux/thunks";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { PaymentDetailsModal } from "./modals/PaymentDetailModal";
 import { CreatePaymentModal } from "./modals/CreatePaymentModal";
 import Pagination from "../../../helpers/Pagination";
@@ -60,6 +61,7 @@ const Payments = () => {
   const dispatch = useDispatch();
   const { categoryList } = useSelector((state) => state.booking);
   const location = useLocation();
+  const navigate = useNavigate();
   const { selectedOwnerId } = useSuperAdminContext();
   const Owner = useMemo(() => getOwnerFromSession(), []);
   const ownerData = Owner?.user || Owner;
@@ -1144,6 +1146,24 @@ const Payments = () => {
                       <span>Create Payment</span>
                     </Button>
                   )}
+                {paymentStatus === "paid" && selectedClubId && (
+                  <Button
+                    variant="outline-primary"
+                    size="sm"
+                    onClick={() => navigate(`/admin/payment-reconciliation?clubId=${selectedClubId}`)}
+                    className="d-flex align-items-center gap-2"
+                    style={{
+                      borderRadius: "6px",
+                      fontSize: "13px",
+                      height: "36px",
+                      padding: "0 12px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    <MdOutlinePayments size={12} />
+                    Payment Reconciliation
+                  </Button>
+                )}
               </div>
             </div>
 
