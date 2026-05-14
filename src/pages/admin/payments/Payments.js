@@ -47,7 +47,7 @@ import {
 import { ownerApi } from "../../../helpers/api/apiCore";
 import { useDispatch, useSelector } from "react-redux";
 import { getCategoryList } from "../../../redux/thunks";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { PaymentDetailsModal } from "./modals/PaymentDetailModal";
 import { CreatePaymentModal } from "./modals/CreatePaymentModal";
 import Pagination from "../../../helpers/Pagination";
@@ -60,6 +60,7 @@ const Payments = () => {
   const dispatch = useDispatch();
   const { categoryList } = useSelector((state) => state.booking);
   const location = useLocation();
+  const navigate = useNavigate();
   const { selectedOwnerId } = useSuperAdminContext();
   const Owner = useMemo(() => getOwnerFromSession(), []);
   const ownerData = Owner?.user || Owner;
@@ -1144,6 +1145,24 @@ const Payments = () => {
                       <span>Create Payment</span>
                     </Button>
                   )}
+                {paymentStatus === "paid" && selectedClubId && (
+                  <Button
+                    variant="success"
+                    size="sm"
+                    onClick={() => navigate(`/admin/payment-reconciliation?clubId=${selectedClubId}`)}
+                    className="d-flex align-items-center gap-2"
+                    style={{
+                      borderRadius: "6px",
+                      fontWeight: "500",
+                      fontSize: "13px",
+                      height: "36px",
+                      padding: "0 16px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    <span>Payment Reconciliation</span>
+                  </Button>
+                )}
               </div>
             </div>
 

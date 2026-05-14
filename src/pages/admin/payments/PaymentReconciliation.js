@@ -21,6 +21,7 @@ import {
   SUPER_ADMIN_PAYMENT_DASHBOARD_COUNTS,
 } from "../../../helpers/api/apiEndpoint";
 import { ownerApi } from "../../../helpers/api/apiCore";
+import { useLocation } from "react-router-dom";
 import Pagination from "../../../helpers/Pagination";
 import config from "../../../config";
 
@@ -34,11 +35,15 @@ const PaymentReconciliation = () => {
   const ownerId = useMemo(() => isSuperAdmin 
     ? (selectedOwnerId || null)
     : (getOwnerFromSession()?._id), [isSuperAdmin, selectedOwnerId]);
+  const location = useLocation();
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedClubId, setSelectedClubId] = useState("");
+  const [selectedClubId, setSelectedClubId] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("clubId") || "";
+  });
   const [showExportDropdown, setShowExportDropdown] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
   const [exportSearchTerm, setExportSearchTerm] = useState("");
