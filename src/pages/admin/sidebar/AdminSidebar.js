@@ -433,7 +433,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             }
             onMouseLeave={() => setHoveredItem(null)}
           >
-            <NavLink
+            {/* <NavLink
               to="/admin/payment-reconciliation"
               end
               className={
@@ -458,7 +458,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
                 size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
               />
               {(!isCollapsed || window.innerWidth <= 768) && "Payment Reconciliation"}
-            </NavLink>
+            </NavLink> */}
             {isCollapsed && window.innerWidth > 768 && hoveredItem === "reconciliation" && (
               <div
                 className="position-absolute bg-dark px-2 py-1 rounded"
