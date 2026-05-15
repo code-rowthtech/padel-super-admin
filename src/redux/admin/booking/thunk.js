@@ -30,6 +30,8 @@ export const getBookingByStatus = createAsyncThunk(
         if (params?.paymentStatus) query.append("paymentStatus", params?.paymentStatus);
         if (params.startDate) query.append("startDate", params.startDate);
         if (params.endDate) query.append("endDate", params.endDate);
+        if (params.search) query.append("search", params.search);
+        if (params.category) query.append("category", params.category);
         if (params.page) query.append("page", params.page);
         if (params.limit) query.append("limit", params.limit);
 
@@ -109,8 +111,11 @@ export const bookingCount = createAsyncThunk(
       };
       const baseParams = {
         ...(data?.ownerId ? { ownerId: data.ownerId } : {}),
+        ...(data?.clubId ? { clubId: data.clubId } : {}),
         ...(data?.startDate ? { startDate: data.startDate } : {}),
         ...(data?.endDate ? { endDate: data.endDate } : {}),
+        ...(data?.search ? { search: data.search } : {}),
+        ...(data?.category ? { category: data.category } : {}),
       };
 
       const allRes = await ownerApi.get(
@@ -131,6 +136,38 @@ export const bookingCount = createAsyncThunk(
     } catch (error) {
       showError(error?.message);
       return rejectWithValue(error?.message);
+    }
+  }
+);
+
+export const getCategoryList = createAsyncThunk(
+  "booking/getCategoryList",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await ownerApi.get(Url.GET_CATEGORY_LIST);
+      const { status, data } = res || {};
+      if (status === 200) {
+        return data?.data || [];
+      }
+      return rejectWithValue("Failed to fetch categories");
+    } catch (error) {
+      return rejectWithValue(error?.response?.data?.message || "Network error");
+    }
+  }
+);
+
+export const getAllClubs = createAsyncThunk(
+  "booking/getAllClubs",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await ownerApi.get(Url.SUPER_ADMIN_GET_ALL_CLUBS);
+      const { status, data } = res || {};
+      if (status === 200) {
+        return data?.data || [];
+      }
+      return rejectWithValue("Failed to fetch clubs");
+    } catch (error) {
+      return rejectWithValue(error?.response?.data?.message || "Network error");
     }
   }
 );

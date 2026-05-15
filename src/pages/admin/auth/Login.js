@@ -70,9 +70,15 @@ const LoginPage = () => {
         loginOwner({ email: formData.email, password: formData.password })
       ).unwrap();
       const ownerData = getOwnerFromSession();
-      const shouldSkipRegister = ownerData?.hasCourt || ownerData?.generatedBy;
+      const user = ownerData?.user || ownerData;
+      const isSubAdmin = user?.isSubAdmin === true;
 
-      navigate(shouldSkipRegister ? "/admin/dashboard" : "/admin/register");
+      if (isSubAdmin) {
+        navigate("/admin/tournament/creation");
+      } else {
+        const shouldSkipRegister = ownerData?.hasCourt || ownerData?.generatedBy;
+        navigate(shouldSkipRegister ? "/admin/dashboard" : "/admin/register");
+      }
     } catch (err) {
       setApiError(err || "Login failed. Try again.");
     }

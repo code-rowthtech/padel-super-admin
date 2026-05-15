@@ -21,10 +21,18 @@ const NewLeague = React.lazy(() => import("../pages/admin/league/NewLeagueCreati
 const LeagueCreation = React.lazy(() => import("../pages/admin/league/LeagueCreation"));
 const LeagueRegistration = React.lazy(() => import("../pages/admin/league/LeagueRegistration"));
 const LeagueSchedule = React.lazy(() => import("../pages/admin/league/LeagueSchedule"));
-// const TeamCreation = React.lazy(() => import("../pages/admin/league/TeamCreation"));
+const TeamCreation = React.lazy(() => import("../pages/admin/league/TeamCreation"));
 const ViewLeagueSchedule = React.lazy(() => import("../pages/admin/league/ViewLeagueSchedule"));
+const TournamentCreation = React.lazy(() => import("../pages/admin/tournament/TournamentCreation"));
+const NewTournament = React.lazy(() => import("../pages/admin/tournament/NewTournamentCreation"));
+const TournamentSchedule = React.lazy(() => import("../pages/admin/tournament/TournamentSchedule"));
+const TournamentTeamCreation = React.lazy(() => import("../pages/admin/tournament/TournamentTeamCreation"));
+const ViewTournament = React.lazy(() => import("../pages/admin/tournament/ViewTournament"));
+const PointsTablePage = React.lazy(() => import("../pages/admin/league/PointsTablePage"));
 const Notifications = React.lazy(() => import("../pages/admin/notifications/Notifications"));
-
+const AppUsers = React.lazy(() => import("../pages/admin/appUsers/AppUsers"));
+const AppVersion = React.lazy(() => import("../pages/admin/version/Version"));
+const XpSettings = React.lazy(() => import("../pages/admin/settings/XpSettings"));
 
 const NotFound = React.lazy(() => import("../pages/error/NotFound"));
 const loading = <DataLoading height={900} />;
@@ -97,10 +105,14 @@ const AllRoutes = () => {
               path: "league/schedule",
               element: LoadComponent(LeagueSchedule),
             },
-            // {
-            //   path: "league/team-creation",
-            //   element: LoadComponent(TeamCreation),
-            // },
+            {
+              path: "league/team-creation",
+              element: LoadComponent(TeamCreation),
+            },
+            {
+              path: "league/points-table",
+              element: LoadComponent(PointsTablePage),
+            },
             {
               path: "view-league-schedule/:leagueId",
               element: LoadComponent(ViewLeagueSchedule),
@@ -114,8 +126,44 @@ const AllRoutes = () => {
               element: LoadComponent(NewLeague),
             },
             {
+              path: "tournament/creation",
+              element: LoadComponent(TournamentCreation),
+            },
+            {
+              path: "new-tournament",
+              element: LoadComponent(NewTournament),
+            },
+            {
+              path: "new-tournament/:id",
+              element: LoadComponent(NewTournament),
+            },
+            {
+              path: "tournament/schedule",
+              element: LoadComponent(TournamentSchedule),
+            },
+            {
+              path: "tournament/team-creation",
+              element: LoadComponent(TournamentTeamCreation),
+            },
+            {
+              path: "view-tournament/:tournamentId",
+              element: LoadComponent(ViewTournament),
+            },
+            {
               path: "wallet",
               element: LoadComponent(Wallet),
+            },
+            {
+              path: "app-users",
+              element: LoadComponent(AppUsers),
+            },
+            {
+              path: "app-version",
+              element: LoadComponent(AppVersion),
+            },
+            {
+              path: "settings/xp",
+              element: LoadComponent(XpSettings),
             },
             {
               path: "notifications",

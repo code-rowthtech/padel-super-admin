@@ -1,12 +1,10 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { CREATE_LEAGUE, GET_LEAGUES, GET_LEAGUES_IDS, UPDATE_LEAGUE, GET_STATES, GET_CLUB_WITH_STATE, GET_SPONSOR_CATEGORIES, GET_LEAGUE_BY_ID, DELETE_LEAGUE, GET_LEAGUE_CLUBS, GET_CLUB_TEAMS, EXPORT_LEAGUE_SCHEDULES_PDF, GET_LEAGUE_SUMMARY, GET_AVAILABLE_PLAYERS, SAVE_TEAMS, GET_TEAMS, GET_SCHEDULE_DATES } from "../../../helpers/api/apiEndpoint";
+import { CREATE_LEAGUE, GET_LEAGUES, GET_LEAGUES_IDS, UPDATE_LEAGUE, GET_STATES, GET_CLUB_WITH_STATE, GET_SPONSOR_CATEGORIES, GET_LEAGUE_BY_ID, DELETE_LEAGUE, GET_LEAGUE_CLUBS, GET_CLUB_TEAMS, EXPORT_LEAGUE_SCHEDULES_PDF, GET_LEAGUE_SUMMARY, GET_AVAILABLE_PLAYERS, SAVE_TEAMS, GET_TEAMS, GET_SCHEDULE_DATES, GET_LEAGUE_LEADERBOARD, GET_LEAGUE_FINALISTS, CREATE_QUICK_POINT, GET_QUICK_POINTS, UPDATE_QUICK_POINT, DELETE_SCHEDULE } from "../../../helpers/api/apiEndpoint";
 import { ownerApi, ownerAxios, getOwnerFromSession } from "../../../helpers/api/apiCore";
 import { showSuccess, showError } from "../../../helpers/Toast";
 
 const buildLeagueFormData = (data) => {
   const formData = new FormData();
-
-  // Basic fields
   if (data.id) formData.append('id', data.id);
   if (data.leagueName) formData.append('leagueName', data.leagueName);
   if (data.stateId) formData.append('stateId', data.stateId);
@@ -30,9 +28,6 @@ const buildLeagueFormData = (data) => {
         });
       }
       if (club.participationLimit) {
-        // if (club.participationLimit.maxParticipants) {
-        //   formData.append(`clubs[${index}][participationLimit][maxParticipants]`, club.participationLimit.maxParticipants);
-        // }
         if (club.participationLimit.categoryLimits) {
           club.participationLimit.categoryLimits.forEach((limit, limitIndex) => {
             formData.append(`clubs[${index}][participationLimit][categoryLimits][${limitIndex}][categoryType]`, limit.categoryType);
@@ -61,7 +56,6 @@ const buildLeagueFormData = (data) => {
       }
     });
   }
-
   // Step 2 & 3 fields
   if (data.matchRules) formData.append('matchRules', JSON.stringify(data.matchRules));
   if (data.priceDistribution) formData.append('priceDistribution', JSON.stringify(data.priceDistribution));
@@ -75,7 +69,7 @@ export const getLeagueById = createAsyncThunk(
   "league/getLeagueById",
   async (id, { rejectWithValue }) => {
     try {
-      const response = await ownerApi.get(`${GET_LEAGUE_BY_ID}?id=${id}`);
+      const response = await ownerApi.get(`${GET_LEAGUE_BY_ID}?id=${id}&accessedBy=superadmin`);
       if (response?.status === 200) {
         return response.data?.data;
       }
@@ -270,6 +264,45 @@ export const saveSchedule = createAsyncThunk(
     }
   }
 );
+
+export const updateSchedule = createAsyncThunk(
+  "league/updateSchedule",
+  async (updateData, { rejectWithValue }) => {
+    try {
+      const response = await ownerApi.put(`/api/league-schedules/scheduleId`, updateData);
+      if (response?.status === 200) {
+        if (response?.data?.success) {
+          return response.data;
+        }
+      }
+      showError(response?.data?.message || "Failed to update schedule");
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      showError(error || error?.message || "Error updating schedule");
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const deleteSchedule = createAsyncThunk(
+  "league/deleteSchedule",
+  async (scheduleId, { rejectWithValue }) => {
+    try {
+      const response = await ownerApi.delete(`/api/league-schedules/${scheduleId}`);
+      if (response?.status === 200) {
+        if (response?.data?.success) {
+          return scheduleId;
+        }
+      }
+      showError(response?.data?.message || "Failed to delete schedule");
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      showError(error || error?.message || "Error deleting schedule");
+      return rejectWithValue(error);
+    }
+  }
+);
+
 export const getAllSchedules = createAsyncThunk(
   "league/getAllSchedules",
   async (params = {}, { rejectWithValue }) => {
@@ -286,7 +319,7 @@ export const getAllSchedules = createAsyncThunk(
       const url = `/api/league-schedules/getAllSchedules${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
       const response = await ownerApi.get(url);
       if (response?.status === 200) {
-        return response.data?.data || [];
+        return response.data || {};
       }
       return rejectWithValue(response?.data?.message);
     } catch (error) {
@@ -358,9 +391,18 @@ export const deleteLeague = createAsyncThunk(
 
 export const getLeagueSummary = createAsyncThunk(
   "league/getLeagueSummary",
-  async (leagueId, { rejectWithValue }) => {
+  async ({ leagueId, categoryType, roundType }, { rejectWithValue }) => {
     try {
-      const response = await ownerApi.get(`${GET_LEAGUE_SUMMARY}?leagueId=${leagueId}`);
+      const queryParams = new URLSearchParams();
+      queryParams.append('leagueId', leagueId);
+      if (categoryType) {
+        queryParams.append('categoryType', categoryType);
+      }
+      if (roundType) {
+        queryParams.append('roundType', roundType === 'regularRound' ? 'regular' : roundType);
+      }
+
+      const response = await ownerApi.get(`${GET_LEAGUE_SUMMARY}?${queryParams.toString()}`);
       if (response?.status === 200) {
         return response.data?.data || null;
       }
@@ -369,7 +411,9 @@ export const getLeagueSummary = createAsyncThunk(
       return rejectWithValue(error);
     }
   }
-); export const getAvailablePlayers = createAsyncThunk(
+);
+
+export const getAvailablePlayers = createAsyncThunk(
   "league/getAvailablePlayers",
   async ({ leagueId, clubId, categoryType }, { rejectWithValue }) => {
     try {
@@ -384,11 +428,12 @@ export const getLeagueSummary = createAsyncThunk(
     }
   }
 );
+
 export const getTeams = createAsyncThunk(
   "league/getTeams",
   async ({ leagueId, clubId, categoryType }, { rejectWithValue }) => {
     try {
-      const res = await ownerApi.get(`${GET_TEAMS}?leagueId=${leagueId}&clubId=${clubId}&categoryType=${categoryType}`);
+      const res = await ownerApi.get(`${GET_TEAMS}?leagueId=${leagueId}${clubId ? `&clubId=${clubId}` : ''}${categoryType ? `&categoryType=${categoryType}` : ''}`);
       if (res?.status === 200) {
         return { ...res?.data, categoryType };
       } else {
@@ -411,7 +456,7 @@ export const getScheduleDates = createAsyncThunk(
       if (leagueId) queryParams.append('leagueId', leagueId);
       if (roundType) queryParams.append('roundType', roundType);
       if (categoryType) queryParams.append('categoryType', categoryType);
-      
+
       const response = await ownerApi.get(`${GET_SCHEDULE_DATES}?${queryParams.toString()}`);
       if (response?.status === 200) {
         return response.data?.data || [];
@@ -436,13 +481,112 @@ export const saveTeams = createAsyncThunk(
         return rejectWithValue(res?.data?.message || "Failed to save teams");
       }
     } catch (error) {
-      console.log({ error })
       if (error === 'Cannot create teams: 1 player(s) need to register and login to the mobile app before they can be assigned to teams.') {
         showError("The player has not installed the Swoot app yet. Please ask them to install and log in to the app.")
       } else {
         showError(error || error?.response?.data?.message || "Failed to save teams");
       }
       return rejectWithValue(error?.response?.data?.message || "Failed to save teams");
+    }
+  }
+);
+
+export const getLeagueLeaderboard = createAsyncThunk(
+  "league/getLeagueLeaderboard",
+  async (leagueId, { rejectWithValue }) => {
+    try {
+      const response = await ownerApi.get(`${GET_LEAGUE_LEADERBOARD}/${leagueId}/leaderboard`);
+      if (response?.status === 200) {
+        return response.data?.data || null;
+      }
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      return rejectWithValue(error?.response?.data?.message || error?.message || "Failed to fetch leaderboard");
+    }
+  }
+);
+
+export const getLeagueFinalists = createAsyncThunk(
+  "league/getLeagueFinalists",
+  async (leagueId, { rejectWithValue }) => {
+    try {
+      const response = await ownerApi.get(`${GET_LEAGUE_FINALISTS}/${leagueId}/finalists`);
+      if (response?.status === 200) {
+        return response.data;
+      }
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      return rejectWithValue(error?.response?.data?.message || error?.message || "Failed to fetch finalists");
+    }
+  }
+);
+
+export const createQuickPoint = createAsyncThunk(
+  "league/createQuickPoint",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await ownerApi.post(CREATE_QUICK_POINT, data);
+      if (response?.status === 200 || response?.status === 201) {
+        showSuccess(response?.data?.message || "Quick point added successfully");
+        return response.data?.data;
+      }
+      showError(response?.data?.message || "Failed to add quick point");
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      showError(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const getQuickPoints = createAsyncThunk(
+  "league/getQuickPoints",
+  async (leagueId, { rejectWithValue }) => {
+    try {
+      const response = await ownerApi.get(GET_QUICK_POINTS, { leagueId });
+      if (response?.status === 200) {
+        return response.data?.data || [];
+      }
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const updateQuickPoint = createAsyncThunk(
+  "league/updateQuickPoint",
+  async ({ id, ...data }, { rejectWithValue }) => {
+    try {
+      data.id = id; // Ensure ID is included in the payload
+      const response = await ownerApi.put(`${UPDATE_QUICK_POINT}`, data);
+      if (response?.status === 200) {
+        showSuccess(response?.data?.message || "Quick point updated successfully");
+        return response.data?.data;
+      }
+      showError(response?.data?.message || "Failed to update quick point");
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      showError(error);
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const createLivestream = createAsyncThunk(
+  "league/createLivestream",
+  async ({ scheduleId, streamKey }, { rejectWithValue }) => {
+    try {
+      const response = await ownerApi.put(`/api/league-schedules/${scheduleId}/stream`, { streamKey });
+      if (response?.status === 200 || response?.status === 201) {
+        showSuccess(response?.data?.message || "Livestream updated successfully");
+        return response.data;
+      }
+      showError(response?.data?.message || "Failed to update livestream");
+      return rejectWithValue(response?.data?.message);
+    } catch (error) {
+      showError(error || "Failed to update livestream");
+      return rejectWithValue(error);
     }
   }
 );

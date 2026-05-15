@@ -1,16 +1,28 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Container, Row, Col, Card, Badge, Form, Button } from 'react-bootstrap';
+import { Container, Row, Col, Card, Form, Button, Modal, Table } from 'react-bootstrap';
 import { Tabs, Tab } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import { getAllSchedules, exportLeagueSchedulesPDF, getLeagueById } from '../../../redux/admin/league/thunk';
+import {
+  getAllSchedules,
+  exportLeagueSchedulesPDF,
+  getLeagueById,
+  createLivestream,
+  createQuickPoint,
+  getQuickPoints,
+  updateQuickPoint,
+} from '../../../redux/admin/league/thunk';
 import { clearCurrentLeague } from '../../../redux/admin/league/slice';
-import { IoLocationOutline } from 'react-icons/io5';
+import { IoCopyOutline, IoCheckmarkOutline } from 'react-icons/io5';
+import { FaEdit } from 'react-icons/fa';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { DataLoading } from '../../../helpers/loading/Loaders';
+import PointsTable from './PointsTable';
 
-const VSMatchCard = ({ match, category, roundType }) => {
+const VSMatchCard = ({ match, category, roundType, matchId, isLive, onClick, scheduleId }) => {
+  const [copied, setCopied] = React.useState(false);
+
   const getPlayerAvatar = (player) => {
     if (player?.avatar) return player.avatar;
     const name = player?.playerName || player?.name || 'P';
@@ -21,24 +33,65 @@ const VSMatchCard = ({ match, category, roundType }) => {
     if (!team?.players?.length) return [];
     return team.players.slice(0, 2); // Show max 2 players
   };
+
+  const handleCopyScheduleId = (e) => {
+    e.stopPropagation();
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(matchId);
+    } else {
+      const el = document.createElement('textarea');
+      el.value = matchId;
+      el.style.position = 'fixed';
+      el.style.opacity = '0';
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
     <div
-      className="mb-3 shadow-sm rounded-3 position-relative overflow-hidden"
+      onClick={onClick}
+      className="mb-3 shadow-sm rounded-3 position-relative overflow-hidden pt-0"
       style={{
         background: 'linear-gradient(100.97deg, rgb(253, 253, 255) 0%, rgb(158, 186, 255) 317.27%)',
         padding: '30px 16px 16px 16px',
-        border: '1px solid #1F41BB1A',
-        minHeight: '110px'
+        border: isLive ? '1px solid #22c55e44' : '1px solid #1F41BB1A',
+        height: '10.5rem',
+        cursor: 'pointer',
+        display: 'flex',
+        flexDirection: 'column'
       }}
     >
-      <div className="vs-date-badge">
-        {match?.time}
+      {/* <div className="vs-date-badge" >
+        {match?.startTime}
+      </div> */}
+      <div className="row">
+        <div className="col-12 d-flex justify-content-center">
+          <div
+            className="text-white fw-medium px-4 d-flex align-items-center justify-content-center"
+            style={{
+              fontSize: '13px',
+              paddingTop: '2px', paddingBottom: '2px',
+              backgroundColor: '#1F41BB',
+              borderTopLeftRadius: '0',
+              borderTopRightRadius: '0',
+              borderBottomLeftRadius: '110px',
+              borderBottomRightRadius: '110px'
+            }}
+          >
+            {match?.startTime}
+          </div>
+        </div>
       </div>
-      <Row className="align-items-center">
+      <Row className="align-items-center" style={{ flex: 1 }}>
         {/* Team A */}
         <Col xs={4} className="text-start">
-          <div className="fw-bold mb-1" style={{ fontSize: '14px', color: '#1F41BB' }}>
-            Team A
+          <div className="fw-bold text-capitalize mb-1" style={{ fontSize: '14px', color: '#1F41BB' }}>
+            {match?.teamA?.clubId?.clubName || 'Team A'}
           </div>
           <div className="d-flex flex-column gap-1">
             {getTeamPlayers(match.teamA).map((player, index) => (
@@ -49,7 +102,7 @@ const VSMatchCard = ({ match, category, roundType }) => {
                   className="rounded-circle"
                   style={{ width: '24px', height: '24px' }}
                 />
-                <span style={{ fontSize: '12px' }}>
+                <span className='text-capitalize' style={{ fontSize: '12px' }}>
                   {player?.playerName || player?.name || 'Player'}
                 </span>
               </div>
@@ -59,7 +112,15 @@ const VSMatchCard = ({ match, category, roundType }) => {
 
         {/* Center - Date and VS */}
         <Col xs={4} className="text-center">
-          {/* <small className='fw-semibold text-capitalize' style={{ fontSize: '0.7rem' }}>{roundType}</small> */}
+          {isLive && (
+            <div className="d-flex align-items-center justify-content-center gap-1 mb-1">
+              <span style={{
+                width: '7px', height: '7px', borderRadius: '50%', background: '#22c55e',
+                display: 'inline-block', animation: 'livePulse 1.2s ease-in-out infinite'
+              }} />
+              <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#22c55e', letterSpacing: '0.5px' }}>LIVE</span>
+            </div>
+          )}
           <div
             className="d-flex align-items-center justify-content-center mx-auto"
             style={{
@@ -71,21 +132,51 @@ const VSMatchCard = ({ match, category, roundType }) => {
               color: "transparent",
               WebkitTextStroke: "1.5px #1F41BB",
             }}
+
           >
             VS
           </div>
-          <small className='fw-semibold' style={{ fontSize: '0.7rem' }}>{category} - <span className='text-capitalize'>{roundType}</span></small>
+          <div style={{ height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {match?.score && (match.score.teamA?.sets > 0 || match.score.teamB?.sets > 0) && (
+              <div className="d-flex align-items-center gap-2">
+                <span className="fw-bold" style={{ fontSize: '16px', color: match.winner === 'teamA' ? '#22c55e' : '#1F41BB' }}>
+                  {match.score.teamA?.sets || 0}
+                </span>
+                <span style={{ fontSize: '12px', color: '#6b7280' }}>-</span>
+                <span className="fw-bold" style={{ fontSize: '16px', color: match.winner === 'teamB' ? '#22c55e' : '#1F41BB' }}>
+                  {match.score.teamB?.sets || 0}
+                </span>
+              </div>
+            )}
+          </div>
+          <small className='fw-semibold text-nowrap' style={{ fontSize: '0.7rem' }}>{category} - <span className='text-capitalize'>{roundType}</span></small>
+          {matchId && (
+            <div
+              className="  d-flex align-items-center gap-1"
+              style={{ top: '8px', right: '8px', fontSize: '10px', color: '#6b7280', padding: '4px 8px', borderRadius: '4px' }}
+            >
+              <span style={{ fontFamily: 'monospace', maxWidth: '80px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {matchId}
+              </span>
+              <IoCopyOutline
+                size={12}
+                style={{ cursor: 'pointer', color: copied ? '#22c55e' : '#6b7280', flexShrink: 0 }}
+                onClick={handleCopyScheduleId}
+                title="Copy Schedule ID"
+              />
+            </div>
+          )}
         </Col>
 
         {/* Team B */}
         <Col xs={4} className="text-end">
-          <div className="fw-bold mb-1" style={{ fontSize: '14px', color: '#1F41BB' }}>
-            Team B
+          <div className="fw-bold text-capitalize mb-1" style={{ fontSize: '14px', color: '#1F41BB' }}>
+            {match?.teamB?.clubId?.clubName || 'Team B'}
           </div>
           <div className="d-flex flex-column gap-1 align-items-end">
             {getTeamPlayers(match.teamB).map((player, index) => (
               <div key={index} className="d-flex align-items-center gap-2">
-                <span style={{ fontSize: '12px' }}>
+                <span className='text-capitalize' style={{ fontSize: '12px' }}>
                   {player?.playerName || player?.name || 'Player'}
                 </span>
                 <img
@@ -102,8 +193,6 @@ const VSMatchCard = ({ match, category, roundType }) => {
     </div>
   );
 };
-
-
 
 const formatDate = (dateString) => {
   const date = new Date(dateString + (dateString.includes('T') ? '' : 'T00:00:00.000Z'));
@@ -127,21 +216,21 @@ const formatDate = (dateString) => {
 };
 
 // Renders a date group: one date heading + all matches across all schedule entries in one flat Row
-const DateSection = ({ dateGroup }) => {
-  // Flatten all matches from all schedules into one list, attaching category/venue metadata
+const DateSection = ({ dateGroup, onMatchClick }) => {
   const allMatchCols = (dateGroup.schedules || []).flatMap((schedule) =>
     (schedule.matches || []).map((match) => ({
       match,
+      schedule,
       category: schedule.categoryType,
       roundType: schedule.roundType,
       venue: schedule.venue,
+      isLive: schedule.matchStatus === 'live' || match.status === 'live',
       key: match._id,
     }))
   );
 
   return (
     <div className="mb-4">
-      {/* Date Header */}
       <div className="mb-3">
         <div className="d-flex align-items-center gap-2">
           <h6 className="mb-0 fw-bold" style={{ color: '#2c3e50', fontSize: '16px' }}>
@@ -155,14 +244,241 @@ const DateSection = ({ dateGroup }) => {
         </div>
       </div>
 
-      {/* All matches in a single flat row grid */}
       <Row className="g-2">
-        {allMatchCols.map(({ match, category, roundType, venue, key }) => (
+        {allMatchCols.map(({ match, schedule, category, roundType, venue, isLive, key }) => (
           <Col key={key} xs={12} sm={6} md={4} lg={3} xl={3}>
-            <VSMatchCard match={match} category={category} roundType={roundType} venue={venue} />
+            <VSMatchCard match={match} category={category} roundType={roundType} venue={venue} isLive={isLive} scheduleId={schedule._id} matchId={schedule?.matchId} onClick={() => onMatchClick(match, schedule)} />
           </Col>
         ))}
       </Row>
+    </div>
+  );
+};
+
+const QuickiePointTab = ({ leagueId }) => {
+  const dispatch = useDispatch();
+  const { schedules, loadingSchedules, quickPoints, loadingQuickPoints } = useSelector(state => state.league);
+  const [formData, setFormData] = useState({ date: '', matchId: '', teamId: '', points: 1 });
+  const [editingId, setEditingId] = useState(null);
+
+  useEffect(() => {
+    if (leagueId) {
+      dispatch(getAllSchedules({ leagueId }));
+      dispatch(getQuickPoints(leagueId));
+    }
+  }, [dispatch, leagueId]);
+
+  const schedulesData = Array.isArray(schedules?.data) ? schedules.data : Array.isArray(schedules) ? schedules : [];
+
+  const dateOptions = useMemo(() => {
+    const seen = new Set();
+    return schedulesData.reduce((acc, s) => {
+      if (s.date && !seen.has(s.date)) { seen.add(s.date); acc.push(s.date); }
+      return acc;
+    }, []);
+  }, [schedulesData]);
+
+
+  const getDuration = (start, end) => {
+    const diffMs = new Date(end) - new Date(start);
+    const minutes = Math.floor(diffMs / (1000 * 60));
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+
+    return `${hours ? `${hours}h ` : ''}${remainingMinutes}m`;
+  };
+
+
+  const matchesForDate = useMemo(() => {
+    if (!formData.date) return [];
+    const dateGroup = schedulesData.find(s => s.date === formData.date);
+    if (!dateGroup) return [];
+    return (dateGroup.schedules || []).flatMap(schedule =>
+      (schedule.matches || []).map(match => ({
+        matchId: match._id,
+        label: `${match.teamA?.clubId?.clubName || 'TBD'} vs ${match.teamB?.clubId?.clubName || 'TBD'
+          } · ${schedule.roundType.charAt(0).toUpperCase() +
+          schedule.roundType.slice(1)
+          } @ ${schedule.matchStartedAt && schedule.matchEndedAt
+            ? getDuration(schedule.matchStartedAt, schedule.matchEndedAt)
+            : 'TBD'
+          }`, teamA: match.teamA,
+        teamB: match.teamB,
+        scheduleId: schedule._id,
+        categoryType: schedule.categoryType,
+        roundType: schedule.roundType,
+      }))
+    );
+  }, [formData.date, schedulesData]);
+
+
+  const teamsForMatch = useMemo(() => {
+    if (!formData.matchId) return [];
+    const match = matchesForDate.find(m => m.matchId === formData.matchId);
+    if (!match) return [];
+    const toTeam = (team, fallback) => ({
+      _id: team._id,
+      clubId: team.clubId?._id,
+      clubType: team.clubId?.clubName || '',
+      teamName: team.teamName || fallback,
+      players: (team.players || []).map(p => ({ playerId: p.playerId, playerName: p.playerName || p.name })),
+    });
+    const teams = [];
+    if (match.teamA?._id) teams.push(toTeam(match.teamA, 'Team A'));
+    if (match.teamB?._id) teams.push(toTeam(match.teamB, 'Team B'));
+    return teams;
+  }, [formData.matchId, matchesForDate]);
+
+  const handleDateChange = (e) => setFormData({ date: e.target.value, matchId: '', teamId: '', points: 1 });
+  const handleMatchChange = (e) => setFormData(prev => ({ ...prev, matchId: e.target.value, teamId: '', points: 1 }));
+
+  const handleSubmit = () => {
+    const selectedMatch = matchesForDate.find(m => m.matchId === formData.matchId);
+    const selectedTeam = teamsForMatch.find(t => t._id === formData.teamId);
+    const payload = {
+      leagueId,
+      clubId: selectedTeam?.clubId,
+      scheduleId: selectedMatch?.scheduleId,
+      matchId: formData.matchId,
+      quickPoint: Number(formData.points),
+      date: formData.date,
+      teamId: selectedTeam?._id,
+      team: selectedTeam ? { clubId: selectedTeam.clubId, clubType: selectedTeam.clubType, teamName: selectedTeam.teamName, players: selectedTeam.players } : undefined,
+    };
+    if (editingId) {
+      dispatch(updateQuickPoint({ id: editingId, ...payload })).then(res => {
+        if (!res.error) { setEditingId(null); setFormData({ date: '', matchId: '', teamId: '', points: 1 }); }
+      });
+    } else {
+      dispatch(createQuickPoint(payload)).then(res => {
+        if (!res.error) setFormData(prev => ({ ...prev, teamId: '', points: 1 }));
+      });
+    }
+  };
+
+  const handleEdit = (item) => {
+    setEditingId(item._id);
+    setFormData({
+      date: item.date,
+      matchId: item.matchId || '',
+      teamId: item.teamId || item.team?.teamId || item.team?._id || '',
+      points: item.quickPoint,
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setFormData({ date: '', matchId: '', teamId: '', points: 1 });
+  };
+
+  return (
+    <div className="py-2">
+      <Card className="border-0 shadow-sm mb-4">
+        <Card.Body className="p-3">
+          <Row className="align-items-end g-3">
+            <Col md={3}>
+              <Form.Group>
+                <Form.Label style={{ fontSize: '13px', fontWeight: 600 }}>Date</Form.Label>
+                <Form.Select size="sm" value={formData.date} onChange={handleDateChange} disabled={loadingSchedules}>
+                  <option value="">{loadingSchedules ? 'Loading...' : 'Select Date'}</option>
+                  {dateOptions.map(date => (
+                    <option key={date} value={date}>{formatDate(date)}</option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+            </Col>
+            <Col md={3}>
+              <Form.Group>
+                <Form.Label style={{ fontSize: '13px', fontWeight: 600 }}>Match</Form.Label>
+                <Form.Select size="sm" value={formData.matchId} onChange={handleMatchChange} disabled={!formData.date && !editingId}>
+                  <option value="">Select Match</option>
+                  {matchesForDate.map(m => (
+                    <option key={m.matchId} value={m.matchId}>{m.label}</option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+            </Col>
+            <Col md={2}>
+              <Form.Group>
+                <Form.Label style={{ fontSize: '13px', fontWeight: 600 }}>Team</Form.Label>
+                <Form.Select size="sm" value={formData.teamId} onChange={(e) => setFormData(prev => ({ ...prev, teamId: e.target.value }))} disabled={!formData.matchId && !editingId}>
+                  <option value="">Select Team</option>
+                  {teamsForMatch.map(t => (
+                    <option key={t._id} value={t._id}>{t.teamName} - {t.clubType} ({t.players.map(p => p.playerName).join(' & ')})</option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+            </Col>
+            <Col md={2}>
+              <Form.Group>
+                <Form.Label style={{ fontSize: '13px', fontWeight: 600 }}>Points</Form.Label>
+                <Form.Control
+                  type="number"
+                  size="sm"
+                  min={1}
+                  disabled={!formData.teamId && !editingId}
+                  value={formData.points}
+                  onChange={(e) => setFormData(prev => ({ ...prev, points: e.target.value }))}
+                  onBlur={(e) => { const val = Number(e.target.value); if (!val || val < 1) setFormData(prev => ({ ...prev, points: 1 })); }}
+                />
+              </Form.Group>
+            </Col>
+            <Col md={2} className="d-flex gap-2">
+              <Button variant="primary" size="sm" className="w-100" onClick={handleSubmit} disabled={!formData.teamId || loadingQuickPoints}>
+                {loadingQuickPoints ? '...' : editingId ? 'Update' : 'Add Point'}
+              </Button>
+              {editingId && (
+                <Button variant="outline-secondary" size="sm" onClick={handleCancelEdit}>Cancel</Button>
+              )}
+            </Col>
+          </Row>
+        </Card.Body>
+      </Card>
+
+      <Card className="border-0 shadow-sm">
+        <div className="bg-white shadow-sm rounded p-2 p-md-3">
+          <div className="flex-grow-1" style={{ overflowY: 'auto', overflowX: 'auto' }}>
+            <Table responsive borderless size="sm" className="custom-table">
+              <thead>
+                <tr className="text-center">
+                  <th>Sr No.</th>
+                  <th>Date</th>
+                  <th>Team</th>
+                  <th>Club</th>
+                  <th>Points</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loadingQuickPoints ? (
+                  <tr><td colSpan="6" className="text-center py-4"><DataLoading /></td></tr>
+                ) : quickPoints.length === 0 ? (
+                  <tr><td colSpan="6" className="text-center py-5 text-muted">No quickie points added yet</td></tr>
+                ) : (
+                  quickPoints.map((item, idx) => (
+                    <tr key={item._id} className="table-data border-bottom align-middle text-center">
+                      <td>{idx + 1}</td>
+                      <td>{formatDate(item.date)}</td>
+                      <td className="text-truncate" style={{ maxWidth: '150px' }}>{item.team?.teamName}</td>
+                      <td className="text-truncate" style={{ maxWidth: '150px' }}>{item.team?.clubType}</td>
+                      <td className="fw-bold text-primary">{item.quickPoint}</td>
+                      <td>
+                        <div className="d-flex justify-content-center gap-2">
+                          <FaEdit
+                            size={15}
+                            style={{ cursor: 'pointer', color: '#6b7280' }}
+                            onClick={() => handleEdit(item)}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </Table>
+          </div>
+        </div>
+      </Card>
     </div>
   );
 };
@@ -188,14 +504,20 @@ const TournamentBracket = () => {
 const ViewLeagueSchedule = () => {
   const dispatch = useDispatch();
   const { leagueId } = useParams();
-  const { schedules, loadingSchedules, loadingExport, currentLeague } = useSelector(state => state.league);
+  const { schedules, loadingSchedules, loadingExport, currentLeague, loadingLivestream, schedulesPagination } = useSelector(state => state.league);
   const [activeTab, setActiveTab] = useState(0);
+  const [livestreamModal, setLivestreamModal] = useState({ show: false, match: null });
+  const [livestreamForm, setLivestreamForm] = useState({ streamKey: '' });
+  const [copied, setCopied] = useState(false);
   const [filters, setFilters] = useState({
     categoryType: '',
     roundType: '',
     startDate: null,
-    endDate: null
+    endDate: null,
+    matchStatus: ''
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
   const [showExportDropdown, setShowExportDropdown] = useState(false);
   const [exportFilters, setExportFilters] = useState({
     leagueId: leagueId,
@@ -212,7 +534,8 @@ const ViewLeagueSchedule = () => {
       categoryType: '',
       roundType: '',
       startDate: null,
-      endDate: null
+      endDate: null,
+      matchStatus: ''
     });
     setShowExportDropdown(false);
     setExportFilters({
@@ -222,6 +545,7 @@ const ViewLeagueSchedule = () => {
       startDate: '',
       endDate: ''
     });
+    setCurrentPage(1);
   }, [leagueId]);
 
   // Cleanup on unmount
@@ -233,7 +557,6 @@ const ViewLeagueSchedule = () => {
 
   const categoryOptions = useMemo(() => {
     if (!currentLeague?.clubs?.length) return [];
-
     const categories = new Set();
     currentLeague.clubs.forEach(club => {
       // Handle both nested clubId and direct club structure
@@ -260,44 +583,73 @@ const ViewLeagueSchedule = () => {
     return rounds;
   }, [currentLeague?.matchRules]);
 
-
   useEffect(() => {
     if (leagueId) {
-      // Clear previous league data before loading new one
       dispatch(clearCurrentLeague());
       dispatch(getLeagueById(leagueId));
     }
   }, [leagueId, dispatch])
 
   useEffect(() => {
-    const params = { leagueId };
+    setCurrentPage(1);
+  }, [filters]);
 
+  useEffect(() => {
+    const params = { leagueId, page: currentPage, limit: itemsPerPage };
     if (filters.categoryType) params.categoryType = filters.categoryType;
     if (filters.roundType) params.roundType = filters.roundType;
-
-    // Only add date filters if both dates are selected or neither is selected
+    if (filters.matchStatus) params.matchStatus = filters.matchStatus;
     const hasStartDate = filters.startDate;
     const hasEndDate = filters.endDate;
 
     if (hasStartDate && hasEndDate) {
-      // Both dates selected - add both to params
       const startYear = filters.startDate.getFullYear();
       const startMonth = String(filters.startDate.getMonth() + 1).padStart(2, '0');
       const startDay = String(filters.startDate.getDate()).padStart(2, '0');
       params.startDate = `${startYear}-${startMonth}-${startDay}`;
-
       const endYear = filters.endDate.getFullYear();
       const endMonth = String(filters.endDate.getMonth() + 1).padStart(2, '0');
       const endDay = String(filters.endDate.getDate()).padStart(2, '0');
       params.endDate = `${endYear}-${endMonth}-${endDay}`;
-
       dispatch(getAllSchedules(params));
     } else if (!hasStartDate && !hasEndDate) {
-      // Neither date selected - call API without date filters
       dispatch(getAllSchedules(params));
     }
-    // If only one date is selected, don't call API
-  }, [dispatch, leagueId, filters]);
+  }, [dispatch, leagueId, filters, currentPage]);
+
+  const handleMatchClick = (match, schedule) => {
+    setLivestreamModal({ show: true, match, schedule });
+    setLivestreamForm({ streamKey: schedule?.streamKey || '' });
+  };
+
+  const handleCopy = (text) => {
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(text);
+    } else {
+      const el = document.createElement('textarea');
+      el.value = text;
+      el.style.position = 'fixed';
+      el.style.opacity = '0';
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleLivestreamSubmit = () => {
+    dispatch(createLivestream({
+      scheduleId: livestreamModal.schedule?._id,
+      streamKey: livestreamForm.streamKey,
+    })).then((res) => {
+      if (!res.error) {
+        setLivestreamModal({ show: false, match: null, schedule: null });
+        dispatch(getAllSchedules({ leagueId }));
+      }
+    });
+  };
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -312,15 +664,12 @@ const ViewLeagueSchedule = () => {
     setShowExportDropdown(false);
   };
 
-  const hasActiveFilters = filters.categoryType || filters.roundType || filters.startDate || filters.endDate;
-
-  // New API format: { data: [{ date, schedules[] }], pagination: {} }
-  // Fall back gracefully if the old flat-array format is ever returned
+  const hasActiveFilters = filters.categoryType || filters.roundType || filters.startDate || filters.endDate || filters.matchStatus;
   const schedulesData = Array.isArray(schedules?.data)
     ? schedules.data
     : Array.isArray(schedules)
-    ? schedules
-    : [];
+      ? schedules
+      : [];
 
   return (
     <div style={{ backgroundColor: 'white', height: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -330,9 +679,7 @@ const ViewLeagueSchedule = () => {
           <Col>
             <div className="border-0 ">
               <div className="p-0">
-                {/* Tabs and Filters in same row */}
                 <div className="d-flex justify-content-between align-items-center p-0">
-                  {/* Tabs Section */}
                   <div>
                     <Tabs
                       value={activeTab}
@@ -351,13 +698,24 @@ const ViewLeagueSchedule = () => {
                     >
                       <Tab label={`Schedules (${schedulesData.length})`} />
                       <Tab label="Points Table" />
+                      <Tab label="Quickie Point" />
                       {/* <Tab label="Bracket" /> */}
                     </Tabs>
                   </div>
-
-                  {/* Filters Section - Only show on Schedules tab */}
                   {activeTab === 0 && (
                     <div className="d-flex gap-2 align-items-center">
+                      <Form.Select
+                        size="sm"
+                        value={filters.matchStatus}
+                        onChange={(e) => handleFilterChange('matchStatus', e.target.value)}
+                        style={{ width: '120px', fontSize: '12px' }}
+                      >
+                        <option value="">All</option>
+                        <option value="upcoming">Upcoming</option>
+                        <option value="live">Live</option>
+                        <option value="finished">Finished</option>
+                      </Form.Select>
+
                       <Form.Select
                         size="sm"
                         value={filters.categoryType}
@@ -383,7 +741,6 @@ const ViewLeagueSchedule = () => {
                           </option>
                         ))}
                       </Form.Select>
-
                       <DatePicker
                         selected={filters.startDate}
                         onChange={(dates) => {
@@ -398,12 +755,11 @@ const ViewLeagueSchedule = () => {
                         style={{ fontSize: '12px', width: '180px' }}
                         dateFormat="yyyy-MM-dd"
                       />
-
                       {hasActiveFilters && (
                         <button
-                          className="btn btn-outline-danger text-danger fw-semibold btn-sm"
-                          onClick={() => setFilters({ categoryType: '', roundType: '', startDate: null, endDate: null })}
-                          style={{ fontSize: '12px' }}
+                          onClick={() => setFilters({ categoryType: '', roundType: '', startDate: null, endDate: null, matchStatus: '' })}
+                          className="btn text-danger fw-semibold btn-sm"
+                          style={{ fontSize: '12px', border: '1px solid #dc3545' }}
                         >
                           Clear
                         </button>
@@ -418,7 +774,6 @@ const ViewLeagueSchedule = () => {
                         >
                           {loadingExport ? 'Exporting...' : 'Export Schedule'}
                         </Button>
-
                         {showExportDropdown && (
                           <div className="position-absolute bg-white border rounded shadow-sm p-3" style={{ top: '100%', right: 0, zIndex: 1000, minWidth: '300px' }}>
                             <div className="mb-2">
@@ -510,61 +865,194 @@ const ViewLeagueSchedule = () => {
         </Row>
       </Container>
 
-      {/* Scrollable Content */}
-      <div style={{ flex: '1 1 auto', overflow: 'auto' }}>
-        <Container fluid className="px-3 px-md-4">
-          <Row>
-            <Col>
+      {/* Content Area */}
+      <div style={{ flex: '1 1 auto', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <Container fluid className="px-3 px-md-4 h-100" style={{ display: 'flex', flexDirection: 'column' }}>
+          <Row className="flex-grow-1" style={{ minHeight: 0 }}>
+            <Col className="h-100 d-flex flex-column">
               {activeTab === 0 && (
-                <div>
-                  {loadingSchedules ? (
-                    <Card className="text-center py-5 border-0 shadow-sm">
-                      <Card.Body>
-                        <DataLoading />
-                        <div className="mt-3 text-muted">Loading match schedules...</div>
-                      </Card.Body>
-                    </Card>
-                  ) : schedulesData.length > 0 ? (
-                    <div>
-                      {schedulesData.map((dateGroup, index) => (
-                        <DateSection
-                          key={dateGroup.date || index}
-                          dateGroup={dateGroup}
-                        />
-                      ))}
+                <div className="d-flex flex-column h-100">
+                  <div style={{ flex: 1, overflowY: 'auto', paddingRight: '4px' }} className="custom-scrollbar py-3">
+                    {loadingSchedules ? (
+                      <Card className="text-center py-5 border-0 shadow-sm">
+                        <Card.Body>
+                          <DataLoading />
+                          <div className="mt-3 text-muted">Loading match schedules...</div>
+                        </Card.Body>
+                      </Card>
+                    ) : schedulesData.length > 0 ? (
+                      <div>
+                        {schedulesData.map((dateGroup, index) => (
+                          <DateSection
+                            key={dateGroup.date || index}
+                            dateGroup={dateGroup}
+                            onMatchClick={handleMatchClick}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <Card className="text-center py-5 shadow-none">
+                        <Card.Body>
+                          <h5 className="mb-2">No Matches Scheduled</h5>
+                          <p className="text-muted mb-0">
+                            There are no match schedules available for this league yet.
+                          </p>
+                        </Card.Body>
+                      </Card>
+                    )}
+                  </div>
+
+                  {/* Pagination - Fixed at bottom of tab content */}
+                  {!loadingSchedules && schedulesData.length > 0 && schedulesPagination.total > itemsPerPage && (
+                    <div className="border-top bg-white py-3 mt-auto">
+                      <div className="d-flex justify-content-between align-items-center px-2">
+                        <div style={{ fontSize: '13px', color: '#6b7280' }}>
+                          Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, schedulesPagination.total)} of {schedulesPagination.total} schedules
+                        </div>
+                        <div className="d-flex gap-1">
+                          <button
+                            className="btn btn-sm"
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            style={{
+                              backgroundColor: currentPage === 1 ? '#f3f4f6' : '#fff',
+                              border: '1px solid #e5e7eb',
+                              color: currentPage === 1 ? '#9ca3af' : '#374151',
+                              fontSize: '12px',
+                              padding: '4px 12px',
+                              cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
+                            }}
+                          >
+                            Previous
+                          </button>
+                          {[...Array(schedulesPagination.totalPages)].map((_, index) => {
+                            const pageNum = index + 1;
+                            if (
+                              pageNum === 1 ||
+                              pageNum === schedulesPagination.totalPages ||
+                              (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                            ) {
+                              return (
+                                <button
+                                  key={pageNum}
+                                  className="btn btn-sm"
+                                  onClick={() => setCurrentPage(pageNum)}
+                                  style={{
+                                    backgroundColor: currentPage === pageNum ? '#1F41BB' : '#fff',
+                                    border: '1px solid #e5e7eb',
+                                    color: currentPage === pageNum ? '#fff' : '#374151',
+                                    fontSize: '12px',
+                                    padding: '4px 12px',
+                                    minWidth: '32px'
+                                  }}
+                                >
+                                  {pageNum}
+                                </button>
+                              );
+                            } else if (pageNum === currentPage - 2 || pageNum === currentPage + 2) {
+                              return <span key={pageNum} style={{ padding: '4px 8px', color: '#9ca3af' }}>...</span>;
+                            }
+                            return null;
+                          })}
+                          <button
+                            className="btn btn-sm"
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, schedulesPagination.totalPages))}
+                            disabled={currentPage === schedulesPagination.totalPages}
+                            style={{
+                              backgroundColor: currentPage === schedulesPagination.totalPages ? '#f3f4f6' : '#fff',
+                              border: '1px solid #e5e7eb',
+                              color: currentPage === schedulesPagination.totalPages ? '#9ca3af' : '#374151',
+                              fontSize: '12px',
+                              padding: '4px 12px',
+                              cursor: currentPage === schedulesPagination.totalPages ? 'not-allowed' : 'pointer'
+                            }}
+                          >
+                            Next
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  ) : (
-                    <Card className="text-center py-5 shadow-none">
-                      <Card.Body>
-                        <h5 className="mb-2">No Matches Scheduled</h5>
-                        <p className="text-muted mb-0">
-                          There are no match schedules available for this league yet.
-                        </p>
-                      </Card.Body>
-                    </Card>
                   )}
                 </div>
               )}
 
               {activeTab === 1 && (
-                <Card className="text-center py-5 border-0 shadow-sm">
-                  <Card.Body>
-                    <div style={{ fontSize: '48px', color: '#dee2e6', marginBottom: '16px' }}>
-                      🏆
-                    </div>
-                    <h5 className="mb-2">Points Table</h5>
-                    <p className="text-muted mb-0">
-                      Points table functionality coming soon...
-                    </p>
-                  </Card.Body>
-                </Card>
+                <div style={{ flex: 1, overflowY: 'auto' }} className="custom-scrollbar h-100 py-3">
+                  <PointsTable leagueId={leagueId} />
+                </div>
               )}
 
-              {activeTab === 2 && <TournamentBracket />}
+              {activeTab === 2 && (
+                <div style={{ flex: 1, overflowY: 'auto' }} className="custom-scrollbar h-100 py-3">
+                  <QuickiePointTab leagueId={leagueId} />
+                </div>
+              )}
+
+              {activeTab === 3 && (
+                <div style={{ flex: 1, overflowY: 'auto' }} className="custom-scrollbar h-100 py-3">
+                  <TournamentBracket />
+                </div>
+              )}
             </Col>
           </Row>
         </Container>
       </div>
+
+      <Modal show={livestreamModal.show} onHide={() => setLivestreamModal({ show: false, match: null, schedule: null })} centered>
+        <Modal.Header closeButton style={{ borderBottom: '1px solid #f3f4f6', padding: '1.25rem 1.5rem', background: '#f9fafb', borderRadius: '16px 16px 0 0' }}>
+          <Modal.Title style={{ fontFamily: 'Poppins, sans-serif', fontWeight: 600, fontSize: '16px', color: '#1f2937', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            Setup Livestream
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body style={{ padding: '1.5rem' }}>
+          <Form.Group className="mb-3">
+            <Form.Label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+              Scoreboard URL
+            </Form.Label>
+            {!livestreamModal.schedule?.scoreboardUrl ? (
+              <div className="alert alert-info mb-0" style={{ fontSize: '13px', padding: '10px' }}>
+                The scoreboard URL will be available once the match begins.
+              </div>
+            ) : (
+              <div className="input-group">
+                <Form.Control
+                  value={livestreamModal.schedule?.scoreboardUrl || ''}
+                  readOnly
+                  style={{ fontSize: '13px', background: '#f9fafb' }}
+                />
+                <button
+                  className="btn btn-outline-secondary"
+                  type="button"
+                  title="Copy scoreboard URL"
+                  onClick={() => handleCopy(livestreamModal.schedule?.scoreboardUrl || '')}
+                  style={{ transition: 'color 0.2s', color: copied ? '#22c55e' : undefined }}
+                >
+                  {copied
+                    ? <IoCheckmarkOutline size={16} color="#22c55e" />
+                    : <IoCopyOutline size={16} />}
+                </button>
+              </div>
+            )}
+          </Form.Group>
+          <Form.Group>
+            <Form.Label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
+              Stream Key <span className="text-danger">*</span>
+            </Form.Label>
+            <Form.Control
+              value={livestreamForm.streamKey}
+              onChange={(e) => setLivestreamForm(prev => ({ ...prev, streamKey: e.target.value }))}
+              placeholder="Enter your stream key"
+              style={{ fontSize: '14px' }}
+            />
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer style={{ borderTop: '1px solid #f3f4f6', padding: '1rem 1.5rem', background: '#f9fafb', borderRadius: '0 0 16px 16px' }}>
+          <Button variant="secondary" onClick={() => setLivestreamModal({ show: false, match: null, schedule: null })} style={{ fontSize: '13px', fontWeight: 500 }}>Cancel</Button>
+          <Button variant="primary" onClick={handleLivestreamSubmit} disabled={loadingLivestream || !livestreamForm.streamKey} style={{ fontSize: '13px', fontWeight: 500 }}>
+            {loadingLivestream ? 'Submitting...' : 'Submit'}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };

@@ -10,14 +10,13 @@ const StructureCategories = ({ onNext, onBack }) => {
     const dispatch = useDispatch();
     const { id } = useParams();
     const { loading, leagueId, currentLeague } = useSelector(state => state.league);
-
     const [registrationDates, setRegistrationDates] = useState({ startDate: '', endDate: '' });
     const [dateErrors, setDateErrors] = useState({ startDate: '', endDate: '' });
     const [registrationFee, setRegistrationFee] = useState('');
     const [isFeeEnabled, setIsFeeEnabled] = useState(false);
     const [categories, setCategories] = useState([
-        { name: 'A/B', registeredCount: 2, isDefault: true },
-        { name: 'C/D', registeredCount: 2, isDefault: true },
+        { name: 'Advanced', registeredCount: 2, isDefault: true },
+        { name: 'Intermediate', registeredCount: 2, isDefault: true },
         { name: 'Women’s', registeredCount: 2, isDefault: true },
         { name: 'Mixed Doubles', registeredCount: 2, isDefault: true },
         { name: 'Hybrid', registeredCount: 2, isDefault: true }
@@ -32,8 +31,8 @@ const StructureCategories = ({ onNext, onBack }) => {
             setRegistrationFee('');
             setIsFeeEnabled(false);
             setCategories([
-                { name: 'A/B', registeredCount: 2, isDefault: true },
-                { name: 'C/D', registeredCount: 2, isDefault: true },
+                { name: 'Advanced', registeredCount: 2, isDefault: true },
+                { name: 'Intermediate', registeredCount: 2, isDefault: true },
                 { name: 'Women’s', registeredCount: 2, isDefault: true },
                 { name: 'Mixed Doubles', registeredCount: 2, isDefault: true },
                 { name: 'Hybrid', registeredCount: 2, isDefault: true }
@@ -71,8 +70,8 @@ const StructureCategories = ({ onNext, onBack }) => {
             setRegistrationFee('');
             setIsFeeEnabled(false);
             setCategories([
-                { name: 'A/B', registeredCount: 2, isDefault: true },
-                { name: 'C/D', registeredCount: 2, isDefault: true },
+                { name: 'Advanced', registeredCount: 2, isDefault: true },
+                { name: 'Intermediate', registeredCount: 2, isDefault: true },
                 { name: 'Women’s', registeredCount: 2, isDefault: true },
                 { name: 'Mixed Doubles', registeredCount: 2, isDefault: true },
                 { name: 'Hybrid', registeredCount: 2, isDefault: true }
@@ -114,7 +113,7 @@ const StructureCategories = ({ onNext, onBack }) => {
         if (!registrationDates.endDate) {
             errors.endDate = 'End date is required';
         }
-        
+
         setDateErrors(errors);
         if (errors.startDate || errors.endDate) {
             return;

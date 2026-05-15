@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { createLeague, getLeagues, getLeaguesIDS, updateLeague, getStates, getClubsWithState, getSponsorCategories, getLeagueById, deleteLeague, getLeagueClubs, getClubTeams, getAllSchedules, saveSchedule, exportLeagueSchedulesPDF, getLeagueSummary, getScheduleDates } from "./thunk";
+import { createLeague, getLeagues, getLeaguesIDS, updateLeague, getStates, getClubsWithState, getSponsorCategories, getLeagueById, deleteLeague, getLeagueClubs, getClubTeams, getAllSchedules, saveSchedule, updateSchedule, exportLeagueSchedulesPDF, getLeagueSummary, getScheduleDates, getLeagueLeaderboard, getLeagueFinalists, createLivestream, createQuickPoint, getQuickPoints, updateQuickPoint, deleteSchedule } from "./thunk";
 
 const initialState = {
   leagues: [],
@@ -16,12 +16,25 @@ const initialState = {
   loadingClubs: false,
   loadingTeams: false,
   schedules: [],
+  categorySummary: [],
   loadingSchedules: false,
   loadingExport: false,
   loadingSummary: false,
   leagueSummary: null,
   scheduleDates: [],
   loadingScheduleDates: false,
+  leaderboard: null,
+  loadingLeaderboard: false,
+  finalists: null,
+  loadingFinalists: false,
+  loadingLivestream: false,
+  quickPoints: [],
+  loadingQuickPoints: false,
+  schedulesPagination: {
+    page: 1,
+    totalPages: 1,
+    total: 0
+  },
   error: null,
 };
 
@@ -161,7 +174,13 @@ const leagueSlice = createSlice({
       })
       .addCase(getAllSchedules.fulfilled, (state, action) => {
         state.loadingSchedules = false;
-        state.schedules = action.payload;
+        state.schedules = action.payload?.data || [];
+        state.schedulesPagination = action.payload?.pagination || {
+          page: 1,
+          totalPages: 1,
+          total: (action.payload?.data || []).length
+        };
+        state.categorySummary = action.payload?.categorySummary || [];
       })
       .addCase(getAllSchedules.rejected, (state, action) => {
         state.loadingSchedules = false;
@@ -175,6 +194,28 @@ const leagueSlice = createSlice({
         state.loadingSchedules = false;
       })
       .addCase(saveSchedule.rejected, (state, action) => {
+        state.loadingSchedules = false;
+        state.error = action.payload;
+      })
+      .addCase(updateSchedule.pending, (state) => {
+        state.loadingSchedules = true;
+        state.error = null;
+      })
+      .addCase(updateSchedule.fulfilled, (state, action) => {
+        state.loadingSchedules = false;
+      })
+      .addCase(updateSchedule.rejected, (state, action) => {
+        state.loadingSchedules = false;
+        state.error = action.payload;
+      })
+      .addCase(deleteSchedule.pending, (state) => {
+        state.loadingSchedules = true;
+        state.error = null;
+      })
+      .addCase(deleteSchedule.fulfilled, (state) => {
+        state.loadingSchedules = false;
+      })
+      .addCase(deleteSchedule.rejected, (state, action) => {
         state.loadingSchedules = false;
         state.error = action.payload;
       })
@@ -211,6 +252,77 @@ const leagueSlice = createSlice({
       })
       .addCase(getScheduleDates.rejected, (state, action) => {
         state.loadingScheduleDates = false;
+        state.error = action.payload;
+      })
+      .addCase(getLeagueLeaderboard.pending, (state) => {
+        state.loadingLeaderboard = true;
+        state.error = null;
+      })
+      .addCase(getLeagueLeaderboard.fulfilled, (state, action) => {
+        state.loadingLeaderboard = false;
+        state.leaderboard = action.payload;
+      })
+      .addCase(getLeagueLeaderboard.rejected, (state, action) => {
+        state.loadingLeaderboard = false;
+        state.error = action.payload;
+      })
+      .addCase(getLeagueFinalists.pending, (state) => {
+        state.loadingFinalists = true;
+        state.error = null;
+      })
+      .addCase(getLeagueFinalists.fulfilled, (state, action) => {
+        state.loadingFinalists = false;
+        state.finalists = action.payload;
+      })
+      .addCase(getLeagueFinalists.rejected, (state, action) => {
+        state.loadingFinalists = false;
+        state.error = action.payload;
+        state.finalists = null;
+      })
+      .addCase(createLivestream.pending, (state) => {
+        state.loadingLivestream = true;
+      })
+      .addCase(createLivestream.fulfilled, (state) => {
+        state.loadingLivestream = false;
+      })
+      .addCase(createLivestream.rejected, (state, action) => {
+        state.loadingLivestream = false;
+        state.error = action.payload;
+      })
+      .addCase(createQuickPoint.pending, (state) => {
+        state.loadingQuickPoints = true;
+      })
+      .addCase(createQuickPoint.fulfilled, (state, action) => {
+        state.loadingQuickPoints = false;
+        if (action.payload) state.quickPoints.push(action.payload);
+      })
+      .addCase(createQuickPoint.rejected, (state, action) => {
+        state.loadingQuickPoints = false;
+        state.error = action.payload;
+      })
+      .addCase(getQuickPoints.pending, (state) => {
+        state.loadingQuickPoints = true;
+      })
+      .addCase(getQuickPoints.fulfilled, (state, action) => {
+        state.loadingQuickPoints = false;
+        state.quickPoints = action.payload;
+      })
+      .addCase(getQuickPoints.rejected, (state, action) => {
+        state.loadingQuickPoints = false;
+        state.error = action.payload;
+      })
+      .addCase(updateQuickPoint.pending, (state) => {
+        state.loadingQuickPoints = true;
+      })
+      .addCase(updateQuickPoint.fulfilled, (state, action) => {
+        state.loadingQuickPoints = false;
+        if (action.payload) {
+          const idx = state.quickPoints.findIndex(q => q._id === action.payload._id);
+          if (idx !== -1) state.quickPoints[idx] = action.payload;
+        }
+      })
+      .addCase(updateQuickPoint.rejected, (state, action) => {
+        state.loadingQuickPoints = false;
         state.error = action.payload;
       });
   },

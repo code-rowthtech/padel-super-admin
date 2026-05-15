@@ -72,12 +72,14 @@ export const GET_ALL_PACKAGES = "/api/package/getAllPackages";
 export const UPDATE_PACKAGE = "/api/package/editPackage";
 export const DELETE_PACKAGE = "/api/package/deletePackage";
 
-export const GET_COUNT_DASHBOARD = "/api/booking/dashboardData";
+export const GET_COUNT_DASHBOARD = "/api/super-admin/dashboard";
 export const GET_CANCELLATION_BOOKING_DASHBOARD =
-  "/api/booking/dashboardCancellationBooking";
+  "/api/super-admin/club-dashboard-cancellations";
 export const GET_RECENT_BOOKING_DASHBOARD =
-  "/api/booking/dashboardShowCurrentBooking";
-export const GET_REVENUE_DASHBOARD = "/api/booking/monthWiseBookings";
+  "/api/super-admin/club-dashboard-current-bookings";
+export const GET_REVENUE_DASHBOARD = "/api/super-admin/club-monthwise-booking";
+export const GET_DAYWISE_DASHBOARD = "/api/super-admin/club-daywise-booking";
+
 export const GET_REVIEWS_FOR_OWNER = "/api/review/getownerClubReview";
 
 export const GET_NOTIFICATION_VIEW = "/api/adminNotification/markAsRead";
@@ -89,6 +91,10 @@ export const SEND_BULK_NOTIFICATION =
   "/api/adminNotification/sendBulkNotification";
 export const GET_ADMIN_BULK_NOTIFICATIONS =
   "/api/adminNotification/getAdminBulkNotifications";
+export const RESEND_BULK_NOTIFICATION =
+  "/api/adminNotification/resendBulkNotification";
+export const CREATE_SCHEDULED_NOTIFICATION =
+  "/api/adminNotification/createScheduledNotification";
 
 export const GET_SUBOWNER = "/api/owners/getusers";
 export const UPDATE_SUBOWNER = "/api/owners/updatesubowner";
@@ -120,6 +126,11 @@ export const CREATE_HELP_REQUEST = "/api/contact/submit";
 export const SUPER_ADMIN_CREATE_OWNER = "/api/super-admin/create-owner";
 export const SUPER_ADMIN_GET_ALL_OWNERS = "/api/super-admin/owners";
 export const SUPER_ADMIN_GET_OWNER_BY_ID = "/api/super-admin/owners";
+
+// System Config
+export const SYSTEM_CONFIG_GET = "/api/system-config";
+export const SYSTEM_CONFIG_GET_KEY = "/api/system-config"; // + /:key
+export const SYSTEM_CONFIG_SET_KEY = "/api/system-config"; // PUT + /:key
 export const SUPER_ADMIN_UPDATE_OWNER = "/api/super-admin/owners";
 export const SUPER_ADMIN_SUSPEND_OWNER = "/api/super-admin/owners";
 export const SUPER_ADMIN_ACTIVATE_OWNER = "/api/super-admin/owners";
@@ -154,6 +165,8 @@ export const DELETE_LEAGUE = "/api/leagues/deleteLeague";
 export const GET_AVAILABLE_PLAYERS = "/api/league-players/available-players";
 export const SAVE_TEAMS = "/api/league-players/teams";
 export const GET_TEAMS = "/api/league-players/teams";
+export const GET_LEAGUE_LEADERBOARD = "/api/score/league";
+export const GET_LEAGUE_FINALISTS = "/api/score/league";
 // League Schedule API endpoints
 export const GET_LEAGUE_CLUBS = "/api/league-schedules/clubs";
 export const GET_CLUB_TEAMS = "/api/league-schedules/teams";
@@ -161,3 +174,21 @@ export const EXPORT_LEAGUE_SCHEDULES_PDF = "/api/league-schedules/export/pdf";
 export const GET_SPONSOR_CATEGORIES = "/api/sponsor-categories";
 export const GET_LEAGUE_SUMMARY = "/api/league-schedules/summary";
 export const GET_SCHEDULE_DATES = "/api/league-schedules/schedule-dates";
+export const DELETE_SCHEDULE = "/api/league-schedules";
+
+export const CREATE_QUICK_POINT = "/api/quick-points/createQuickPoint";
+export const GET_QUICK_POINTS = "/api/quick-points/getQuickPoints";
+export const UPDATE_QUICK_POINT = "/api/quick-points/updateQuickPoint";
+
+// App Users Management
+export const GET_APP_USERS = "/api/customer/getCustomersWithFcmTokens";
+export const GET_DEVICE_TYPE_COUNT = "/api/customer/getDeviceTypeCount";
+export const UPDATE_CUSTOMER = "/api/super-admin/customers";
+export const DELETE_CUSTOMER = "/api/super-admin/customers";
+
+// Category Management
+export const GET_CATEGORY_LIST = "/api/category/list";
+// version
+ 
+export const GET_VERSION = "/api/app-version/all";
+export const UPDATE_VERSION = "/api/app-version/update";

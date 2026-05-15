@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { isOwnerAuthenticated } from "../helpers/api/apiCore";
+import { isOwnerAuthenticated, getOwnerFromSession } from "../helpers/api/apiCore";
 
 /**
  * AdminRouteGuard blocks URL changes based on authentication and current context
@@ -32,6 +32,28 @@ const AdminRouteGuard = ({ children }) => {
     }
 
     if (authenticated) {
+      const owner = getOwnerFromSession();
+      const ownerData = owner?.user || owner;
+      const isSubAdmin = ownerData?.isSubAdmin === true;
+
+      // If sub-admin, restrict access to tournament routes only
+      if (isSubAdmin) {
+        const allowedTournamentPaths = [
+          "/admin/tournament",
+          "/admin/new-tournament",
+          "/admin/view-tournament",
+          "/admin/profile",
+          "/admin/no-internet"
+        ];
+
+        const isAllowed = allowedTournamentPaths.some(path => currentPath.startsWith(path));
+
+        if (!isAllowed) {
+          navigate("/admin/tournament/creation", { replace: true });
+          return;
+        }
+      }
+
       // For authenticated users, block access to auth pages from dashboard context
       const isDashboardContext = sessionStorage.getItem('dashboardAccessed') === 'true';
       const authPages = [
@@ -50,7 +72,7 @@ const AdminRouteGuard = ({ children }) => {
 
       // Block auth pages if dashboard was accessed
       if (isDashboardContext && authPages.some(path => currentPath.includes(path))) {
-        navigate("/admin/dashboard", { replace: true });
+        navigate(isSubAdmin ? "/admin/tournament/creation" : "/admin/dashboard", { replace: true });
         return;
       }
 
@@ -65,20 +87,36 @@ const AdminRouteGuard = ({ children }) => {
     }
   }, [location.pathname, authenticated, navigate]);
 
-  // Block browser back navigation for authenticated users who accessed dashboard
+  // Block browser back navigation ONLY for auth pages when dashboard was accessed
   useEffect(() => {
     if (!authenticated) return;
     
     const isDashboardContext = sessionStorage.getItem('dashboardAccessed') === 'true';
     if (!isDashboardContext) return;
 
+    const authPages = [
+      "/admin/login",
+      "/admin/sign-up",
+      "/admin/forgot-password",
+      "/admin/reset-password",
+      "/admin/verify-otp",
+      "/admin/register"
+    ];
+
     const handlePopState = (e) => {
-      e.preventDefault();
-      window.history.pushState(null, '', '/admin/dashboard');
-      navigate('/admin/dashboard', { replace: true });
+      const currentPath = window.location.pathname;
+      
+      // Only block back navigation if trying to go to auth pages
+      if (authPages.some(path => currentPath.includes(path))) {
+        e.preventDefault();
+        const owner = getOwnerFromSession();
+        const ownerData = owner?.user || owner;
+        const isSubAdmin = ownerData?.isSubAdmin === true;
+        window.history.pushState(null, '', isSubAdmin ? '/admin/tournament/creation' : '/admin/dashboard');
+        navigate(isSubAdmin ? '/admin/tournament/creation' : '/admin/dashboard', { replace: true });
+      }
     };
 
-    window.history.pushState(null, '', window.location.pathname);
     window.addEventListener('popstate', handlePopState);
 
     return () => {

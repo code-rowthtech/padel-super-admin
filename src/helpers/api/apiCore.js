@@ -167,6 +167,9 @@ const createApi = (axiosInstance) => ({
   delete: (url, params = {}) =>
     axiosInstance.delete(url, { params }),
 
+  getBlob: (url, params = {}) => 
+    axiosInstance.get(url, { params, responseType: 'blob' }),
+
   postFile: (url, data) => {
     const formData = data instanceof FormData ? data : buildFormData(data);
     return axiosInstance.post(url, formData, {

@@ -1,11 +1,32 @@
 import React from "react";
 import { useEffect, useState, useMemo, useRef } from "react";
-import { Row, Col, Container, Table, Card, Form, Button, ListGroup, Badge, Offcanvas } from "react-bootstrap";
+import {
+  Row,
+  Col,
+  Container,
+  Table,
+  Card,
+  Form,
+  Button,
+  ListGroup,
+  Badge,
+  Offcanvas,
+} from "react-bootstrap";
+import { MdOutlinePayments } from "react-icons/md";
 import "bootstrap/dist/css/bootstrap.min.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { MdDateRange, MdOutlineDateRange } from "react-icons/md";
-import { FaTimes, FaSearch, FaFilter, FaCheckCircle, FaTimesCircle, FaBuilding, FaDownload, FaFileExcel } from "react-icons/fa";
+import {
+  FaTimes,
+  FaSearch,
+  FaFilter,
+  FaCheckCircle,
+  FaTimesCircle,
+  FaBuilding,
+  FaDownload,
+  FaFileExcel,
+} from "react-icons/fa";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 import { useSuperAdminContext } from "../../../contexts/SuperAdminContext";
@@ -17,6 +38,7 @@ import {
 import { formatDate } from "../../../helpers/Formatting";
 import {
   SUPER_ADMIN_GET_CLUB_PAYMENTS,
+  SUPER_ADMIN_CREATE_CLUB_PAYMENT,
   SUPER_ADMIN_GET_CLUB_PAYMENT_BY_ID,
   SUPER_ADMIN_GET_ALL_CLUBS,
   SUPER_ADMIN_PAYMENT_DASHBOARD_COUNTS,
@@ -25,24 +47,35 @@ import {
   SUPER_ADMIN_UPDATE_PAYMENT_STATUS,
 } from "../../../helpers/api/apiEndpoint";
 import { ownerApi } from "../../../helpers/api/apiCore";
+import { useDispatch, useSelector } from "react-redux";
+import { getCategoryList } from "../../../redux/thunks";
+import { useLocation, useNavigate } from "react-router-dom";
 import { PaymentDetailsModal } from "./modals/PaymentDetailModal";
 import { CreatePaymentModal } from "./modals/CreatePaymentModal";
 import Pagination from "../../../helpers/Pagination";
 import config from "../../../config";
 
 // Add export endpoints
-const SUPER_ADMIN_EXPORT_TRANSACTIONS = `${config.API_URL}/api/super-admin/export-transactions`;
+const SUPER_ADMIN_EXPORT_TRANSACTIONS = `${config.API_URL}api/super-admin/export-transactions`;
 
 const Payments = () => {
+  const dispatch = useDispatch();
+  const { categoryList } = useSelector((state) => state.booking);
+  const location = useLocation();
+  const navigate = useNavigate();
   const { selectedOwnerId } = useSuperAdminContext();
   const Owner = useMemo(() => getOwnerFromSession(), []);
   const ownerData = Owner?.user || Owner;
-  const isSuperAdmin = ownerData?.role === 'super_admin';
+  const isSuperAdmin = ownerData?.role === "super_admin";
   // ✅ SUPER ADMIN: Use selectedOwnerId if explicitly set, otherwise null (for "All Owners")
   // For non-super-admin, use logged-in owner's ID
-  const ownerId = useMemo(() => isSuperAdmin
-    ? (selectedOwnerId || null)  // null when "All Owners" is selected
-    : (getOwnerFromSession()?._id), [isSuperAdmin, selectedOwnerId]);
+  const ownerId = useMemo(
+    () =>
+      isSuperAdmin
+        ? selectedOwnerId || null // null when "All Owners" is selected
+        : getOwnerFromSession()?._id,
+    [isSuperAdmin, selectedOwnerId],
+  );
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -50,7 +83,10 @@ const Payments = () => {
   const [currentPage, setCurrentPage] = useState(1);
   // Sidebar filters
   const [selectedClubId, setSelectedClubId] = useState("");
-  const [paymentStatus, setPaymentStatus] = useState("unpaid"); // "paid" or "unpaid"
+  const [paymentStatus, setPaymentStatus] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("status") || "unpaid";
+  });
   const [selectedPayments, setSelectedPayments] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
   const [showCreatePayment, setShowCreatePayment] = useState(false);
@@ -70,6 +106,7 @@ const Payments = () => {
   const [drawerCurrentPage, setDrawerCurrentPage] = useState(1);
   const [generatingPayment, setGeneratingPayment] = useState(false);
   const fileInputRef = useRef(null);
+  const [selectedCategory, setSelectedCategory] = useState("");
 
   const setDateRange = (update) => {
     setStartDate(update[0]);
@@ -82,15 +119,18 @@ const Payments = () => {
   const [paymentDetails, setPaymentDetails] = useState({});
   const [refreshKey, setRefreshKey] = useState(0);
   const [selectedTotal, setSelectedTotal] = useState(0);
-  const canSelectBookings = useMemo(() =>
-    (!isSuperAdmin ? true : Boolean(selectedOwnerId !== undefined && selectedClubId)) &&
-    paymentStatus === "unpaid",
-    [isSuperAdmin, selectedOwnerId, selectedClubId, paymentStatus]
+  const canSelectBookings = useMemo(
+    () =>
+      (!isSuperAdmin
+        ? true
+        : Boolean(selectedOwnerId !== undefined && selectedClubId)) &&
+      paymentStatus === "unpaid",
+    [isSuperAdmin, selectedOwnerId, selectedClubId, paymentStatus],
   );
 
-  const canSelectClubs = useMemo(() =>
-    !isSuperAdmin || selectedOwnerId !== undefined,
-    [isSuperAdmin, selectedOwnerId]
+  const canSelectClubs = useMemo(
+    () => !isSuperAdmin || selectedOwnerId !== undefined,
+    [isSuperAdmin, selectedOwnerId],
   );
   const [tab, setTab] = useState(0);
 
@@ -124,8 +164,11 @@ const Payments = () => {
           ...(selectedClubId ? { clubId: selectedClubId } : {}),
           ...(paymentStatus ? { status: paymentStatus } : {}),
           ...(searchTerm ? { search: searchTerm } : {}),
-          ...(activePayableFilter !== null && paymentStatus === "unpaid" ? { payableStatus: activePayableFilter } : {}),
-          ...(activePayableFilter === undefined && { type: 'all' }),
+          ...(selectedCategory ? { categoryId: selectedCategory } : {}),
+          ...(activePayableFilter !== null && activePayableFilter !== undefined && paymentStatus === "unpaid"
+            ? { payableStatus: activePayableFilter }
+            : {}),
+          ...(activePayableFilter === undefined && { type: "all" }),
           page: currentPage,
           limit: 20,
         };
@@ -137,12 +180,16 @@ const Payments = () => {
             return `${year}-${month}-${day}`;
           };
           payload.startDate = formatToYYYYMMDD(startDate);
-          payload.endDate = endDate ? formatToYYYYMMDD(endDate) : formatToYYYYMMDD(startDate);
+          payload.endDate = endDate
+            ? formatToYYYYMMDD(endDate)
+            : formatToYYYYMMDD(startDate);
         }
 
         const query = new URLSearchParams(payload).toString();
         const endpoint = SUPER_ADMIN_GET_UNPAID_BOOKINGS;
-        const res = await ownerApi.get(query ? `${endpoint}?${query}` : endpoint);
+        const res = await ownerApi.get(
+          query ? `${endpoint}?${query}` : endpoint,
+        );
         const data = res?.data?.data;
 
         setPayments(data?.bookings || []);
@@ -157,20 +204,36 @@ const Payments = () => {
     };
 
     fetchPayments();
-  }, [tab, startDate, endDate, currentPage, ownerId, selectedClubId, paymentStatus, refreshKey, searchTerm, activePayableFilter]);
+  }, [
+    tab,
+    startDate,
+    endDate,
+    currentPage,
+    ownerId,
+    selectedClubId,
+    paymentStatus,
+    refreshKey,
+    searchTerm,
+    activePayableFilter,
+    selectedCategory,
+  ]);
   const [loadingPaymentId, setLoadingPaymentId] = useState(null);
 
   const handlePaymentDetails = async (id) => {
     try {
       if (paymentStatus === "unpaid") {
-        const res = await ownerApi.get(`${GET_BOOKING_DETAILS_BY_ID}?_id=${id}`);
+        const res = await ownerApi.get(
+          `${GET_BOOKING_DETAILS_BY_ID}?_id=${id}`,
+        );
         const booking = res?.data?.booking;
         if (booking) {
           setPaymentDetails(booking);
           setShowPaymentDetails(true);
         }
       } else {
-        const res = await ownerApi.get(`${SUPER_ADMIN_GET_CLUB_PAYMENT_BY_ID}/${id}`);
+        const res = await ownerApi.get(
+          `${SUPER_ADMIN_GET_CLUB_PAYMENT_BY_ID}/${id}`,
+        );
         if (res?.data?.data) {
           setPaymentDetails(res.data.data);
           setShowPaymentDetails(true);
@@ -185,7 +248,7 @@ const Payments = () => {
   const [paymentCounts, setPaymentCounts] = useState({
     totalAmountToday: 0,
     totalAmountMonth: 0,
-    totalRefunded: 0
+    totalRefunded: 0,
   });
   const [loadingCounts, setLoadingCounts] = useState(false);
 
@@ -221,17 +284,28 @@ const Payments = () => {
       try {
         setLoadingClubs(true);
         const { ownerApi } = await import("../../../helpers/api/apiCore");
-        const { SUPER_ADMIN_GET_ALL_CLUBS } = await import("../../../helpers/api/apiEndpoint");
-        const url = ownerId
-          ? `${SUPER_ADMIN_GET_ALL_CLUBS}?ownerId=${ownerId}`
+        const { SUPER_ADMIN_GET_ALL_CLUBS } =
+          await import("../../../helpers/api/apiEndpoint");
+        const clubParams = new URLSearchParams();
+        if (ownerId) clubParams.append("ownerId", ownerId);
+        if (paymentStatus) clubParams.append("status", paymentStatus);
+        if (paymentStatus === "unpaid" && activePayableFilter !== undefined) {
+          clubParams.append("payableStatus", activePayableFilter);
+        }
+
+        const clubQuery = clubParams.toString();
+        const url = clubQuery
+          ? `${SUPER_ADMIN_GET_ALL_CLUBS}?${clubQuery}`
           : SUPER_ADMIN_GET_ALL_CLUBS;
         const res = await ownerApi.get(url);
         const clubsData = res?.data?.data || [];
         setClubs(clubsData);
 
-        // Auto-select first club if available and no club is currently selected
-        if (clubsData.length > 0 && !selectedClubId) {
+        // Auto-select first club if available and current selection is not in the filtered list
+        if (clubsData.length > 0 && (!selectedClubId || !clubsData.some((club) => club._id === selectedClubId))) {
           setSelectedClubId(clubsData[0]._id);
+        } else if (clubsData.length === 0 && selectedClubId) {
+          setSelectedClubId("");
         }
       } catch (error) {
         console.error("Error fetching clubs:", error);
@@ -241,7 +315,7 @@ const Payments = () => {
       }
     };
     fetchClubs();
-  }, [isSuperAdmin, ownerId]);
+  }, [isSuperAdmin, ownerId, paymentStatus, activePayableFilter, selectedClubId]);
 
   const formatAmount = (amount) => {
     if (!amount) return "₹0";
@@ -296,7 +370,9 @@ const Payments = () => {
           ...(ownerId ? { ownerId } : {}),
           ...(selectedClubId ? { clubId: selectedClubId } : {}),
           status: paymentStatus,
-          ...(activePayableFilter !== null && paymentStatus === "unpaid" ? { payableStatus: activePayableFilter } : {}),
+          ...(activePayableFilter !== null && activePayableFilter !== undefined && paymentStatus === "unpaid"
+            ? { payableStatus: activePayableFilter }
+            : {}),
           page: 1,
           limit: 10000,
         };
@@ -308,15 +384,19 @@ const Payments = () => {
             return `${year}-${month}-${day}`;
           };
           payload.startDate = formatToYYYYMMDD(startDate);
-          payload.endDate = endDate ? formatToYYYYMMDD(endDate) : formatToYYYYMMDD(startDate);
+          payload.endDate = endDate
+            ? formatToYYYYMMDD(endDate)
+            : formatToYYYYMMDD(startDate);
         }
         const query = new URLSearchParams(payload).toString();
         const endpoint = SUPER_ADMIN_GET_UNPAID_BOOKINGS;
-        const res = await ownerApi.get(query ? `${endpoint}?${query}` : endpoint);
+        const res = await ownerApi.get(
+          query ? `${endpoint}?${query}` : endpoint,
+        );
         const data = res?.data?.data;
         const allData = data?.bookings || [];
         setAllBookings(allData);
-        setSelectedPayments(allData.map(p => p._id));
+        setSelectedPayments(allData.map((p) => p._id));
       } catch (error) {
         console.error("Error fetching all bookings:", error);
       }
@@ -329,7 +409,7 @@ const Payments = () => {
   const handleSelectPayment = (id) => {
     setSelectAll(false);
     const newSelectedPayments = selectedPayments.includes(id)
-      ? selectedPayments.filter(p => p !== id)
+      ? selectedPayments.filter((p) => p !== id)
       : [...selectedPayments, id];
 
     setSelectedPayments(newSelectedPayments);
@@ -365,32 +445,57 @@ const Payments = () => {
     if (total !== selectedTotal) {
       setSelectedTotal(total);
     }
-  }, [selectedPayments, payments, paymentStatus, canSelectBookings, selectAll, selectedTotal, allBookings]);
+  }, [
+    selectedPayments,
+    payments,
+    paymentStatus,
+    canSelectBookings,
+    selectAll,
+    selectedTotal,
+    allBookings,
+  ]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const status = params.get("status") || "unpaid";
+    setPaymentStatus(status);
+    setTab(status === "paid" ? 1 : 0);
+    setCurrentPage(1);
+  }, [location.search]);
+
+  useEffect(() => {
+    dispatch(getCategoryList());
+  }, [dispatch]);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [paymentStatus, selectedClubId, selectedOwnerId]);
-
-  // Close export dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (exportDropdownRef.current && !exportDropdownRef.current.contains(event.target)) {
+      if (
+        exportDropdownRef.current &&
+        !exportDropdownRef.current.contains(event.target)
+      ) {
         setShowExportDropdown(false);
       }
     };
 
     if (showExportDropdown) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showExportDropdown]);
 
-  // Calculate totals
-  const totalPaid = payments.filter(p => p.status === "paid").reduce((sum, p) => sum + (p.amount || 0), 0);
-  const totalUnpaid = payments.filter(p => p.status === "unpaid").reduce((sum, p) => sum + (p.amount || 0), 0);
+  // Close export dropdown when clicking outside
+  const totalPaid = payments
+    .filter((p) => p.status === "paid")
+    .reduce((sum, p) => sum + (p.amount || 0), 0);
+  const totalUnpaid = payments
+    .filter((p) => p.status === "unpaid")
+    .reduce((sum, p) => sum + (p.amount || 0), 0);
 
   const handleCreatePayment = (paymentId = null) => {
     setCurrentPaymentId(paymentId);
@@ -399,7 +504,12 @@ const Payments = () => {
   };
 
   const handleGenerateExcel = async () => {
-    if (!selectedClubId || selectedPayments.length === 0 || !drawerPaymentStatus) return;
+    if (
+      !selectedClubId ||
+      selectedPayments.length === 0 ||
+      !drawerPaymentStatus
+    )
+      return;
     try {
       setGeneratingPayment(true);
       const payload = new FormData();
@@ -410,7 +520,6 @@ const Payments = () => {
       payload.append("paidDate", paymentDate.toISOString());
       if (paymentDocument) payload.append("document", paymentDocument);
 
-      const SUPER_ADMIN_CREATE_CLUB_PAYMENT = `${config.API_URL}api/super-admin/club-payments`;
       await ownerApi.post(SUPER_ADMIN_CREATE_CLUB_PAYMENT, payload, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -443,24 +552,29 @@ const Payments = () => {
       if (startDate) {
         const formatToYYYYMMDD = (date) => {
           const year = date.getFullYear();
-          const month = String(date.getMonth() + 1).padStart(2, '0');
-          const day = String(date.getDate()).padStart(2, '0');
+          const month = String(date.getMonth() + 1).padStart(2, "0");
+          const day = String(date.getDate()).padStart(2, "0");
           return `${year}-${month}-${day}`;
         };
-        params.append('startDate', formatToYYYYMMDD(startDate));
-        params.append('endDate', endDate ? formatToYYYYMMDD(endDate) : formatToYYYYMMDD(startDate));
+        params.append("startDate", formatToYYYYMMDD(startDate));
+        params.append(
+          "endDate",
+          endDate ? formatToYYYYMMDD(endDate) : formatToYYYYMMDD(startDate),
+        );
       }
-      if (ownerId) params.append('ownerId', ownerId);
-      if (clubId) params.append('clubId', clubId);
-      if (searchTerm) params.append('search', searchTerm);
-      if (paymentStatus) params.append('status', paymentStatus);
-      if (activePayableFilter === undefined) params.append('type', 'all');
-      const res = await ownerApi.get(`${SUPER_ADMIN_EXPORT_TRANSACTIONS}?${params.toString()}`);
+      if (ownerId) params.append("ownerId", ownerId);
+      if (clubId) params.append("clubId", clubId);
+      if (searchTerm) params.append("search", searchTerm);
+      if (paymentStatus) params.append("status", paymentStatus);
+      if (activePayableFilter === undefined) params.append("type", "all");
+      const res = await ownerApi.get(
+        `${SUPER_ADMIN_EXPORT_TRANSACTIONS}?${params.toString()}`,
+      );
       if (res?.data?.success && res?.data?.data?.downloadUrl) {
-        window.open(res.data.data.downloadUrl, '_blank');
+        window.open(res.data.data.downloadUrl, "_blank");
       }
     } catch (error) {
-      console.error('Export failed:', error);
+      console.error("Export failed:", error);
     } finally {
       setExportLoading(false);
       setShowExportDropdown(false);
@@ -477,10 +591,10 @@ const Payments = () => {
         ...(ownerId ? { ownerId } : {}),
         ...(selectedClubId ? { clubId: selectedClubId } : {}),
         ...(paymentStatus ? { status: paymentStatus } : {}),
-        payableStatus: isPaid,
+        ...(isPaid !== undefined ? { payableStatus: isPaid } : {}),
         page: currentPage,
         limit: 20,
-        ...(activePayableFilter === undefined && { type: 'all' })
+        ...(isPaid === undefined && { type: "all" }),
       };
       if (startDate) {
         const formatToYYYYMMDD = (date) => {
@@ -490,7 +604,9 @@ const Payments = () => {
           return `${year}-${month}-${day}`;
         };
         payload.startDate = formatToYYYYMMDD(startDate);
-        payload.endDate = endDate ? formatToYYYYMMDD(endDate) : formatToYYYYMMDD(startDate);
+        payload.endDate = endDate
+          ? formatToYYYYMMDD(endDate)
+          : formatToYYYYMMDD(startDate);
       }
       const query = new URLSearchParams(payload).toString();
       const endpoint = SUPER_ADMIN_GET_UNPAID_BOOKINGS;
@@ -499,7 +615,7 @@ const Payments = () => {
       setPayments(data?.bookings || []);
       setTotalRecords(data?.pagination?.totalItems || 0);
     } catch (error) {
-      console.error('Error fetching payments:', error);
+      console.error("Error fetching payments:", error);
     } finally {
       setPaymentsLoading(false);
     }
@@ -542,14 +658,37 @@ const Payments = () => {
       <Row className="mb-2">
         {summaryCards.map((card, index) => (
           <Col key={index} md={4} className="mb-2">
-            <Card className="shadow-sm border-0 rounded-3 h-100" style={{ border: "1px solid #e9ecef" }}>
+            <Card
+              className="shadow-sm border-0 rounded-3 h-100"
+              style={{ border: "1px solid #e9ecef" }}
+            >
               <Card.Body className="p-2">
                 <div className="d-flex justify-content-between align-items-center">
                   <div>
-                    <p className="text-muted mb-0" style={{ fontSize: "10px", fontWeight: "500", textTransform: "uppercase" }}>{card.title}</p>
-                    <h4 className="mb-0" style={{ fontSize: "18px", fontWeight: "700", color: "#1a1a1a" }}>{card.value}</h4>
+                    <p
+                      className="text-muted mb-0"
+                      style={{
+                        fontSize: "10px",
+                        fontWeight: "500",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      {card.title}
+                    </p>
+                    <h4
+                      className="mb-0"
+                      style={{
+                        fontSize: "18px",
+                        fontWeight: "700",
+                        color: "#1a1a1a",
+                      }}
+                    >
+                      {card.value}
+                    </h4>
                   </div>
-                  <div style={{ opacity: "0.15", color: "#6c757d" }}>{card.bigicon}</div>
+                  <div style={{ opacity: "0.15", color: "#6c757d" }}>
+                    {card.bigicon}
+                  </div>
                 </div>
               </Card.Body>
             </Card>
@@ -560,59 +699,70 @@ const Payments = () => {
       <Row className="g-1">
         {/* Sidebar */}
         <Col lg={2} md={3} className="pe-1">
-          <div className="bg-white rounded-3 shadow-sm p-2 h-100" >
+          <div className="bg-white rounded-3 shadow-sm p-2 h-100">
             <div className="d-flex align-items-center mb-2 pb-2 border-bottom">
               <FaFilter className="text-primary me-1" size={12} />
-              <h6 className="mb-0 fw-bold" style={{ fontSize: "13px" }}>Filters</h6>
+              <h6 className="mb-0 fw-bold" style={{ fontSize: "13px" }}>
+                Filters
+              </h6>
             </div>
             {!canSelectBookings && paymentStatus === "unpaid" && (
-              <div className="alert alert-warning py-1 px-2 mb-2" style={{ fontSize: "11px" }}>
-                {!canSelectClubs ? "Select an owner first." : "Select a club to choose bookings."}
+              <div
+                className="alert alert-warning py-1 px-2 mb-2"
+                style={{ fontSize: "11px" }}
+              >
+                {!canSelectClubs
+                  ? "Select an owner first."
+                  : "Select a club to choose bookings."}
               </div>
-            )}
-
-            {activePayableFilter !== false && (
-              <Form.Group className="mb-2">
-                <Form.Label className="small fw-semibold mb-1" style={{ fontSize: "13px", color: "#6c757d" }}>Status</Form.Label>
-                <div className="btn-group w-100" role="group">
-                  <button
-                    type="button"
-                    className={`btn btn-sm ${paymentStatus === "paid" ? "btn-success" : "btn-outline-success"}`}
-                    style={{ borderRadius: "4px 0 0 4px", fontSize: "12px", padding: "6px 8px" }}
-                    onClick={() => {
-                      setPaymentStatus("paid");
-                      setTab(1);
-                      setCurrentPage(1);
-                    }}
-                  >
-                    <FaCheckCircle size={10} className="me-1" />
-                    Paid
-                  </button>
-                  <button
-                    type="button"
-                    className={`btn btn-sm ${paymentStatus === "unpaid" ? "btn-danger" : "btn-outline-danger"}`}
-                    style={{ borderRadius: "0 4px 4px 0", fontSize: "12px", padding: "6px 8px" }}
-                    onClick={() => {
-                      setPaymentStatus("unpaid");
-                      setTab(0);
-                      setCurrentPage(1);
-                      if (selectedClubId) {
-                        setActivePayableFilter(true);
-                      }
-                    }}
-                  >
-                    <FaTimesCircle size={10} className="me-1" />
-                    Unpaid
-                  </button>
-                </div>
-              </Form.Group>
             )}
 
             <div className="mt-2">
               <div className="d-flex justify-content-between align-items-center mb-2">
-                <span style={{ fontSize: "11px", color: "#6c757d", fontWeight: "600" }}>CLUBS</span>
-                <Badge bg="primary" style={{ fontSize: "10px" }}>{clubs.length}</Badge>
+                <span
+                  style={{
+                    fontSize: "11px",
+                    color: "#6c757d",
+                    fontWeight: "600",
+                  }}
+                >
+                  CLUBS
+                </span>
+                <Badge bg="primary" style={{ fontSize: "10px" }}>
+                  {clubs.length}
+                </Badge>
               </div>
+              {paymentStatus === "unpaid" && (
+                <div className="d-flex flex-wrap gap-1 mb-1 w-100">
+                  <Button
+                    variant={activePayableFilter === true ? "success" : "outline-success"}
+                    size="sm"
+                    onClick={() => handleUpdatePaymentStatus(true)}
+                    className="flex-fill"
+                    style={{ fontSize: "11px", padding: "3px 6px" }}
+                  >
+                    Online Bookings
+                  </Button>
+                  <Button
+                    variant={activePayableFilter === false ? "danger" : "outline-danger"}
+                    size="sm"
+                    onClick={() => handleUpdatePaymentStatus(false)}
+                    className="flex-fill"
+                    style={{ fontSize: "11px", padding: "3px 6px" }}
+                  >
+                    Admin Bookings
+                  </Button>
+                  <Button
+                    variant={activePayableFilter === undefined ? "warning" : "outline-warning"}
+                    size="sm"
+                    onClick={() => handleUpdatePaymentStatus()}
+                    className="flex-fill"
+                    style={{ fontSize: "11px", padding: "3px 6px" }}
+                  >
+                    All
+                  </Button>
+                </div>
+              )}
               <ListGroup variant="flush" className="mb-2">
                 <ListGroup.Item
                   action
@@ -631,16 +781,21 @@ const Payments = () => {
                   style={{
                     cursor: canSelectClubs ? "pointer" : "not-allowed",
                     opacity: canSelectClubs ? 1 : 0.5,
-                    borderLeft: selectedClubId === "" ? "3px solid #4361ee" : "3px solid transparent",
+                    borderLeft:
+                      selectedClubId === ""
+                        ? "3px solid #4361ee"
+                        : "3px solid transparent",
                     fontSize: "12px",
                     transition: "all 0.2s",
-                    fontWeight: "600"
+                    fontWeight: "600",
                   }}
                 >
                   All Clubs
                 </ListGroup.Item>
               </ListGroup>
-              <div style={{ maxHeight: "calc(100vh - 450px)", overflowY: "auto" }}>
+              <div
+                style={{ maxHeight: "calc(100vh - 450px)", overflowY: "auto" }}
+              >
                 <ListGroup variant="flush">
                   {clubs.map((club, index) => (
                     <ListGroup.Item
@@ -649,7 +804,8 @@ const Payments = () => {
                       active={selectedClubId === club._id}
                       onClick={() => {
                         if (canSelectClubs) {
-                          const newClubId = selectedClubId === club._id ? "" : club._id;
+                          const newClubId =
+                            selectedClubId === club._id ? "" : club._id;
                           setSelectedClubId(newClubId);
                           setSelectedPayments([]);
                           setSelectAll(false);
@@ -662,9 +818,12 @@ const Payments = () => {
                       style={{
                         cursor: canSelectClubs ? "pointer" : "not-allowed",
                         opacity: canSelectClubs ? 1 : 0.5,
-                        borderLeft: selectedClubId === club._id ? "3px solid #4361ee" : "3px solid transparent",
+                        borderLeft:
+                          selectedClubId === club._id
+                            ? "3px solid #4361ee"
+                            : "3px solid transparent",
                         fontSize: "12px",
-                        transition: "all 0.2s"
+                        transition: "all 0.2s",
                       }}
                     >
                       <div className="d-flex align-items-center">
@@ -673,20 +832,37 @@ const Payments = () => {
                           style={{
                             width: "28px",
                             height: "28px",
-                            backgroundColor: selectedClubId === club._id ? "#fff" : "#e7f3ff",
-                            color: selectedClubId === club._id ? "#4361ee" : "#4361ee"
+                            backgroundColor:
+                              selectedClubId === club._id ? "#fff" : "#e7f3ff",
+                            color:
+                              selectedClubId === club._id
+                                ? "#4361ee"
+                                : "#4361ee",
                           }}
                         >
                           <FaBuilding size={12} />
                         </div>
                         <div className="flex-grow-1">
-                          <div className="fw-semibold" style={{ fontSize: "11px" }}>{club.clubName}</div>
+                          <div
+                            className="fw-semibold"
+                            style={{ fontSize: "11px" }}
+                          >
+                            {club.clubName}
+                          </div>
                         </div>
                         <div className="text-end">
                           {paymentStatus === "unpaid" && (
                             <Badge
-                              bg={selectedClubId === club._id ? "light" : "secondary"}
-                              text={selectedClubId === club._id ? "primary" : "white"}
+                              bg={
+                                selectedClubId === club._id
+                                  ? "light"
+                                  : "secondary"
+                              }
+                              text={
+                                selectedClubId === club._id
+                                  ? "primary"
+                                  : "white"
+                              }
                               style={{ fontSize: "9px" }}
                             >
                               {club.transactionCount || 0}
@@ -703,12 +879,19 @@ const Payments = () => {
         </Col>
 
         <Col lg={10} md={9} className="ps-0">
-          <div className="bg-white rounded-3 shadow-sm p-3" style={{ border: "1px solid #e9ecef" }}>
+          <div
+            className="bg-white rounded-3 shadow-sm p-3"
+            style={{ border: "1px solid #e9ecef" }}
+          >
             <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 pb-3 border-bottom gap-3">
               <div className="d-flex align-items-center gap-3">
                 <div>
-                  <h5 className="mb-1 fw-bold" style={{ fontSize: "16px", color: "#1a1a1a" }}>
-                    {selectedClub ? `${selectedClub.clubName} - ` : ""}Transactions
+                  <h5
+                    className="mb-1 fw-bold"
+                    style={{ fontSize: "16px", color: "#1a1a1a" }}
+                  >
+                    {selectedClub ? `${selectedClub.clubName} - ` : ""}
+                    Transactions
                   </h5>
                   <p className="text-muted mb-0" style={{ fontSize: "12px" }}>
                     {paymentStatus === "unpaid"
@@ -716,61 +899,39 @@ const Payments = () => {
                       : ""}
                   </p>
                 </div>
-                {paymentStatus === "unpaid" && (
-                  <div className="d-flex gap-2">
-                    <Button
-                      variant={activePayableFilter === true ? "success" : "outline-success"}
-                      size="sm"
-                      onClick={() => handleUpdatePaymentStatus(true)}
-                      style={{ fontSize: "12px", padding: "6px 12px" }}
-                    >
-                      Payable
-                    </Button>
-                    <Button
-                      variant={activePayableFilter === false ? "danger" : "outline-danger"}
-                      size="sm"
-                      onClick={() => handleUpdatePaymentStatus(false)}
-                      style={{ fontSize: "12px", padding: "6px 12px" }}
-                    >
-                      Non-Payable
-                    </Button>
-                    <Button
-                      variant={activePayableFilter === undefined ? "warning" : "outline-warning"}
-                      size="sm"
-                      onClick={() => handleUpdatePaymentStatus()}
-                      style={{ fontSize: "12px", padding: "6px 12px" }}
-                    >
-                      All
-                    </Button>
-                  </div>
-                )}
               </div>
-              <div className="d-flex align-items-center gap-2">
+              <div className="d-flex align-items-center gap-2 flex ">
                 {!showDatePicker && !startDate && !endDate ? (
                   <Button
                     variant="outline-secondary"
                     size="sm"
                     className="d-flex align-items-center gap-2"
                     onClick={() => setShowDatePicker(true)}
-                    style={{ borderRadius: "6px", padding: "8px 16px", fontSize: "13px" }}
+                    style={{
+                      borderRadius: "6px",
+                      padding: "0 12px",
+                      fontSize: "13px",
+                      height: "36px",
+                      whiteSpace: "nowrap",
+                      width: '180px',
+                      border: '1px solid rgb(222, 226, 230)'
+                    }}
                   >
                     <MdOutlineDateRange size={16} />
                     <span>Select Date <span className="text-danger">*</span></span>
                   </Button>
                 ) : (
                   <div
-                    className="d-flex align-items-center justify-content-center rounded p-1"
+                    className="d-flex align-items-center rounded"
                     style={{
                       backgroundColor: "#FAFBFF",
-                      maxWidth: "280px",
                       height: "36px",
                       border: "1px solid #dee2e6",
-                      gap: "8px",
+                      padding: "0 8px",
+                      gap: "4px",
                     }}
                   >
-                    <div className="px-2">
-                      <MdOutlineDateRange size={14} className="text-muted" />
-                    </div>
+                    <MdOutlineDateRange size={14} className="text-muted" />
                     <DatePicker
                       selectsRange
                       startDate={startDate}
@@ -779,32 +940,42 @@ const Payments = () => {
                         const [start, end] = update;
                         setStartDate(start);
                         setEndDate(end);
-                        if (start && end) {
-                          setShowDatePicker(false);
-                        }
+                        if (start && end) setShowDatePicker(false);
                       }}
                       dateFormat="dd/MM/yyyy"
                       placeholderText="DD/MM/YYYY – DD/MM/YYYY"
-                      className="form-control border-0 bg-transparent shadow-none"
-                      style={{ fontSize: "12px", width: "200px" }}
+                      className="form-control border-0 bg-transparent shadow-none p-0"
+                      style={{ fontSize: "12px", width: "180px", height: "auto" }}
                       open={showDatePicker}
                       onClickOutside={() => setShowDatePicker(false)}
                       maxDate={new Date()}
                     />
                     {(startDate || endDate) && (
-                      <div
-                        className="px-2"
-                        onClick={() => {
-                          setDateRange([null, null]);
-                          setShowDatePicker(false);
-                        }}
-                        style={{ cursor: "pointer" }}
-                      >
+                      <div onClick={() => { setDateRange([null, null]); setShowDatePicker(false); }} style={{ cursor: "pointer" }}>
                         <FaTimes size={12} className="text-danger" />
                       </div>
                     )}
                   </div>
                 )}
+                <Form.Select
+                  value={selectedCategory}
+                  onChange={(e) => { setSelectedCategory(e.target.value); setCurrentPage(1); }}
+                  style={{
+                    fontSize: "13px",
+                    borderRadius: "6px",
+                    border: "1px solid #dee2e6",
+                    height: "36px",
+                    padding: "0 8px",
+                    backgroundColor: "#fff",
+                    boxShadow: "none",
+                    width: "140px",
+                  }}
+                >
+                  <option value="">All Categories</option>
+                  {categoryList?.map((cat) => (
+                    <option key={cat._id} value={cat._id}>{cat.name}</option>
+                  ))}
+                </Form.Select>
                 {activePayableFilter !== false && (
                   <div className="position-relative" ref={exportDropdownRef}>
                     <Button
@@ -812,7 +983,13 @@ const Payments = () => {
                       size="sm"
                       onClick={() => setShowExportDropdown(!showExportDropdown)}
                       className="d-flex align-items-center gap-2"
-                      style={{ borderRadius: "6px", fontSize: "13px", padding: "8px 16px" }}
+                      style={{
+                        borderRadius: "6px",
+                        fontSize: "13px",
+                        height: "36px",
+                        padding: "0 12px",
+                        whiteSpace: "nowrap",
+                      }}
                       disabled={exportLoading || !startDate}
                       title={!startDate ? "Please select date first" : ""}
                     >
@@ -841,17 +1018,17 @@ const Payments = () => {
                           right: "0",
                           zIndex: 1000,
                           minWidth: "250px",
-                          marginTop: "4px"
+                          marginTop: "4px",
                         }}
                       >
                         <div className="p-2">
                           <div
-                            className={`p-2 rounded ${exportLoading ? 'text-muted' : 'hover-bg-light cursor-pointer'}`}
+                            className={`p-2 rounded ${exportLoading ? "text-muted" : "hover-bg-light cursor-pointer"}`}
                             onClick={() => !exportLoading && handleExport()}
                             style={{
                               cursor: exportLoading ? "not-allowed" : "pointer",
                               fontSize: "13px",
-                              opacity: exportLoading ? 0.5 : 1
+                              opacity: exportLoading ? 0.5 : 1,
                             }}
                           >
                             <FaDownload size={12} className="me-2" />
@@ -860,7 +1037,16 @@ const Payments = () => {
                           {clubs.length > 0 && (
                             <>
                               <hr className="my-1" />
-                              <div className="fw-bold" style={{ fontSize: "12px", color: "#6c757d", padding: "4px 8px" }}>By Club:</div>
+                              <div
+                                className="fw-bold"
+                                style={{
+                                  fontSize: "12px",
+                                  color: "#6c757d",
+                                  padding: "4px 8px",
+                                }}
+                              >
+                                By Club:
+                              </div>
                               <div className="position-relative mb-2">
                                 <FaSearch
                                   className="position-absolute"
@@ -869,36 +1055,44 @@ const Payments = () => {
                                     top: "50%",
                                     transform: "translateY(-50%)",
                                     color: "#6c757d",
-                                    fontSize: "10px"
+                                    fontSize: "10px",
                                   }}
                                 />
                                 <Form.Control
                                   type="text"
                                   placeholder="Search clubs..."
                                   value={exportSearchTerm}
-                                  onChange={(e) => setExportSearchTerm(e.target.value)}
+                                  onChange={(e) =>
+                                    setExportSearchTerm(e.target.value)
+                                  }
                                   style={{
                                     paddingLeft: "25px",
                                     fontSize: "12px",
                                     height: "30px",
                                     borderRadius: "4px",
-                                    border: "1px solid #dee2e6"
+                                    border: "1px solid #dee2e6",
                                   }}
                                 />
                               </div>
                               {clubs
-                                .filter(club =>
-                                  club.clubName?.toLowerCase().includes(exportSearchTerm.toLowerCase())
+                                .filter((club) =>
+                                  club.clubName
+                                    ?.toLowerCase()
+                                    .includes(exportSearchTerm.toLowerCase()),
                                 )
                                 .map((club) => (
                                   <div
                                     key={club._id}
-                                    className={`p-2 rounded ${exportLoading ? 'text-muted' : 'hover-bg-light cursor-pointer'}`}
-                                    onClick={() => !exportLoading && handleExport(club._id)}
+                                    className={`p-2 rounded ${exportLoading ? "text-muted" : "hover-bg-light cursor-pointer"}`}
+                                    onClick={() =>
+                                      !exportLoading && handleExport(club._id)
+                                    }
                                     style={{
-                                      cursor: exportLoading ? "not-allowed" : "pointer",
+                                      cursor: exportLoading
+                                        ? "not-allowed"
+                                        : "pointer",
                                       fontSize: "13px",
-                                      opacity: exportLoading ? 0.5 : 1
+                                      opacity: exportLoading ? 0.5 : 1,
                                     }}
                                   >
                                     <FaBuilding size={12} className="me-2" />
@@ -938,16 +1132,46 @@ const Payments = () => {
                     }}
                   />
                 </div> */}
-                {activePayableFilter !== false && paymentStatus === "unpaid" && (
+                {activePayableFilter !== false &&
+                  paymentStatus === "unpaid" && (
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => handleCreatePayment()}
+                      disabled={
+                        paymentStatus !== "unpaid" ||
+                        selectedPayments.length === 0 ||
+                        !canSelectBookings
+                      }
+                      className="d-flex align-items-center gap-2"
+                      style={{
+                        borderRadius: "6px",
+                        fontWeight: "500",
+                        fontSize: "13px",
+                        height: "36px",
+                        padding: "0 16px",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      <span>Create Payment</span>
+                    </Button>
+                  )}
+                {paymentStatus === "paid" && selectedClubId && (
                   <Button
-                    variant="primary"
+                    variant="outline-primary"
                     size="sm"
-                    onClick={() => handleCreatePayment()}
-                    disabled={paymentStatus !== "unpaid" || selectedPayments.length === 0 || !canSelectBookings}
+                    onClick={() => navigate(`/admin/payment-reconciliation?clubId=${selectedClubId}`)}
                     className="d-flex align-items-center gap-2"
-                    style={{ borderRadius: "6px", fontWeight: "500", fontSize: "13px", padding: "8px 16px" }}
+                    style={{
+                      borderRadius: "6px",
+                      fontSize: "13px",
+                      height: "36px",
+                      padding: "0 12px",
+                      whiteSpace: "nowrap",
+                    }}
                   >
-                    <span>Create Payment</span>
+                    <MdOutlinePayments size={12} />
+                    Payment Reconciliation
                   </Button>
                 )}
               </div>
@@ -959,40 +1183,169 @@ const Payments = () => {
               <>
                 {filteredPayments?.length > 0 ? (
                   <>
-                    <div className="custom-scroll-container d-none d-md-block" style={{ overflowX: "auto" }}>
+                    <div
+                      className="custom-scroll-container d-none d-md-block"
+                      style={{ overflowX: "auto" }}
+                    >
                       <Table
                         responsive
                         hover
                         className="custom-table align-middle"
                         style={{ minWidth: "800px" }}
                       >
-                        <thead style={{ backgroundColor: "#4361ee", color: "white" }}>
+                        <thead
+                          style={{ backgroundColor: "#4361ee", color: "white" }}
+                        >
                           <tr>
-                            <th style={{ width: "50px", padding: "14px", borderTopLeftRadius: "6px" }}>
-                              {paymentStatus === "unpaid" && activePayableFilter !== false && (
-                                <Form.Check
-                                  type="checkbox"
-                                  checked={selectAll}
-                                  onChange={handleSelectAll}
-                                  disabled={!canSelectBookings}
-                                  style={{ accentColor: "white" }}
-                                />
-                              )}
+                            <th
+                              style={{
+                                width: "50px",
+                                padding: "14px",
+                                borderTopLeftRadius: "6px",
+                              }}
+                            >
+                              {paymentStatus === "unpaid" &&
+                                activePayableFilter !== false && (
+                                  <Form.Check
+                                    type="checkbox"
+                                    checked={selectAll}
+                                    onChange={handleSelectAll}
+                                    disabled={!canSelectBookings}
+                                    style={{ accentColor: "white" }}
+                                  />
+                                )}
                             </th>
-                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>User</th>
-                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Club & Owner</th>
-                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Court & Time</th>
-                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Booking Info</th>
-                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Booking Date</th>
-                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Payment Date</th>
-                            {(paymentStatus === "paid" || activePayableFilter === true || activePayableFilter === undefined) && (
-                              <>
-                                <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Club Payment</th>
-                                <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Payment Status</th>
-                              </>
+                            <th
+                              style={{
+                                padding: "14px",
+                                fontWeight: "600",
+                                fontSize: "12px",
+                                textTransform: "uppercase",
+                                letterSpacing: "0.5px",
+                              }}
+                            >
+                              User
+                            </th>
+                            {/* <th
+                              style={{
+                                padding: "14px",
+                                fontWeight: "600",
+                                fontSize: "12px",
+                                textTransform: "uppercase",
+                                letterSpacing: "0.5px",
+                              }}
+                            >
+                              Club & Owner
+                            </th> */}
+                            <th
+                              style={{
+                                padding: "14px",
+                                fontWeight: "600",
+                                fontSize: "12px",
+                                textTransform: "uppercase",
+                                letterSpacing: "0.5px",
+                              }}
+                            >
+                              Court & Time
+                            </th>
+                            {/* <th
+                              style={{
+                                padding: "14px",
+                                fontWeight: "600",
+                                fontSize: "12px",
+                                textTransform: "uppercase",
+                                letterSpacing: "0.5px",
+                              }}
+                            >
+                              Booking Info
+                            </th> */}
+                            {!selectedCategory && (
+                              <th
+                                style={{
+                                  padding: "14px",
+                                  fontWeight: "600",
+                                  fontSize: "12px",
+                                  textTransform: "uppercase",
+                                  letterSpacing: "0.5px",
+                                }}
+                              >
+                                Game Type
+                              </th>
                             )}
-                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Amount</th>
-                            <th style={{ padding: "14px", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px", textAlign: "center", borderTopRightRadius: "6px" }}>Invoice</th>
+                            <th
+                              style={{
+                                padding: "14px",
+                                fontWeight: "600",
+                                fontSize: "12px",
+                                textTransform: "uppercase",
+                                letterSpacing: "0.5px",
+                              }}
+                            >
+                              Booking Date
+                            </th>
+                            <th
+                              style={{
+                                padding: "14px",
+                                fontWeight: "600",
+                                fontSize: "12px",
+                                textTransform: "uppercase",
+                                letterSpacing: "0.5px",
+                              }}
+                            >
+                              Payment Date
+                            </th>
+                            {(paymentStatus === "paid" ||
+                              activePayableFilter === true ||
+                              activePayableFilter === undefined) && (
+                                <>
+                                  <th
+                                    style={{
+                                      padding: "14px",
+                                      fontWeight: "600",
+                                      fontSize: "12px",
+                                      textTransform: "uppercase",
+                                      letterSpacing: "0.5px",
+                                    }}
+                                  >
+                                    Club Payment
+                                  </th>
+                                  <th
+                                    style={{
+                                      padding: "14px",
+                                      fontWeight: "600",
+                                      fontSize: "12px",
+                                      textTransform: "uppercase",
+                                      letterSpacing: "0.5px",
+                                    }}
+                                  >
+                                    Payment Status
+                                  </th>
+                                </>
+                              )}
+                            <th
+                              style={{
+                                padding: "14px",
+                                fontWeight: "600",
+                                fontSize: "12px",
+                                textTransform: "uppercase",
+                                letterSpacing: "0.5px",
+                              }}
+                            >
+                              Amount & Invoice
+                            </th>
+                            {/* <th
+                              style={{
+                                padding: "14px",
+                                fontWeight: "600",
+                                fontSize: "12px",
+                                textTransform: "uppercase",
+                                letterSpacing: "0.5px",
+                                textAlign: "center",
+                                borderTopRightRadius: "6px",
+                              }}
+                            >
+                              Invoice
+                            </th> */}
                           </tr>
                         </thead>
                         <tbody>
@@ -1001,132 +1354,316 @@ const Payments = () => {
                               key={item?._id || `payment-${index}`}
                               className="border-bottom"
                               style={{
-                                backgroundColor: selectedPayments.includes(item._id) ? "#f0f8ff" : "white",
-                                transition: "background-color 0.2s"
+                                backgroundColor: selectedPayments.includes(
+                                  item._id,
+                                )
+                                  ? "#f0f8ff"
+                                  : "white",
+                                transition: "background-color 0.2s",
                               }}
                             >
                               <td style={{ padding: "12px" }}>
-                                {paymentStatus === "unpaid" && activePayableFilter !== false && (
-                                  <Form.Check
-                                    type="checkbox"
-                                    checked={selectedPayments.includes(item._id)}
-                                    onChange={() => handleSelectPayment(item._id)}
-                                    disabled={!canSelectBookings}
-                                  />
-                                )}
+                                {paymentStatus === "unpaid" &&
+                                  activePayableFilter !== false && (
+                                    <Form.Check
+                                      type="checkbox"
+                                      checked={selectedPayments.includes(
+                                        item._id,
+                                      )}
+                                      onChange={() =>
+                                        handleSelectPayment(item._id)
+                                      }
+                                      disabled={!canSelectBookings}
+                                    />
+                                  )}
                               </td>
                               <td style={{ padding: "12px" }}>
                                 <div>
-                                  <div className="fw-medium" style={{ fontSize: "13px" }}>
+                                  <div
+                                    className="fw-medium"
+                                    style={{ fontSize: "13px" }}
+                                  >
                                     {item?.userId?.name || "N/A"}
                                   </div>
-                                  <div className="text-muted" style={{ fontSize: "11px" }}>
-                                    {item?.userId?.countryCode} {item?.userId?.phoneNumber}
+                                  <div
+                                    className="text-muted"
+                                    style={{ fontSize: "11px" }}
+                                  >
+                                    {item?.userId?.countryCode}{" "}
+                                    {item?.userId?.phoneNumber}
                                   </div>
                                 </div>
                               </td>
-                              <td style={{ padding: "12px", fontWeight: "500" }}>
+                              {/* <td
+                                style={{ padding: "12px", fontWeight: "500" }}
+                              >
                                 <div>
                                   <div style={{ fontSize: "13px" }}>
                                     {item?.register_club_id?.clubName || "N/A"}
                                   </div>
-                                  <div className="text-muted" style={{ fontSize: "11px" }}>
+                                  <div
+                                    className="text-muted"
+                                    style={{ fontSize: "11px" }}
+                                  >
                                     {item?.ownerId?.name || "N/A"}
                                   </div>
-                                  <div className="text-muted" style={{ fontSize: "10px" }}>
+                                  <div
+                                    className="text-muted"
+                                    style={{ fontSize: "10px" }}
+                                  >
                                     {item?.ownerId?.email || "N/A"}
                                   </div>
                                 </div>
-                              </td>
+                              </td> */}
                               <td style={{ padding: "12px" }}>
                                 <div>
-                                  <div className="fw-medium" style={{ fontSize: "12px" }}>
+                                  <div
+                                    className="fw-medium"
+                                    style={{ fontSize: "12px" }}
+                                  >
                                     {item?.slot?.[0]?.courtName || "N/A"}
                                   </div>
-                                  <div className="text-muted" style={{ fontSize: "11px" }}>
-                                    {item?.startTime || "N/A"} - {item?.endTime || "N/A"}
+                                  <div
+                                    className="text-muted"
+                                    style={{ fontSize: "11px" }}
+                                  >
+                                    {item?.startTime || "N/A"} -{" "}
+                                    {item?.endTime || "N/A"}
                                   </div>
-                                  <div className="text-muted" style={{ fontSize: "10px" }}>
-                                    {item?.duration}min
+                                  <div
+                                    className="text-muted"
+                                    style={{ fontSize: "10px" }}
+                                  >
+                                    {item?.totalTime}min
                                   </div>
                                 </div>
                               </td>
-                              <td style={{ padding: "12px" }}>
+                              {/* <td style={{ padding: "12px" }}>
                                 <div>
-                                  <div className="fw-medium" style={{ fontSize: "11px" }}>
-                                    <span className={`badge ${item?.bookingType === 'openMatch' ? 'bg-info' : item?.bookingType === 'regular' ? 'bg-primary' : 'bg-secondary'}`} style={{ fontSize: "9px", padding: "2px 6px", borderRadius: "3px" }}>
-                                      {item?.bookingType?.toUpperCase() || "N/A"}
+                                  <div
+                                    className="fw-medium"
+                                    style={{ fontSize: "11px" }}
+                                  >
+                                    <span
+                                      className={`badge ${item?.bookingType === "openMatch" ? "bg-info" : item?.bookingType === "regular" ? "bg-primary" : "bg-secondary"}`}
+                                      style={{
+                                        fontSize: "9px",
+                                        padding: "2px 6px",
+                                        borderRadius: "3px",
+                                      }}
+                                    >
+                                      {item?.bookingType?.toUpperCase() ||
+                                        "N/A"}
                                     </span>
                                   </div>
-                                  <div className="text-muted" style={{ fontSize: "10px", marginTop: "2px" }}>
+                                  <div
+                                    className="text-muted text-capitalize"
+                                    style={{
+                                      fontSize: "10px",
+                                      marginTop: "2px",
+                                    }}
+                                  >
                                     {item?.matchType || "N/A"}
                                   </div>
                                 </div>
-                              </td>
+                              </td> */}
+                              {!selectedCategory && (
+                                <td style={{ padding: "12px" }}>
+                                  {item?.categoryId?.name}
+                                </td>
+                              )}
                               <td style={{ padding: "12px" }}>
                                 <div>
-                                  <div className="fw-medium" style={{ fontSize: "12px" }}>
+                                  <div
+                                    className="fw-medium"
+                                    style={{ fontSize: "12px" }}
+                                  >
                                     {formatDate(item?.bookingDate)}
                                   </div>
-                                  {/* <div className="text-muted" style={{ fontSize: "10px" }}>
-                                    {item?.createdAt ? new Date(item.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : "N/A"}
-                                  </div> */}
                                 </div>
                               </td>
                               <td style={{ padding: "12px" }}>
                                 <div>
-                                  <div className="fw-medium" style={{ fontSize: "12px" }}>
-                                    {item?.paidDate ? formatDate(item.paidDate) : item?.updatedAt ? formatDate(item.updatedAt) : "N/A"}
+                                  <div
+                                    className="fw-medium"
+                                    style={{ fontSize: "12px" }}
+                                  >
+                                    {item?.paidDate
+                                      ? formatDate(item.paidDate)
+                                      : item?.updatedAt
+                                        ? formatDate(item.updatedAt)
+                                        : "N/A"}
                                   </div>
-                                  <div className="text-muted" style={{ fontSize: "10px" }}>
-                                    {item?.updatedAt ? new Date(item.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : "N/A"}
+                                  <div
+                                    className="text-muted"
+                                    style={{ fontSize: "10px" }}
+                                  >
+                                    {item?.updatedAt
+                                      ? new Date(
+                                        item.updatedAt,
+                                      ).toLocaleTimeString("en-US", {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      })
+                                      : "N/A"}
                                   </div>
                                 </div>
                               </td>
-                              {(paymentStatus === "paid" || activePayableFilter === true) && (
-                                <>
-                                  <td style={{ padding: "12px", textAlign: "center" }}>
-                                    <span className={`badge ${item?.clubPaidStatus === 'paid' ? 'bg-success' : 'bg-warning'}`} style={{ fontSize: "10px", padding: "4px 8px", borderRadius: "4px" }}>
-                                      {item?.clubPaidStatus?.toUpperCase() || "UNPAID"}
-                                    </span>
-                                  </td>
-                                  <td style={{ padding: "12px" }}>
-                                    <div>
-                                      <span className={`badge ${item?.paymentStatus === 'paid' ? 'bg-success' : item?.paymentStatus === 'pending' ? 'bg-warning' : 'bg-secondary'}`} style={{ fontSize: "10px", padding: "4px 8px", borderRadius: "4px" }}>
-                                        {item?.paymentStatus?.toUpperCase() || "N/A"}
+                              {(paymentStatus === "paid" ||
+                                activePayableFilter === true) && (
+                                  <>
+                                    <td
+                                      style={{
+                                        padding: "12px",
+                                        textAlign: "center",
+                                      }}
+                                    >
+                                      <span
+                                        className={`badge ${item?.clubPaidStatus === "paid" ? "bg-success" : "bg-warning"}`}
+                                        style={{
+                                          fontSize: "10px",
+                                          padding: "4px 8px",
+                                          borderRadius: "4px",
+                                        }}
+                                      >
+                                        {item?.clubPaidStatus?.toUpperCase() ||
+                                          "UNPAID"}
                                       </span>
-                                      <div className="text-muted" style={{ fontSize: "10px", marginTop: "2px" }}>
-                                        {item?.paymentMethod || "N/A"}
+                                    </td>
+                                    <td style={{ padding: "12px" }}>
+                                      <div>
+                                        <span
+                                          className={`badge ${item?.paymentStatus === "paid" ? "bg-success" : item?.paymentStatus === "pending" ? "bg-warning" : "bg-secondary"}`}
+                                          style={{
+                                            fontSize: "10px",
+                                            padding: "4px 8px",
+                                            borderRadius: "4px",
+                                          }}
+                                        >
+                                          {item?.paymentStatus?.toUpperCase() ||
+                                            "N/A"}
+                                        </span>
+                                        <div
+                                          className="text-muted"
+                                          style={{
+                                            fontSize: "10px",
+                                            marginTop: "2px",
+                                          }}
+                                        >
+                                          {item?.paymentMethod || "N/A"}
+                                        </div>
                                       </div>
-                                    </div>
-                                  </td>
-                                </>
-                              )}
-                              {(activePayableFilter === undefined) && (
+                                    </td>
+                                  </>
+                                )}
+                              {activePayableFilter === undefined && (
                                 <>
-                                  <td style={{ padding: "12px", textAlign: "center" }}>
-                                    <span className={`badge ${item?.clubPaidStatus === 'paid' ? 'bg-success' : 'bg-warning'}`} style={{ fontSize: "10px", padding: "4px 8px", borderRadius: "4px" }}>
-                                      {item?.adminBookingStatus ? "" : item?.clubPaidStatus?.toUpperCase()}
+                                  <td
+                                    style={{
+                                      padding: "12px",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    <span
+                                      className={`badge ${item?.clubPaidStatus === "paid" ? "bg-success" : "bg-warning"}`}
+                                      style={{
+                                        fontSize: "10px",
+                                        padding: "4px 8px",
+                                        borderRadius: "4px",
+                                      }}
+                                    >
+                                      {item?.adminBookingStatus
+                                        ? ""
+                                        : item?.clubPaidStatus?.toUpperCase()}
                                     </span>
                                   </td>
                                   <td style={{ padding: "12px" }}>
                                     <div>
-                                      <span className={`badge ${item?.paymentStatus === 'paid' ? 'bg-success' : item?.paymentStatus === 'pending' ? 'bg-warning' : 'bg-secondary'}`} style={{ fontSize: "10px", padding: "4px 8px", borderRadius: "4px" }}>
-                                        {item?.paymentStatus?.toUpperCase() || ""}
+                                      {/* <span className={`badge ${item?.paymentStatus === 'paid' ? 'bg-success' : item?.paymentStatus === 'pending' ? 'bg-warning' : 'bg-secondary'}`} style={{ fontSize: "10px", padding: "4px 8px", borderRadius: "4px" }}>
+                                        {item?.paymentStatus == 'pending' && (item?.bookingStatus == 'refunded' || item?.bookingStatus == 'cancelled') ? 'CANCELLED' : item?.paymentStatus?.toUpperCase()}
+                                      </span> */}
+                                      <span
+                                        className={`badge ${item?.paymentStatus === "pending" &&
+                                          (item?.bookingStatus === "refunded" ||
+                                            item?.bookingStatus === "cancelled")
+                                          ? "bg-secondary"
+                                          : item?.paymentStatus === "paid"
+                                            ? "bg-success"
+                                            : item?.paymentStatus ===
+                                              "pending"
+                                              ? "bg-warning"
+                                              : "bg-secondary"
+                                          }`}
+                                        style={{
+                                          fontSize: "10px",
+                                          padding: "4px 8px",
+                                          borderRadius: "4px",
+                                        }}
+                                      >
+                                        {item?.paymentStatus === "pending" &&
+                                          (item?.bookingStatus === "refunded" ||
+                                            item?.bookingStatus === "cancelled")
+                                          ? "CANCELLED"
+                                          : item?.paymentStatus?.toUpperCase()}
                                       </span>
-                                      <div className="text-muted" style={{ fontSize: "10px", marginTop: "2px" }}>
+                                      <div
+                                        className="text-muted"
+                                        style={{
+                                          fontSize: "10px",
+                                          marginTop: "2px",
+                                        }}
+                                      >
                                         {item?.paymentMethod || ""}
                                       </div>
                                     </div>
                                   </td>
                                 </>
                               )}
-                              <td style={{ padding: "12px", fontWeight: "600", color: "#28a745", fontSize: "14px" }}>
+                              <td
+                                style={{
+                                  padding: "12px",
+                                  fontWeight: "600",
+                                  color: "#28a745",
+                                  fontSize: "14px",
+                                }}
+                              >
                                 ₹{item?.totalAmount || 0}
+                                {item?.invoiceUrl && (
+                                  <div
+                                    className="d-inline-flex ms-2 align-items-center justify-content-center"
+                                    style={{
+                                      cursor: "pointer",
+                                      width: "36px",
+                                      height: "36px",
+                                      borderRadius: "8px",
+                                      backgroundColor: "#e7ffe7",
+                                      transition: "all 0.2s",
+                                    }}
+                                    onClick={() =>
+                                      window.open(item.invoiceUrl, "_blank")
+                                    }
+                                    onMouseEnter={(e) =>
+                                    (e.currentTarget.style.backgroundColor =
+                                      "#ccffcc")
+                                    }
+                                    onMouseLeave={(e) =>
+                                    (e.currentTarget.style.backgroundColor =
+                                      "#e7ffe7")
+                                    }
+                                    title="View Invoice"
+                                  >
+                                    <FaDownload
+                                      className="text-success"
+                                      size={14}
+                                    />
+                                  </div>
+                                )}
                               </td>
-                              <td style={{ padding: "12px", textAlign: "center" }}>
+                              {/* <td
+                                style={{ padding: "12px", textAlign: "center" }}
+                              >
                                 <div className="d-flex align-items-center justify-content-center gap-2">
-                                  {/* <div
+                                  <div
                                     className="d-inline-flex align-items-center justify-content-center"
                                     style={{ 
                                       cursor: "pointer",
@@ -1145,7 +1682,7 @@ const Payments = () => {
                                     ) : (
                                       <FaEye className="text-primary" size={16} />
                                     )}
-                                  </div> */}
+                                  </div>
                                   {item?.invoiceUrl ? (
                                     <div
                                       className="d-inline-flex align-items-center justify-content-center"
@@ -1155,20 +1692,36 @@ const Payments = () => {
                                         height: "36px",
                                         borderRadius: "8px",
                                         backgroundColor: "#e7ffe7",
-                                        transition: "all 0.2s"
+                                        transition: "all 0.2s",
                                       }}
-                                      onClick={() => window.open(item.invoiceUrl, '_blank')}
-                                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#ccffcc"}
-                                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#e7ffe7"}
+                                      onClick={() =>
+                                        window.open(item.invoiceUrl, "_blank")
+                                      }
+                                      onMouseEnter={(e) =>
+                                      (e.currentTarget.style.backgroundColor =
+                                        "#ccffcc")
+                                      }
+                                      onMouseLeave={(e) =>
+                                      (e.currentTarget.style.backgroundColor =
+                                        "#e7ffe7")
+                                      }
                                       title="View Invoice"
                                     >
-                                      <FaDownload className="text-success" size={14} />
+                                      <FaDownload
+                                        className="text-success"
+                                        size={14}
+                                      />
                                     </div>
                                   ) : (
-                                    <span className="text-muted" style={{ fontSize: "11px" }}>N/A</span>
+                                    <span
+                                      className="text-muted"
+                                      style={{ fontSize: "11px" }}
+                                    >
+                                      N/A
+                                    </span>
                                   )}
                                 </div>
-                              </td>
+                              </td> */}
                             </tr>
                           ))}
                         </tbody>
@@ -1177,60 +1730,103 @@ const Payments = () => {
 
                     <div className="mobile-card-table d-block d-md-none">
                       {filteredPayments?.map((item, index) => (
-                        <div key={item?._id || `mobile-payment-${index}`} className="card mb-2">
+                        <div
+                          key={item?._id || `mobile-payment-${index}`}
+                          className="card mb-2"
+                        >
                           <div className="card-body">
                             <div className="mobile-card-item">
                               <span className="mobile-card-label">User:</span>
                               <span className="mobile-card-value">
-                                {item?.userId?.name || "N/A"} ({item?.userId?.countryCode} {item?.userId?.phoneNumber})
+                                {item?.userId?.name || "N/A"} (
+                                {item?.userId?.countryCode}{" "}
+                                {item?.userId?.phoneNumber})
                               </span>
                             </div>
                             <div className="mobile-card-item">
-                              <span className="mobile-card-label">Club & Owner:</span>
+                              <span className="mobile-card-label">
+                                Club & Owner:
+                              </span>
                               <span className="mobile-card-value">
-                                {item?.register_club_id?.clubName || "N/A"} • {item?.ownerId?.name}
+                                {item?.register_club_id?.clubName || "N/A"} •{" "}
+                                {item?.ownerId?.name}
                               </span>
                             </div>
                             <div className="mobile-card-item">
-                              <span className="mobile-card-label">Court & Time:</span>
+                              <span className="mobile-card-label">
+                                Court & Time:
+                              </span>
                               <span className="mobile-card-value">
-                                {item?.slot?.[0]?.courtName || "N/A"} • {item?.startTime || "N/A"} - {item?.endTime || "N/A"} ({item?.duration}min)
+                                {item?.slot?.[0]?.courtName || "N/A"} •{" "}
+                                {item?.startTime || "N/A"} -{" "}
+                                {item?.endTime || "N/A"} ({item?.duration}min)
                               </span>
                             </div>
                             <div className="mobile-card-item">
-                              <span className="mobile-card-label">Booking Info:</span>
+                              <span className="mobile-card-label">
+                                Booking Info:
+                              </span>
                               <span className="mobile-card-value">
-                                {item?.bookingType?.toUpperCase()} • {item?.matchType}
+                                {item?.bookingType?.toUpperCase()} •{" "}
+                                {item?.matchType}
                               </span>
                             </div>
-                            {(paymentStatus === "paid" || activePayableFilter === true) && (
-                              <div className="mobile-card-item">
-                                <span className="mobile-card-label">Club Payment:</span>
-                                <span className="mobile-card-value">
-                                  {item?.clubPaidStatus?.toUpperCase() || "UNPAID"}
-                                </span>
-                              </div>
-                            )}
+                            {(paymentStatus === "paid" ||
+                              activePayableFilter === true) && (
+                                <div className="mobile-card-item">
+                                  <span className="mobile-card-label">
+                                    Club Payment:
+                                  </span>
+                                  <span className="mobile-card-value">
+                                    {item?.clubPaidStatus?.toUpperCase() ||
+                                      "UNPAID"}
+                                  </span>
+                                </div>
+                              )}
                             <div className="mobile-card-item">
-                              <span className="mobile-card-label">Booking Date:</span>
+                              <span className="mobile-card-label">
+                                Booking Date:
+                              </span>
                               <span className="mobile-card-value">
-                                {formatDate(item?.bookingDate)} {item?.createdAt ? new Date(item.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : ""}
+                                {formatDate(item?.bookingDate)}{" "}
+                                {item?.createdAt
+                                  ? new Date(item.createdAt).toLocaleTimeString(
+                                    "en-US",
+                                    { hour: "2-digit", minute: "2-digit" },
+                                  )
+                                  : ""}
                               </span>
                             </div>
                             <div className="mobile-card-item">
-                              <span className="mobile-card-label">Payment Date:</span>
+                              <span className="mobile-card-label">
+                                Payment Date:
+                              </span>
                               <span className="mobile-card-value">
-                                {item?.paidDate ? formatDate(item.paidDate) : item?.updatedAt ? formatDate(item.updatedAt) : "N/A"} {item?.updatedAt ? new Date(item.updatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : ""}
+                                {item?.paidDate
+                                  ? formatDate(item.paidDate)
+                                  : item?.updatedAt
+                                    ? formatDate(item.updatedAt)
+                                    : "N/A"}{" "}
+                                {item?.updatedAt
+                                  ? new Date(item.updatedAt).toLocaleTimeString(
+                                    "en-US",
+                                    { hour: "2-digit", minute: "2-digit" },
+                                  )
+                                  : ""}
                               </span>
                             </div>
-                            {(paymentStatus === "paid" || activePayableFilter === true) && (
-                              <div className="mobile-card-item">
-                                <span className="mobile-card-label">Payment:</span>
-                                <span className="mobile-card-value">
-                                  {item?.paymentStatus?.toUpperCase() || "N/A"} • {item?.paymentMethod || "N/A"}
-                                </span>
-                              </div>
-                            )}
+                            {(paymentStatus === "paid" ||
+                              activePayableFilter === true) && (
+                                <div className="mobile-card-item">
+                                  <span className="mobile-card-label">
+                                    Payment:
+                                  </span>
+                                  <span className="mobile-card-value">
+                                    {item?.paymentStatus?.toUpperCase() || "N/A"}{" "}
+                                    • {item?.paymentMethod || "N/A"}
+                                  </span>
+                                </div>
+                              )}
                             <div className="mobile-card-item">
                               <span className="mobile-card-label">Amount:</span>
                               <span className="mobile-card-value">
@@ -1255,13 +1851,20 @@ const Payments = () => {
                                 {item?.invoiceUrl ? (
                                   <FaDownload
                                     className="text-success"
-                                    onClick={() => window.open(item.invoiceUrl, '_blank')}
+                                    onClick={() =>
+                                      window.open(item.invoiceUrl, "_blank")
+                                    }
                                     size={16}
                                     style={{ cursor: "pointer" }}
                                     title="View Invoice"
                                   />
                                 ) : (
-                                  <span className="text-muted" style={{ fontSize: "11px" }}>N/A</span>
+                                  <span
+                                    className="text-muted"
+                                    style={{ fontSize: "11px" }}
+                                  >
+                                    N/A
+                                  </span>
                                 )}
                               </div>
                             </div>
@@ -1318,61 +1921,213 @@ const Payments = () => {
         }}
       />
 
-      <Offcanvas show={showPaymentDrawer} onHide={() => setShowPaymentDrawer(false)} placement="end" style={{ width: "500px", zIndex: 1040 }} backdrop={false}>
-        <Offcanvas.Header closeButton style={{ borderBottom: "2px solid #e9ecef", padding: "16px 20px", backgroundColor: "#f8f9fa" }}>
-          <Offcanvas.Title style={{ fontSize: "18px", fontWeight: "700", color: "#1a1a1a" }}>
+      <Offcanvas
+        show={showPaymentDrawer}
+        onHide={() => setShowPaymentDrawer(false)}
+        placement="end"
+        style={{ width: "500px", zIndex: 1040 }}
+        backdrop={false}
+      >
+        <Offcanvas.Header
+          closeButton
+          style={{
+            borderBottom: "2px solid #e9ecef",
+            padding: "16px 20px",
+            backgroundColor: "#f8f9fa",
+          }}
+        >
+          <Offcanvas.Title
+            style={{ fontSize: "18px", fontWeight: "700", color: "#1a1a1a" }}
+          >
             {selectedClub ? selectedClub.clubName : "Payment Details"}
-            <span style={{ fontSize: "14px", fontWeight: "500", color: "#6c757d", marginLeft: "8px" }}>({selectedPayments.length} bookings)</span>
+            <span
+              style={{
+                fontSize: "14px",
+                fontWeight: "500",
+                color: "#6c757d",
+                marginLeft: "8px",
+              }}
+            >
+              ({selectedPayments.length} bookings)
+            </span>
           </Offcanvas.Title>
         </Offcanvas.Header>
-        <Offcanvas.Body style={{ padding: "16px", backgroundColor: "#ffffff", display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
-          <div className="alert alert-warning d-flex align-items-start" style={{ fontSize: "11px", padding: "8px", marginBottom: "10px", border: "1px solid #ffc107", borderRadius: "4px", flexShrink: 0 }}>
+        <Offcanvas.Body
+          style={{
+            padding: "16px",
+            backgroundColor: "#ffffff",
+            display: "flex",
+            flexDirection: "column",
+            height: "100%",
+            overflow: "hidden",
+          }}
+        >
+          <div
+            className="alert alert-warning d-flex align-items-start"
+            style={{
+              fontSize: "11px",
+              padding: "8px",
+              marginBottom: "10px",
+              border: "1px solid #ffc107",
+              borderRadius: "4px",
+              flexShrink: 0,
+            }}
+          >
             <div style={{ marginRight: "6px", fontSize: "14px" }}>⚠️</div>
             <div>
-              <strong>Important:</strong> Please select the transaction for the club owner to mark it as Paid.
-              Ensure the payment has been completed before confirming, as this action cannot be reversed and the transaction cannot be retrieved once marked as Paid.
+              <strong>Important:</strong> Please select the transaction for the
+              club owner to mark it as Paid. Ensure the payment has been
+              completed before confirming, as this action cannot be reversed and
+              the transaction cannot be retrieved once marked as Paid.
             </div>
           </div>
-          <div className="mb-2 p-2 rounded" style={{ backgroundColor: "#f0f8ff", border: "1px solid #cce5ff", flexShrink: 0 }}>
+          <div
+            className="mb-2 p-2 rounded"
+            style={{
+              backgroundColor: "#f0f8ff",
+              border: "1px solid #cce5ff",
+              flexShrink: 0,
+            }}
+          >
             <div className="d-flex justify-content-between align-items-center mb-2">
-              <span style={{ fontSize: "13px", fontWeight: "600", color: "#495057" }}>Total Amount</span>
-              <span style={{ fontSize: "20px", fontWeight: "700", color: "#28a745" }}>₹{selectedTotal.toLocaleString()}</span>
+              <span
+                style={{
+                  fontSize: "13px",
+                  fontWeight: "600",
+                  color: "#495057",
+                }}
+              >
+                Total Amount
+              </span>
+              <span
+                style={{
+                  fontSize: "20px",
+                  fontWeight: "700",
+                  color: "#28a745",
+                }}
+              >
+                ₹{selectedTotal.toLocaleString()}
+              </span>
             </div>
             <div className="d-flex justify-content-between align-items-center">
-              <span style={{ fontSize: "13px", fontWeight: "600", color: "#495057" }}>Payment Date <span className="text-danger">*</span></span>
+              <span
+                style={{
+                  fontSize: "13px",
+                  fontWeight: "600",
+                  color: "#495057",
+                }}
+              >
+                Payment Date <span className="text-danger">*</span>
+              </span>
               <DatePicker
                 selected={paymentDate}
                 onChange={(date) => setPaymentDate(date)}
                 dateFormat="dd/MM/yyyy"
                 className="form-control text-end"
                 style={{ fontSize: "13px", width: "130px", padding: "4px 8px" }}
-                required disabled
+                required
+                disabled
               />
             </div>
           </div>
 
-          <div className="mb-2" style={{ flexGrow: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-            <h6 className="fw-bold mb-2" style={{ fontSize: "12px", color: "#1a1a1a", textTransform: "uppercase", letterSpacing: "0.5px", flexShrink: 0 }}>Selected Bookings</h6>
-            <div style={{ flexGrow: 1, overflowY: "auto", border: "1px solid #dee2e6", borderRadius: "4px" }}>
+          <div
+            className="mb-2"
+            style={{
+              flexGrow: 1,
+              display: "flex",
+              flexDirection: "column",
+              minHeight: 0,
+            }}
+          >
+            <h6
+              className="fw-bold mb-2"
+              style={{
+                fontSize: "12px",
+                color: "#1a1a1a",
+                textTransform: "uppercase",
+                letterSpacing: "0.5px",
+                flexShrink: 0,
+              }}
+            >
+              Selected Bookings
+            </h6>
+            <div
+              style={{
+                flexGrow: 1,
+                overflowY: "auto",
+                border: "1px solid #dee2e6",
+                borderRadius: "4px",
+              }}
+            >
               {selectedPayments.length === 0 ? (
-                <div className="text-center text-muted py-4" style={{ fontSize: "13px" }}>
+                <div
+                  className="text-center text-muted py-4"
+                  style={{ fontSize: "13px" }}
+                >
                   No bookings selected
                 </div>
               ) : (
-                <table className="table table-sm table-hover mb-0" style={{ fontSize: "13px" }}>
-                  <thead style={{ backgroundColor: "#e9ecef", position: "sticky", top: 0, zIndex: 1 }}>
+                <table
+                  className="table table-sm table-hover mb-0"
+                  style={{ fontSize: "13px" }}
+                >
+                  <thead
+                    style={{
+                      backgroundColor: "#e9ecef",
+                      position: "sticky",
+                      top: 0,
+                      zIndex: 1,
+                    }}
+                  >
                     <tr>
-                      <th style={{ padding: "12px 8px", fontWeight: "700", color: "#212529", borderBottom: "2px solid #dee2e6", width: "40px" }}></th>
-                      <th style={{ padding: "12px 12px", fontWeight: "700", color: "#212529", borderBottom: "2px solid #dee2e6" }}>Booking Date</th>
-                      <th style={{ padding: "12px 12px", textAlign: "right", fontWeight: "700", color: "#212529", borderBottom: "2px solid #dee2e6" }}>Amount</th>
+                      <th
+                        style={{
+                          padding: "12px 8px",
+                          fontWeight: "700",
+                          color: "#212529",
+                          borderBottom: "2px solid #dee2e6",
+                          width: "40px",
+                        }}
+                      ></th>
+                      <th
+                        style={{
+                          padding: "12px 12px",
+                          fontWeight: "700",
+                          color: "#212529",
+                          borderBottom: "2px solid #dee2e6",
+                        }}
+                      >
+                        Booking Date
+                      </th>
+                      <th
+                        style={{
+                          padding: "12px 12px",
+                          textAlign: "right",
+                          fontWeight: "700",
+                          color: "#212529",
+                          borderBottom: "2px solid #dee2e6",
+                        }}
+                      >
+                        Amount
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {(selectAll ? allBookings : payments)
-                      .filter(p => selectedPayments.includes(p._id))
-                      .slice((drawerCurrentPage - 1) * 20, drawerCurrentPage * 20)
+                      .filter((p) => selectedPayments.includes(p._id))
+                      .slice(
+                        (drawerCurrentPage - 1) * 20,
+                        drawerCurrentPage * 20,
+                      )
                       .map((item, index) => (
-                        <tr key={item._id} style={{ backgroundColor: index % 2 === 0 ? "#ffffff" : "#f9f9f9" }}>
+                        <tr
+                          key={item._id}
+                          style={{
+                            backgroundColor:
+                              index % 2 === 0 ? "#ffffff" : "#f9f9f9",
+                          }}
+                        >
                           <td style={{ padding: "10px 8px" }}>
                             <Form.Check
                               type="checkbox"
@@ -1380,8 +2135,19 @@ const Payments = () => {
                               onChange={() => handleSelectPayment(item._id)}
                             />
                           </td>
-                          <td style={{ padding: "10px 12px", color: "#495057" }}>{formatDate(item?.bookingDate)}</td>
-                          <td style={{ padding: "10px 12px", textAlign: "right", fontWeight: "600", color: "#28a745" }}>
+                          <td
+                            style={{ padding: "10px 12px", color: "#495057" }}
+                          >
+                            {formatDate(item?.bookingDate)}
+                          </td>
+                          <td
+                            style={{
+                              padding: "10px 12px",
+                              textAlign: "right",
+                              fontWeight: "600",
+                              color: "#28a745",
+                            }}
+                          >
                             ₹{item?.totalAmount || 0}
                           </td>
                         </tr>
@@ -1391,7 +2157,10 @@ const Payments = () => {
               )}
             </div>
             {selectedPayments.length > 20 && (
-              <div className="d-flex justify-content-center mt-2" style={{ flexShrink: 0 }}>
+              <div
+                className="d-flex justify-content-center mt-2"
+                style={{ flexShrink: 0 }}
+              >
                 <Pagination
                   totalRecords={selectedPayments.length}
                   defaultLimit={20}
@@ -1403,7 +2172,14 @@ const Payments = () => {
           </div>
 
           <div className="mb-2" style={{ flexShrink: 0 }}>
-            <Form.Label style={{ fontSize: "11px", fontWeight: "600", color: "#495057", marginBottom: "4px" }}>
+            <Form.Label
+              style={{
+                fontSize: "11px",
+                fontWeight: "600",
+                color: "#495057",
+                marginBottom: "4px",
+              }}
+            >
               <b>Payment Status</b> <span className="text-danger">*</span>
             </Form.Label>
             <Form.Select
@@ -1411,7 +2187,8 @@ const Payments = () => {
               onChange={(e) => setDrawerPaymentStatus(e.target.value)}
               size="sm"
               style={{ fontSize: "12px", padding: "5px 8px" }}
-              required disabled
+              required
+              disabled
             >
               {/* <option value="">Select Status</option> */}
               <option value="paid">Paid</option>
@@ -1420,7 +2197,16 @@ const Payments = () => {
           </div>
 
           <div className="mb-2" style={{ flexShrink: 0 }}>
-            <Form.Label style={{ fontSize: "11px", fontWeight: "600", color: "#495057", marginBottom: "4px" }}><b>{'Upload Document'}</b></Form.Label>
+            <Form.Label
+              style={{
+                fontSize: "11px",
+                fontWeight: "600",
+                color: "#495057",
+                marginBottom: "4px",
+              }}
+            >
+              <b>{"Upload Document"}</b>
+            </Form.Label>
             <input
               type="file"
               ref={fileInputRef}
@@ -1436,16 +2222,29 @@ const Payments = () => {
               style={{ fontSize: "11px", padding: "5px 10px" }}
             >
               <FaDownload size={10} />
-              <span>{paymentDocument ? `✓ ${paymentDocument.name.substring(0, 20)}...` : "Upload Document"}</span>
+              <span>
+                {paymentDocument
+                  ? `✓ ${paymentDocument.name.substring(0, 20)}...`
+                  : "Upload Document"}
+              </span>
             </Button>
           </div>
 
           <Button
             variant="success"
             className="w-100 d-flex align-items-center justify-content-center gap-2"
-            style={{ padding: "8px", fontSize: "12px", fontWeight: "600", flexShrink: 0 }}
+            style={{
+              padding: "8px",
+              fontSize: "12px",
+              fontWeight: "600",
+              flexShrink: 0,
+            }}
             onClick={handleGenerateExcel}
-            disabled={selectedPayments.length === 0 || !drawerPaymentStatus || generatingPayment}
+            disabled={
+              selectedPayments.length === 0 ||
+              !drawerPaymentStatus ||
+              generatingPayment
+            }
           >
             {generatingPayment ? (
               <>

@@ -4,6 +4,8 @@ import {
   getBookingByStatus,
   getBookingDetailsById,
   updateBookingStatus,
+  getCategoryList,
+  getAllClubs,
 } from "./thunk";
 
 const initialState = {
@@ -22,6 +24,14 @@ const initialState = {
   bookingCount: null,
   bookingCountLoading: false,
   bookingCountError: null,
+
+  categoryList: [],
+  categoryListLoading: false,
+  categoryListError: null,
+
+  clubs: [],
+  clubsLoading: false,
+  clubsError: null,
 };
 
 const BookingSlice = createSlice({
@@ -107,6 +117,36 @@ const BookingSlice = createSlice({
       state.bookingCountLoading = false;
       state.bookingCount = null;
       state.bookingCountError = action.payload;
+    });
+
+    builder.addCase(getCategoryList.pending, (state) => {
+      state.categoryListLoading = true;
+      state.categoryListError = null;
+    });
+    builder.addCase(getCategoryList.fulfilled, (state, action) => {
+      state.categoryListLoading = false;
+      state.categoryList = action.payload;
+      state.categoryListError = null;
+    });
+    builder.addCase(getCategoryList.rejected, (state, action) => {
+      state.categoryListLoading = false;
+      state.categoryList = [];
+      state.categoryListError = action.payload;
+    });
+
+    builder.addCase(getAllClubs.pending, (state) => {
+      state.clubsLoading = true;
+      state.clubsError = null;
+    });
+    builder.addCase(getAllClubs.fulfilled, (state, action) => {
+      state.clubsLoading = false;
+      state.clubs = action.payload;
+      state.clubsError = null;
+    });
+    builder.addCase(getAllClubs.rejected, (state, action) => {
+      state.clubsLoading = false;
+      state.clubs = [];
+      state.clubsError = action.payload;
     });
   },
 });
