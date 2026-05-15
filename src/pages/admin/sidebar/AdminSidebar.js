@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   FaTachometerAlt,
@@ -22,6 +22,63 @@ import { SUPER_ADMIN_GET_ALL_OWNERS } from "../../../helpers/api/apiEndpoint";
 import { Form } from "react-bootstrap";
 import BallLogo from '../../../assets/images/BallLogo.png';
 
+const flyoutStyle = (top) => ({
+  position: "fixed",
+  left: "70px",
+  top,
+  zIndex: 9999,
+  minWidth: "170px",
+  backgroundColor: "#1C2434",
+  border: "1px solid rgba(255,255,255,0.1)",
+  borderRadius: "6px",
+  boxShadow: "0 4px 16px rgba(0,0,0,0.4)",
+  padding: "6px 0",
+});
+
+const flyoutLinkStyle = {
+  display: "flex",
+  alignItems: "center",
+  padding: "8px 16px",
+  color: "#CCD2DD",
+  fontSize: "14px",
+  fontFamily: "Poppins",
+  textDecoration: "none",
+  cursor: "pointer",
+};
+
+const useAnchorTop = (anchorRef, visible) => {
+  const [top, setTop] = useState(0);
+  useEffect(() => {
+    if (visible && anchorRef.current) {
+      setTop(anchorRef.current.getBoundingClientRect().top);
+    }
+  }, [visible, anchorRef]);
+  return top;
+};
+
+const SimpleTooltip = ({ label, anchorRef, visible }) => {
+  const top = useAnchorTop(anchorRef, visible);
+  if (!visible) return null;
+  return (
+    <div style={{ ...flyoutStyle(top), padding: "8px 14px", whiteSpace: "nowrap", minWidth: "unset" }}>
+      <span style={{ color: "#CCD2DD", fontSize: "14px", fontFamily: "Poppins", fontWeight: 500 }}>{label}</span>
+    </div>
+  );
+};
+
+const FlyoutMenu = ({ label, children, anchorRef, visible }) => {
+  const top = useAnchorTop(anchorRef, visible);
+  if (!visible) return null;
+  return (
+    <div style={flyoutStyle(top)}>
+      <div style={{ padding: "4px 16px 6px", color: "#8A99AF", fontSize: "11px", fontWeight: 600, fontFamily: "Poppins", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+        {label}
+      </div>
+      {children}
+    </div>
+  );
+};
+
 const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -37,29 +94,37 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   const [leagueExpanded, setLeagueExpanded] = useState(false);
   const [tournamentExpanded, setTournamentExpanded] = useState(false);
   const [paymentsExpanded, setPaymentsExpanded] = useState(false);
+
+  const paymentsRef = useRef(null);
+  const leagueRef = useRef(null);
+  const tournamentRef = useRef(null);
+  const dashboardRef = useRef(null);
+  const bookingRef = useRef(null);
+  const ownersRef = useRef(null);
+  const walletRef = useRef(null);
+  const appUsersRef = useRef(null);
+  const notificationsRef = useRef(null);
+  const profileRef = useRef(null);
+  const versionRef = useRef(null);
+  const xpRef = useRef(null);
+
   const isTournamentActive = location.pathname.startsWith('/admin/tournament') || location.pathname.startsWith('/admin/new-tournament') || location.pathname.startsWith('/admin/tournament/schedule');
   const isPaymentsActive = location.pathname === '/admin/payments';
+  const isLeagueActive = location.pathname.startsWith('/admin/league') || location.pathname.startsWith('/admin/new-league') || location.pathname.startsWith('/admin/view-league-schedule');
+
+  useEffect(() => { if (isTournamentActive) setTournamentExpanded(true); }, [isTournamentActive]);
+  useEffect(() => { if (isPaymentsActive) setPaymentsExpanded(true); }, [isPaymentsActive]);
+  useEffect(() => { if (isLeagueActive) setLeagueExpanded(true); }, [isLeagueActive]);
 
   useEffect(() => {
-    if (isTournamentActive) setTournamentExpanded(true);
-  }, [isTournamentActive]);
-
-  useEffect(() => {
-    if (isPaymentsActive) setPaymentsExpanded(true);
-  }, [isPaymentsActive]);
-
-  useEffect(() => {
-    if (isSuperAdmin) {
-      fetchOwners();
-    }
+    if (isSuperAdmin) fetchOwners();
   }, [isSuperAdmin]);
 
   const fetchOwners = async () => {
     try {
       setLoadingOwners(true);
       const response = await ownerApi.get(SUPER_ADMIN_GET_ALL_OWNERS);
-      const ownersData = response.data?.data?.owners || [];
-      setOwners(ownersData);
+      setOwners(response.data?.data?.owners || []);
     } catch (error) {
       console.error('Error fetching owners:', error);
       setOwners([]);
@@ -76,65 +141,47 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   };
 
   const isActivePath = (path) => location.pathname === path;
-  const isLeagueActive = location.pathname.startsWith('/admin/league') || location.pathname.startsWith('/admin/new-league') || location.pathname.startsWith('/admin/view-league-schedule');
-
-  useEffect(() => {
-    if (isLeagueActive) {
-      setLeagueExpanded(true);
-    }
-  }, [isLeagueActive]);
 
   const linkClasses = (active) =>
-    `d-flex align-items-center px-4 py-2 my-1 text-decoration-none mx-3 rounded-2 cursor-pointer ${active ? "active-parent-link" : "bg-transparent"
-    }`;
+    `d-flex align-items-center px-4 py-2 my-1 text-decoration-none mx-3 rounded-2 cursor-pointer ${active ? "active-parent-link" : "bg-transparent"}`;
 
-  const handleNavigation = (path) => {
-    navigate(path);
-    if (window.innerWidth <= 768) {
-      onClose();
-    }
-  };
+  const collapsedIconClass = "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer";
+
+  const iconStyle = (isActive) => ({
+    backgroundColor: isActive ? "rgba(31, 65, 187, 0.15)" : "transparent",
+    color: "#CCD2DD",
+    fontSize: "15px",
+    fontWeight: "500",
+    fontFamily: "Poppins",
+    boxShadow: isActive ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
+    minHeight: isCollapsed ? "48px" : "auto",
+    width: isCollapsed ? "48px" : "auto",
+    cursor: "pointer",
+  });
+
+  const closeFlyout = () => setHoveredItem(null);
+
+  const isDesktopCollapsed = isCollapsed && window.innerWidth > 768;
 
   return (
     <aside
-      className={`admin-sidebar text-white vh-100 d-flex flex-column ${isOpen ? "mobile-open" : ""
-        } ${isCollapsed ? "collapsed" : ""}`}
-      style={{
-        width: isCollapsed ? "70px" : "250px",
-        backgroundColor: "#1C2434",
-      }}
+      className={`admin-sidebar text-white vh-100 d-flex flex-column ${isOpen ? "mobile-open" : ""} ${isCollapsed ? "collapsed" : ""}`}
+      style={{ width: isCollapsed ? "70px" : "250px", backgroundColor: "#1C2434" }}
     >
-      {/* Logo Section */}
+      {/* Logo */}
       <div
         className="d-flex align-items-center justify-content-center mb-4 pb-3 border-bottom"
         style={{ marginTop: "20px", cursor: 'pointer', borderColor: 'rgba(255,255,255,0.1)' }}
         onClick={() => navigate(isSubAdmin ? '/admin/tournament/creation' : '/admin/dashboard')}
       >
-        <div className={`position-relative ${isCollapsed ? "" : "me-3"}`}>
-          {/* <div
-            className="rounded-circle p-3"
-            style={{
-              background: 'rgb(31, 65, 187)',
-              boxShadow: '0 4px 12px rgba(31, 65, 187, 0.3)'
-            }}
-          > */}
-          <img src={BallLogo} alt="Swoot App" className="rounded-circle" style={{ width: isCollapsed ? 35 : 75, height: isCollapsed ? 35 : 75 }} />
-          {/* </div> */}
-        </div>
+        <img src={BallLogo} alt="Swoot App" className="rounded-circle" style={{ width: isCollapsed ? 35 : 75, height: isCollapsed ? 35 : 75 }} />
       </div>
 
       {/* Super Admin Badge */}
       {isSuperAdmin && !isCollapsed && (
         <div className="px-3 mb-3">
-          <div
-            className="text-white p-2 rounded text-center small fw-bold"
-            onClick={() => navigate(isSubAdmin ? '/admin/tournament/creation' : '/admin/dashboard')}
-            style={{
-              cursor: 'pointer',
-              background: 'rgb(31, 65, 187)',
-              boxShadow: '0 2px 8px rgba(31, 65, 187, 0.3)'
-            }}
-          >
+          <div className="text-white p-2 rounded text-center small fw-bold" onClick={() => navigate('/admin/dashboard')}
+            style={{ cursor: 'pointer', background: 'rgb(31, 65, 187)', boxShadow: '0 2px 8px rgba(31, 65, 187, 0.3)' }}>
             SUPER ADMIN
           </div>
         </div>
@@ -147,17 +194,8 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
           {loadingOwners ? (
             <ButtonLoading height="38px" color="white" />
           ) : (
-            <Form.Select
-              value={selectedOwnerId || 'all'}
-              onChange={handleOwnerChange}
-              size="sm"
-              style={{
-                backgroundColor: "#2D3748",
-                color: "#CCD2DD",
-                border: "1px solid #4A5568",
-                fontSize: "13px"
-              }}
-            >
+            <Form.Select value={selectedOwnerId || 'all'} onChange={handleOwnerChange} size="sm"
+              style={{ backgroundColor: "#2D3748", color: "#CCD2DD", border: "1px solid #4A5568", fontSize: "13px" }}>
               <option value="all">All Owners (Global View)</option>
               {owners.map((owner) => (
                 <option key={owner._id} value={owner._id}>
@@ -175,800 +213,262 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
       )}
 
       <nav className="flex-grow-1 mt-2" style={{ overflowY: 'auto', overflowX: 'hidden' }}>
-        {!isCollapsed && (
-          <p className="px-4 py-0 mb-1" style={{ color: "#8A99AF" }}>
-            MENU
-          </p>
-        )}
+        {!isCollapsed && <p className="px-4 py-0 mb-1" style={{ color: "#8A99AF" }}>MENU</p>}
 
+        {/* Dashboard */}
         {!isSubAdmin && (
-          <div
-            className="position-relative"
-            onMouseEnter={() =>
-              isCollapsed && window.innerWidth > 768 && setHoveredItem("dashboard")
-            }
-            onMouseLeave={() => setHoveredItem(null)}
-          >
-            <NavLink
-              to="/admin/dashboard"
-              end
-              className={
-                isCollapsed && window.innerWidth > 768
-                  ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
-                  : linkClasses(isActivePath("/admin/dashboard"))
-              }
-              style={() => ({
-                backgroundColor: isActivePath("/admin/dashboard") ? "rgba(31, 65, 187, 0.15)" : "transparent",
-                color: "#CCD2DD",
-                fontSize: "15px",
-                fontWeight: "500",
-                fontFamily: "Poppins",
-                boxShadow: isActivePath("/admin/dashboard") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
-                minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-                width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-              })}
-              onClick={() => window.innerWidth <= 768 && onClose()}
-            >
-              <FaTachometerAlt
-                className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
-                size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
-              />
-              {(!isCollapsed || window.innerWidth <= 768) && "Dashboard"}
+          <div className="position-relative" ref={dashboardRef}
+            onMouseEnter={() => isDesktopCollapsed && setHoveredItem("dashboard")}
+            onMouseLeave={() => setHoveredItem(null)}>
+            <NavLink to="/admin/dashboard" end
+              className={isDesktopCollapsed ? collapsedIconClass : linkClasses(isActivePath("/admin/dashboard"))}
+              style={() => iconStyle(isActivePath("/admin/dashboard"))}
+              onClick={() => window.innerWidth <= 768 && onClose()}>
+              <FaTachometerAlt className={isDesktopCollapsed ? "" : "me-4"} size={isDesktopCollapsed ? 18 : 20} />
+              {!isDesktopCollapsed && "Dashboard"}
             </NavLink>
-            {isCollapsed && window.innerWidth > 768 && hoveredItem === "dashboard" && (
-              <div
-                className="position-absolute bg-dark px-2 py-1 rounded"
-                style={{
-                  left: "75px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  zIndex: 1200,
-                  fontSize: "15px",
-                  fontWeight: "500",
-                  fontFamily: "Poppins",
-                  color: "#CCD2DD",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Dashboard
-              </div>
-            )}
+            <SimpleTooltip label="Dashboard" anchorRef={dashboardRef} visible={isDesktopCollapsed && hoveredItem === "dashboard"} />
           </div>
         )}
 
         {/* Bookings */}
         {!isSubAdmin && (
-          <div
-            className="position-relative"
-            onMouseEnter={() =>
-              isCollapsed && window.innerWidth > 768 && setHoveredItem("booking")
-            }
-            onMouseLeave={() => setHoveredItem(null)}
-          >
-            <NavLink
-              to="/admin/booking"
-              end
-              className={
-                isCollapsed && window.innerWidth > 768
-                  ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
-                  : linkClasses(isActivePath("/admin/booking"))
-              }
-              style={() => ({
-                backgroundColor: isActivePath("/admin/booking") ? "rgba(31, 65, 187, 0.15)" : "transparent",
-                color: "#CCD2DD",
-                fontSize: "15px",
-                fontWeight: "500",
-                fontFamily: "Poppins",
-                boxShadow: isActivePath("/admin/booking") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
-                minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-                width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-              })}
-              onClick={() => window.innerWidth <= 768 && onClose()}
-            >
-              <FaCalendarAlt
-                className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
-                size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
-              />
-              {(!isCollapsed || window.innerWidth <= 768) && "Bookings"}
+          <div className="position-relative" ref={bookingRef}
+            onMouseEnter={() => isDesktopCollapsed && setHoveredItem("booking")}
+            onMouseLeave={() => setHoveredItem(null)}>
+            <NavLink to="/admin/booking" end
+              className={isDesktopCollapsed ? collapsedIconClass : linkClasses(isActivePath("/admin/booking"))}
+              style={() => iconStyle(isActivePath("/admin/booking"))}
+              onClick={() => window.innerWidth <= 768 && onClose()}>
+              <FaCalendarAlt className={isDesktopCollapsed ? "" : "me-4"} size={isDesktopCollapsed ? 18 : 20} />
+              {!isDesktopCollapsed && "Bookings"}
             </NavLink>
-            {isCollapsed && window.innerWidth > 768 && hoveredItem === "booking" && (
-              <div
-                className="position-absolute bg-dark px-2 py-1 rounded"
-                style={{
-                  left: "75px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  zIndex: 1200,
-                  fontSize: "15px",
-                  fontWeight: "500",
-                  fontFamily: "Poppins",
-                  color: "#CCD2DD",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Bookings
-              </div>
-            )}
+            <SimpleTooltip label="Bookings" anchorRef={bookingRef} visible={isDesktopCollapsed && hoveredItem === "booking"} />
           </div>
         )}
 
-        {/* Owners Management */}
+        {/* Owners */}
         {isSuperAdmin && !isSubAdmin && (
-          <div
-            className="position-relative"
-            onMouseEnter={() =>
-              isCollapsed && window.innerWidth > 768 && setHoveredItem("owners")
-            }
-            onMouseLeave={() => setHoveredItem(null)}
-          >
-            <NavLink
-              to="/admin/owners"
-              end
-              className={
-                isCollapsed && window.innerWidth > 768
-                  ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
-                  : linkClasses(isActivePath("/admin/owners"))
-              }
-              style={() => ({
-                backgroundColor: isActivePath("/admin/owners") ? "rgba(31, 65, 187, 0.15)" : "transparent",
-                color: "#CCD2DD",
-                fontSize: "15px",
-                fontWeight: "500",
-                fontFamily: "Poppins",
-                boxShadow: isActivePath("/admin/owners") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
-                minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-                width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-              })}
-              onClick={() => window.innerWidth <= 768 && onClose()}
-            >
-              <FaUsersCog
-                className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
-                size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
-              />
-              {(!isCollapsed || window.innerWidth <= 768) && "Owners"}
+          <div className="position-relative" ref={ownersRef}
+            onMouseEnter={() => isDesktopCollapsed && setHoveredItem("owners")}
+            onMouseLeave={() => setHoveredItem(null)}>
+            <NavLink to="/admin/owners" end
+              className={isDesktopCollapsed ? collapsedIconClass : linkClasses(isActivePath("/admin/owners"))}
+              style={() => iconStyle(isActivePath("/admin/owners"))}
+              onClick={() => window.innerWidth <= 768 && onClose()}>
+              <FaUsersCog className={isDesktopCollapsed ? "" : "me-4"} size={isDesktopCollapsed ? 18 : 20} />
+              {!isDesktopCollapsed && "Owners"}
             </NavLink>
-            {isCollapsed && window.innerWidth > 768 && hoveredItem === "owners" && (
-              <div
-                className="position-absolute bg-dark px-2 py-1 rounded"
-                style={{
-                  left: "75px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  zIndex: 1200,
-                  fontSize: "15px",
-                  fontWeight: "500",
-                  fontFamily: "Poppins",
-                  color: "#CCD2DD",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Owners
-              </div>
-            )}
+            <SimpleTooltip label="Owners" anchorRef={ownersRef} visible={isDesktopCollapsed && hoveredItem === "owners"} />
           </div>
         )}
 
         {/* Payments */}
         {!isSubAdmin && (
-          <div
-            className="position-relative"
-            onMouseEnter={() => isCollapsed && window.innerWidth > 768 && setHoveredItem("payments")}
-            onMouseLeave={() => setHoveredItem(null)}
-          >
+          <div className="position-relative"
+            ref={paymentsRef}
+            onMouseEnter={() => isDesktopCollapsed && setHoveredItem("payments")}
+            onMouseLeave={(e) => { if (!e.relatedTarget || !e.currentTarget.contains(e.relatedTarget)) setHoveredItem(null); }}>
             <div
-              className={isCollapsed && window.innerWidth > 768
-                ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
-                : linkClasses(isPaymentsActive)}
-              style={{
-                backgroundColor: isPaymentsActive ? "rgba(31, 65, 187, 0.15)" : "transparent",
-                color: "#CCD2DD",
-                fontSize: "15px",
-                fontWeight: "500",
-                fontFamily: "Poppins",
-                boxShadow: isPaymentsActive ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
-                minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-                width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-                cursor: "pointer",
-              }}
-              onClick={() => !isCollapsed && setPaymentsExpanded(!paymentsExpanded)}
-            >
-              <RiWallet3Line
-                className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
-                size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
-              />
-              {(!isCollapsed || window.innerWidth <= 768) && (
-                <>
-                  <span className="flex-grow-1">Payments</span>
-                  {paymentsExpanded ? <FaChevronUp size={14} /> : <FaChevronDown size={14} />}
-                </>
+              className={isDesktopCollapsed ? collapsedIconClass : linkClasses(isPaymentsActive)}
+              style={iconStyle(isPaymentsActive)}
+              onClick={() => { if (isDesktopCollapsed) { navigate('/admin/payments?status=unpaid'); } else { setPaymentsExpanded(!paymentsExpanded); } }}>
+              <RiWallet3Line className={isDesktopCollapsed ? "" : "me-4"} size={isDesktopCollapsed ? 18 : 20} />
+              {!isDesktopCollapsed && (
+                <><span className="flex-grow-1">Payments</span>{paymentsExpanded ? <FaChevronUp size={14} /> : <FaChevronDown size={14} />}</>
               )}
             </div>
-            {isCollapsed && window.innerWidth > 768 && hoveredItem === "payments" && (
-              <div className="position-absolute bg-dark px-2 py-1 rounded"
-                style={{ left: "75px", top: "50%", transform: "translateY(-50%)", zIndex: 1200, fontSize: "15px", fontWeight: "500", fontFamily: "Poppins", color: "#CCD2DD", whiteSpace: "nowrap" }}>
-                Payments
-              </div>
-            )}
-            {paymentsExpanded && (!isCollapsed || window.innerWidth <= 768) && (
+            <FlyoutMenu label="Payments" anchorRef={paymentsRef} visible={isDesktopCollapsed && hoveredItem === "payments"}>
+              <NavLink to="/admin/payments?status=unpaid" style={flyoutLinkStyle} onClick={closeFlyout}>Unpaid</NavLink>
+              <NavLink to="/admin/payments?status=paid" style={flyoutLinkStyle} onClick={closeFlyout}>Paid</NavLink>
+            </FlyoutMenu>
+            {paymentsExpanded && !isDesktopCollapsed && (
               <div className="ms-4">
-                <NavLink
-                  to="/admin/payments?status=unpaid"
+                <NavLink to="/admin/payments?status=unpaid"
                   className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
-                  style={{
-                    backgroundColor: location.search === '?status=unpaid' ? "rgba(31, 65, 187, 0.1)" : "transparent",
-                    color: "#CCD2DD",
-                    fontSize: "14px",
-                    fontWeight: "400",
-                    fontFamily: "Poppins",
-                  }}
-                  onClick={() => window.innerWidth <= 768 && onClose()}
-                >
-                  Unpaid
-                </NavLink>
-                <NavLink
-                  to="/admin/payments?status=paid"
+                  style={{ backgroundColor: location.search === '?status=unpaid' ? "rgba(31, 65, 187, 0.1)" : "transparent", color: "#CCD2DD", fontSize: "14px", fontFamily: "Poppins" }}
+                  onClick={() => window.innerWidth <= 768 && onClose()}>Unpaid</NavLink>
+                <NavLink to="/admin/payments?status=paid"
                   className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
-                  style={{
-                    backgroundColor: location.search === '?status=paid' ? "rgba(31, 65, 187, 0.1)" : "transparent",
-                    color: "#CCD2DD",
-                    fontSize: "14px",
-                    fontWeight: "400",
-                    fontFamily: "Poppins",
-                  }}
-                  onClick={() => window.innerWidth <= 768 && onClose()}
-                >
-                  Paid
-                </NavLink>
+                  style={{ backgroundColor: location.search === '?status=paid' ? "rgba(31, 65, 187, 0.1)" : "transparent", color: "#CCD2DD", fontSize: "14px", fontFamily: "Poppins" }}
+                  onClick={() => window.innerWidth <= 768 && onClose()}>Paid</NavLink>
               </div>
             )}
           </div>
         )}
 
-        {/* Payment Reconciliation */}
+        {/* League */}
         {!isSubAdmin && (
-          <div
-            className="position-relative"
-            onMouseEnter={() =>
-              isCollapsed && window.innerWidth > 768 && setHoveredItem("reconciliation")
-            }
-            onMouseLeave={() => setHoveredItem(null)}
-          >
-            <NavLink
-              to="/admin/payment-reconciliation"
-              end
-              className={
-                isCollapsed && window.innerWidth > 768
-                  ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
-                  : linkClasses(isActivePath("/admin/payment-reconciliation"))
-              }
-              style={() => ({
-                backgroundColor: isActivePath("/admin/payment-reconciliation") ? "rgba(31, 65, 187, 0.15)" : "transparent",
-                color: "#CCD2DD",
-                fontSize: "15px",
-                fontWeight: "500",
-                fontFamily: "Poppins",
-                boxShadow: isActivePath("/admin/payment-reconciliation") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
-                minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-                width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-              })}
-              onClick={() => window.innerWidth <= 768 && onClose()}
-            >
-              <RiWalletLine
-                className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
-                size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
-              />
-              {(!isCollapsed || window.innerWidth <= 768) && "Payment Reconciliation"}
-            </NavLink>
-            {isCollapsed && window.innerWidth > 768 && hoveredItem === "reconciliation" && (
-              <div
-                className="position-absolute bg-dark px-2 py-1 rounded"
-                style={{
-                  left: "75px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  zIndex: 1200,
-                  fontSize: "15px",
-                  fontWeight: "500",
-                  fontFamily: "Poppins",
-                  color: "#CCD2DD",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Payment Reconciliation
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* League with Submenu */}
-        {!isSubAdmin && (
-          <div
-            className="position-relative"
-            onMouseEnter={() =>
-              isCollapsed && window.innerWidth > 768 && setHoveredItem("league")
-            }
-            onMouseLeave={() => setHoveredItem(null)}
-          >
+          <div className="position-relative"
+            ref={leagueRef}
+            onMouseEnter={() => isDesktopCollapsed && setHoveredItem("league")}
+            onMouseLeave={(e) => { if (!e.relatedTarget || !e.currentTarget.contains(e.relatedTarget)) setHoveredItem(null); }}>
             <div
-              className={
-                isCollapsed && window.innerWidth > 768
-                  ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
-                  : linkClasses(isLeagueActive)
-              }
-              style={{
-                backgroundColor: isLeagueActive ? "rgba(31, 65, 187, 0.15)" : "transparent",
-                color: "#CCD2DD",
-                fontSize: "15px",
-                fontWeight: "500",
-                fontFamily: "Poppins",
-                boxShadow: isLeagueActive ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
-                minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-                width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-                cursor: "pointer"
-              }}
-              onClick={() => !isCollapsed && setLeagueExpanded(!leagueExpanded)}
-            >
-              <FaTrophy
-                className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
-                size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
-              />
-              {(!isCollapsed || window.innerWidth <= 768) && (
-                <>
-                  <span className="flex-grow-1">League</span>
-                  {leagueExpanded ? <FaChevronUp size={14} /> : <FaChevronDown size={14} />}
-                </>
+              className={isDesktopCollapsed ? collapsedIconClass : linkClasses(isLeagueActive)}
+              style={iconStyle(isLeagueActive)}
+              onClick={() => { if (isDesktopCollapsed) { navigate('/admin/league/creation'); } else { setLeagueExpanded(!leagueExpanded); } }}>
+              <FaTrophy className={isDesktopCollapsed ? "" : "me-4"} size={isDesktopCollapsed ? 18 : 20} />
+              {!isDesktopCollapsed && (
+                <><span className="flex-grow-1">League</span>{leagueExpanded ? <FaChevronUp size={14} /> : <FaChevronDown size={14} />}</>
               )}
             </div>
-            {isCollapsed && window.innerWidth > 768 && hoveredItem === "league" && (
-              <div
-                className="position-absolute bg-dark px-2 py-1 rounded"
-                style={{
-                  left: "75px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  zIndex: 1200,
-                  fontSize: "15px",
-                  fontWeight: "500",
-                  fontFamily: "Poppins",
-                  color: "#CCD2DD",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                League
-              </div>
-            )}
-            {leagueExpanded && (!isCollapsed || window.innerWidth <= 768) && (
+            <FlyoutMenu label="League" anchorRef={leagueRef} visible={isDesktopCollapsed && hoveredItem === "league"}>
+              <NavLink to="/admin/league/creation" style={flyoutLinkStyle} onClick={closeFlyout}>League</NavLink>
+              <NavLink to="/admin/league/registration" style={flyoutLinkStyle} onClick={closeFlyout}>Registration</NavLink>
+              <NavLink to="/admin/league/schedule" style={flyoutLinkStyle} onClick={closeFlyout}>Schedule</NavLink>
+              <NavLink to="/admin/league/points-table" style={flyoutLinkStyle} onClick={closeFlyout}>Points Table</NavLink>
+            </FlyoutMenu>
+            {leagueExpanded && !isDesktopCollapsed && (
               <div className="ms-4">
-                <NavLink
-                  to="/admin/league/creation"
-                  end
+                <NavLink to="/admin/league/creation" end
                   className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
-                  style={{
-                    backgroundColor: (isActivePath("/admin/league/creation") || location.pathname.startsWith('/admin/new-league')) ? "rgba(31, 65, 187, 0.1)" : "transparent",
-                    color: "#CCD2DD",
-                    fontSize: "14px",
-                    fontWeight: "400",
-                    fontFamily: "Poppins",
-                  }}
-                  onClick={() => window.innerWidth <= 768 && onClose()}
-                >
-                  League
-                </NavLink>
-                <NavLink
-                  to="/admin/league/registration"
+                  style={{ backgroundColor: (isActivePath("/admin/league/creation") || location.pathname.startsWith('/admin/new-league')) ? "rgba(31, 65, 187, 0.1)" : "transparent", color: "#CCD2DD", fontSize: "14px", fontFamily: "Poppins" }}
+                  onClick={() => window.innerWidth <= 768 && onClose()}>League</NavLink>
+                <NavLink to="/admin/league/registration"
                   className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
-                  style={{
-                    backgroundColor: isActivePath("/admin/league/registration") ? "rgba(31, 65, 187, 0.1)" : "transparent",
-                    color: "#CCD2DD",
-                    fontSize: "14px",
-                    fontWeight: "400",
-                    fontFamily: "Poppins",
-                  }}
-                  onClick={() => window.innerWidth <= 768 && onClose()}
-                >
-                  Registration
-                </NavLink>
-                {/* <NavLink
-                  to="/admin/league/team-creation"
+                  style={{ backgroundColor: isActivePath("/admin/league/registration") ? "rgba(31, 65, 187, 0.1)" : "transparent", color: "#CCD2DD", fontSize: "14px", fontFamily: "Poppins" }}
+                  onClick={() => window.innerWidth <= 768 && onClose()}>Registration</NavLink>
+                <NavLink to="/admin/league/schedule"
                   className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
-                  style={{
-                    backgroundColor: isActivePath("/admin/league/team-creation") ? "rgba(31, 65, 187, 0.1)" : "transparent",
-                    color: "#CCD2DD",
-                    fontSize: "14px",
-                    fontWeight: "400",
-                    fontFamily: "Poppins",
-                  }}
-                  onClick={() => window.innerWidth <= 768 && onClose()}
-                >
-                  Team Creation
-                </NavLink> */}
-                <NavLink
-                  to="/admin/league/schedule"
+                  style={{ backgroundColor: isActivePath("/admin/league/schedule") ? "rgba(31, 65, 187, 0.1)" : "transparent", color: "#CCD2DD", fontSize: "14px", fontFamily: "Poppins" }}
+                  onClick={() => window.innerWidth <= 768 && onClose()}>Schedule</NavLink>
+                <NavLink to="/admin/league/points-table"
                   className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
-                  style={{
-                    backgroundColor: isActivePath("/admin/league/schedule") ? "rgba(31, 65, 187, 0.1)" : "transparent",
-                    color: "#CCD2DD",
-                    fontSize: "14px",
-                    fontWeight: "400",
-                    fontFamily: "Poppins",
-                  }}
-                  onClick={() => window.innerWidth <= 768 && onClose()}
-                >
-                  Schedule
-                </NavLink>
-                <NavLink
-                  to="/admin/league/points-table"
-                  className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
-                  style={{
-                    backgroundColor: isActivePath("/admin/league/points-table") ? "rgba(31, 65, 187, 0.1)" : "transparent",
-                    color: "#CCD2DD",
-                    fontSize: "14px",
-                    fontWeight: "400",
-                    fontFamily: "Poppins",
-                  }}
-                  onClick={() => window.innerWidth <= 768 && onClose()}
-                >
-                  Points Table
-                </NavLink>
+                  style={{ backgroundColor: isActivePath("/admin/league/points-table") ? "rgba(31, 65, 187, 0.1)" : "transparent", color: "#CCD2DD", fontSize: "14px", fontFamily: "Poppins" }}
+                  onClick={() => window.innerWidth <= 768 && onClose()}>Points Table</NavLink>
               </div>
             )}
           </div>
         )}
 
-        {/* Tournament with Submenu */}
-        <div
-          className="position-relative"
-          onMouseEnter={() => isCollapsed && window.innerWidth > 768 && setHoveredItem('tournament')}
-          onMouseLeave={() => setHoveredItem(null)}
-        >
+        {/* Tournament */}
+        <div className="position-relative"
+          ref={tournamentRef}
+          onMouseEnter={() => isDesktopCollapsed && setHoveredItem("tournament")}
+          onMouseLeave={(e) => { if (!e.relatedTarget || !e.currentTarget.contains(e.relatedTarget)) setHoveredItem(null); }}>
           <div
-            className={isCollapsed && window.innerWidth > 768 ? 'd-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer' : linkClasses(isTournamentActive)}
-            style={{ backgroundColor: isTournamentActive ? 'rgba(31, 65, 187, 0.15)' : 'transparent', color: '#CCD2DD', fontSize: '15px', fontWeight: '500', fontFamily: 'Poppins', boxShadow: isTournamentActive ? '0 4px 12px rgba(31, 65, 187, 0.2)' : 'none', minHeight: isCollapsed && window.innerWidth > 768 ? '48px' : 'auto', width: isCollapsed && window.innerWidth > 768 ? '48px' : 'auto', cursor: 'pointer' }}
-            onClick={() => !isCollapsed && setTournamentExpanded(!tournamentExpanded)}
-          >
-            <HiOutlineTrophy className={isCollapsed && window.innerWidth > 768 ? '' : 'me-4'} size={isCollapsed && window.innerWidth > 768 ? 18 : 20} />
-            {(!isCollapsed || window.innerWidth <= 768) && (
+            className={isDesktopCollapsed ? collapsedIconClass : linkClasses(isTournamentActive)}
+            style={iconStyle(isTournamentActive)}
+            onClick={() => { if (isDesktopCollapsed) { navigate('/admin/tournament/creation'); } else { setTournamentExpanded(!tournamentExpanded); } }}>
+            <HiOutlineTrophy className={isDesktopCollapsed ? "" : "me-4"} size={isDesktopCollapsed ? 18 : 20} />
+            {!isDesktopCollapsed && (
               <><span className="flex-grow-1">Tournament</span>{tournamentExpanded ? <FaChevronUp size={14} /> : <FaChevronDown size={14} />}</>
             )}
           </div>
-          {isCollapsed && window.innerWidth > 768 && hoveredItem === 'tournament' && (
-            <div className="position-absolute bg-dark px-2 py-1 rounded" style={{ left: '75px', top: '50%', transform: 'translateY(-50%)', zIndex: 1200, fontSize: '15px', fontWeight: '500', fontFamily: 'Poppins', color: '#CCD2DD', whiteSpace: 'nowrap' }}>Tournament</div>
-          )}
-          {tournamentExpanded && (!isCollapsed || window.innerWidth <= 768) && (
+          <FlyoutMenu label="Tournament" anchorRef={tournamentRef} visible={isDesktopCollapsed && hoveredItem === "tournament"}>
+            <NavLink to="/admin/tournament/creation" style={flyoutLinkStyle} onClick={closeFlyout}>Tournaments</NavLink>
+            <NavLink to="/admin/tournament/team-creation" style={flyoutLinkStyle} onClick={closeFlyout}>Team Creation</NavLink>
+            <NavLink to="/admin/tournament/schedule" style={flyoutLinkStyle} onClick={closeFlyout}>Schedule</NavLink>
+          </FlyoutMenu>
+          {tournamentExpanded && !isDesktopCollapsed && (
             <div className="ms-4">
               <NavLink to="/admin/tournament/creation" end
                 className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
-                style={{ backgroundColor: isActivePath('/admin/tournament/creation') ? 'rgba(31, 65, 187, 0.1)' : 'transparent', color: '#CCD2DD', fontSize: '14px', fontWeight: '400', fontFamily: 'Poppins' }}
-                onClick={() => window.innerWidth <= 768 && onClose()}>
-                Tournaments
-              </NavLink>
+                style={{ backgroundColor: isActivePath('/admin/tournament/creation') ? 'rgba(31, 65, 187, 0.1)' : 'transparent', color: '#CCD2DD', fontSize: '14px', fontFamily: 'Poppins' }}
+                onClick={() => window.innerWidth <= 768 && onClose()}>Tournaments</NavLink>
               <NavLink to="/admin/tournament/team-creation"
                 className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
-                style={{ backgroundColor: isActivePath('/admin/tournament/team-creation') ? 'rgba(31, 65, 187, 0.1)' : 'transparent', color: '#CCD2DD', fontSize: '14px', fontWeight: '400', fontFamily: 'Poppins' }}
-                onClick={() => window.innerWidth <= 768 && onClose()}>
-                Team Creation
-              </NavLink>
+                style={{ backgroundColor: isActivePath('/admin/tournament/team-creation') ? 'rgba(31, 65, 187, 0.1)' : 'transparent', color: '#CCD2DD', fontSize: '14px', fontFamily: 'Poppins' }}
+                onClick={() => window.innerWidth <= 768 && onClose()}>Team Creation</NavLink>
               <NavLink to="/admin/tournament/schedule"
                 className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
-                style={{ backgroundColor: isActivePath('/admin/tournament/schedule') ? 'rgba(31, 65, 187, 0.1)' : 'transparent', color: '#CCD2DD', fontSize: '14px', fontWeight: '400', fontFamily: 'Poppins' }}
-                onClick={() => window.innerWidth <= 768 && onClose()}>
-                Schedule
-              </NavLink>
+                style={{ backgroundColor: isActivePath('/admin/tournament/schedule') ? 'rgba(31, 65, 187, 0.1)' : 'transparent', color: '#CCD2DD', fontSize: '14px', fontFamily: 'Poppins' }}
+                onClick={() => window.innerWidth <= 768 && onClose()}>Schedule</NavLink>
             </div>
           )}
         </div>
 
         {/* Wallet */}
         {!isSubAdmin && (
-          <div
-            className="position-relative"
-            onMouseEnter={() =>
-              isCollapsed && window.innerWidth > 768 && setHoveredItem("wallet")
-            }
-            onMouseLeave={() => setHoveredItem(null)}
-          >
-            <NavLink
-              to="/admin/wallet"
-              end
-              className={
-                isCollapsed && window.innerWidth > 768
-                  ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
-                  : linkClasses(isActivePath("/admin/wallet"))
-              }
-              style={() => ({
-                backgroundColor: isActivePath("/admin/wallet") ? "rgba(31, 65, 187, 0.15)" : "transparent",
-                color: "#CCD2DD",
-                fontSize: "15px",
-                fontWeight: "500",
-                fontFamily: "Poppins",
-                boxShadow: isActivePath("/admin/wallet") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
-                minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-                width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-              })}
-              onClick={() => window.innerWidth <= 768 && onClose()}
-            >
-              <RiWalletLine
-                className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
-                size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
-              />
-              {(!isCollapsed || window.innerWidth <= 768) && "Wallet"}
+          <div className="position-relative" ref={walletRef}
+            onMouseEnter={() => isDesktopCollapsed && setHoveredItem("wallet")}
+            onMouseLeave={() => setHoveredItem(null)}>
+            <NavLink to="/admin/wallet" end
+              className={isDesktopCollapsed ? collapsedIconClass : linkClasses(isActivePath("/admin/wallet"))}
+              style={() => iconStyle(isActivePath("/admin/wallet"))}
+              onClick={() => window.innerWidth <= 768 && onClose()}>
+              <RiWalletLine className={isDesktopCollapsed ? "" : "me-4"} size={isDesktopCollapsed ? 18 : 20} />
+              {!isDesktopCollapsed && "Wallet"}
             </NavLink>
-            {isCollapsed && window.innerWidth > 768 && hoveredItem === "wallet" && (
-              <div
-                className="position-absolute bg-dark px-2 py-1 rounded"
-                style={{
-                  left: "75px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  zIndex: 1200,
-                  fontSize: "15px",
-                  fontWeight: "500",
-                  fontFamily: "Poppins",
-                  color: "#CCD2DD",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Wallet
-              </div>
-            )}
+            <SimpleTooltip label="Wallet" anchorRef={walletRef} visible={isDesktopCollapsed && hoveredItem === "wallet"} />
           </div>
         )}
 
         {/* App Users */}
         {!isSubAdmin && (
-          <div
-            className="position-relative"
-            onMouseEnter={() =>
-              isCollapsed && window.innerWidth > 768 && setHoveredItem("appUsers")
-            }
-            onMouseLeave={() => setHoveredItem(null)}
-          >
-            <NavLink
-              to="/admin/app-users"
-              end
-              className={
-                isCollapsed && window.innerWidth > 768
-                  ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
-                  : linkClasses(isActivePath("/admin/app-users"))
-              }
-              style={() => ({
-                backgroundColor: isActivePath("/admin/app-users") ? "rgba(31, 65, 187, 0.15)" : "transparent",
-                color: "#CCD2DD",
-                fontSize: "15px",
-                fontWeight: "500",
-                fontFamily: "Poppins",
-                boxShadow: isActivePath("/admin/app-users") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
-                minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-                width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-              })}
-              onClick={() => window.innerWidth <= 768 && onClose()}
-            >
-              <FaUsers
-                className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
-                size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
-              />
-              {(!isCollapsed || window.innerWidth <= 768) && "App Users"}
+          <div className="position-relative" ref={appUsersRef}
+            onMouseEnter={() => isDesktopCollapsed && setHoveredItem("appUsers")}
+            onMouseLeave={() => setHoveredItem(null)}>
+            <NavLink to="/admin/app-users" end
+              className={isDesktopCollapsed ? collapsedIconClass : linkClasses(isActivePath("/admin/app-users"))}
+              style={() => iconStyle(isActivePath("/admin/app-users"))}
+              onClick={() => window.innerWidth <= 768 && onClose()}>
+              <FaUsers className={isDesktopCollapsed ? "" : "me-4"} size={isDesktopCollapsed ? 18 : 20} />
+              {!isDesktopCollapsed && "App Users"}
             </NavLink>
-            {isCollapsed && window.innerWidth > 768 && hoveredItem === "appUsers" && (
-              <div
-                className="position-absolute bg-dark px-2 py-1 rounded"
-                style={{
-                  left: "75px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  zIndex: 1200,
-                  fontSize: "15px",
-                  fontWeight: "500",
-                  fontFamily: "Poppins",
-                  color: "#CCD2DD",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                App Users
-              </div>
-            )}
+            <SimpleTooltip label="App Users" anchorRef={appUsersRef} visible={isDesktopCollapsed && hoveredItem === "appUsers"} />
           </div>
         )}
+
         {/* Notifications */}
         {!isSubAdmin && (
-          <div
-            className="position-relative"
-            onMouseEnter={() =>
-              isCollapsed && window.innerWidth > 768 && setHoveredItem("notifications")
-            }
-            onMouseLeave={() => setHoveredItem(null)}
-          >
-            <NavLink
-              to="/admin/notifications"
-              end
-              className={
-                isCollapsed && window.innerWidth > 768
-                  ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
-                  : linkClasses(isActivePath("/admin/notifications"))
-              }
-              style={() => ({
-                backgroundColor: isActivePath("/admin/notifications") ? "rgba(31, 65, 187, 0.15)" : "transparent",
-                color: "#CCD2DD",
-                fontSize: "15px",
-                fontWeight: "500",
-                fontFamily: "Poppins",
-                boxShadow: isActivePath("/admin/notifications") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
-                minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-                width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-              })}
-              onClick={() => window.innerWidth <= 768 && onClose()}
-            >
-              <MdNotificationsActive
-                className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
-                size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
-              />
-              {(!isCollapsed || window.innerWidth <= 768) && "Notifications"}
+          <div className="position-relative" ref={notificationsRef}
+            onMouseEnter={() => isDesktopCollapsed && setHoveredItem("notifications")}
+            onMouseLeave={() => setHoveredItem(null)}>
+            <NavLink to="/admin/notifications" end
+              className={isDesktopCollapsed ? collapsedIconClass : linkClasses(isActivePath("/admin/notifications"))}
+              style={() => iconStyle(isActivePath("/admin/notifications"))}
+              onClick={() => window.innerWidth <= 768 && onClose()}>
+              <MdNotificationsActive className={isDesktopCollapsed ? "" : "me-4"} size={isDesktopCollapsed ? 18 : 20} />
+              {!isDesktopCollapsed && "Notifications"}
             </NavLink>
-            {isCollapsed && window.innerWidth > 768 && hoveredItem === "notifications" && (
-              <div
-                className="position-absolute bg-dark px-2 py-1 rounded"
-                style={{
-                  left: "75px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  zIndex: 1200,
-                  fontSize: "15px",
-                  fontWeight: "500",
-                  fontFamily: "Poppins",
-                  color: "#CCD2DD",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Notifications
-              </div>
-            )}
+            <SimpleTooltip label="Notifications" anchorRef={notificationsRef} visible={isDesktopCollapsed && hoveredItem === "notifications"} />
           </div>
         )}
+
         {/* Profile */}
-        <div
-          className="position-relative"
-          onMouseEnter={() =>
-            isCollapsed && window.innerWidth > 768 && setHoveredItem("profile")
-          }
-          onMouseLeave={() => setHoveredItem(null)}
-        >
-          <NavLink
-            to="/admin/profile"
-            end
-            className={
-              isCollapsed && window.innerWidth > 768
-                ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
-                : linkClasses(isActivePath("/admin/profile"))
-            }
-            style={() => ({
-              backgroundColor: isActivePath("/admin/profile") ? "rgba(31, 65, 187, 0.15)" : "transparent",
-              color: "#CCD2DD",
-              fontSize: "15px",
-              fontWeight: "500",
-              fontFamily: "Poppins",
-              boxShadow: isActivePath("/admin/profile") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
-              minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-              width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-            })}
-            onClick={() => window.innerWidth <= 768 && onClose()}
-          >
-            <FaUser
-              className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
-              size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
-            />
-            {(!isCollapsed || window.innerWidth <= 768) && "Profile"}
+        <div className="position-relative" ref={profileRef}
+          onMouseEnter={() => isDesktopCollapsed && setHoveredItem("profile")}
+          onMouseLeave={() => setHoveredItem(null)}>
+          <NavLink to="/admin/profile" end
+            className={isDesktopCollapsed ? collapsedIconClass : linkClasses(isActivePath("/admin/profile"))}
+            style={() => iconStyle(isActivePath("/admin/profile"))}
+            onClick={() => window.innerWidth <= 768 && onClose()}>
+            <FaUser className={isDesktopCollapsed ? "" : "me-4"} size={isDesktopCollapsed ? 18 : 20} />
+            {!isDesktopCollapsed && "Profile"}
           </NavLink>
-          {isCollapsed && window.innerWidth > 768 && hoveredItem === "profile" && (
-            <div
-              className="position-absolute bg-dark px-2 py-1 rounded"
-              style={{
-                left: "75px",
-                top: "50%",
-                transform: "translateY(-50%)",
-                zIndex: 1200,
-                fontSize: "15px",
-                fontWeight: "500",
-                fontFamily: "Poppins",
-                color: "#CCD2DD",
-                whiteSpace: "nowrap",
-              }}
-            >
-              Profile
-            </div>
-          )}
+          <SimpleTooltip label="Profile" anchorRef={profileRef} visible={isDesktopCollapsed && hoveredItem === "profile"} />
         </div>
+
         {/* Version */}
         {!isSubAdmin && (
-          <div
-            className="position-relative"
-            onMouseEnter={() =>
-              isCollapsed && window.innerWidth > 768 && setHoveredItem("appVersion")
-            }
-            onMouseLeave={() => setHoveredItem(null)}
-          >
-            <NavLink
-              to="/admin/app-version"
-              end
-              className={
-                isCollapsed && window.innerWidth > 768
-                  ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
-                  : linkClasses(isActivePath("/admin/app-version"))
-              }
-              style={() => ({
-                backgroundColor: isActivePath("/admin/app-version") ? "rgba(31, 65, 187, 0.15)" : "transparent",
-                color: "#CCD2DD",
-                fontSize: "15px",
-                fontWeight: "500",
-                fontFamily: "Poppins",
-                boxShadow: isActivePath("/admin/app-version") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
-                minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-                width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-              })}
-              onClick={() => window.innerWidth <= 768 && onClose()}
-            >
-              <GoVersions
-                className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"}
-                size={isCollapsed && window.innerWidth > 768 ? 18 : 20}
-              />
-              {(!isCollapsed || window.innerWidth <= 768) && "Version"}
+          <div className="position-relative" ref={versionRef}
+            onMouseEnter={() => isDesktopCollapsed && setHoveredItem("appVersion")}
+            onMouseLeave={() => setHoveredItem(null)}>
+            <NavLink to="/admin/app-version" end
+              className={isDesktopCollapsed ? collapsedIconClass : linkClasses(isActivePath("/admin/app-version"))}
+              style={() => iconStyle(isActivePath("/admin/app-version"))}
+              onClick={() => window.innerWidth <= 768 && onClose()}>
+              <GoVersions className={isDesktopCollapsed ? "" : "me-4"} size={isDesktopCollapsed ? 18 : 20} />
+              {!isDesktopCollapsed && "Version"}
             </NavLink>
-            {isCollapsed && window.innerWidth > 768 && hoveredItem === "appVersion" && (
-              <div
-                className="position-absolute bg-dark px-2 py-1 rounded"
-                style={{
-                  left: "75px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  zIndex: 1200,
-                  fontSize: "15px",
-                  fontWeight: "500",
-                  fontFamily: "Poppins",
-                  color: "#CCD2DD",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Version
-              </div>
-            )}
+            <SimpleTooltip label="Version" anchorRef={versionRef} visible={isDesktopCollapsed && hoveredItem === "appVersion"} />
           </div>
         )}
 
         {/* XP Settings */}
         {!isSubAdmin && (
-          <div
-            className="position-relative"
-            onMouseEnter={() => isCollapsed && window.innerWidth > 768 && setHoveredItem("xpSettings")}
-            onMouseLeave={() => setHoveredItem(null)}
-          >
-            <NavLink
-              to="/admin/settings/xp"
-              end
-              className={
-                isCollapsed && window.innerWidth > 768
-                  ? "d-flex align-items-center justify-content-center py-3 my-1 text-decoration-none mx-2 rounded-2 cursor-pointer"
-                  : linkClasses(isActivePath("/admin/settings/xp"))
-              }
-              style={() => ({
-                backgroundColor: isActivePath("/admin/settings/xp") ? "rgba(31, 65, 187, 0.15)" : "transparent",
-                color: "#CCD2DD",
-                fontSize: "15px",
-                fontWeight: "500",
-                fontFamily: "Poppins",
-                boxShadow: isActivePath("/admin/settings/xp") ? "0 4px 12px rgba(31, 65, 187, 0.2)" : "none",
-                minHeight: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-                width: isCollapsed && window.innerWidth > 768 ? "48px" : "auto",
-              })}
-              onClick={() => window.innerWidth <= 768 && onClose()}
-            >
-              <span className={isCollapsed && window.innerWidth > 768 ? "" : "me-4"} style={{ fontSize: isCollapsed && window.innerWidth > 768 ? 18 : 20 }}>⚙️</span>
-              {(!isCollapsed || window.innerWidth <= 768) && "XP Settings"}
+          <div className="position-relative" ref={xpRef}
+            onMouseEnter={() => isDesktopCollapsed && setHoveredItem("xpSettings")}
+            onMouseLeave={() => setHoveredItem(null)}>
+            <NavLink to="/admin/settings/xp" end
+              className={isDesktopCollapsed ? collapsedIconClass : linkClasses(isActivePath("/admin/settings/xp"))}
+              style={() => iconStyle(isActivePath("/admin/settings/xp"))}
+              onClick={() => window.innerWidth <= 768 && onClose()}>
+              <span className={isDesktopCollapsed ? "" : "me-4"} style={{ fontSize: isDesktopCollapsed ? 18 : 20 }}>⚙️</span>
+              {!isDesktopCollapsed && "XP Settings"}
             </NavLink>
-            {isCollapsed && window.innerWidth > 768 && hoveredItem === "xpSettings" && (
-              <div className="position-absolute bg-dark px-2 py-1 rounded"
-                style={{ left: "75px", top: "50%", transform: "translateY(-50%)", zIndex: 1200, fontSize: "15px", fontWeight: "500", fontFamily: "Poppins", color: "#CCD2DD", whiteSpace: "nowrap" }}>
-                XP Settings
-              </div>
-            )}
+            <SimpleTooltip label="XP Settings" anchorRef={xpRef} visible={isDesktopCollapsed && hoveredItem === "xpSettings"} />
           </div>
         )}
 

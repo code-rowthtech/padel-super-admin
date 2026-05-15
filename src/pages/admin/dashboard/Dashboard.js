@@ -485,7 +485,7 @@ const AdminDashboard = () => {
                             borderRadius: "6px",
                             fontWeight: "500",
                             width: "100px",
-                            border: "1px solid #dee2e6",boxShadow:"none"
+                            border: "1px solid #dee2e6", boxShadow: "none"
                           }}
                         >
                           {months.map((month, index) => (
@@ -529,8 +529,8 @@ const AdminDashboard = () => {
                     >
                       <defs>
                         <linearGradient id="colorBooking" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                          <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
@@ -818,7 +818,7 @@ const AdminDashboard = () => {
                               <th>SR NO.</th>
                               <th>USER NAME</th>
                               <th>DATE</th>
-                              <th>COURT NO.</th>
+                              <th>CLUB</th>
                               <th>TIME</th>
                               <th>STATUS</th>
                               <th>ACTION</th>
@@ -842,7 +842,8 @@ const AdminDashboard = () => {
                                   {formatDateMonth(item?.bookingDate)}
                                 </td>
                                 <td>
-                                  {item?.slot?.[0]?.courtName || item?.club?.clubName || item?.clubName || "-"}
+                                  {item?.register_club_id?.clubName || '-'}
+                                  {/* {item?.slot?.[0]?.courtName || item?.club?.clubName || item?.clubName || "-"} */}
                                 </td>
                                 <td>
                                   {formatTime(
