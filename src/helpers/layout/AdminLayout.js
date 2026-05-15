@@ -5,7 +5,7 @@ import AdminSidebar from "../../pages/admin/sidebar/AdminSidebar";
 
 const AdminLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
     const { pathname, search } = useLocation();
 
     const getPageName = (path) => {
@@ -321,7 +321,7 @@ const AdminLayout = () => {
                         sidebarOpen={sidebarOpen}
                         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
                         sidebarCollapsed={sidebarCollapsed}
-        pageName={getPageName(pathname)}
+                        pageName={getPageName(pathname)}
                     />
                     <div className="admin-scrollable-content">
                         <Outlet key={pathname} />
