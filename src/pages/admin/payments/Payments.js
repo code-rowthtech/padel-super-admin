@@ -165,7 +165,7 @@ const Payments = () => {
           ...(paymentStatus ? { status: paymentStatus } : {}),
           ...(searchTerm ? { search: searchTerm } : {}),
           ...(selectedCategory ? { categoryId: selectedCategory } : {}),
-          ...(activePayableFilter !== null && activePayableFilter !== undefined && paymentStatus === "unpaid"
+          ...(activePayableFilter !== null && paymentStatus === "unpaid"
             ? { payableStatus: activePayableFilter }
             : {}),
           ...(activePayableFilter === undefined && { type: "all" }),
@@ -286,16 +286,8 @@ const Payments = () => {
         const { ownerApi } = await import("../../../helpers/api/apiCore");
         const { SUPER_ADMIN_GET_ALL_CLUBS } =
           await import("../../../helpers/api/apiEndpoint");
-        const clubParams = new URLSearchParams();
-        if (ownerId) clubParams.append("ownerId", ownerId);
-        if (paymentStatus) clubParams.append("status", paymentStatus);
-        if (paymentStatus === "unpaid" && activePayableFilter !== undefined) {
-          clubParams.append("payableStatus", activePayableFilter);
-        }
-
-        const clubQuery = clubParams.toString();
-        const url = clubQuery
-          ? `${SUPER_ADMIN_GET_ALL_CLUBS}?${clubQuery}`
+        const url = ownerId
+          ? `${SUPER_ADMIN_GET_ALL_CLUBS}?ownerId=${ownerId}`
           : SUPER_ADMIN_GET_ALL_CLUBS;
         const res = await ownerApi.get(url);
         const clubsData = res?.data?.data || [];
@@ -370,7 +362,7 @@ const Payments = () => {
           ...(ownerId ? { ownerId } : {}),
           ...(selectedClubId ? { clubId: selectedClubId } : {}),
           status: paymentStatus,
-          ...(activePayableFilter !== null && activePayableFilter !== undefined && paymentStatus === "unpaid"
+          ...(activePayableFilter !== null && paymentStatus === "unpaid"
             ? { payableStatus: activePayableFilter }
             : {}),
           page: 1,
@@ -594,7 +586,7 @@ const Payments = () => {
         ...(isPaid !== undefined ? { payableStatus: isPaid } : {}),
         page: currentPage,
         limit: 20,
-        ...(isPaid === undefined && { type: "all" }),
+        ...(activePayableFilter === undefined && { type: "all" }),
       };
       if (startDate) {
         const formatToYYYYMMDD = (date) => {
