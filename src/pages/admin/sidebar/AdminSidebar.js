@@ -14,7 +14,7 @@ import { MdNotificationsActive } from "react-icons/md";
 import { HiOutlineTrophy } from "react-icons/hi2";
 import { GoVersions } from "react-icons/go";
 import { useDispatch } from "react-redux";
-import { RiWallet3Line, RiWalletLine } from "react-icons/ri";
+import { RiWallet3Line } from "react-icons/ri";
 import { getOwnerFromSession, ownerApi } from "../../../helpers/api/apiCore";
 import { ButtonLoading } from "../../../helpers/loading/Loaders";
 import { useSuperAdminContext } from "../../../contexts/SuperAdminContext";
@@ -101,7 +101,6 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   const dashboardRef = useRef(null);
   const bookingRef = useRef(null);
   const ownersRef = useRef(null);
-  const walletRef = useRef(null);
   const appUsersRef = useRef(null);
   const notificationsRef = useRef(null);
   const profileRef = useRef(null);
@@ -109,7 +108,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   const xpRef = useRef(null);
 
   const isTournamentActive = location.pathname.startsWith('/admin/tournament') || location.pathname.startsWith('/admin/new-tournament') || location.pathname.startsWith('/admin/tournament/schedule');
-  const isPaymentsActive = location.pathname === '/admin/payments';
+  const isPaymentsActive = location.pathname.startsWith('/admin/payments') || location.pathname === '/admin/wallet';
   const isLeagueActive = location.pathname.startsWith('/admin/league') || location.pathname.startsWith('/admin/new-league') || location.pathname.startsWith('/admin/view-league-schedule');
 
   useEffect(() => { if (isTournamentActive) setTournamentExpanded(true); }, [isTournamentActive]);
@@ -281,6 +280,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             <FlyoutMenu label="Payments" anchorRef={paymentsRef} visible={isDesktopCollapsed && hoveredItem === "payments"}>
               <NavLink to="/admin/payments?status=unpaid" style={flyoutLinkStyle} onClick={closeFlyout}>Unpaid</NavLink>
               <NavLink to="/admin/payments?status=paid" style={flyoutLinkStyle} onClick={closeFlyout}>Paid</NavLink>
+              <NavLink to="/admin/wallet" style={flyoutLinkStyle} onClick={closeFlyout}>Wallet</NavLink>
             </FlyoutMenu>
             {paymentsExpanded && !isDesktopCollapsed && (
               <div className="ms-4">
@@ -292,6 +292,10 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
                   className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
                   style={{ backgroundColor: location.search === '?status=paid' ? "rgba(31, 65, 187, 0.1)" : "transparent", color: "#CCD2DD", fontSize: "14px", fontFamily: "Poppins" }}
                   onClick={() => window.innerWidth <= 768 && onClose()}>Paid</NavLink>
+                <NavLink to="/admin/wallet"
+                  className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
+                  style={{ backgroundColor: isActivePath("/admin/wallet") ? "rgba(31, 65, 187, 0.1)" : "transparent", color: "#CCD2DD", fontSize: "14px", fontFamily: "Poppins" }}
+                  onClick={() => window.innerWidth <= 768 && onClose()}>Wallet</NavLink>
               </div>
             )}
           </div>
@@ -377,22 +381,6 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             </div>
           )}
         </div>
-
-        {/* Wallet */}
-        {!isSubAdmin && (
-          <div className="position-relative" ref={walletRef}
-            onMouseEnter={() => isDesktopCollapsed && setHoveredItem("wallet")}
-            onMouseLeave={() => setHoveredItem(null)}>
-            <NavLink to="/admin/wallet" end
-              className={isDesktopCollapsed ? collapsedIconClass : linkClasses(isActivePath("/admin/wallet"))}
-              style={() => iconStyle(isActivePath("/admin/wallet"))}
-              onClick={() => window.innerWidth <= 768 && onClose()}>
-              <RiWalletLine className={isDesktopCollapsed ? "" : "me-4"} size={isDesktopCollapsed ? 18 : 20} />
-              {!isDesktopCollapsed && "Wallet"}
-            </NavLink>
-            <SimpleTooltip label="Wallet" anchorRef={walletRef} visible={isDesktopCollapsed && hoveredItem === "wallet"} />
-          </div>
-        )}
 
         {/* App Users */}
         {!isSubAdmin && (

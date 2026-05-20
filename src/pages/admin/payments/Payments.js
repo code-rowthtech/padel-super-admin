@@ -612,7 +612,7 @@ const Payments = () => {
   };
 
   return (
-    <Container fluid className="px-0 px-md-0 mt-md-0 mt-2">
+    <Container fluid className="px-0  px-md-0 mt-md-0 mt-2">
       <style>
         {`
           .payment-card-hover {
@@ -645,7 +645,7 @@ const Payments = () => {
           }
         `}
       </style>
-      <Row className="mb-2">
+      {/* <Row className="mb-2">
         {summaryCards.map((card, index) => (
           <Col key={index} md={4} className="mb-2">
             <Card
@@ -684,7 +684,7 @@ const Payments = () => {
             </Card>
           </Col>
         ))}
-      </Row>
+      </Row> */}
 
       <Row className="g-1">
         {/* Sidebar */}

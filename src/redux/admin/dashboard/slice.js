@@ -5,6 +5,8 @@ import {
   getRecentBookingsForDashboard,
   getRevenueForDashboard,
   getDaywiseRevenueForDashboard,
+  getClubsBookingModeRatio,
+  getOpenMatchOverview,
 } from "./thunk";
 
 const initialState = {
@@ -13,12 +15,22 @@ const initialState = {
   dashboardRecentBookings: null,
   dashboardLoading: false,
   dashboardError: null,
+  /** Monthly Booking Analytics chart data */
   dashboardRevenue: null,
   dashboardRevenueLoading: false,
   dashboardRevenueError: null,
+  /** Daily Booking Analytics chart data */
   dashboardDaywiseRevenue: null,
   dashboardDaywiseRevenueLoading: false,
   dashboardDaywiseRevenueError: null,
+  /** Clubs Booking Mode Ratio */
+  clubsBookingModeRatio: null,
+  clubsBookingModeRatioLoading: false,
+  clubsBookingModeRatioError: null,
+  /** Open Matches Overview */
+  openMatchOverview: null,
+  openMatchOverviewLoading: false,
+  openMatchOverviewError: null,
 };
 
 const dashboardSlice = createSlice({
@@ -34,6 +46,12 @@ const dashboardSlice = createSlice({
       state.dashboardRevenue = null;
       state.dashboardRevenueLoading = false;  
       state.dashboardRevenueError = null;
+      state.clubsBookingModeRatio = null;
+      state.clubsBookingModeRatioLoading = false;
+      state.clubsBookingModeRatioError = null;
+      state.openMatchOverview = null;
+      state.openMatchOverviewLoading = false;
+      state.openMatchOverviewError = null;
     },
   },
   extraReducers: (builder) => {
@@ -84,8 +102,8 @@ const dashboardSlice = createSlice({
         state.dashboardRevenue = action.payload;
       })
       .addCase(getRevenueForDashboard.rejected, (state, action) => {
-        state.ddashboardRevenueLoading = false;
-        state.ddashboardRevenueError = action.payload;
+        state.dashboardRevenueLoading = false;
+        state.dashboardRevenueError = action.payload;
       })
 
       .addCase(getDaywiseRevenueForDashboard.pending, (state) => {
@@ -99,6 +117,30 @@ const dashboardSlice = createSlice({
       .addCase(getDaywiseRevenueForDashboard.rejected, (state, action) => {
         state.dashboardDaywiseRevenueLoading = false;
         state.dashboardDaywiseRevenueError = action.payload;
+      })
+      .addCase(getClubsBookingModeRatio.pending, (state) => {
+        state.clubsBookingModeRatioLoading = true;
+        state.clubsBookingModeRatioError = null;
+      })
+      .addCase(getClubsBookingModeRatio.fulfilled, (state, action) => {
+        state.clubsBookingModeRatioLoading = false;
+        state.clubsBookingModeRatio = action.payload;
+      })
+      .addCase(getClubsBookingModeRatio.rejected, (state, action) => {
+        state.clubsBookingModeRatioLoading = false;
+        state.clubsBookingModeRatioError = action.payload;
+      })
+      .addCase(getOpenMatchOverview.pending, (state) => {
+        state.openMatchOverviewLoading = true;
+        state.openMatchOverviewError = null;
+      })
+      .addCase(getOpenMatchOverview.fulfilled, (state, action) => {
+        state.openMatchOverviewLoading = false;
+        state.openMatchOverview = action.payload;
+      })
+      .addCase(getOpenMatchOverview.rejected, (state, action) => {
+        state.openMatchOverviewLoading = false;
+        state.openMatchOverviewError = action.payload;
       });
   },
 });

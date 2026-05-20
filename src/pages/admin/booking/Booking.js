@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Container,
   Row,
@@ -17,7 +17,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { IoMdCloseCircleOutline } from "react-icons/io";
 import {
-  bookingCount,
   getBookingByStatus,
   getBookingDetailsById,
   updateBookingStatus,
@@ -33,9 +32,56 @@ import {
 import { getOwnerFromSession } from "../../../helpers/api/apiCore";
 import { formatDate, formatTime } from "../../../helpers/Formatting";
 import { MdOutlineCancel } from "react-icons/md";
-import { resetBookingData } from "../../../redux/admin/booking/slice";
 import Pagination from "../../../helpers/Pagination";
 import { useSuperAdminContext } from "../../../contexts/SuperAdminContext";
+import { resetTabCounts } from "../../../redux/admin/booking/slice";
+
+const TAB_STATUS = {
+  1: "upcoming",
+  2: "completed",
+};
+
+const formatToYYYYMMDD = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const buildBookingFetchPayload = ({
+  tabValue,
+  page,
+  ownerId,
+  debouncedSearch,
+  category,
+  selectedClubId,
+  bookingMode,
+  startDate,
+  endDate,
+  limit,
+}) => {
+  const payload = {
+    ...(ownerId ? { ownerId } : {}),
+    page,
+    limit,
+    ...(debouncedSearch ? { search: debouncedSearch } : {}),
+    ...(category ? { category } : {}),
+    ...(selectedClubId ? { clubId: selectedClubId } : {}),
+    ...(bookingMode ? { bookingMode } : {}),
+  };
+
+  const status = TAB_STATUS[tabValue];
+  if (status) {
+    payload.status = status;
+  }
+
+  if (startDate && endDate) {
+    payload.startDate = formatToYYYYMMDD(startDate);
+    payload.endDate = formatToYYYYMMDD(endDate);
+  }
+
+  return payload;
+};
 
 const Booking = () => {
   const dispatch = useDispatch();
@@ -61,122 +107,82 @@ const Booking = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [category, setCategory] = useState("");
+  const [bookingMode, setBookingMode] = useState("");
+  const prevSearchRef = useRef(searchTerm);
+  const prevFilterKeyRef = useRef("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (prevSearchRef.current !== searchTerm) {
+        prevSearchRef.current = searchTerm;
+        setDebouncedSearch(searchTerm);
+        setCurrentPage(1);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   useEffect(() => {
     dispatch(getCategoryList());
     dispatch(getAllClubs());
   }, [dispatch]);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchTerm);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [debouncedSearch, category, selectedClubId]);
-
   const {
     getBookingData,
     getBookingLoading,
     getBookingDetailsData,
     updateBookingLoading,
-    bookingCount: tabCount,
+    bookingCount: tabCounts,
     categoryList,
     clubs,
   } = useSelector((state) => state.booking);
 
   const bookings = getBookingData?.bookings || [];
   const totalItems = getBookingData?.totalItems || 0;
-  const sendDate = startDate && endDate;
 
-  const [counts, setCounts] = useState({
-    allCount: 0,
-    upcomingCount: 0,
-    completedCount: 0,
-  });
-
-  const allCount = counts?.allCount ?? 0;
-  const upcomingCount = counts?.upcomingCount ?? 0;
-  const completedCount = counts?.completedCount ?? 0;
+  const allCount = tabCounts?.allCount ?? 0;
+  const upcomingCount = tabCounts?.upcomingCount ?? 0;
+  const completedCount = tabCounts?.completedCount ?? 0;
 
   const defaultLimit = 20;
+  const dateFilterKey =
+    startDate && endDate
+      ? `${formatToYYYYMMDD(startDate)}|${formatToYYYYMMDD(endDate)}`
+      : "";
 
-  // Effect for fetching bookings when status, page, or filters change
-  useEffect(() => {
-    const payload = {
-      ...(ownerId ? { ownerId } : {}),
-      page: currentPage,
-      limit: defaultLimit,
-      ...(debouncedSearch ? { search: debouncedSearch } : {}),
-      ...(category ? { category: category } : {}),
-      ...(selectedClubId ? { clubId: selectedClubId } : {}),
-    };
-
-    if (tab !== 0) {
-      const status = tab === 1 ? "upcoming" : "completed";
-      payload.status = status;
-    }
-
-    if (sendDate) {
-      const formatToYYYYMMDD = (date) => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const day = String(date.getDate()).padStart(2, "0");
-        return `${year}-${month}-${day}`;
-      };
-      payload.startDate = formatToYYYYMMDD(startDate);
-      payload.endDate = formatToYYYYMMDD(endDate);
-    }
-
-    dispatch(resetBookingData());
-    dispatch(getBookingByStatus(payload));
-  }, [
-    tab,
-    currentPage,
-    ownerId,
+  const filterKey = [
     debouncedSearch,
     category,
     selectedClubId,
-    startDate,
-    endDate,
-    dispatch,
-  ]);
+    bookingMode,
+    dateFilterKey,
+    ownerId ?? "",
+  ].join("|");
 
-  // Effect for fetching counts (only when filters or owner change)
+  // Fetch list for the active tab only; tab counts update from this response
   useEffect(() => {
-    const countPayload = {
-      ownerId: ownerId || undefined,
-      ...(debouncedSearch ? { search: debouncedSearch } : {}),
-      ...(category ? { category: category } : {}),
-      ...(selectedClubId ? { clubId: selectedClubId } : {}),
-    };
-
-    if (sendDate) {
-      const formatToYYYYMMDD = (date) => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const day = String(date.getDate()).padStart(2, "0");
-        return `${year}-${month}-${day}`;
-      };
-      countPayload.startDate = formatToYYYYMMDD(startDate);
-      countPayload.endDate = formatToYYYYMMDD(endDate);
+    if (prevFilterKeyRef.current !== filterKey) {
+      dispatch(resetTabCounts());
+      prevFilterKeyRef.current = filterKey;
     }
 
-    dispatch(bookingCount(countPayload));
-  }, [ownerId, debouncedSearch, category, selectedClubId, startDate, endDate, dispatch]);
-
-  useEffect(() => {
-    if (tabCount) {
-      setCounts({
-        allCount: tabCount.allCount || 0,
-        upcomingCount: tabCount.upcomingCount || 0,
-        completedCount: tabCount.completedCount || 0,
-      });
-    }
-  }, [tabCount]);
+    dispatch(
+      getBookingByStatus(
+        buildBookingFetchPayload({
+          tabValue: tab,
+          page: currentPage,
+          ownerId,
+          debouncedSearch,
+          category,
+          selectedClubId,
+          bookingMode,
+          startDate: dateFilterKey ? startDate : null,
+          endDate: dateFilterKey ? endDate : null,
+          limit: defaultLimit,
+        })
+      )
+    );
+  }, [currentPage, tab, filterKey, dispatch]);
 
   const handleBookingDetails = async (id, type) => {
     setLoadingBookingId(id);
@@ -390,7 +396,10 @@ const Booking = () => {
                 </div>
                 <Form.Select
                   value={selectedClubId}
-                  onChange={(e) => setSelectedClubId(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedClubId(e.target.value);
+                    setCurrentPage(1);
+                  }}
                   style={{
                     fontSize: "13px",
                     fontFamily: "Poppins",
@@ -411,7 +420,10 @@ const Booking = () => {
                 </Form.Select>
                 <Form.Select
                   value={category}
-                  onChange={(e) => setCategory(e.target.value)}
+                  onChange={(e) => {
+                    setCategory(e.target.value);
+                    setCurrentPage(1);
+                  }}
                   style={{
                     fontSize: "13px",
                     fontFamily: "Poppins",
@@ -429,6 +441,27 @@ const Booking = () => {
                       {cat.name}
                     </option>
                   ))}
+                </Form.Select>
+                <Form.Select
+                  value={bookingMode}
+                  onChange={(e) => {
+                    setBookingMode(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  style={{
+                    fontSize: "13px",
+                    fontFamily: "Poppins",
+                    borderRadius: "6px",
+                    border: "2px solid #dee2e6",
+                    padding: "10px 12px",
+                    backgroundColor: "#fff",
+                    fontWeight: "500",
+                    boxShadow: "none",
+                  }}
+                >
+                  <option value="">All</option>
+                  <option value="offline">Admin Bookings</option>
+                  <option value="online">Online Bookings</option>
                 </Form.Select>
               </div>
 
@@ -472,6 +505,7 @@ const Booking = () => {
                       endDate={endDate}
                       onChange={(update) => {
                         setDateRange(update);
+                        setCurrentPage(1);
                         const [start, end] = update;
                         if (start && end) {
                           setShowDatePicker(false);
@@ -500,11 +534,12 @@ const Booking = () => {
                 )}
               </div>
 
-              {(searchTerm || category || startDate || endDate) && (
+              {(searchTerm || category || bookingMode || startDate || endDate) && (
                 <button
                   onClick={() => {
                     setSearchTerm("");
                     setCategory("");
+                    setBookingMode("");
                     setDateRange([null, null]);
                     setCurrentPage(1);
                   }}
@@ -923,11 +958,20 @@ const Booking = () => {
             .unwrap()
             .then(() => {
               dispatch(
-                getBookingByStatus({
-                  ownerId,
-                  page: currentPage,
-                  limit: defaultLimit,
-                })
+                getBookingByStatus(
+                  buildBookingFetchPayload({
+                    tabValue: tab,
+                    page: currentPage,
+                    ownerId,
+                    debouncedSearch,
+                    category,
+                    selectedClubId,
+                    bookingMode,
+                    startDate: dateFilterKey ? startDate : null,
+                    endDate: dateFilterKey ? endDate : null,
+                    limit: defaultLimit,
+                  })
+                )
               );
               setShowBookingCancel(false);
             });
