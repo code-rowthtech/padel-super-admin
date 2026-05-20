@@ -21,7 +21,11 @@ const initialState = {
   updateBookingLoading: false,
   updateBookingError: null,
 
-  bookingCount: null,
+  bookingCount: {
+    allCount: 0,
+    upcomingCount: 0,
+    completedCount: 0,
+  },
   bookingCountLoading: false,
   bookingCountError: null,
 
@@ -51,9 +55,20 @@ const BookingSlice = createSlice({
       state.updateBookingLoading = false;
       state.updateBookingError = null;
 
-      state.bookingCount = null;
+      state.bookingCount = {
+        allCount: 0,
+        upcomingCount: 0,
+        completedCount: 0,
+      };
       state.bookingCountLoading = false;
       state.bookingCountError = null;
+    },
+    resetTabCounts: (state) => {
+      state.bookingCount = {
+        allCount: 0,
+        upcomingCount: 0,
+        completedCount: 0,
+      };
     },
   },
   extraReducers: (builder) => {
@@ -66,8 +81,19 @@ const BookingSlice = createSlice({
       state.getBookingLoading = false;
       state.getBookingData = action.payload;
       state.getBookingError = null;
+
+      const status = action.meta.arg?.status;
+      const totalItems = action.payload?.totalItems || 0;
+      if (!status) {
+        state.bookingCount.allCount = totalItems;
+      } else if (status === "upcoming") {
+        state.bookingCount.upcomingCount = totalItems;
+      } else if (status === "completed") {
+        state.bookingCount.completedCount = totalItems;
+      }
     });
     builder.addCase(getBookingByStatus.rejected, (state, action) => {
+      if (action.meta.aborted) return;
       state.getBookingLoading = false;
       state.getBookingData = null;
       state.getBookingError = action.payload;
@@ -105,7 +131,6 @@ const BookingSlice = createSlice({
 
     builder.addCase(bookingCount.pending, (state) => {
       state.bookingCountLoading = true;
-      state.bookingCount = null;
       state.bookingCountError = null;
     });
     builder.addCase(bookingCount.fulfilled, (state, action) => {
@@ -114,8 +139,13 @@ const BookingSlice = createSlice({
       state.bookingCountError = null;
     });
     builder.addCase(bookingCount.rejected, (state, action) => {
+      if (action.meta.aborted) return;
       state.bookingCountLoading = false;
-      state.bookingCount = null;
+      state.bookingCount = {
+        allCount: 0,
+        upcomingCount: 0,
+        completedCount: 0,
+      };
       state.bookingCountError = action.payload;
     });
 
@@ -151,5 +181,5 @@ const BookingSlice = createSlice({
   },
 });
 
-export const { resetBookingData } = BookingSlice.actions;
+export const { resetBookingData, resetTabCounts } = BookingSlice.actions;
 export default BookingSlice.reducer;

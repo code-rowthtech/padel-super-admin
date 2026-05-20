@@ -2943,3 +2943,8 @@ button:focus .book-now-arrow {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.4; transform: scale(1.3); }
 }
+
+/* Ensure React DatePicker dropdown overlay always floats above card sections, tables, and sticky headers */
+.react-datepicker-popper {
+  z-index: 9999 !important;
+}
