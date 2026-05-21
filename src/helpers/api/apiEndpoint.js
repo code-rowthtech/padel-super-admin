@@ -195,5 +195,8 @@ export const DELETE_CUSTOMER = "/api/super-admin/customers";
 export const GET_CATEGORY_LIST = "/api/category/list";
 // version
 
+// Schedules
+export const SUPER_ADMIN_GET_TODAY_SCHEDULES = "/api/super-admin/today-schedule";
+
 export const GET_VERSION = "/api/app-version/all";
 export const UPDATE_VERSION = "/api/app-version/update";

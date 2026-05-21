@@ -94,12 +94,13 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   const [leagueExpanded, setLeagueExpanded] = useState(false);
   const [tournamentExpanded, setTournamentExpanded] = useState(false);
   const [paymentsExpanded, setPaymentsExpanded] = useState(false);
+  const [bookingsExpanded, setBookingsExpanded] = useState(false);
 
   const paymentsRef = useRef(null);
   const leagueRef = useRef(null);
   const tournamentRef = useRef(null);
   const dashboardRef = useRef(null);
-  const bookingRef = useRef(null);
+  const bookingsRef = useRef(null);
   const ownersRef = useRef(null);
   const appUsersRef = useRef(null);
   const notificationsRef = useRef(null);
@@ -107,6 +108,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   const versionRef = useRef(null);
   const xpRef = useRef(null);
 
+  const isBookingsActive = location.pathname.startsWith('/admin/booking') || location.pathname.startsWith('/admin/schedules');
   const isTournamentActive = location.pathname.startsWith('/admin/tournament') || location.pathname.startsWith('/admin/new-tournament') || location.pathname.startsWith('/admin/tournament/schedule');
   const isPaymentsActive = location.pathname.startsWith('/admin/payments') || location.pathname === '/admin/wallet';
   const isLeagueActive = location.pathname.startsWith('/admin/league') || location.pathname.startsWith('/admin/new-league') || location.pathname.startsWith('/admin/view-league-schedule');
@@ -114,6 +116,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   useEffect(() => { if (isTournamentActive) setTournamentExpanded(true); }, [isTournamentActive]);
   useEffect(() => { if (isPaymentsActive) setPaymentsExpanded(true); }, [isPaymentsActive]);
   useEffect(() => { if (isLeagueActive) setLeagueExpanded(true); }, [isLeagueActive]);
+  useEffect(() => { if (isBookingsActive) setBookingsExpanded(true); }, [isBookingsActive]);
 
   useEffect(() => {
     if (isSuperAdmin) fetchOwners();
@@ -232,17 +235,34 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
 
         {/* Bookings */}
         {!isSubAdmin && (
-          <div className="position-relative" ref={bookingRef}
-            onMouseEnter={() => isDesktopCollapsed && setHoveredItem("booking")}
-            onMouseLeave={() => setHoveredItem(null)}>
-            <NavLink to="/admin/booking" end
-              className={isDesktopCollapsed ? collapsedIconClass : linkClasses(isActivePath("/admin/booking"))}
-              style={() => iconStyle(isActivePath("/admin/booking"))}
-              onClick={() => window.innerWidth <= 768 && onClose()}>
+          <div className="position-relative" ref={bookingsRef}
+            onMouseEnter={() => isDesktopCollapsed && setHoveredItem("bookings")}
+            onMouseLeave={(e) => { if (!e.relatedTarget || !e.currentTarget.contains(e.relatedTarget)) setHoveredItem(null); }}>
+            <div
+              className={isDesktopCollapsed ? collapsedIconClass : linkClasses(isBookingsActive)}
+              style={iconStyle(isBookingsActive)}
+              onClick={() => { if (isDesktopCollapsed) { navigate('/admin/booking'); } else { setBookingsExpanded(!bookingsExpanded); } }}>
               <FaCalendarAlt className={isDesktopCollapsed ? "" : "me-4"} size={isDesktopCollapsed ? 18 : 20} />
-              {!isDesktopCollapsed && "Bookings"}
-            </NavLink>
-            <SimpleTooltip label="Bookings" anchorRef={bookingRef} visible={isDesktopCollapsed && hoveredItem === "booking"} />
+              {!isDesktopCollapsed && (
+                <><span className="flex-grow-1">Bookings</span>{bookingsExpanded ? <FaChevronUp size={14} /> : <FaChevronDown size={14} />}</>
+              )}
+            </div>
+            <FlyoutMenu label="Bookings" anchorRef={bookingsRef} visible={isDesktopCollapsed && hoveredItem === "bookings"}>
+              <NavLink to="/admin/booking" style={flyoutLinkStyle} onClick={closeFlyout}>Bookings</NavLink>
+              <NavLink to="/admin/schedules" style={flyoutLinkStyle} onClick={closeFlyout}>Schedules</NavLink>
+            </FlyoutMenu>
+            {bookingsExpanded && !isDesktopCollapsed && (
+              <div className="ms-4">
+                <NavLink to="/admin/booking"
+                  className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
+                  style={{ backgroundColor: isActivePath("/admin/booking") ? "rgba(31, 65, 187, 0.1)" : "transparent", color: "#CCD2DD", fontSize: "14px", fontFamily: "Poppins" }}
+                  onClick={() => window.innerWidth <= 768 && onClose()}>Bookings</NavLink>
+                <NavLink to="/admin/schedules"
+                  className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
+                  style={{ backgroundColor: isActivePath("/admin/schedules") ? "rgba(31, 65, 187, 0.1)" : "transparent", color: "#CCD2DD", fontSize: "14px", fontFamily: "Poppins" }}
+                  onClick={() => window.innerWidth <= 768 && onClose()}>Schedules</NavLink>
+              </div>
+            )}
           </div>
         )}
 

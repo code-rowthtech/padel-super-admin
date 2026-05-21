@@ -1069,7 +1069,8 @@ const AdminDashboard = () => {
                               <th style={{ borderTopLeftRadius: '12px' }}>#</th>
                               <th>Club Name</th>
                               <th>Online</th>
-                              <th style={{ borderTopRightRadius: '12px' }}>Offline</th>
+                              <th>Offline</th>
+                              <th style={{ borderTopRightRadius: '12px' }}>Total Bookings</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -1079,13 +1080,13 @@ const AdminDashboard = () => {
                                 className="table-data border-bottom text-center"
                               >
                                 <td
-                                  className="text-truncate   fw-semibold"
+                                  className="text-truncate fw-semibold"
                                   style={{ maxWidth: "150px" }}
                                 >
                                   {index + 1 || "N/A"}
                                 </td>
                                 <td
-                                  className="text-truncate  fw-semibold"
+                                  className="text-truncate fw-semibold"
                                   style={{ maxWidth: "150px" }}
                                 >
                                   {item?.clubName || "N/A"}
@@ -1110,9 +1111,9 @@ const AdminDashboard = () => {
                                     </span>
                                   </div>
                                 </td>
-                                {/* <td className=" fw-bold" style={{ color: "#374151" }}>
+                                <td className="fw-semibold" style={{ color: "#374151" }}>
                                   {item?.totalBookings ?? 0}
-                                </td> */}
+                                </td>
                               </tr>
                             ))}
                           </tbody>
