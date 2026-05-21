@@ -312,7 +312,7 @@ const AdminDashboard = () => {
       theme: "green",
     },
     {
-      title: "Total Revenue",
+      title: "Online Revenue",
       value: `₹ ${formatRevenue(dashboardCounts?.totalRevenue)}`,
       percent: calculatePercentage(
         dashboardCounts?.totalRevenue || 0,
@@ -372,9 +372,10 @@ const AdminDashboard = () => {
           {/* Metric + Trend Row */}
           <div className="d-flex align-items-center gap-2 flex-wrap my-1">
             <span className="fw-bold fs-4" style={{ color: "#111827", letterSpacing: "-0.03em", lineHeight: "1" }}>
-              ₹{formatRevenue(dashboardCounts?.totalRevenue)}
+              ₹{formatRevenue(userRev)}
+              <small> ({userPct + '%'})</small>
             </span>
-            {hasTrend && (
+            {/* {hasTrend && (
               <div className={`trend-badge ${isUp ? 'success' : 'danger'}`} style={{ scale: "0.9", transformOrigin: "left center" }}>
                 {isUp ? (
                   <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ marginRight: '2px', display: 'inline-block', verticalAlign: 'middle' }}>
@@ -387,7 +388,7 @@ const AdminDashboard = () => {
                 )}
                 <span style={{ verticalAlign: 'middle' }}>{card.percent}</span>
               </div>
-            )}
+            )} */}
           </div>
 
           {/* Segmented Progress Bar */}
@@ -395,28 +396,26 @@ const AdminDashboard = () => {
             <div
               className="progress-segment progress-segment-primary"
               style={{ width: `${adminPct}%` }}
-              title={`Admin: ${adminPct}%`}
+              title={`Offline: ${adminPct}%`}
             />
             <div
               className="progress-segment progress-segment-secondary"
               style={{ width: `${userPct}%` }}
-              title={`User Panel: ${userPct}%`}
+              title={`Online: ${userPct}%`}
             />
           </div>
 
           {/* Details Row */}
-          <div className="d-flex justify-content-between align-items-center flex-wrap pt-0.5" style={{ fontSize: "10.5px" }}>
+          <div className="d-flex justify-content-between align-items-center flex-wrap pt-0.5" style={{ fontSize: "11.5px" }}>
             <div className="d-flex align-items-center gap-1">
               <span className="rounded-circle" style={{ width: "5px", height: "5px", backgroundColor: "#6366f1", display: "inline-block" }} />
-              <span className="text-dark fw-bold">Admin:</span>
+              <span className="text-dark fw-bold">Offline:</span>
               <span className="fw-bold text-dark">{adminPct}%</span>
-              <span className="fw-semibold" style={{ color: "#4b5563", fontSize: "9.5px" }}>({formatRevenue(adminRev)})</span>
+              <span className="fw-semibold" style={{ color: "#4b5563", fontSize: "11.5px" }}>({formatRevenue(adminRev)})</span>
             </div>
             <div className="d-flex align-items-center gap-1">
-              <span className="rounded-circle" style={{ width: "5px", height: "5px", backgroundColor: "#10b981", display: "inline-block" }} />
-              <span className="text-dark fw-bold">User:</span>
-              <span className="fw-bold text-dark">{userPct}%</span>
-              <span className="fw-semibold" style={{ color: "#4b5563", fontSize: "9.5px" }}>({formatRevenue(userRev)})</span>
+              <span className="text-dark fw-bold">Total Revenue:</span>
+              <span className="fw-semibold" style={{ color: "#4b5563", fontSize: "11.5px" }}>₹{formatRevenue(dashboardCounts?.totalRevenue)}</span>
             </div>
           </div>
         </div>
@@ -791,7 +790,7 @@ const AdminDashboard = () => {
           <Legend
             wrapperStyle={{ fontSize: "12px", paddingTop: "8px" }}
             formatter={(value) =>
-              value === "Online" ? "Online Bookings" : "Admin Bookings"
+              value === "Online" ? "Online Bookings" : "Offline Bookings"
             }
           />
         )}
@@ -811,7 +810,7 @@ const AdminDashboard = () => {
             <Area
               type="monotone"
               dataKey="Admin"
-              name="Admin"
+              name="Offline"
               stroke="#10b981"
               strokeWidth={3}
               fillOpacity={1}
@@ -894,7 +893,7 @@ const AdminDashboard = () => {
                   style={filterSelectStyle}
                 >
                   <option value="">All Booking Modes</option>
-                  <option value="offline">Admin Bookings</option>
+                  <option value="offline">Offline Bookings</option>
                   <option value="online">Online Bookings</option>
                 </Form.Select>
                 {!showDatePicker && !startDate && !endDate ? (
@@ -1061,16 +1060,17 @@ const AdminDashboard = () => {
                         <Table
                           borderless
                           size="sm"
-                          className="custom-table d-none d-md-table"
+                          rounded
+                          className="dashboard-table d-none d-md-table"
                           style={{ borderCollapse: "separate", borderSpacing: "0" }}
                         >
                           <thead>
                             <tr className="text-center">
-                              <th style={{ position: "sticky", top: 0, zIndex: 10, background: "rgb(31, 65, 187)" }}>#</th>
-                              <th className="" style={{ position: "sticky", top: 0, zIndex: 10, background: "rgb(31, 65, 187)" }}>Club Name</th>
-                              <th style={{ position: "sticky", top: 0, zIndex: 10, background: "rgb(31, 65, 187)" }}>Online</th>
-                              <th style={{ position: "sticky", top: 0, zIndex: 10, background: "rgb(31, 65, 187)" }}>Offline</th>
-                              {/* <th style={{ position: "sticky", top: 0, zIndex: 10, background: "rgb(31, 65, 187)" }}>Total</th> */}
+                              <th style={{ borderTopLeftRadius: '12px' }}>#</th>
+                              <th>Club Name</th>
+                              <th>Online</th>
+                              <th>Offline</th>
+                              <th style={{ borderTopRightRadius: '12px' }}>Total Bookings</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -1080,13 +1080,13 @@ const AdminDashboard = () => {
                                 className="table-data border-bottom text-center"
                               >
                                 <td
-                                  className="text-truncate  fw-semibold"
+                                  className="text-truncate fw-semibold"
                                   style={{ maxWidth: "150px" }}
                                 >
                                   {index + 1 || "N/A"}
                                 </td>
                                 <td
-                                  className="text-truncate  fw-semibold"
+                                  className="text-truncate fw-semibold"
                                   style={{ maxWidth: "150px" }}
                                 >
                                   {item?.clubName || "N/A"}
@@ -1111,9 +1111,9 @@ const AdminDashboard = () => {
                                     </span>
                                   </div>
                                 </td>
-                                {/* <td className=" fw-bold" style={{ color: "#374151" }}>
+                                <td className="fw-semibold" style={{ color: "#374151" }}>
                                   {item?.totalBookings ?? 0}
-                                </td> */}
+                                </td>
                               </tr>
                             ))}
                           </tbody>

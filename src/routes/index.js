@@ -12,6 +12,7 @@ const AdminLogin = React.lazy(() => import("../pages/admin/auth/Login"));
 // ✅ SUPER ADMIN ONLY - Keep only essential pages
 const AdminDashboard = React.lazy(() => import("../pages/admin/dashboard/Dashboard"));
 const BookingPage = React.lazy(() => import("../pages/admin/booking/Booking"));
+const Schedules = React.lazy(() => import("../pages/admin/schedules/Schedules"));
 const Payments = React.lazy(() => import("../pages/admin/payments/Payments"));
 const PaymentReconciliation = React.lazy(() => import("../pages/admin/payments/PaymentReconciliation"));
 const Wallet = React.lazy(() => import("../pages/admin/wallet/Wallet"));
@@ -79,6 +80,10 @@ const AllRoutes = () => {
             {
               path: "booking",
               element: LoadComponent(BookingPage),
+            },
+            {
+              path: "schedules",
+              element: LoadComponent(Schedules),
             },
             {
               path: "owners",

@@ -740,7 +740,7 @@ const Payments = () => {
                     className="flex-fill"
                     style={{ fontSize: "11px", padding: "3px 6px" }}
                   >
-                    Admin Bookings
+                    Offline Bookings
                   </Button>
                   <Button
                     variant={activePayableFilter === undefined ? "warning" : "outline-warning"}
