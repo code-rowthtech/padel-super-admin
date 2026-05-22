@@ -332,8 +332,7 @@ const AdminDashboard = () => {
   const renderStatCardBody = (card) => {
     if (card.variant === "openMatchRequests") {
       const openMatchReqs = dashboardCounts?.openMatchRequests || { total: 0, pending: 0, accepted: 0 };
-      const totalRequests = openMatchReqs.total || 0;
-
+      const totalRequests = dashboardCounts?.openMatches || 0;
       return (
         <div className="d-flex flex-column h-100 w-100 justify-content-between" style={{ minHeight: "105px" }}>
           {/* Header Row */}
@@ -1267,7 +1266,7 @@ const AdminDashboard = () => {
                 <Card.Body className="pb-3" style={{ height: "45vh", display: "flex", flexDirection: "column" }}>
                   <div className="d-flex justify-content-between align-items-center mb-3">
                     <h5 className="mb-0 fw-bold" style={{ color: "#1f2937" }}>
-                      Open Matches Overview
+                      Open Matches Overview ({openMatchOverview?.openMatches?.length || ''})
                     </h5>
                     {/* <Link
                       to="/admin/booking"
@@ -1350,50 +1349,48 @@ const AdminDashboard = () => {
                                 const bookingDate = item?.matchDate || item?.bookingDate;
                                 const timeText = item?.matchTime?.[0] || (item?.startTime && item?.endTime ? `${item.startTime} - ${item.endTime}` : "N/A");
                                 const status = item?.openMatchStatus || "open";
+                                const isApproaching = item?.isWithin24Hours;
+                                const approachingStyle = isApproaching ? { backgroundColor: "#fffbeb" } : undefined;
 
                                 return (
-                                  <tr key={item?._id || index} className="table-data border-bottom text-center">
-                                    <td className="fw-semibold">{index + 1}</td>
-                                    <td className="text-start">
+                                  <tr
+                                    key={item?._id || index}
+                                    className="table-data border-bottom text-center"
+                                    style={approachingStyle}
+                                  >
+                                    <td className="fw-semibold" style={approachingStyle}>{index + 1}</td>
+                                    <td className="text-start" style={approachingStyle}>
                                       <div>
                                         <div className="fw-bold" style={{ fontSize: "13px", color: "#111827" }}>{hostName}</div>
                                         {hostPhone && <div className="text-muted" style={{ fontSize: "11px" }}>{hostPhone}</div>}
                                       </div>
                                     </td>
-                                    <td className="text-start">
+                                    <td className="text-start" style={approachingStyle}>
                                       <div>
                                         <div className="fw-semibold" style={{ fontSize: "13px" }}>{clubName}</div>
                                         {courtName && <div className="text-muted" style={{ fontSize: "11px" }}>{courtName}</div>}
                                       </div>
                                     </td>
-                                    <td className="text-start">
+                                    <td className="text-start" style={approachingStyle}>
                                       <div>
                                         <div className="fw-semibold" style={{ fontSize: "12px" }}>{bookingDate ? formatDate(bookingDate) : "N/A"}</div>
                                         <div className="text-muted" style={{ fontSize: "11px" }}>{timeText}</div>
                                       </div>
                                     </td>
-                                    <td>
+                                    <td style={approachingStyle}>
                                       <span className="badge bg-light text-dark border fw-medium" style={{ fontSize: "11px", padding: "4px 8px" }}>
                                         {skill}
                                       </span>
                                     </td>
-                                    <td>
-                                      <OverlayTrigger
-                                        placement="top"
-                                        overlay={
-                                          <Tooltip>
-                                            Pending: {item?.requestCounts?.pending || 0}<br />
-                                            Accepted: {item?.requestCounts?.accepted || 0}<br />
-                                            Rejected: {item?.requestCounts?.rejected || 0}
-                                          </Tooltip>
-                                        }
-                                      >
-                                        <span className="fw-bold">
-                                          {item?.requestCounts?.total || 0}
-                                        </span>
-                                      </OverlayTrigger>
+                                    <td style={approachingStyle}>
+                                      <div>
+                                        <div className="fw-bold">{item?.requestCounts?.total || 0}</div>
+                                        <div className="text-muted" style={{ fontSize: "11px" }}>
+                                          Pending: {item?.requestCounts?.pending || 0} | Accepted: {item?.requestCounts?.accepted || 0}
+                                        </div>
+                                      </div>
                                     </td>
-                                    <td>
+                                    <td style={approachingStyle}>
                                       <div className="d-flex flex-column align-items-center justify-content-center" style={{ minWidth: "120px" }}>
                                         <div className="d-flex justify-content-between w-100 px-2 mb-1" style={{ fontSize: "10.5px" }}>
                                           <span className="fw-bold text-dark">{joinedCount}/{maxCount}</span>
@@ -1415,10 +1412,10 @@ const AdminDashboard = () => {
                                         </div>
                                       </div>
                                     </td>
-                                    <td className="fw-bold text-success" style={{ fontSize: "13px" }}>
+                                    <td className="fw-bold text-success" style={{ fontSize: "13px", ...approachingStyle }}>
                                       {priceText}
                                     </td>
-                                    <td>
+                                    <td style={approachingStyle}>
                                       <span
                                         className="badge text-uppercase"
                                         style={{
@@ -1455,9 +1452,14 @@ const AdminDashboard = () => {
                             const bookingDate = item?.matchDate || item?.bookingDate;
                             const timeText = item?.matchTime?.[0] || (item?.startTime && item?.endTime ? `${item.startTime} - ${item.endTime}` : "N/A");
                             const status = item?.openMatchStatus || "open";
+                            const isApproaching = item?.isWithin24Hours;
 
                             return (
-                              <div key={item?._id || index} className="card mb-2 border">
+                              <div
+                                key={item?._id || index}
+                                className="card mb-2 border"
+                                style={isApproaching ? { backgroundColor: "#fffbeb", borderColor: "#f59e0b" } : undefined}
+                              >
                                 <div className="card-body p-3">
                                   <div className="d-flex justify-content-between align-items-center mb-2">
                                     <span className="fw-bold text-dark" style={{ fontSize: "14px" }}>{hostName}</span>
@@ -1487,6 +1489,15 @@ const AdminDashboard = () => {
                                   <div className="mobile-card-item">
                                     <span className="mobile-card-label">Skill Level:</span>
                                     <span className="mobile-card-value text-end">{skill}</span>
+                                  </div>
+                                  <div className="mobile-card-item">
+                                    <span className="mobile-card-label">Requests:</span>
+                                    <span className="mobile-card-value text-end">
+                                      <div className="fw-bold">{item?.requestCounts?.total || 0}</div>
+                                      <div className="text-muted" style={{ fontSize: "11px" }}>
+                                        Pending: {item?.requestCounts?.pending || 0} | Accepted: {item?.requestCounts?.accepted || 0}
+                                      </div>
+                                    </span>
                                   </div>
                                   <div className="mobile-card-item">
                                     <span className="mobile-card-label">Fee / Player:</span>

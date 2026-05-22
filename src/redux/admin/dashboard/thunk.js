@@ -53,6 +53,8 @@ export const getCountDataForDashboard = createAsyncThunk(
           adminRevenue: stats.offlineBookingRevenue ?? 0,
           userPanelRevenue: stats.onlineBookingRevenue ?? 0,
           bookingModeRatio: stats.bookingModeRatio ?? null,
+          openMatches: stats.openMatches ?? 0,
+          openMatchRequests: stats.openMatchRequests ?? { total: 0, pending: 0, accepted: 0 },
         };
       }
       const errorMessage = message || "error fetching Data";

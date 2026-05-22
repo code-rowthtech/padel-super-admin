@@ -106,7 +106,7 @@ const Payments = () => {
   const [generatingPayment, setGeneratingPayment] = useState(false);
   const fileInputRef = useRef(null);
   const [selectedCategory, setSelectedCategory] = useState("");
-
+  console.log(activePayableFilter, "activePayableFilter");
   const setDateRange = (update) => {
     setStartDate(update[0]);
     setEndDate(update[1]);
@@ -286,8 +286,8 @@ const Payments = () => {
         const { SUPER_ADMIN_GET_ALL_CLUBS } =
           await import("../../../helpers/api/apiEndpoint");
         const url = ownerId
-          ? `${SUPER_ADMIN_GET_ALL_CLUBS}?ownerId=${ownerId}`
-          : SUPER_ADMIN_GET_ALL_CLUBS;
+          ? `${SUPER_ADMIN_GET_ALL_CLUBS}?ownerId=${ownerId}${activePayableFilter !== undefined ? `&payableStatus=${activePayableFilter}` : ""}`
+          : `${SUPER_ADMIN_GET_ALL_CLUBS}${activePayableFilter !== undefined ? `?payableStatus=${activePayableFilter}` : ""}`;
         const res = await ownerApi.get(url);
         const clubsData = res?.data?.data || [];
         setClubs(clubsData);
@@ -304,7 +304,7 @@ const Payments = () => {
       }
     };
     fetchClubs();
-  }, [isSuperAdmin, ownerId]);
+  }, [isSuperAdmin, ownerId, activePayableFilter]);
 
   const formatAmount = (amount) => {
     if (!amount) return "₹0";
