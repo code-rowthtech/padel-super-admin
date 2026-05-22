@@ -19,6 +19,7 @@ import {
   AreaChart,
   Legend,
 } from "recharts";
+import { VscRequestChanges } from "react-icons/vsc";
 import { FaArrowUp, FaArrowDown, FaEye, FaCalendarAlt, FaTimes, FaMobileAlt, FaDesktop } from "react-icons/fa";
 import { BsCalendar2Check, BsFileText, BsCurrencyRupee } from "react-icons/bs";
 import { Link, useLocation } from "react-router-dom";
@@ -262,27 +263,9 @@ const AdminDashboard = () => {
 
   const summaryCards = [
     {
-      title: "Completed Booking",
-      value: `${dashboardCounts?.totalBookingHours || 0} Hrs`,
-      percent: calculatePercentage(
-        dashboardCounts?.totalBookingHours || 0,
-        previousPeriod?.totalBookingHours
-      ),
-      icon: calculatePercentage(
-        dashboardCounts?.totalBookingHours || 0,
-        previousPeriod?.totalBookingHours
-      ).startsWith("+") ? (
-        <FaArrowUp />
-      ) : (
-        <FaArrowDown />
-      ),
-      color: calculatePercentage(
-        dashboardCounts?.totalBookingHours || 0,
-        previousPeriod?.totalBookingHours
-      ).startsWith("+")
-        ? "success"
-        : "danger",
-      bigicon: <BsCalendar2Check size={28} />,
+      title: "Open Match Requests",
+      variant: "openMatchRequests",
+      bigicon: <VscRequestChanges size={28} />,
       iconClass: "stat-icon-purple",
       theme: "purple",
     },
@@ -347,6 +330,88 @@ const AdminDashboard = () => {
   ];
 
   const renderStatCardBody = (card) => {
+    if (card.variant === "openMatchRequests") {
+      const openMatchReqs = dashboardCounts?.openMatchRequests || { total: 0, pending: 0, accepted: 0 };
+      const totalRequests = openMatchReqs.total || 0;
+
+      return (
+        <div className="d-flex flex-column h-100 w-100 justify-content-between" style={{ minHeight: "105px" }}>
+          {/* Header Row */}
+          <div className="d-flex justify-content-between align-items-center w-100">
+            <span className="text-muted text-uppercase fw-semibold" style={{ fontSize: "10.5px", letterSpacing: "0.6px" }}>
+              {card.title}
+            </span>
+            <div className={`stat-icon flex-shrink-0 ${card?.iconClass}`} style={{ width: "32px", height: "32px", borderRadius: "8px", fontSize: "14px" }}>
+              {React.cloneElement(card?.bigicon, { size: 16 })}
+            </div>
+          </div>
+
+          {/* Body Content: 3 Faded Stats */}
+          <div className="flex-grow-1 min-w-0 d-flex flex-column gap-1 mt-1">
+            {/* Total Requests */}
+            <div
+              className="d-flex align-items-center justify-content-between p-1 px-2 rounded"
+              style={{
+                background: "linear-gradient(90deg, rgba(99, 102, 241, 0.06) 0%, rgba(99, 102, 241, 0.01) 100%)",
+                borderLeft: "2px solid #6366f1",
+                lineHeight: "1.1",
+                opacity: 0.8
+              }}
+            >
+              <span className="fw-bold" style={{ fontSize: "9.5px", color: "#4f46e5" }}>
+                Total
+              </span>
+              <div className="text-end">
+                <span className="fw-extrabold text-dark" style={{ fontSize: "11px", fontFamily: "Poppins, sans-serif" }}>
+                  {totalRequests}
+                </span>
+              </div>
+            </div>
+
+            {/* Pending Requests */}
+            <div
+              className="d-flex align-items-center justify-content-between p-1 px-2 rounded"
+              style={{
+                background: "linear-gradient(90deg, rgba(245, 158, 11, 0.06) 0%, rgba(245, 158, 11, 0.01) 100%)",
+                borderLeft: "2px solid #f59e0b",
+                lineHeight: "1.1",
+                opacity: 0.8
+              }}
+            >
+              <span className="fw-bold" style={{ fontSize: "9.5px", color: "#d97706" }}>
+                Pending
+              </span>
+              <div className="text-end">
+                <span className="fw-extrabold text-dark" style={{ fontSize: "11px", fontFamily: "Poppins, sans-serif" }}>
+                  {openMatchReqs.pending || 0}
+                </span>
+              </div>
+            </div>
+
+            {/* Accepted Requests */}
+            <div
+              className="d-flex align-items-center justify-content-between p-1 px-2 rounded"
+              style={{
+                background: "linear-gradient(90deg, rgba(16, 185, 129, 0.06) 0%, rgba(16, 185, 129, 0.01) 100%)",
+                borderLeft: "2px solid #10b981",
+                lineHeight: "1.1",
+                opacity: 0.8
+              }}
+            >
+              <span className="fw-bold" style={{ fontSize: "9.5px", color: "#059669" }}>
+                Accepted
+              </span>
+              <div className="text-end">
+                <span className="fw-extrabold text-dark" style={{ fontSize: "11px", fontFamily: "Poppins, sans-serif" }}>
+                  {openMatchReqs.accepted || 0}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     if (card.variant === "revenue") {
       const adminRev = dashboardCounts?.adminRevenue || 0;
       const userRev = dashboardCounts?.userPanelRevenue || 0;
@@ -776,7 +841,7 @@ const AdminDashboard = () => {
           axisLine={false}
           tick={{ fill: "#9ca3af", fontSize: 12 }}
         />
-        <Tooltip
+        {/* <Tooltip
           contentStyle={{
             backgroundColor: "#fff",
             border: "1px solid #e5e7eb",
@@ -785,6 +850,27 @@ const AdminDashboard = () => {
             boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
           }}
           labelStyle={{ fontWeight: 600, marginBottom: "4px" }}
+        /> */}
+        <Tooltip
+          contentStyle={{
+            backgroundColor: "#fff",
+            border: "1px solid #e5e7eb",
+            borderRadius: "8px",
+            padding: "8px 12px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.1",
+          }}
+          labelStyle={{
+            fontWeight: 600,
+            marginBottom: "4px"
+          }}
+          labelFormatter={(label) => {
+            if (chartView === "daily") {
+              return `${label} ${months[selectedMonth]} ${selectedYear}`;
+              // Example: "15 May 2026"
+            }
+
+            return label; // monthly view remains unchanged
+          }}
         />
         {showBothBookingModes && (
           <Legend
@@ -1243,6 +1329,7 @@ const AdminDashboard = () => {
                                 <th className="text-start" style={{ position: "sticky", top: 0, zIndex: 10, background: "rgb(31, 65, 187)", color: "white" }}>Club & Court</th>
                                 <th className="text-start" style={{ position: "sticky", top: 0, zIndex: 10, background: "rgb(31, 65, 187)", color: "white" }}>Date & Time</th>
                                 <th style={{ position: "sticky", top: 0, zIndex: 10, background: "rgb(31, 65, 187)", color: "white" }}>Skill Level</th>
+                                <th style={{ position: "sticky", top: 0, zIndex: 10, background: "rgb(31, 65, 187)", color: "white" }}>Total Requests</th>
                                 <th style={{ position: "sticky", top: 0, zIndex: 10, background: "rgb(31, 65, 187)", color: "white" }}>Players Joined</th>
                                 <th style={{ position: "sticky", top: 0, zIndex: 10, background: "rgb(31, 65, 187)", color: "white" }}>Fee</th>
                                 <th style={{ position: "sticky", top: 0, zIndex: 10, background: "rgb(31, 65, 187)", color: "white" }}>Status</th>
@@ -1254,6 +1341,7 @@ const AdminDashboard = () => {
                                 const maxCount = item?.totalPlayersCount ?? item?.maxPlayers ?? 4;
                                 const progressPct = Math.min(100, (joinedCount / maxCount) * 100);
                                 const skill = item?.skillLevel || "All Skills";
+                                const requestCount = item?.requestCounts?.total;
                                 const priceText = item?.teamA?.[0]?.amountPaid !== undefined ? `₹${item.teamA[0].amountPaid}` : (item?.totalMatchPayment !== undefined ? `₹${item.totalMatchPayment}` : "N/A");
                                 const hostName = item?.createdBy?.name || item?.creatorId?.name || item?.userId?.name || "N/A";
                                 const hostPhone = item?.createdBy?.phoneNumber ? `${item?.createdBy?.countryCode || ""}${item?.createdBy?.phoneNumber}` : "";
@@ -1288,6 +1376,22 @@ const AdminDashboard = () => {
                                       <span className="badge bg-light text-dark border fw-medium" style={{ fontSize: "11px", padding: "4px 8px" }}>
                                         {skill}
                                       </span>
+                                    </td>
+                                    <td>
+                                      <OverlayTrigger
+                                        placement="top"
+                                        overlay={
+                                          <Tooltip>
+                                            Pending: {item?.requestCounts?.pending || 0}<br />
+                                            Accepted: {item?.requestCounts?.accepted || 0}<br />
+                                            Rejected: {item?.requestCounts?.rejected || 0}
+                                          </Tooltip>
+                                        }
+                                      >
+                                        <span className="fw-bold">
+                                          {item?.requestCounts?.total || 0}
+                                        </span>
+                                      </OverlayTrigger>
                                     </td>
                                     <td>
                                       <div className="d-flex flex-column align-items-center justify-content-center" style={{ minWidth: "120px" }}>
