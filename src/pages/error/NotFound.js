@@ -16,7 +16,7 @@ const NotFound = () => {
                         The page you're looking for doesn't exist or was moved.
                     </p>
                     <Button style={{ backgroundColor: '#3dbe64ff' }} size="lg" className='d-flex align-items-center' onClick={() => navigate(-1)}>
-                        <i class="bi bi-arrow-left-short fw-bold fs-3"></i> Go Back
+                        <i className="bi bi-arrow-left-short fw-bold fs-3"></i> Go Back
                     </Button>
                 </Col>
             </Row>

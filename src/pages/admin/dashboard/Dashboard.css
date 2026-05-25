@@ -317,3 +317,25 @@
   color: #1f2937;
   font-size: 13px;
 }
+
+.custom-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scroll-container::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 3px;
+}
+
+.custom-scroll-container::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+.custom-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+.custom-table tbody tr:last-child td {
+  padding-bottom: 20px !important;
+}
