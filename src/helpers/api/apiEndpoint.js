@@ -200,3 +200,7 @@ export const SUPER_ADMIN_GET_TODAY_SCHEDULES = "/api/super-admin/today-schedule"
 
 export const GET_VERSION = "/api/app-version/all";
 export const UPDATE_VERSION = "/api/app-version/update";
+
+// get match request match and post matcj
+export const GET_MATCH_REQUEST = "/api/super-admin/match-request-players";
+export const POST_MATCH_REQUEST = "/api/super-admin/match-request/send";

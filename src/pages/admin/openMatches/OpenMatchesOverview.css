@@ -1,0 +1,81 @@
+.players-joined-cell:hover {
+  background-color: rgba(99, 102, 241, 0.05);
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.custom-table {
+  font-size: 13px;
+}
+
+.custom-table thead th {
+  background: rgb(31, 65, 187);
+  color: white;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 12px 8px;
+  border: none;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.custom-table tbody td {
+  padding: 14px 8px;
+  vertical-align: middle;
+  color: #374151;
+  font-size: 13px;
+}
+
+.custom-table tbody tr {
+  transition: background 0.2s ease;
+}
+
+.custom-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.mobile-card-table .card {
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.mobile-card-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.mobile-card-item:last-child {
+  border-bottom: none;
+}
+
+.mobile-card-label {
+  font-weight: 600;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.mobile-card-value {
+  color: #1f2937;
+  font-size: 13px;
+}
+
+@media (max-width: 768px) {
+  .mobile-card-table .card {
+    margin-bottom: 12px;
+  }
+  
+  .mobile-card-item {
+    padding: 6px 0;
+    font-size: 12px;
+  }
+  
+  .mobile-card-label,
+  .mobile-card-value {
+    font-size: 12px;
+  }
+}

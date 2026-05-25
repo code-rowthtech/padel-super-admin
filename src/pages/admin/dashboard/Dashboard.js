@@ -64,6 +64,8 @@ import {
   BookingCancellationModal,
   CancelRequestModal,
 } from "../booking/cancellation/ModalCancellation";
+import MatchRequestModal from "../../../components/modals/MatchRequestModal";
+import PlayersJoinedModal from "../../../components/modals/PlayersJoinedModal";
 
 const formatToYYYYMMDD = (date) => {
   const year = date.getFullYear();
@@ -201,6 +203,19 @@ const AdminDashboard = () => {
   const [startDate, endDate] = dateRange;
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [loadingClubs, setLoadingClubs] = useState(false);
+
+  const getStatusBadgeStyle = (status) => {
+    const statusLower = status?.toLowerCase() || "";
+    const statusStyles = {
+      upcoming: { bg: "rgba(59, 130, 246, 0.12)", color: "#2563eb" },
+      complete: { bg: "rgba(16, 185, 129, 0.12)", color: "#059669" },
+      pending: { bg: "rgba(245, 158, 11, 0.12)", color: "#d97706" },
+      cancelled: { bg: "rgba(239, 68, 68, 0.12)", color: "#dc2626" },
+      open: { bg: "rgba(99, 102, 241, 0.12)", color: "#4f46e5" },
+      full: { bg: "rgba(16, 185, 129, 0.12)", color: "#059669" },
+    };
+    return statusStyles[statusLower] || statusStyles.open;
+  };
 
   const filterSelectStyle = {
     fontSize: "13px",
@@ -645,6 +660,10 @@ const AdminDashboard = () => {
   const [showBookingCancel, setShowBookingCancel] = useState(false);
   const [showCancellation, setShowCancellation] = useState(false);
   const [showRequest, setShowRequest] = useState(false);
+  const [showMatchRequestModal, setShowMatchRequestModal] = useState(false);
+  const [showPlayersJoinedModal, setShowPlayersJoinedModal] = useState(false);
+  const [selectedMatchId, setSelectedMatchId] = useState(null);
+  const [selectedMatchPlayers, setSelectedMatchPlayers] = useState([]);
   const [chartView, setChartView] = useState("monthly");
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -1145,7 +1164,6 @@ const AdminDashboard = () => {
                         <Table
                           borderless
                           size="sm"
-                          rounded
                           className="dashboard-table d-none d-md-table"
                           style={{ borderCollapse: "separate", borderSpacing: "0" }}
                         >
@@ -1268,8 +1286,8 @@ const AdminDashboard = () => {
                     <h5 className="mb-0 fw-bold" style={{ color: "#1f2937" }}>
                       Open Matches Overview ({openMatchOverview?.openMatches?.length || ''})
                     </h5>
-                    {/* <Link
-                      to="/admin/booking"
+                    <Link
+                      to="/admin/open-matches"
                       className="text-decoration-none"
                       style={{
                         fontSize: "13px",
@@ -1278,8 +1296,8 @@ const AdminDashboard = () => {
                         transition: "all 0.2s ease"
                       }}
                     >
-                      View More →
-                    </Link> */}
+                      See All →
+                    </Link>
                   </div>
 
                   <div
@@ -1334,8 +1352,8 @@ const AdminDashboard = () => {
                                 <th style={{ position: "sticky", top: 0, zIndex: 10, background: "rgb(31, 65, 187)", color: "white" }}>Status</th>
                               </tr>
                             </thead>
-                            <tbody>
-                              {(openMatchOverview.openMatches || []).map((item, index) => {
+                            <tbody className="pb-4">
+                              {(openMatchOverview.openMatches || []).slice(0, 5).map((item, index) => {
                                 const joinedCount = item?.totalPlayers ?? (Number(item?.teamA?.length || 0) + Number(item?.teamB?.length || 0));
                                 const maxCount = item?.totalPlayersCount ?? item?.maxPlayers ?? 4;
                                 const progressPct = Math.min(100, (joinedCount / maxCount) * 100);
@@ -1348,14 +1366,14 @@ const AdminDashboard = () => {
                                 const courtName = item?.slot?.[0]?.courtName || "";
                                 const bookingDate = item?.matchDate || item?.bookingDate;
                                 const timeText = item?.matchTime?.[0] || (item?.startTime && item?.endTime ? `${item.startTime} - ${item.endTime}` : "N/A");
-                                const status = item?.openMatchStatus || "open";
+                                const status = item?.openMatchStatus || item?.status || "upcoming";
                                 const isApproaching = item?.isWithin24Hours;
                                 const approachingStyle = isApproaching ? { backgroundColor: "#fffbeb" } : undefined;
-
+                                const statusStyle = getStatusBadgeStyle(status);
                                 return (
                                   <tr
                                     key={item?._id || index}
-                                    className="table-data border-bottom text-center"
+                                    className="table-data border-bottom  text-center"
                                     style={approachingStyle}
                                   >
                                     <td className="fw-semibold" style={approachingStyle}>{index + 1}</td>
@@ -1391,7 +1409,16 @@ const AdminDashboard = () => {
                                       </div>
                                     </td>
                                     <td style={approachingStyle}>
-                                      <div className="d-flex flex-column align-items-center justify-content-center" style={{ minWidth: "120px" }}>
+                                      <div
+                                        className="d-flex flex-column align-items-center justify-content-center"
+                                        style={{ minWidth: "120px", cursor: joinedCount > 0 ? "pointer" : "default" }}
+                                        onClick={() => {
+                                          if (joinedCount > 0) {
+                                            setSelectedMatchPlayers(item);
+                                            setShowPlayersJoinedModal(true);
+                                          }
+                                        }}
+                                      >
                                         <div className="d-flex justify-content-between w-100 px-2 mb-1" style={{ fontSize: "10.5px" }}>
                                           <span className="fw-bold text-dark">{joinedCount}/{maxCount}</span>
                                           <span className="text-muted">{progressPct.toFixed(0)}%</span>
@@ -1415,21 +1442,41 @@ const AdminDashboard = () => {
                                     <td className="fw-bold text-success" style={{ fontSize: "13px", ...approachingStyle }}>
                                       {priceText}
                                     </td>
-                                    <td style={approachingStyle}>
-                                      <span
-                                        className="badge text-uppercase"
-                                        style={{
-                                          fontSize: "10px",
-                                          padding: "4px 8px",
-                                          borderRadius: "4px",
-                                          fontWeight: "600",
-                                          letterSpacing: "0.5px",
-                                          background: status.toLowerCase() === "open" ? "rgba(99, 102, 241, 0.12)" : status.toLowerCase() === "full" ? "rgba(16, 185, 129, 0.12)" : "rgba(107, 114, 128, 0.12)",
-                                          color: status.toLowerCase() === "open" ? "#4f46e5" : status.toLowerCase() === "full" ? "#059669" : "#6b7280"
-                                        }}
-                                      >
-                                        {status}
-                                      </span>
+                                    <td className="text-center" style={approachingStyle}>
+                                      <div className="d-flex  align-items-center justify-content-center gap-2">
+                                        <span
+                                          className="badge text-uppercase"
+                                          style={{
+                                            fontSize: "10px",
+                                            padding: "4px 8px",
+                                            borderRadius: "4px",
+                                            fontWeight: "600",
+                                            letterSpacing: "0.5px",
+                                            background: statusStyle.bg,
+                                            color: statusStyle.color
+                                          }}
+                                        >
+                                          {status}
+                                        </span>
+                                        <button
+                                          className="btn border-0"
+                                          onClick={() => {
+                                            setSelectedMatchId(item?._id);
+                                            setShowMatchRequestModal(true);
+                                          }}
+                                          style={{
+                                            fontSize: "10px",
+                                            boxShadow: "none",
+                                            background: "rgba(99, 102, 241, 0.12)",
+                                            padding: "4px 8px",
+                                            borderRadius: "4px",
+                                            color: "#4f46e5",
+                                            fontWeight: "600"
+                                          }}
+                                        >
+                                          Request
+                                        </button>
+                                      </div>
                                     </td>
                                   </tr>
                                 );
@@ -1598,6 +1645,16 @@ const AdminDashboard = () => {
         }}
         loading={updateBookingLoading}
         bookingDetails={bookingDetails}
+      />
+      <MatchRequestModal
+        show={showMatchRequestModal}
+        onHide={() => setShowMatchRequestModal(false)}
+        matchId={selectedMatchId}
+      />
+      <PlayersJoinedModal
+        show={showPlayersJoinedModal}
+        onHide={() => setShowPlayersJoinedModal(false)}
+        players={selectedMatchPlayers}
       />
     </Container>
   );
