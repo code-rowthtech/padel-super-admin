@@ -10,6 +10,7 @@ import leagueReducer from "./admin/league/slice";
 import appUsersReducer from "./admin/appUsers/slice";
 import versionReducer from "./admin/version/slice";
 import tournamentReducer from "./admin/tournament/slice";
+import schedulesReducer from "./admin/schedules/slice";
 
 const store = configureStore({
   reducer: {
@@ -24,6 +25,7 @@ const store = configureStore({
     appUsers: appUsersReducer,
     version: versionReducer,
     tournament: tournamentReducer,
+    schedules: schedulesReducer,
   },
 });
 

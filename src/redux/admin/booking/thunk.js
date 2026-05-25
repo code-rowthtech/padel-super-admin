@@ -1,6 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import * as Url from "../../../helpers/api/apiEndpoint";
-import { ownerApi } from "../../../helpers/api/apiCore";
+import { ownerAxios } from "../../../helpers/api/apiCore";
 import { showError, showSuccess } from "../../../helpers/Toast";
 
 const ERROR_MESSAGES = {
@@ -8,39 +8,39 @@ const ERROR_MESSAGES = {
   NETWORK_ERROR: "Network error",
 };
 
+const buildBookingQueryString = (params = {}) => {
+  const query = new URLSearchParams();
+
+  if (params?.status) {
+    if (params.status === "upcoming") {
+      query.append("bookingStatus", "upcoming");
+    } else if (params.status === "completed") {
+      query.append("bookingStatus", "completed");
+    } else {
+      query.append("bookingStatus", params.status);
+    }
+  }
+  if (params?.ownerId) query.append("ownerId", params.ownerId);
+  if (params?.clubId) query.append("clubId", params.clubId);
+  if (params?.paymentStatus) query.append("paymentStatus", params.paymentStatus);
+  if (params.startDate) query.append("startDate", params.startDate);
+  if (params.endDate) query.append("endDate", params.endDate);
+  if (params.search) query.append("search", params.search);
+  if (params.category) query.append("category", params.category);
+  if (params.bookingMode) query.append("bookingMode", params.bookingMode);
+  if (params.page) query.append("page", params.page);
+  if (params.limit) query.append("limit", params.limit);
+
+  return query.toString();
+};
+
 export const getBookingByStatus = createAsyncThunk(
   "manualBooking/getBookingByStatus",
-  async (params, { rejectWithValue }) => {
+  async (params, { rejectWithValue, signal }) => {
     try {
-      const buildQuery = (params) => {
-        const query = new URLSearchParams();
-
-        // ✅ SUPER ADMIN: Map status to bookingStatus
-        if (params?.status) {
-          if (params.status === "upcoming") {
-            query.append("bookingStatus", "upcoming");
-          } else if (params.status === "completed") {
-            query.append("bookingStatus", "completed");
-          } else {
-            query.append("bookingStatus", params.status);
-          }
-        }
-        if (params?.ownerId) query.append("ownerId", params?.ownerId);
-        if (params?.clubId) query.append("clubId", params?.clubId);
-        if (params?.paymentStatus) query.append("paymentStatus", params?.paymentStatus);
-        if (params.startDate) query.append("startDate", params.startDate);
-        if (params.endDate) query.append("endDate", params.endDate);
-        if (params.search) query.append("search", params.search);
-        if (params.category) query.append("category", params.category);
-        if (params.page) query.append("page", params.page);
-        if (params.limit) query.append("limit", params.limit);
-
-        return query.toString();
-      };
-      
-      // ✅ SUPER ADMIN: Use Super Admin booking API
-      const res = await ownerApi.get(
-        `${Url.SUPER_ADMIN_GET_ALL_BOOKINGS}?${buildQuery(params)}`
+      const res = await ownerAxios.get(
+        `${Url.SUPER_ADMIN_GET_ALL_BOOKINGS}?${buildBookingQueryString(params)}`,
+        { signal }
       );
       const { status, data, message } = res || {};
       if (status === 200 || "200") {
@@ -56,6 +56,9 @@ export const getBookingByStatus = createAsyncThunk(
       const errorMessage = message || ERROR_MESSAGES.FETCH_FAILED;
       return rejectWithValue(errorMessage);
     } catch (error) {
+      if (error?.code === "ERR_CANCELED" || error?.name === "CanceledError") {
+        return rejectWithValue({ aborted: true });
+      }
       const errorMessage =
         error?.response?.data?.message || ERROR_MESSAGES.NETWORK_ERROR;
       return rejectWithValue(errorMessage);
@@ -66,7 +69,7 @@ export const getBookingDetailsById = createAsyncThunk(
   "manualBooking/getBookingDetailsById",
   async (params, { rejectWithValue }) => {
     try {
-      const res = await ownerApi.get(
+      const res = await ownerAxios.get(
         `${Url.GET_BOOKING_DETAILS_BY_ID}?_id=${params?.id}`
       );
       const { status, data, message } = res || {};
@@ -89,7 +92,7 @@ export const updateBookingStatus = createAsyncThunk(
   "manualBooking/updateBookingStatus",
   async (data, { rejectWithValue }) => {
     try {
-      const res = await ownerApi.put(Url.UPDATE_BOOKING_STATUS, data);
+      const res = await ownerAxios.put(Url.UPDATE_BOOKING_STATUS, data);
       return res?.data;
     } catch (error) {
       showError(error?.message);
@@ -97,18 +100,17 @@ export const updateBookingStatus = createAsyncThunk(
   }
 );
 
+const buildBookingCountUrl = (params = {}) => {
+  const queryString = buildBookingQueryString(params);
+  return queryString
+    ? `${Url.SUPER_ADMIN_GET_ALL_BOOKINGS}?${queryString}`
+    : Url.SUPER_ADMIN_GET_ALL_BOOKINGS;
+};
+
 export const bookingCount = createAsyncThunk(
   "manualBooking/bookingCount",
-  async (data, { rejectWithValue }) => {
+  async (data, { rejectWithValue, signal }) => {
     try {
-      // ✅ SUPER ADMIN: Use Super Admin booking API to get counts
-      const buildUrl = (params = {}) => {
-        const query = new URLSearchParams(params);
-        const queryString = query.toString();
-        return queryString
-          ? `${Url.SUPER_ADMIN_GET_ALL_BOOKINGS}?${queryString}`
-          : Url.SUPER_ADMIN_GET_ALL_BOOKINGS;
-      };
       const baseParams = {
         ...(data?.ownerId ? { ownerId: data.ownerId } : {}),
         ...(data?.clubId ? { clubId: data.clubId } : {}),
@@ -116,16 +118,23 @@ export const bookingCount = createAsyncThunk(
         ...(data?.endDate ? { endDate: data.endDate } : {}),
         ...(data?.search ? { search: data.search } : {}),
         ...(data?.category ? { category: data.category } : {}),
+        ...(data?.bookingMode ? { bookingMode: data.bookingMode } : {}),
+        limit: 1,
       };
 
-      const allRes = await ownerApi.get(
-        buildUrl({ ...baseParams, limit: 1 })
+      const requestConfig = { signal };
+
+      const allRes = await ownerAxios.get(
+        buildBookingCountUrl(baseParams),
+        requestConfig
       );
-      const upcomingRes = await ownerApi.get(
-        buildUrl({ ...baseParams, bookingStatus: "upcoming", limit: 1 })
+      const upcomingRes = await ownerAxios.get(
+        buildBookingCountUrl({ ...baseParams, status: "upcoming" }),
+        requestConfig
       );
-      const completedRes = await ownerApi.get(
-        buildUrl({ ...baseParams, bookingStatus: "completed", limit: 1 })
+      const completedRes = await ownerAxios.get(
+        buildBookingCountUrl({ ...baseParams, status: "completed" }),
+        requestConfig
       );
 
       return {
@@ -134,6 +143,9 @@ export const bookingCount = createAsyncThunk(
         completedCount: completedRes?.data?.data?.pagination?.totalItems || 0
       };
     } catch (error) {
+      if (error?.code === "ERR_CANCELED" || error?.name === "CanceledError") {
+        return rejectWithValue({ aborted: true });
+      }
       showError(error?.message);
       return rejectWithValue(error?.message);
     }
@@ -144,7 +156,7 @@ export const getCategoryList = createAsyncThunk(
   "booking/getCategoryList",
   async (_, { rejectWithValue }) => {
     try {
-      const res = await ownerApi.get(Url.GET_CATEGORY_LIST);
+      const res = await ownerAxios.get(Url.GET_CATEGORY_LIST);
       const { status, data } = res || {};
       if (status === 200) {
         return data?.data || [];
@@ -160,7 +172,7 @@ export const getAllClubs = createAsyncThunk(
   "booking/getAllClubs",
   async (_, { rejectWithValue }) => {
     try {
-      const res = await ownerApi.get(Url.SUPER_ADMIN_GET_ALL_CLUBS);
+      const res = await ownerAxios.get(Url.SUPER_ADMIN_GET_ALL_CLUBS);
       const { status, data } = res || {};
       if (status === 200) {
         return data?.data || [];

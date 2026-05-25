@@ -133,7 +133,6 @@ export const saveTournamentSchedule = createAsyncThunk(
     try {
       const response = await ownerApi.post(SAVE_TOURNAMENT_SCHEDULE, scheduleData);
       if (response?.status === 200 || response?.status === 201) {
-        console.log({ response })
         showSuccess(response?.data?.message || "Schedule saved successfully");
         return response.data;
       }

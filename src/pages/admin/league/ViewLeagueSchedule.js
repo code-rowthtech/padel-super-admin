@@ -366,7 +366,6 @@ const QuickiePointTab = ({ leagueId }) => {
     });
   };
 
-
   const handleCancelEdit = () => {
     setEditingId(null);
     setFormData({ date: '', matchId: '', teamId: '', points: 1 });
@@ -666,7 +665,6 @@ const ViewLeagueSchedule = () => {
   };
 
   const hasActiveFilters = filters.categoryType || filters.roundType || filters.startDate || filters.endDate || filters.matchStatus;
-
   const schedulesData = Array.isArray(schedules?.data)
     ? schedules.data
     : Array.isArray(schedules)

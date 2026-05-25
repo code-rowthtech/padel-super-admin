@@ -77,8 +77,12 @@ export const GET_CANCELLATION_BOOKING_DASHBOARD =
   "/api/super-admin/club-dashboard-cancellations";
 export const GET_RECENT_BOOKING_DASHBOARD =
   "/api/super-admin/club-dashboard-current-bookings";
+/** Booking Analytics – monthly chart (query: ownerId, clubId, category, bookingMode, startDate, endDate) */
 export const GET_REVENUE_DASHBOARD = "/api/super-admin/club-monthwise-booking";
+/** Booking Analytics – daily chart (query: ownerId, clubId, category, bookingMode, startDate, endDate, month, year) */
 export const GET_DAYWISE_DASHBOARD = "/api/super-admin/club-daywise-booking";
+export const GET_CLUBS_BOOKING_MODE_RATIO = "/api/super-admin/clubs-booking-mode-ratio";
+
 
 export const GET_REVIEWS_FOR_OWNER = "/api/review/getownerClubReview";
 
@@ -143,6 +147,7 @@ export const SUPER_ADMIN_GET_ALL_SLOTS = "/api/super-admin/slots";
 export const SUPER_ADMIN_GET_ALL_PRICING = "/api/super-admin/pricing";
 export const SUPER_ADMIN_GET_ALL_CLUBS = "/api/super-admin/clubs";
 export const SUPER_ADMIN_PAYMENT_DASHBOARD_COUNTS = "/api/super-admin/payment-dashboard-counts";
+export const SUPER_ADMIN_OPEN_MATCH_OVERVIEW = "/api/super-admin/open-match-overview";
 
 // Club Payments (Settlements)
 export const SUPER_ADMIN_GET_CLUB_PAYMENTS = "/api/super-admin/club-payments";
@@ -183,10 +188,15 @@ export const UPDATE_QUICK_POINT = "/api/quick-points/updateQuickPoint";
 // App Users Management
 export const GET_APP_USERS = "/api/customer/getCustomersWithFcmTokens";
 export const GET_DEVICE_TYPE_COUNT = "/api/customer/getDeviceTypeCount";
+export const UPDATE_CUSTOMER = "/api/super-admin/customers";
+export const DELETE_CUSTOMER = "/api/super-admin/customers";
 
 // Category Management
 export const GET_CATEGORY_LIST = "/api/category/list";
 // version
- 
+
+// Schedules
+export const SUPER_ADMIN_GET_TODAY_SCHEDULES = "/api/super-admin/today-schedule";
+
 export const GET_VERSION = "/api/app-version/all";
 export const UPDATE_VERSION = "/api/app-version/update";
