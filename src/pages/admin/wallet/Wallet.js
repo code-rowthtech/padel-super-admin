@@ -75,7 +75,7 @@ const Wallet = () => {
         const users = data?.users || [];
         setWallets(users);
         setWalletTotals(data?.totals || { totalBalance: 0, totalSpent: 0, totalAdded: 0 });
-        
+
         // Auto-select first user if no user is selected and users exist
         if (!selectedWallet && users.length > 0) {
           setSelectedWallet(users[0]);
@@ -138,7 +138,7 @@ const Wallet = () => {
 
   return (
     <Container fluid className="px-0 px-md-0 mt-md-0 mt-2">
-      <Row className="mb-2">
+      {/* <Row className="mb-2">
         {summaryCards.map((card, index) => (
           <Col key={index} md={4} className="mb-2">
             <Card className="shadow-sm border-0 rounded-3 h-100">
@@ -154,7 +154,7 @@ const Wallet = () => {
             </Card>
           </Col>
         ))}
-      </Row>
+      </Row> */}
 
       <Row className="g-1">
         <Col lg={2} md={3} className="pe-1">
@@ -163,7 +163,7 @@ const Wallet = () => {
               <FaSearch className="text-primary me-1" size={12} />
               <h6 className="mb-0 fw-bold" style={{ fontSize: "13px" }}>Search Users</h6>
             </div>
-            
+
             <Form.Group className="mb-2">
               <InputGroup size="sm">
                 <InputGroup.Text style={{ backgroundColor: "#f8f9fa", border: "1px solid #dee2e6" }}>
@@ -337,17 +337,17 @@ const Wallet = () => {
                                   {formatDate(transaction.createdAt)}
                                 </div>
                                 <div className="text-muted" style={{ fontSize: "10px" }}>
-                                  {new Date(transaction.createdAt).toLocaleTimeString('en-US', { 
-                                    hour: '2-digit', 
+                                  {new Date(transaction.createdAt).toLocaleTimeString('en-US', {
+                                    hour: '2-digit',
                                     minute: '2-digit',
-                                    hour12: true 
+                                    hour12: true
                                   })}
                                 </div>
                               </div>
                             </td>
                             <td style={{ fontSize: "13px", padding: "12px" }}>
-                              <Badge 
-                                bg={transaction.type === "credit" ? "success" : "danger"} 
+                              <Badge
+                                bg={transaction.type === "credit" ? "success" : "danger"}
                                 style={{ fontSize: "10px", padding: "4px 8px", borderRadius: "4px" }}
                               >
                                 {transaction.type?.toUpperCase()}
@@ -362,7 +362,7 @@ const Wallet = () => {
                               {transaction.type === "credit" ? "+" : "-"}₹{(transaction.amount || 0).toLocaleString()}
                             </td>
                             <td style={{ fontSize: "13px", padding: "12px", textAlign: "center" }}>
-                              <Badge 
+                              <Badge
                                 bg={transaction.status === "success" ? "success" : transaction.status === "pending" ? "warning" : "secondary"}
                                 style={{ fontSize: "10px", padding: "4px 8px", borderRadius: "4px" }}
                               >

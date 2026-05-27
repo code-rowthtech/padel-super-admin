@@ -107,7 +107,7 @@ const Payments = () => {
   const [generatingPayment, setGeneratingPayment] = useState(false);
   const fileInputRef = useRef(null);
   const [selectedCategory, setSelectedCategory] = useState("");
-
+  console.log(activePayableFilter, "activePayableFilter");
   const setDateRange = (update) => {
     setStartDate(update[0]);
     setEndDate(update[1]);
@@ -287,8 +287,8 @@ const Payments = () => {
         const { SUPER_ADMIN_GET_ALL_CLUBS } =
           await import("../../../helpers/api/apiEndpoint");
         const url = ownerId
-          ? `${SUPER_ADMIN_GET_ALL_CLUBS}?ownerId=${ownerId}`
-          : SUPER_ADMIN_GET_ALL_CLUBS;
+          ? `${SUPER_ADMIN_GET_ALL_CLUBS}?ownerId=${ownerId}${activePayableFilter !== undefined ? `&payableStatus=${activePayableFilter}` : ""}`
+          : `${SUPER_ADMIN_GET_ALL_CLUBS}${activePayableFilter !== undefined ? `?payableStatus=${activePayableFilter}` : ""}`;
         const res = await ownerApi.get(url);
         const clubsData = res?.data?.data || [];
         setClubs(clubsData);
@@ -307,7 +307,7 @@ const Payments = () => {
       }
     };
     fetchClubs();
-  }, [isSuperAdmin, ownerId, paymentStatus, activePayableFilter, selectedClubId]);
+  }, [isSuperAdmin, ownerId, activePayableFilter]);
 
   const formatAmount = (amount) => {
     if (!amount) return "₹0";
@@ -614,7 +614,7 @@ const Payments = () => {
   };
 
   return (
-    <Container fluid className="px-0 px-md-0 mt-md-0 mt-2">
+    <Container fluid className="px-0  px-md-0 mt-md-0 mt-2">
       <style>
         {`
           .payment-card-hover {
@@ -647,7 +647,7 @@ const Payments = () => {
           }
         `}
       </style>
-      <Row className="mb-2">
+      {/* <Row className="mb-2">
         {summaryCards.map((card, index) => (
           <Col key={index} md={4} className="mb-2">
             <Card
@@ -686,7 +686,7 @@ const Payments = () => {
             </Card>
           </Col>
         ))}
-      </Row>
+      </Row> */}
 
       <Row className="g-1">
         {/* Sidebar */}
@@ -742,7 +742,7 @@ const Payments = () => {
                     className="flex-fill"
                     style={{ fontSize: "11px", padding: "3px 6px" }}
                   >
-                    Admin Bookings
+                    Offline Bookings
                   </Button>
                   <Button
                     variant={activePayableFilter === undefined ? "warning" : "outline-warning"}
