@@ -173,7 +173,20 @@ export const getOpenMatchOverview = createAsyncThunk(
   "dashboard/getOpenMatchOverview",
   async (params = {}, { rejectWithValue }) => {
     try {
-      const url = buildDashboardUrl(Url.SUPER_ADMIN_OPEN_MATCH_OVERVIEW, params);
+      const queryParams = [];
+      appendDashboardQueryParams(queryParams, params);
+      
+      if (params.page) {
+        queryParams.push(`page=${params.page}`);
+      }
+      if (params.limit) {
+        queryParams.push(`limit=${params.limit}`);
+      }
+      
+      const url = queryParams.length > 0 
+        ? `${Url.SUPER_ADMIN_OPEN_MATCH_OVERVIEW}?${queryParams.join("&")}`
+        : Url.SUPER_ADMIN_OPEN_MATCH_OVERVIEW;
+      
       const res = await ownerApi.get(url);
       const { status, data, message } = res || {};
       if (status === 200 || "200") {
