@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Container, Card, Table, Pagination } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { getOpenMatchOverview } from "../../../redux/thunks";
@@ -19,6 +19,27 @@ const OpenMatchesOverview = () => {
   const [selectedMatch, setSelectedMatch] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 15;
+  const playersModalCloseTimer = useRef(null);
+
+  const clearPlayersModalCloseTimer = () => {
+    if (playersModalCloseTimer.current) {
+      clearTimeout(playersModalCloseTimer.current);
+      playersModalCloseTimer.current = null;
+    }
+  };
+
+  const openPlayersModal = (match) => {
+    clearPlayersModalCloseTimer();
+    setSelectedMatch(match);
+    setShowPlayersModal(true);
+  };
+
+  const schedulePlayersModalClose = () => {
+    clearPlayersModalCloseTimer();
+    playersModalCloseTimer.current = setTimeout(() => {
+      setShowPlayersModal(false);
+    }, 180);
+  };
 
   useEffect(() => {
     const params = { 
@@ -28,6 +49,10 @@ const OpenMatchesOverview = () => {
     };
     dispatch(getOpenMatchOverview(params));
   }, [dispatch, selectedOwnerId, currentPage]);
+
+  useEffect(() => {
+    return () => clearPlayersModalCloseTimer();
+  }, []);
 
   const getStatusBadgeStyle = (status) => {
     const statusLower = status?.toLowerCase() || "";
@@ -158,16 +183,24 @@ const OpenMatchesOverview = () => {
                               </div>
                             </div>
                           </td>
-                          <td style={approachingStyle}>
+                          <td
+                            style={approachingStyle}
+                            onMouseEnter={() => {
+                              if (joinedCount > 0) {
+                                openPlayersModal(item);
+                              }
+                            }}
+                            onMouseMove={() => {
+                              if (joinedCount > 0) {
+                                openPlayersModal(item);
+                              }
+                            }}
+                            onMouseLeave={schedulePlayersModalClose}
+                          >
                             <div
                               className="d-flex flex-column align-items-center justify-content-center players-joined-cell"
                               style={{ minWidth: "120px", cursor: joinedCount > 0 ? "pointer" : "default" }}
-                              onClick={() => {
-                                if (joinedCount > 0) {
-                                  setSelectedMatch(item);
-                                  setShowPlayersModal(true);
-                                }
-                              }}                            >
+                            >
                               <div className="d-flex justify-content-between w-100 px-2 mb-1" style={{ fontSize: "10.5px" }}>
                                 <span className="fw-bold text-dark">{joinedCount}/{maxCount}</span>
                                 <span className="text-muted">{progressPct.toFixed(0)}%</span>
@@ -301,12 +334,13 @@ const OpenMatchesOverview = () => {
                             <span
                               className="text-muted fw-bold"
                               style={{ cursor: joinedCount > 0 ? "pointer" : "default", textDecoration: joinedCount > 0 ? "underline" : "none" }}
-                              onClick={() => {
+                              onMouseEnter={() => {
                                 if (joinedCount > 0) {
-                                  setSelectedMatch(item);
-                                  setShowPlayersModal(true);
+                                  openPlayersModal(item);
                                 }
-                              }}                            >
+                              }}
+                              onMouseLeave={schedulePlayersModalClose}
+                            >
                               {joinedCount}/{maxCount} ({progressPct.toFixed(0)}%)
                             </span>
                           </div>
@@ -378,8 +412,10 @@ const OpenMatchesOverview = () => {
 
       <PlayersJoinedModal
         show={showPlayersModal}
-        onHide={() => setShowPlayersModal(false)}
+        onHide={schedulePlayersModalClose}
         players={selectedMatch || []}
+        onMouseEnter={clearPlayersModalCloseTimer}
+        onMouseLeave={schedulePlayersModalClose}
       />
 
       <MatchRequestModal

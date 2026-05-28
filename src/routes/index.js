@@ -14,6 +14,7 @@ const AdminDashboard = React.lazy(() => import("../pages/admin/dashboard/Dashboa
 const BookingPage = React.lazy(() => import("../pages/admin/booking/Booking"));
 const Schedules = React.lazy(() => import("../pages/admin/schedules/Schedules"));
 const Payments = React.lazy(() => import("../pages/admin/payments/Payments"));
+const AllTransactions = React.lazy(() => import("../pages/admin/payments/AllTransactions"));
 const PaymentReconciliation = React.lazy(() => import("../pages/admin/payments/PaymentReconciliation"));
 const Wallet = React.lazy(() => import("../pages/admin/wallet/Wallet"));
 const Profile = React.lazy(() => import("../pages/admin/profile/Profile"));
@@ -93,6 +94,10 @@ const AllRoutes = () => {
             {
               path: "payments",
               element: LoadComponent(Payments),
+            },
+            {
+              path: "all-transactions",
+              element: LoadComponent(AllTransactions),
             },
             {
               path: "payment-reconciliation",
