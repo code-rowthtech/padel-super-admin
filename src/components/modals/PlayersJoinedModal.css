@@ -1,0 +1,7 @@
+.players-joined-hover-modal {
+  pointer-events: none;
+}
+
+.players-joined-hover-modal .modal-dialog {
+  pointer-events: auto;
+}

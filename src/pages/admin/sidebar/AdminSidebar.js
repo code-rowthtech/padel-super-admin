@@ -110,7 +110,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
 
   const isBookingsActive = location.pathname.startsWith('/admin/booking') || location.pathname.startsWith('/admin/schedules');
   const isTournamentActive = location.pathname.startsWith('/admin/tournament') || location.pathname.startsWith('/admin/new-tournament') || location.pathname.startsWith('/admin/tournament/schedule');
-  const isPaymentsActive = location.pathname.startsWith('/admin/payments') || location.pathname === '/admin/wallet';
+  const isPaymentsActive = location.pathname.startsWith('/admin/payments') || location.pathname === '/admin/wallet' || location.pathname === '/admin/all-transactions';
   const isLeagueActive = location.pathname.startsWith('/admin/league') || location.pathname.startsWith('/admin/new-league') || location.pathname.startsWith('/admin/view-league-schedule');
 
   useEffect(() => { if (isTournamentActive) setTournamentExpanded(true); }, [isTournamentActive]);
@@ -291,19 +291,24 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             <div
               className={isDesktopCollapsed ? collapsedIconClass : linkClasses(isPaymentsActive)}
               style={iconStyle(isPaymentsActive)}
-              onClick={() => { if (isDesktopCollapsed) { navigate('/admin/payments?status=unpaid'); } else { setPaymentsExpanded(!paymentsExpanded); } }}>
+              onClick={() => { if (isDesktopCollapsed) { navigate('/admin/all-transactions'); } else { setPaymentsExpanded(!paymentsExpanded); } }}>
               <RiWallet3Line className={isDesktopCollapsed ? "" : "me-4"} size={isDesktopCollapsed ? 18 : 20} />
               {!isDesktopCollapsed && (
                 <><span className="flex-grow-1">Payments</span>{paymentsExpanded ? <FaChevronUp size={14} /> : <FaChevronDown size={14} />}</>
               )}
             </div>
             <FlyoutMenu label="Payments" anchorRef={paymentsRef} visible={isDesktopCollapsed && hoveredItem === "payments"}>
+              <NavLink to="/admin/all-transactions" style={flyoutLinkStyle} onClick={closeFlyout}>All</NavLink>
               <NavLink to="/admin/payments?status=unpaid" style={flyoutLinkStyle} onClick={closeFlyout}>Unpaid</NavLink>
               <NavLink to="/admin/payments?status=paid" style={flyoutLinkStyle} onClick={closeFlyout}>Paid</NavLink>
               <NavLink to="/admin/wallet" style={flyoutLinkStyle} onClick={closeFlyout}>Wallet</NavLink>
             </FlyoutMenu>
             {paymentsExpanded && !isDesktopCollapsed && (
               <div className="ms-4">
+                <NavLink to="/admin/all-transactions"
+                  className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
+                  style={{ backgroundColor: isActivePath("/admin/all-transactions") ? "rgba(31, 65, 187, 0.1)" : "transparent", color: "#CCD2DD", fontSize: "14px", fontFamily: "Poppins" }}
+                  onClick={() => window.innerWidth <= 768 && onClose()}>All</NavLink>
                 <NavLink to="/admin/payments?status=unpaid"
                   className="d-flex align-items-center px-4 py-2 my-1 text-decoration-none rounded-2"
                   style={{ backgroundColor: location.search === '?status=unpaid' ? "rgba(31, 65, 187, 0.1)" : "transparent", color: "#CCD2DD", fontSize: "14px", fontFamily: "Poppins" }}

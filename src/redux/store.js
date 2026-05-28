@@ -12,6 +12,8 @@ import versionReducer from "./admin/version/slice";
 import tournamentReducer from "./admin/tournament/slice";
 import schedulesReducer from "./admin/schedules/slice";
 import matchRequestReducer from "./admin/matchRequest/slice";
+import paymentsReducer from "./admin/payments/slice";
+import transactionsReducer from "./admin/transactions/slice";
 
 const store = configureStore({
   reducer: {
@@ -28,6 +30,8 @@ const store = configureStore({
     tournament: tournamentReducer,
     schedules: schedulesReducer,
     matchRequest: matchRequestReducer,
+    payments: paymentsReducer,
+    transactions: transactionsReducer,
   },
 });
 

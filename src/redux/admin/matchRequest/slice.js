@@ -7,6 +7,7 @@ const initialState = {
   matchRequestError: null,
   sendRequestLoading: false,
   sendRequestError: null,
+  automaticRequest: null,
   pagination: {
     page: 1,
     limit: 20,
@@ -46,6 +47,7 @@ const matchRequestSlice = createSlice({
       .addCase(getMatchRequestPlayers.fulfilled, (state, action) => {
         state.matchRequestLoading = false;
         state.matchRequestPlayers = action.payload.players || [];
+        state.automaticRequest = action.payload.automaticRequest || null;
         state.pagination = {
           ...state.pagination,
           page: action.payload.pagination?.currentPage || 1,

@@ -9,13 +9,15 @@ import "./MatchRequestModal.css";
 
 const MatchRequestModal = ({ show, onHide, matchId }) => {
   const dispatch = useDispatch();
-  const { matchRequestPlayers, matchRequestLoading, sendRequestLoading, filters, pagination } = useSelector((state) => state.matchRequest);
+  const { matchRequestPlayers, matchRequestLoading, sendRequestLoading, filters, pagination, automaticRequest } = useSelector((state) => state.matchRequest);
   const [localSearch, setLocalSearch] = useState("");
   const [selectedTeam, setSelectedTeam] = useState("any");
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [selectedPlayers, setSelectedPlayers] = useState([]);
   const [sendingAll, setSendingAll] = useState(false);
   const [sendingPlayerId, setSendingPlayerId] = useState(null);
+  const [isWhatsappShareEnabled, setIsWhatsappShareEnabled] = useState(false);
+  const [showSendModeModal, setShowSendModeModal] = useState(false);
 
   useEffect(() => {
     if (show && matchId) {
@@ -36,9 +38,13 @@ const MatchRequestModal = ({ show, onHide, matchId }) => {
     setSelectedPlayers([]);
     setSendingAll(false);
     setSendingPlayerId(null);
+    setIsWhatsappShareEnabled(false);
+    setShowSendModeModal(false);
     dispatch(setFilters({ search: "", gender: "", level: "", skillLevel: "" }));
     dispatch(setPagination({ page: 1 }));
   };
+
+  console.log({ matchRequestPlayers })
 
   const fetchPlayers = () => {
     dispatch(getMatchRequestPlayers({
@@ -66,22 +72,46 @@ const MatchRequestModal = ({ show, onHide, matchId }) => {
 
   const handleSendAll = async () => {
     if (selectedPlayers.length === 0) return;
-    
+
     setSendingAll(true);
     try {
-      // Send single request with all player IDs
-      await dispatch(sendMatchRequest({ 
-        matchId, 
-        playerIds: selectedPlayers, 
-        preferredTeam: selectedTeam 
+      await dispatch(sendMatchRequest({
+        matchId,
+        playerIds: selectedPlayers,
+        preferredTeam: selectedTeam
       })).unwrap();
-      
-      // Reset selection and refresh
+
       setSelectedPlayers([]);
       setIsSelectMode(false);
       fetchPlayers();
     } catch (error) {
       console.error("Error sending requests:", error);
+    } finally {
+      setSendingAll(false);
+    }
+  };
+
+  const handleAutoSend = async () => {
+    if (automaticRequest?.hasOldPlayers === true) {
+      setShowSendModeModal(true);
+    } else {
+      await sendAutoRequest("new");
+    }
+  };
+
+  const sendAutoRequest = async (sendMode) => {
+    setSendingAll(true);
+    setShowSendModeModal(false);
+    try {
+      await dispatch(sendMatchRequest({
+        matchId,
+        auto: true,
+        sendMode: sendMode
+      })).unwrap();
+
+      fetchPlayers();
+    } catch (error) {
+      console.error("Error sending auto requests:", error);
     } finally {
       setSendingAll(false);
     }
@@ -144,20 +174,31 @@ const MatchRequestModal = ({ show, onHide, matchId }) => {
     return (
       <div className="d-flex align-items-center gap-2">
         {config.showRecent && (
-          <span
+          <button
+            type="button"
             className="recent-badge"
-            style={{ 
+            onClick={(e) => {
+              e.stopPropagation();
+              handleSendSingle(player._id);
+            }}
+            disabled={sendingPlayerId === player._id}
+            style={{
               fontSize: "10px",
               fontWeight: 600,
               color: "#6366f1",
               backgroundColor: "rgba(99, 102, 241, 0.1)",
               padding: "3px 8px",
               borderRadius: "4px",
-              border: "1px solid rgba(99, 102, 241, 0.2)"
+              border: "1px solid rgba(99, 102, 241, 0.2)",
+              cursor: sendingPlayerId === player._id ? "not-allowed" : "pointer"
             }}
           >
-            Recent
-          </span>
+            {sendingPlayerId === player._id ? (
+              <ButtonLoading color="blue" size={3} />
+            ) : (
+              "Resend"
+            )}
+          </button>
         )}
         <span
           className="status-badge"
@@ -212,7 +253,7 @@ const MatchRequestModal = ({ show, onHide, matchId }) => {
               <Form.Control
                 placeholder="Search by name..."
                 value={localSearch}
-                onChange={(e) => {setLocalSearch(e.target.value); handleSearch();}}
+                onChange={(e) => { setLocalSearch(e.target.value); handleSearch(); }}
                 className="search-input"
               />
               {localSearch && (
@@ -238,6 +279,18 @@ const MatchRequestModal = ({ show, onHide, matchId }) => {
           </div>
 
           <div className="selection-actions">
+            <div className="form-check whatsapp-toggle form-switch">
+              <label className="form-check-label" htmlFor="switchCheckDefault">WhatsApp</label>
+              <input
+                className="form-check-input"
+                type="checkbox"
+                role="switch"
+                id="switchCheckDefault"
+                checked={isWhatsappShareEnabled}
+                onChange={(e) => setIsWhatsappShareEnabled(e.target.checked)}
+              />
+            </div>
+
             <Button
               variant={isSelectMode ? "danger" : "primary"}
               onClick={toggleSelectMode}
@@ -271,6 +324,19 @@ const MatchRequestModal = ({ show, onHide, matchId }) => {
                 )}
               </Button>
             )}
+
+            <Button
+              variant="primary"
+              onClick={handleAutoSend}
+              disabled={sendingAll}
+              className="select-mode-btn text-nowrap"
+            >
+              {sendingAll ? (
+                <ButtonLoading color="white" size={4} />
+              ) : (
+                <span>Auto Send</span>
+              )}
+            </Button>
           </div>
         </div>
         {/* Results Info */}
@@ -329,15 +395,13 @@ const MatchRequestModal = ({ show, onHide, matchId }) => {
                       </div>
                     )}
 
-                    <div className="player-info">
+                    <div className="player-info d-flex align-items-center ">
                       <div className="player-avatar">
                         {player.name ? player.name.charAt(0).toUpperCase() : "?"}
                       </div>
-                      <div className="player-details">
+                      <div className="player-details d-flex">
                         <h6 className="player-name">{player.name || "Unknown Player"}</h6>
-                        <p className="player-contact">
-                          {player.email || `${player.countryCode || ""} ${player.phoneNumber || ""}`.trim() || "No contact"}
-                        </p>
+
                         {(player.gender || player.level || player.skillLevel) && (
                           <div className="player-badges">
                             {player.gender && (
@@ -351,8 +415,20 @@ const MatchRequestModal = ({ show, onHide, matchId }) => {
                             )}
                           </div>
                         )}
+
                       </div>
+                        <div className=" d-flex gap-0 flex-column align-items-start w-25" >
+                      <p className="player-contact m-0 mb-1 text-start" >
+                        {`${player.countryCode || ""} ${player.phoneNumber || ""}`.trim() || "No contact"}
+                      </p>
+                      {player.email && (
+                        <p className="player-contact m-0 mb-0 text-start" >
+                          {player.email}
+                        </p>
+                      )}
                     </div>
+                    </div>
+                  
 
                     {!isSelectMode && (
                       <div className="player-action">
@@ -380,7 +456,7 @@ const MatchRequestModal = ({ show, onHide, matchId }) => {
         </div>
 
         {/* Pagination */}
-        {!matchRequestLoading && matchRequestPlayers && matchRequestPlayers.length > 0 && (
+        {!matchRequestLoading && matchRequestPlayers && matchRequestPlayers?.length > 0 && (
           <div className="pagination-controls">
             <Button
               variant="outline-secondary"
@@ -406,6 +482,33 @@ const MatchRequestModal = ({ show, onHide, matchId }) => {
           </div>
         )}
       </Modal.Body>
+
+      {/* Send Mode Modal */}
+      <Modal show={showSendModeModal} onHide={() => setShowSendModeModal(false)} size="sm" centered>
+        <Modal.Header closeButton>
+          <Modal.Title style={{ fontSize: "16px", fontWeight: "600" }}>Select Send Mode</Modal.Title>
+        </Modal.Header>
+        <Modal.Body style={{ padding: "20px" }}>
+          <div className="d-flex flex-column gap-2">
+            <Button
+              variant="primary"
+              onClick={() => sendAutoRequest("new")}
+              className="w-100"
+              style={{ padding: "10px", fontSize: "14px", fontWeight: "600" }}
+            >
+              Send to New Players
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => sendAutoRequest("resend")}
+              className="w-100"
+              style={{ padding: "10px", fontSize: "14px", fontWeight: "600" }}
+            >
+              Resend to Old Players
+            </Button>
+          </div>
+        </Modal.Body>
+      </Modal>
     </Modal>
   );
 };

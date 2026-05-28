@@ -1,8 +1,9 @@
 import React from "react";
 import { Modal } from "react-bootstrap";
-import { FaUser, FaUsers } from "react-icons/fa";
+import { FaUsers } from "react-icons/fa";
+import "./PlayersJoinedModal.css";
 
-const PlayersJoinedModal = ({ show, onHide, players }) => {
+const PlayersJoinedModal = ({ show, onHide, players, onMouseEnter, onMouseLeave }) => {
   console.log(players, "Players in Modal");
   const teamA = players?.teamA || [];
   const teamB = players?.teamB || [];
@@ -79,7 +80,8 @@ const PlayersJoinedModal = ({ show, onHide, players }) => {
   };
 
   return (
-    <Modal show={show} onHide={onHide} size="md" centered>
+    <Modal show={show} onHide={onHide} size="md" centered backdrop={false} className="players-joined-hover-modal">
+      <div onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       <Modal.Header closeButton className="border-0 pb-2">
         <Modal.Title className="fw-bold" style={{ fontSize: "18px", color: "#111827" }}>
           Players Joined
@@ -124,6 +126,7 @@ const PlayersJoinedModal = ({ show, onHide, players }) => {
           </div>
         )}
       </Modal.Body>
+      </div>
     </Modal>
   );
 };

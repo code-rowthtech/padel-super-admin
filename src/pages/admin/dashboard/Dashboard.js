@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import {
   Container,
   Row,
@@ -664,6 +664,7 @@ const AdminDashboard = () => {
   const [showPlayersJoinedModal, setShowPlayersJoinedModal] = useState(false);
   const [selectedMatchId, setSelectedMatchId] = useState(null);
   const [selectedMatchPlayers, setSelectedMatchPlayers] = useState([]);
+  const playersJoinedCloseTimer = useRef(null);
   const [chartView, setChartView] = useState("monthly");
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -672,6 +673,30 @@ const AdminDashboard = () => {
     startDate && endDate
       ? `${formatToYYYYMMDD(startDate)}|${formatToYYYYMMDD(endDate)}`
       : "";
+
+  const clearPlayersJoinedCloseTimer = () => {
+    if (playersJoinedCloseTimer.current) {
+      clearTimeout(playersJoinedCloseTimer.current);
+      playersJoinedCloseTimer.current = null;
+    }
+  };
+
+  const openPlayersJoinedModal = (match) => {
+    clearPlayersJoinedCloseTimer();
+    setSelectedMatchPlayers(match);
+    setShowPlayersJoinedModal(true);
+  };
+
+  const schedulePlayersJoinedClose = () => {
+    clearPlayersJoinedCloseTimer();
+    playersJoinedCloseTimer.current = setTimeout(() => {
+      setShowPlayersJoinedModal(false);
+    }, 180);
+  };
+
+  useEffect(() => {
+    return () => clearPlayersJoinedCloseTimer();
+  }, []);
 
   const buildAnalyticsParams = () => {
     const params = selectedOwnerId ? { ownerId: selectedOwnerId } : {};
@@ -1408,16 +1433,23 @@ const AdminDashboard = () => {
                                         </div>
                                       </div>
                                     </td>
-                                    <td style={approachingStyle}>
+                                    <td
+                                      style={approachingStyle}
+                                      onMouseEnter={() => {
+                                        if (joinedCount > 0) {
+                                          openPlayersJoinedModal(item);
+                                        }
+                                      }}
+                                      onMouseMove={() => {
+                                        if (joinedCount > 0) {
+                                          openPlayersJoinedModal(item);
+                                        }
+                                      }}
+                                      onMouseLeave={schedulePlayersJoinedClose}
+                                    >
                                       <div
                                         className="d-flex flex-column align-items-center justify-content-center"
                                         style={{ minWidth: "120px", cursor: joinedCount > 0 ? "pointer" : "default" }}
-                                        onClick={() => {
-                                          if (joinedCount > 0) {
-                                            setSelectedMatchPlayers(item);
-                                            setShowPlayersJoinedModal(true);
-                                          }
-                                        }}
                                       >
                                         <div className="d-flex justify-content-between w-100 px-2 mb-1" style={{ fontSize: "10.5px" }}>
                                           <span className="fw-bold text-dark">{joinedCount}/{maxCount}</span>
@@ -1653,8 +1685,10 @@ const AdminDashboard = () => {
       />
       <PlayersJoinedModal
         show={showPlayersJoinedModal}
-        onHide={() => setShowPlayersJoinedModal(false)}
+        onHide={schedulePlayersJoinedClose}
         players={selectedMatchPlayers}
+        onMouseEnter={clearPlayersJoinedCloseTimer}
+        onMouseLeave={schedulePlayersJoinedClose}
       />
     </Container>
   );
