@@ -395,40 +395,46 @@ const MatchRequestModal = ({ show, onHide, matchId }) => {
                       </div>
                     )}
 
-                    <div className="player-info d-flex align-items-center ">
+                    <div className="player-info d-flex align-items-center flex-grow-1">
                       <div className="player-avatar">
                         {player.name ? player.name.charAt(0).toUpperCase() : "?"}
                       </div>
-                      <div className="player-details d-flex">
-                        <h6 className="player-name">{player.name || "Unknown Player"}</h6>
 
-                        {(player.gender || player.level || player.skillLevel) && (
+                      <div className="player-details flex-grow-1">
+                        <div className="d-flex align-items-center gap-2 mb-1">
+                          <h6 className="player-name mb-0">
+                            {player.name || "Unknown Player"}
+                          </h6>
+
                           <div className="player-badges">
                             {player.gender && (
-                              <span className="player-badge badge-gender">{player.gender}</span>
+                              <span className="player-badge badge-gender">
+                                {player.gender}
+                              </span>
                             )}
+
                             {player.level && (
-                              <span className="player-badge badge-level">Level {player.level}</span>
+                              <span className="player-badge badge-level">
+                                Level {player.level}
+                              </span>
                             )}
+
                             {player.skillLevel && (
-                              <span className="player-badge badge-skill">{player.skillLevel}</span>
+                              <span className="player-badge badge-skill">
+                                {player.skillLevel}
+                              </span>
                             )}
                           </div>
-                        )}
+                        </div>
 
-                      </div>
-                        <div className=" d-flex gap-0 flex-column align-items-start w-25" >
-                      <p className="player-contact m-0 mb-1 text-start" >
-                        {`${player.countryCode || ""} ${player.phoneNumber || ""}`.trim() || "No contact"}
-                      </p>
-                      {player.email && (
-                        <p className="player-contact m-0 mb-0 text-start" >
+                        <p className="player-contact mb-1">
+                          {`${player.countryCode || ""} ${player.phoneNumber || ""}`.trim()} <br />
                           {player.email}
                         </p>
-                      )}
+
+                      </div>
                     </div>
-                    </div>
-                  
+
 
                     {!isSelectMode && (
                       <div className="player-action">
