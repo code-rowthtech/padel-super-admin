@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Container, Card, Table } from "react-bootstrap";
+import { Container, Card, Table, Pagination } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { getOpenMatchOverview } from "../../../redux/thunks";
 import { useSuperAdminContext } from "../../../contexts/SuperAdminContext";
@@ -17,6 +17,8 @@ const OpenMatchesOverview = () => {
   const [showPlayersModal, setShowPlayersModal] = useState(false);
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 15;
   const playersModalCloseTimer = useRef(null);
 
   const clearPlayersModalCloseTimer = () => {
@@ -40,9 +42,13 @@ const OpenMatchesOverview = () => {
   };
 
   useEffect(() => {
-    const params = selectedOwnerId ? { ownerId: selectedOwnerId } : {};
+    const params = { 
+      page: currentPage, 
+      limit: recordsPerPage,
+      ...(selectedOwnerId && { ownerId: selectedOwnerId })
+    };
     dispatch(getOpenMatchOverview(params));
-  }, [dispatch, selectedOwnerId]);
+  }, [dispatch, selectedOwnerId, currentPage]);
 
   useEffect(() => {
     return () => clearPlayersModalCloseTimer();
@@ -67,6 +73,16 @@ const OpenMatchesOverview = () => {
     setShowRequestModal(true);
   };
 
+  const allMatches = openMatchOverview?.openMatches || [];
+  const pagination = openMatchOverview?.pagination || {};
+  const totalPages = pagination.totalPages || 1;
+  const totalItems = pagination.totalItems || allMatches.length;
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <Container fluid className="p-2 pt-md-0 p-md-4 px-md-0" style={{ background: "#f9fafb", minHeight: "100vh" }}>
       <Card className="border-0">
@@ -84,11 +100,11 @@ const OpenMatchesOverview = () => {
           ) : openMatchOverviewError ? (
             <div className="d-flex flex-column justify-content-center align-items-center py-5" style={{ minHeight: "400px" }}>
               <div className="text-danger mb-2">Failed to load open matches.</div>
-              <button className="btn btn-sm btn-primary" onClick={() => dispatch(getOpenMatchOverview(selectedOwnerId ? { ownerId: selectedOwnerId } : {}))}>
+              <button className="btn btn-sm btn-primary" onClick={() => dispatch(getOpenMatchOverview({ page: currentPage, limit: recordsPerPage, ...(selectedOwnerId && { ownerId: selectedOwnerId }) }))}>
                 Retry
               </button>
             </div>
-          ) : !openMatchOverview || !openMatchOverview.openMatches || openMatchOverview.openMatches.length === 0 ? (
+          ) : !openMatchOverview || !allMatches || allMatches.length === 0 ? (
             <div className="d-flex flex-column justify-content-center align-items-center py-5" style={{ minHeight: "400px" }}>
               <div className="mb-3 p-3 rounded-circle" style={{ backgroundColor: "#f3f4f6", color: "#9ca3af" }}>
                 <MdOutlineGroup size={40} />
@@ -115,7 +131,8 @@ const OpenMatchesOverview = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {(openMatchOverview.openMatches || []).map((item, index) => {
+                    {allMatches.map((item, index) => {
+                      const displayIndex = (currentPage - 1) * recordsPerPage + index + 1;
                       const joinedCount = item?.totalPlayers ?? (Number(item?.teamA?.length || 0) + Number(item?.teamB?.length || 0));
                       const maxCount = item?.totalPlayersCount ?? item?.maxPlayers ?? 4;
                       const progressPct = Math.min(100, (joinedCount / maxCount) * 100);
@@ -134,7 +151,7 @@ const OpenMatchesOverview = () => {
 
                       return (
                         <tr key={item?._id || index} className="table-data border-bottom text-center" style={approachingStyle}>
-                          <td className="fw-semibold" style={approachingStyle}>{index + 1}</td>
+                          <td className="fw-semibold" style={approachingStyle}>{displayIndex}</td>
                           <td className="text-start" style={approachingStyle}>
                             <div>
                               <div className="fw-bold" style={{ fontSize: "13px", color: "#111827" }}>{hostName}</div>
@@ -153,7 +170,7 @@ const OpenMatchesOverview = () => {
                               <div className="text-muted" style={{ fontSize: "11px" }}>{timeText}</div>
                             </div>
                           </td>
-                          <td style={approachingStyle}>
+                          <td style={approachingStyle} className="skill-level-cell">
                             <span className="badge bg-light text-dark border fw-medium" style={{ fontSize: "11px", padding: "4px 8px" }}>
                               {skill}
                             </span>
@@ -245,7 +262,8 @@ const OpenMatchesOverview = () => {
               </div>
 
               <div className="mobile-card-table d-block d-md-none">
-                {(openMatchOverview.openMatches || []).map((item, index) => {
+                {allMatches.map((item, index) => {
+                  const displayIndex = (currentPage - 1) * recordsPerPage + index + 1;
                   const joinedCount = item?.totalPlayers ?? (Number(item?.teamA?.length || 0) + Number(item?.teamB?.length || 0));
                   const maxCount = item?.totalPlayersCount ?? item?.maxPlayers ?? 4;
                   const progressPct = Math.min(100, (joinedCount / maxCount) * 100);
@@ -269,7 +287,7 @@ const OpenMatchesOverview = () => {
                     >
                       <div className="card-body p-3">
                         <div className="d-flex justify-content-between align-items-center mb-2">
-                          <span className="fw-bold text-dark" style={{ fontSize: "14px" }}>{hostName}</span>
+                          <span className="fw-bold text-dark" style={{ fontSize: "14px" }}>#{displayIndex} - {hostName}</span>
                           <span
                             className="badge text-uppercase"
                             style={{
@@ -359,6 +377,34 @@ const OpenMatchesOverview = () => {
                   );
                 })}
               </div>
+
+              {totalPages > 1 && (
+                <div className="d-flex justify-content-center mt-4">
+                  <Pagination>
+                    <Pagination.First onClick={() => handlePageChange(1)} disabled={currentPage === 1} />
+                    <Pagination.Prev onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} />
+                    {[...Array(totalPages)].map((_, i) => {
+                      const pageNum = i + 1;
+                      if (pageNum === 1 || pageNum === totalPages || (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)) {
+                        return (
+                          <Pagination.Item
+                            key={pageNum}
+                            active={pageNum === currentPage}
+                            onClick={() => handlePageChange(pageNum)}
+                          >
+                            {pageNum}
+                          </Pagination.Item>
+                        );
+                      } else if (pageNum === currentPage - 2 || pageNum === currentPage + 2) {
+                        return <Pagination.Ellipsis key={pageNum} disabled />;
+                      }
+                      return null;
+                    })}
+                    <Pagination.Next onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} />
+                    <Pagination.Last onClick={() => handlePageChange(totalPages)} disabled={currentPage === totalPages} />
+                  </Pagination>
+                </div>
+              )}
             </>
           )}
         </Card.Body>

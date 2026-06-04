@@ -29,6 +29,14 @@
   font-size: 13px;
 }
 
+.custom-table tbody tr:nth-child(5) td {
+  padding-bottom: 24px;
+}
+
+.custom-table tbody td.skill-level-cell {
+  padding-bottom: 24px;
+}
+
 .custom-table tbody tr {
   transition: background 0.2s ease;
 }

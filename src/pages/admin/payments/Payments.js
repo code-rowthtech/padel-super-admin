@@ -38,7 +38,6 @@ import {
 import { formatDate } from "../../../helpers/Formatting";
 import {
   SUPER_ADMIN_GET_CLUB_PAYMENTS,
-  SUPER_ADMIN_CREATE_CLUB_PAYMENT,
   SUPER_ADMIN_GET_CLUB_PAYMENT_BY_ID,
   SUPER_ADMIN_GET_ALL_CLUBS,
   SUPER_ADMIN_PAYMENT_DASHBOARD_COUNTS,
@@ -293,11 +292,9 @@ const Payments = () => {
         const clubsData = res?.data?.data || [];
         setClubs(clubsData);
 
-        // Auto-select first club if available and current selection is not in the filtered list
-        if (clubsData.length > 0 && (!selectedClubId || !clubsData.some((club) => club._id === selectedClubId))) {
+        // Auto-select first club if available and no club is currently selected
+        if (clubsData.length > 0 && !selectedClubId) {
           setSelectedClubId(clubsData[0]._id);
-        } else if (clubsData.length === 0 && selectedClubId) {
-          setSelectedClubId("");
         }
       } catch (error) {
         console.error("Error fetching clubs:", error);
@@ -512,6 +509,7 @@ const Payments = () => {
       payload.append("paidDate", paymentDate.toISOString());
       if (paymentDocument) payload.append("document", paymentDocument);
 
+      const SUPER_ADMIN_CREATE_CLUB_PAYMENT = `${config.API_URL}api/super-admin/club-payments`;
       await ownerApi.post(SUPER_ADMIN_CREATE_CLUB_PAYMENT, payload, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -583,7 +581,7 @@ const Payments = () => {
         ...(ownerId ? { ownerId } : {}),
         ...(selectedClubId ? { clubId: selectedClubId } : {}),
         ...(paymentStatus ? { status: paymentStatus } : {}),
-        ...(isPaid !== undefined ? { payableStatus: isPaid } : {}),
+        payableStatus: isPaid,
         page: currentPage,
         limit: 20,
         ...(activePayableFilter === undefined && { type: "all" }),

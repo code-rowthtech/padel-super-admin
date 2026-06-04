@@ -21,6 +21,7 @@ export const getMatchRequestPlayers = createAsyncThunk(
       if (status === 200) {
         return {
           players: data?.data?.players || [],
+          automaticRequest: data?.data?.automaticRequest || null,
           pagination: data?.data?.pagination || { currentPage: 1, totalPages: 1, totalItems: 0, itemsPerPage: 20 }
         };
       }
@@ -35,13 +36,23 @@ export const getMatchRequestPlayers = createAsyncThunk(
 
 export const sendMatchRequest = createAsyncThunk(
   "matchRequest/sendMatchRequest",
-  async ({ matchId, playerId, playerIds, preferredTeam = "any" }, { rejectWithValue }) => {
+  async ({ matchId, playerId, playerIds, preferredTeam = "any", auto, sendMode }, { rejectWithValue }) => {
     try {
-      const payload = playerIds && playerIds.length > 0 
-        ? { matchId, playerIds, preferredTeam }
-        : { matchId, playerId, preferredTeam };
+      let payload;
+      let endpoint;
       
-      const res = await ownerApi.post(Url.POST_MATCH_REQUEST, payload);
+      if (auto) {
+        endpoint = Url.POST_MATCH_REQUEST_AUTO;
+        payload = { matchId, sendMode };
+      } else if (playerIds && playerIds.length > 0) {
+        endpoint = Url.POST_MATCH_REQUEST;
+        payload = { matchId, playerIds, preferredTeam };
+      } else {
+        endpoint = Url.POST_MATCH_REQUEST;
+        payload = { matchId, playerId, preferredTeam };
+      }
+      
+      const res = await ownerApi.post(endpoint, payload);
       const { status, data } = res || {};
       if (status === 200 || status === 201) {
         showSuccess(data?.message || "Request sent successfully");
