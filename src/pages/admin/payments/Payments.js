@@ -645,46 +645,6 @@ const Payments = () => {
           }
         `}
       </style>
-      {/* <Row className="mb-2">
-        {summaryCards.map((card, index) => (
-          <Col key={index} md={4} className="mb-2">
-            <Card
-              className="shadow-sm border-0 rounded-3 h-100"
-              style={{ border: "1px solid #e9ecef" }}
-            >
-              <Card.Body className="p-2">
-                <div className="d-flex justify-content-between align-items-center">
-                  <div>
-                    <p
-                      className="text-muted mb-0"
-                      style={{
-                        fontSize: "10px",
-                        fontWeight: "500",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      {card.title}
-                    </p>
-                    <h4
-                      className="mb-0"
-                      style={{
-                        fontSize: "18px",
-                        fontWeight: "700",
-                        color: "#1a1a1a",
-                      }}
-                    >
-                      {card.value}
-                    </h4>
-                  </div>
-                  <div style={{ opacity: "0.15", color: "#6c757d" }}>
-                    {card.bigicon}
-                  </div>
-                </div>
-              </Card.Body>
-            </Card>
-          </Col>
-        ))}
-      </Row> */}
 
       <Row className="g-1">
         {/* Sidebar */}
