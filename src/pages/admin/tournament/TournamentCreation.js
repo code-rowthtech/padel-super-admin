@@ -3,7 +3,7 @@ import { Container, Row, Col, Card, Table, Button, Modal, OverlayTrigger, Toolti
 import { FaUsers, FaEdit, FaEye } from 'react-icons/fa';
 import { HiOutlineTrophy } from 'react-icons/hi2';
 import { BsRecordCircle, BsThreeDotsVertical } from 'react-icons/bs';
-import { IoCashOutline } from 'react-icons/io5';
+import { IoCashOutline, IoSettingsOutline } from 'react-icons/io5';
 import { FiDownload, FiUpload } from 'react-icons/fi';
 import { FiTrash2 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
@@ -13,6 +13,7 @@ import { DataLoading } from '../../../helpers/loading/Loaders';
 import Pagination from '../../../helpers/Pagination';
 import { showSuccess, showError } from '../../../helpers/Toast';
 import PlayerImportResultModal from '../../../components/PlayerImportResultModal';
+import ObsSettingsModal from '../obsSettings/ObsSettingsModal';
 
 const TournamentCreation = () => {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ const TournamentCreation = () => {
   const defaultLimit = 15;
   const [showImportResultModal, setShowImportResultModal] = useState(false);
   const [importResult, setImportResult] = useState(null);
+  const [obsModal, setObsModal] = useState({ show: false, tournamentId: null, title: '' });
 
   useEffect(() => {
     dispatch(getTournaments({ page: currentPage, limit: defaultLimit }));
@@ -241,6 +243,7 @@ const TournamentCreation = () => {
                           <div className="d-flex justify-content-center align-items-center gap-2">
                             <FaEye style={{ cursor: 'pointer', color: '#6b7280' }} onClick={() => navigate(`/admin/view-tournament/${tournament._id}`)} size={16} title="View Tournament" />
                             <FaEdit style={{ cursor: 'pointer', color: '#6b7280' }} onClick={() => navigate(`/admin/new-tournament/${tournament._id}`)} size={16} title="Edit Tournament" />
+                            <IoSettingsOutline style={{ cursor: 'pointer', color: '#6b7280' }} onClick={() => setObsModal({ show: true, tournamentId: tournament._id, title: tournament.tournamentName })} size={16} title="OBS Settings" />
                             <div className="position-relative" ref={openMenuId === tournament._id ? menuRef : null}>
                               {(exportingId === tournament._id || uploadingId === tournament._id) ? (
                                 <span className="spinner-border spinner-border-sm" style={{ width: '16px', height: '16px', color: '#6b7280' }} />
@@ -307,6 +310,14 @@ const TournamentCreation = () => {
         show={showImportResultModal}
         onHide={() => setShowImportResultModal(false)}
         result={importResult}
+      />
+
+      <ObsSettingsModal
+        show={obsModal.show}
+        onHide={() => setObsModal({ show: false, tournamentId: null, title: '' })}
+        tournamentId={obsModal.tournamentId}
+        isLeague={false}
+        title={obsModal.title}
       />
     </Container>
   );

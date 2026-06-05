@@ -181,6 +181,9 @@ export const GET_LEAGUE_SUMMARY = "/api/league-schedules/summary";
 export const GET_SCHEDULE_DATES = "/api/league-schedules/schedule-dates";
 export const DELETE_SCHEDULE = "/api/league-schedules";
 
+// Americano Management
+export const GET_CLUB_WISE_AMERICANOS = "/api/americanos/club-wise";
+
 export const CREATE_QUICK_POINT = "/api/quick-points/createQuickPoint";
 export const GET_QUICK_POINTS = "/api/quick-points/getQuickPoints";
 export const UPDATE_QUICK_POINT = "/api/quick-points/updateQuickPoint";
@@ -200,3 +203,11 @@ export const SUPER_ADMIN_GET_TODAY_SCHEDULES = "/api/super-admin/today-schedule"
 
 export const GET_VERSION = "/api/app-version/all";
 export const UPDATE_VERSION = "/api/app-version/update";
+
+// get match request match and post matcj
+export const GET_MATCH_REQUEST = "/api/super-admin/match-request-players";
+export const POST_MATCH_REQUEST = "/api/super-admin/match-request/send";
+export const POST_MATCH_REQUEST_AUTO = "/api/super-admin/match-request/send-automatic";
+
+// All Transactions
+export const SUPER_ADMIN_ALL_TRANSACTIONS = "/api/super-admin/club-payments-bookings";

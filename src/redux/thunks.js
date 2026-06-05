@@ -6,3 +6,4 @@ export * from "./admin/dashboard/thunk";
 export * from "./admin/logo/thunk";
 export * from "./admin/version/thunk";
 export * from "./admin/schedules/thunk";
+export * from "./admin/matchRequest/thunk";

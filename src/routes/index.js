@@ -14,6 +14,7 @@ const AdminDashboard = React.lazy(() => import("../pages/admin/dashboard/Dashboa
 const BookingPage = React.lazy(() => import("../pages/admin/booking/Booking"));
 const Schedules = React.lazy(() => import("../pages/admin/schedules/Schedules"));
 const Payments = React.lazy(() => import("../pages/admin/payments/Payments"));
+const AllTransactions = React.lazy(() => import("../pages/admin/payments/AllTransactions"));
 const PaymentReconciliation = React.lazy(() => import("../pages/admin/payments/PaymentReconciliation"));
 const Wallet = React.lazy(() => import("../pages/admin/wallet/Wallet"));
 const Profile = React.lazy(() => import("../pages/admin/profile/Profile"));
@@ -29,11 +30,13 @@ const NewTournament = React.lazy(() => import("../pages/admin/tournament/NewTour
 const TournamentSchedule = React.lazy(() => import("../pages/admin/tournament/TournamentSchedule"));
 const TournamentTeamCreation = React.lazy(() => import("../pages/admin/tournament/TournamentTeamCreation"));
 const ViewTournament = React.lazy(() => import("../pages/admin/tournament/ViewTournament"));
+const AmericanoOverview = React.lazy(() => import("../pages/admin/americano/AmericanoOverview"));
 const PointsTablePage = React.lazy(() => import("../pages/admin/league/PointsTablePage"));
 const Notifications = React.lazy(() => import("../pages/admin/notifications/Notifications"));
 const AppUsers = React.lazy(() => import("../pages/admin/appUsers/AppUsers"));
 const AppVersion = React.lazy(() => import("../pages/admin/version/Version"));
 const XpSettings = React.lazy(() => import("../pages/admin/settings/XpSettings"));
+const OpenMatchesOverview = React.lazy(() => import("../pages/admin/openMatches/OpenMatchesOverview"));
 
 const NotFound = React.lazy(() => import("../pages/error/NotFound"));
 const loading = <DataLoading height={900} />;
@@ -94,6 +97,10 @@ const AllRoutes = () => {
               element: LoadComponent(Payments),
             },
             {
+              path: "all-transactions",
+              element: LoadComponent(AllTransactions),
+            },
+            {
               path: "payment-reconciliation",
               element: LoadComponent(PaymentReconciliation),
             },
@@ -151,6 +158,10 @@ const AllRoutes = () => {
               element: LoadComponent(TournamentTeamCreation),
             },
             {
+              path: "americano",
+              element: LoadComponent(AmericanoOverview),
+            },
+            {
               path: "view-tournament/:tournamentId",
               element: LoadComponent(ViewTournament),
             },
@@ -177,6 +188,10 @@ const AllRoutes = () => {
             {
               path: "profile",
               element: LoadComponent(Profile),
+            },
+            {
+              path: "open-matches",
+              element: LoadComponent(OpenMatchesOverview),
             },
             {
               path: "*",
