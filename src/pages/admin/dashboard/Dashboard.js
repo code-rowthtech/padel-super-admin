@@ -74,6 +74,28 @@ const formatToYYYYMMDD = (date) => {
   return `${year}-${month}-${day}`;
 };
 
+const isMatchRequestDisabled = (match) => {
+  const statuses = [
+    match?.openMatchStatus,
+    match?.matchStatus,
+    match?.bookingStatus,
+    match?.status,
+  ].map((status) => String(status || "").toLowerCase());
+
+  if (statuses.some((status) => ["complete", "completed", "cancelled", "canceled"].includes(status))) {
+    return true;
+  }
+
+  return false;
+};
+
+const getOpenMatchDisplayStatus = (match, fallback = "upcoming") => {
+  const status = String(match?.status || "").toLowerCase();
+  if (["complete", "completed", "cancelled", "canceled"].includes(status)) return match.status;
+
+  return match?.openMatchStatus || match?.status || fallback;
+};
+
 const MONTHS = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
@@ -1391,7 +1413,8 @@ const AdminDashboard = () => {
                                 const courtName = item?.slot?.[0]?.courtName || "";
                                 const bookingDate = item?.matchDate || item?.bookingDate;
                                 const timeText = item?.matchTime?.[0] || (item?.startTime && item?.endTime ? `${item.startTime} - ${item.endTime}` : "N/A");
-                                const status = item?.openMatchStatus || item?.status || "upcoming";
+                                const status = getOpenMatchDisplayStatus(item);
+                                const isMatchCompleted = isMatchRequestDisabled(item);
                                 const isApproaching = item?.isWithin24Hours;
                                 const approachingStyle = isApproaching ? { backgroundColor: "#fffbeb" } : undefined;
                                 const statusStyle = getStatusBadgeStyle(status);
@@ -1493,17 +1516,21 @@ const AdminDashboard = () => {
                                         <button
                                           className="btn border-0"
                                           onClick={() => {
+                                            if (isMatchCompleted) return;
                                             setSelectedMatchId(item?._id);
                                             setShowMatchRequestModal(true);
                                           }}
+                                          disabled={isMatchCompleted}
+                                          title={isMatchCompleted ? "Requests are disabled for completed matches." : "Send request"}
                                           style={{
                                             fontSize: "10px",
                                             boxShadow: "none",
-                                            background: "rgba(99, 102, 241, 0.12)",
+                                            background: isMatchCompleted ? "#e5e7eb" : "rgba(99, 102, 241, 0.12)",
                                             padding: "4px 8px",
                                             borderRadius: "4px",
-                                            color: "#4f46e5",
-                                            fontWeight: "600"
+                                            color: isMatchCompleted ? "#9ca3af" : "#4f46e5",
+                                            fontWeight: "600",
+                                            cursor: isMatchCompleted ? "not-allowed" : "pointer",
                                           }}
                                         >
                                           Request
@@ -1530,7 +1557,7 @@ const AdminDashboard = () => {
                             const courtName = item?.slot?.[0]?.courtName || "";
                             const bookingDate = item?.matchDate || item?.bookingDate;
                             const timeText = item?.matchTime?.[0] || (item?.startTime && item?.endTime ? `${item.startTime} - ${item.endTime}` : "N/A");
-                            const status = item?.openMatchStatus || "open";
+                            const status = getOpenMatchDisplayStatus(item, "open");
                             const isApproaching = item?.isWithin24Hours;
 
                             return (

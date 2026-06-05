@@ -99,6 +99,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   const paymentsRef = useRef(null);
   const leagueRef = useRef(null);
   const tournamentRef = useRef(null);
+  const americanoRef = useRef(null);
   const dashboardRef = useRef(null);
   const bookingsRef = useRef(null);
   const ownersRef = useRef(null);
@@ -406,6 +407,22 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
             </div>
           )}
         </div>
+
+        {/* Americano */}
+        {isSuperAdmin && (
+          <div className="position-relative" ref={americanoRef}
+            onMouseEnter={() => isDesktopCollapsed && setHoveredItem("americano")}
+            onMouseLeave={() => setHoveredItem(null)}>
+            <NavLink to="/admin/americano" end
+              className={isDesktopCollapsed ? collapsedIconClass : linkClasses(isActivePath("/admin/americano"))}
+              style={() => iconStyle(isActivePath("/admin/americano"))}
+              onClick={() => window.innerWidth <= 768 && onClose()}>
+              <FaTrophy className={isDesktopCollapsed ? "" : "me-4"} size={isDesktopCollapsed ? 18 : 20} />
+              {!isDesktopCollapsed && "Americano"}
+            </NavLink>
+            <SimpleTooltip label="Americano" anchorRef={americanoRef} visible={isDesktopCollapsed && hoveredItem === "americano"} />
+          </div>
+        )}
 
         {/* App Users */}
         {!isSubAdmin && (

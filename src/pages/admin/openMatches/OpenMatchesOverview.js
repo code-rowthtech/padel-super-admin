@@ -10,6 +10,28 @@ import PlayersJoinedModal from "../../../components/modals/PlayersJoinedModal";
 import MatchRequestModal from "../../../components/modals/MatchRequestModal";
 import "./OpenMatchesOverview.css";
 
+const isMatchRequestDisabled = (match) => {
+  const statuses = [
+    match?.openMatchStatus,
+    match?.matchStatus,
+    match?.bookingStatus,
+    match?.status,
+  ].map((status) => String(status || "").toLowerCase());
+
+  if (statuses.some((status) => ["complete", "completed", "cancelled", "canceled"].includes(status))) {
+    return true;
+  }
+
+  return false;
+};
+
+const getOpenMatchDisplayStatus = (match) => {
+  const status = String(match?.status || "").toLowerCase();
+  if (["complete", "completed", "cancelled", "canceled"].includes(status)) return match.status;
+
+  return match?.openMatchStatus || match?.status || "upcoming";
+};
+
 const OpenMatchesOverview = () => {
   const dispatch = useDispatch();
   const { selectedOwnerId } = useSuperAdminContext();
@@ -69,6 +91,8 @@ const OpenMatchesOverview = () => {
 
 
   const handleRequestClick = (match) => {
+    if (isMatchRequestDisabled(match)) return;
+
     setSelectedMatch(match);
     setShowRequestModal(true);
   };
@@ -144,7 +168,8 @@ const OpenMatchesOverview = () => {
                       const courtName = item?.slot?.[0]?.courtName || "";
                       const bookingDate = item?.matchDate || item?.bookingDate;
                       const timeText = item?.matchTime?.[0] || (item?.startTime && item?.endTime ? `${item.startTime} - ${item.endTime}` : "N/A");
-                      const status = item?.openMatchStatus || item?.status || "upcoming";
+                      const status = getOpenMatchDisplayStatus(item);
+                      const isMatchCompleted = isMatchRequestDisabled(item);
                       const isApproaching = item?.isWithin24Hours;
                       const approachingStyle = isApproaching ? { backgroundColor: "#fffbeb" } : undefined;
                       const statusStyle = getStatusBadgeStyle(status);
@@ -241,14 +266,17 @@ const OpenMatchesOverview = () => {
                             <button
                               className="btn btn-sm"
                               onClick={() => handleRequestClick(item)}
+                              disabled={isMatchCompleted}
+                              title={isMatchCompleted ? "Requests are disabled for completed matches." : "Send request"}
                               style={{
                                 fontSize: "11px",
                                 padding: "5px 12px",
-                                backgroundColor: "rgba(99, 102, 241, 0.12)",
-                                color: "#4f46e5",
+                                backgroundColor: isMatchCompleted ? "#e5e7eb" : "rgba(99, 102, 241, 0.12)",
+                                color: isMatchCompleted ? "#9ca3af" : "#4f46e5",
                                 border: "none",
                                 borderRadius: "4px",
-                                fontWeight: "600"
+                                fontWeight: "600",
+                                cursor: isMatchCompleted ? "not-allowed" : "pointer",
                               }}
                             >
                               Request
@@ -275,7 +303,8 @@ const OpenMatchesOverview = () => {
                   const courtName = item?.slot?.[0]?.courtName || "";
                   const bookingDate = item?.matchDate || item?.bookingDate;
                   const timeText = item?.matchTime?.[0] || (item?.startTime && item?.endTime ? `${item.startTime} - ${item.endTime}` : "N/A");
-                  const status = item?.openMatchStatus || item?.status || "upcoming";
+                  const status = getOpenMatchDisplayStatus(item);
+                  const isMatchCompleted = isMatchRequestDisabled(item);
                   const isApproaching = item?.isWithin24Hours;
                   const statusStyle = getStatusBadgeStyle(status);
 
@@ -359,14 +388,17 @@ const OpenMatchesOverview = () => {
                           <button
                             className="btn btn-sm w-100"
                             onClick={() => handleRequestClick(item)}
+                            disabled={isMatchCompleted}
+                            title={isMatchCompleted ? "Requests are disabled for completed matches." : "Send request"}
                             style={{
                               fontSize: "12px",
                               padding: "8px",
-                              backgroundColor: "rgba(99, 102, 241, 0.12)",
-                              color: "#4f46e5",
+                              backgroundColor: isMatchCompleted ? "#e5e7eb" : "rgba(99, 102, 241, 0.12)",
+                              color: isMatchCompleted ? "#9ca3af" : "#4f46e5",
                               border: "none",
                               borderRadius: "4px",
-                              fontWeight: "600"
+                              fontWeight: "600",
+                              cursor: isMatchCompleted ? "not-allowed" : "pointer",
                             }}
                           >
                             Send Request
