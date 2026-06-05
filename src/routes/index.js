@@ -30,6 +30,7 @@ const NewTournament = React.lazy(() => import("../pages/admin/tournament/NewTour
 const TournamentSchedule = React.lazy(() => import("../pages/admin/tournament/TournamentSchedule"));
 const TournamentTeamCreation = React.lazy(() => import("../pages/admin/tournament/TournamentTeamCreation"));
 const ViewTournament = React.lazy(() => import("../pages/admin/tournament/ViewTournament"));
+const AmericanoOverview = React.lazy(() => import("../pages/admin/americano/AmericanoOverview"));
 const PointsTablePage = React.lazy(() => import("../pages/admin/league/PointsTablePage"));
 const Notifications = React.lazy(() => import("../pages/admin/notifications/Notifications"));
 const AppUsers = React.lazy(() => import("../pages/admin/appUsers/AppUsers"));
@@ -155,6 +156,10 @@ const AllRoutes = () => {
             {
               path: "tournament/team-creation",
               element: LoadComponent(TournamentTeamCreation),
+            },
+            {
+              path: "americano",
+              element: LoadComponent(AmericanoOverview),
             },
             {
               path: "view-tournament/:tournamentId",

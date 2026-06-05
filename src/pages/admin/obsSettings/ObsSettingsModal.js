@@ -13,7 +13,7 @@ const EMPTY_FORM = {
 
 const COURTS = ['Court 1', 'Court 2', 'Court 3', 'Court 4'];
 
-const ObsSettingsModal = ({ show, onHide, leagueId, tournamentId, isLeague, title }) => {
+const ObsSettingsModal = ({ show, onHide, leagueId, tournamentId, americanoId, isLeague, title }) => {
   const [streams, setStreams]     = useState([]);
   const [loading, setLoading]     = useState(false);
   const [saving, setSaving]       = useState(false);
@@ -25,7 +25,11 @@ const ObsSettingsModal = ({ show, onHide, leagueId, tournamentId, isLeague, titl
   const fetchStreams = useCallback(async () => {
     setLoading(true);
     try {
-      const params = isLeague ? { leagueId, isLeague: true } : { tournamentId, isLeague: false };
+      const params = americanoId
+        ? { americanoId, isLeague: false }
+        : isLeague
+          ? { leagueId, isLeague: true }
+          : { tournamentId, isLeague: false };
       const res = await ownerAxios.get('/api/obs-settings', { params });
       setStreams(res.data?.data || []);
     } catch {
@@ -33,7 +37,7 @@ const ObsSettingsModal = ({ show, onHide, leagueId, tournamentId, isLeague, titl
     } finally {
       setLoading(false);
     }
-  }, [leagueId, tournamentId, isLeague]);
+  }, [leagueId, tournamentId, americanoId, isLeague]);
 
   useEffect(() => {
     if (show) fetchStreams();
@@ -73,7 +77,8 @@ const ObsSettingsModal = ({ show, onHide, leagueId, tournamentId, isLeague, titl
         ...form,
         isLeague:     !!isLeague,
         leagueId:     isLeague  ? leagueId     : null,
-        tournamentId: !isLeague ? tournamentId : null,
+        tournamentId: !isLeague && !americanoId ? tournamentId : null,
+        americanoId:  americanoId || null,
       };
       if (editId) {
         await ownerAxios.put(`/api/obs-settings/${editId}`, payload);
