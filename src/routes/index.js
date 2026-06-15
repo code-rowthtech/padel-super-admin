@@ -37,6 +37,7 @@ const AppUsers = React.lazy(() => import("../pages/admin/appUsers/AppUsers"));
 const AppVersion = React.lazy(() => import("../pages/admin/version/Version"));
 const XpSettings = React.lazy(() => import("../pages/admin/settings/XpSettings"));
 const OpenMatchesOverview = React.lazy(() => import("../pages/admin/openMatches/OpenMatchesOverview"));
+const PlayerPreferences = React.lazy(() => import("../pages/admin/playerPreferences/PlayerPreferences"));
 
 const NotFound = React.lazy(() => import("../pages/error/NotFound"));
 const loading = <DataLoading height={900} />;
@@ -192,6 +193,10 @@ const AllRoutes = () => {
             {
               path: "open-matches",
               element: LoadComponent(OpenMatchesOverview),
+            },
+            {
+              path: "player-preferences",
+              element: LoadComponent(PlayerPreferences),
             },
             {
               path: "*",
