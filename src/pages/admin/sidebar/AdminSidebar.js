@@ -9,6 +9,7 @@ import {
   FaChevronDown,
   FaChevronUp,
   FaUsers,
+  FaClipboardList,
 } from "react-icons/fa";
 import { MdNotificationsActive } from "react-icons/md";
 import { HiOutlineTrophy } from "react-icons/hi2";
@@ -108,6 +109,7 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   const profileRef = useRef(null);
   const versionRef = useRef(null);
   const xpRef = useRef(null);
+  const playerPrefsRef = useRef(null);
 
   const isBookingsActive = location.pathname.startsWith('/admin/booking') || location.pathname.startsWith('/admin/schedules');
   const isTournamentActive = location.pathname.startsWith('/admin/tournament') || location.pathname.startsWith('/admin/new-tournament') || location.pathname.startsWith('/admin/tournament/schedule');
@@ -437,6 +439,22 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               {!isDesktopCollapsed && "App Users"}
             </NavLink>
             <SimpleTooltip label="App Users" anchorRef={appUsersRef} visible={isDesktopCollapsed && hoveredItem === "appUsers"} />
+          </div>
+        )}
+
+        {/* Player Preferences */}
+        {isSuperAdmin && !isSubAdmin && (
+          <div className="position-relative" ref={playerPrefsRef}
+            onMouseEnter={() => isDesktopCollapsed && setHoveredItem("playerPrefs")}
+            onMouseLeave={() => setHoveredItem(null)}>
+            <NavLink to="/admin/player-preferences" end
+              className={isDesktopCollapsed ? collapsedIconClass : linkClasses(isActivePath("/admin/player-preferences"))}
+              style={() => iconStyle(isActivePath("/admin/player-preferences"))}
+              onClick={() => window.innerWidth <= 768 && onClose()}>
+              <FaClipboardList className={isDesktopCollapsed ? "" : "me-4"} size={isDesktopCollapsed ? 18 : 20} />
+              {!isDesktopCollapsed && "Player Preferences"}
+            </NavLink>
+            <SimpleTooltip label="Player Preferences" anchorRef={playerPrefsRef} visible={isDesktopCollapsed && hoveredItem === "playerPrefs"} />
           </div>
         )}
 

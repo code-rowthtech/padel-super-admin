@@ -211,3 +211,12 @@ export const POST_MATCH_REQUEST_AUTO = "/api/super-admin/match-request/send-auto
 
 // All Transactions
 export const SUPER_ADMIN_ALL_TRANSACTIONS = "/api/super-admin/club-payments-bookings";
+
+// Player Preferences
+export const PLAYER_PREF_LOOKUP_CUSTOMER = "/api/player-preferences/lookup-customer";
+export const PLAYER_PREF_SEARCH_FOR_MATCH = "/api/player-preferences/search-for-match";
+export const PLAYER_PREF_CREATE = "/api/player-preferences";
+export const PLAYER_PREF_GET_ALL = "/api/player-preferences";
+export const PLAYER_PREF_GET_BY_ID = "/api/player-preferences";
+export const PLAYER_PREF_UPDATE = "/api/player-preferences";
+export const PLAYER_PREF_DELETE = "/api/player-preferences";

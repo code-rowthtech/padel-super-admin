@@ -14,6 +14,7 @@ import schedulesReducer from "./admin/schedules/slice";
 import matchRequestReducer from "./admin/matchRequest/slice";
 import paymentsReducer from "./admin/payments/slice";
 import transactionsReducer from "./admin/transactions/slice";
+import playerPreferencesReducer from "./admin/playerPreferences/slice";
 
 const store = configureStore({
   reducer: {
@@ -32,6 +33,7 @@ const store = configureStore({
     matchRequest: matchRequestReducer,
     payments: paymentsReducer,
     transactions: transactionsReducer,
+    playerPreferences: playerPreferencesReducer,
   },
 });
 
