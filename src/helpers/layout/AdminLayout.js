@@ -25,6 +25,7 @@ const AdminLayout = () => {
             '/admin/cancellation': 'Cancellation',
             '/admin/court-availability': 'Court Availability',
             '/admin/open-matches': 'Open Matches',
+            '/admin/open-matches/create': 'Create Open Match',
             '/admin/create-match': 'Create Match',
             '/admin/americano': 'Americano',
             '/admin/packages': 'Packages',

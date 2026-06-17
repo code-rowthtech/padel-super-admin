@@ -15,6 +15,10 @@ import matchRequestReducer from "./admin/matchRequest/slice";
 import paymentsReducer from "./admin/payments/slice";
 import transactionsReducer from "./admin/transactions/slice";
 import playerPreferencesReducer from "./admin/playerPreferences/slice";
+import openMatchesReducer from "./admin/openMatches/slice";
+import searchUserByNumberReducer from "./admin/searchUserbynumber/slice";
+import userAuthReducer from "./user/auth/authSlice";
+import userNotificationDataReducer from "./user/notifiction/slice";
 
 const store = configureStore({
   reducer: {
@@ -34,6 +38,10 @@ const store = configureStore({
     payments: paymentsReducer,
     transactions: transactionsReducer,
     playerPreferences: playerPreferencesReducer,
+    openMatches: openMatchesReducer,
+    searchUserByNumber: searchUserByNumberReducer,
+    userAuth: userAuthReducer,
+    userNotificationData: userNotificationDataReducer,
   },
 });
 

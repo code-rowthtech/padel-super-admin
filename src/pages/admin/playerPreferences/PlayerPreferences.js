@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Container, Row, Col, Table, Button, Modal, Form, Badge, Tab, Nav } from "react-bootstrap";
 import { FaEdit, FaTrash, FaSearch, FaPlus, FaUser, FaPhone, FaTimes } from "react-icons/fa";
 import { MdSportsHandball } from "react-icons/md";
-import Select from "react-select";
+import Select, { components as selectComponents } from "react-select";
 import { useDispatch, useSelector } from "react-redux";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ButtonLoading, DataLoading } from "../../../helpers/loading/Loaders";
 import { ownerApi } from "../../../helpers/api/apiCore";
-import { SUPER_ADMIN_GET_ALL_CLUBS } from "../../../helpers/api/apiEndpoint";
+import { SUPER_ADMIN_GET_ALL_CLUBS, SUPER_ADMIN_OPEN_MATCH_OVERVIEW } from "../../../helpers/api/apiEndpoint";
 import {
   getAllPlayerPreferences,
   createPlayerPreference,
@@ -14,41 +15,57 @@ import {
   deletePlayerPreference,
   lookupCustomerByPhone,
   searchPlayersForMatch,
+  searchPlayersByOpenMatch,
 } from "../../../redux/admin/playerPreferences/thunk";
+import { sendMatchRequest } from "../../../redux/admin/matchRequest/thunk";
 import { resetLookup, resetMatchSearch } from "../../../redux/admin/playerPreferences/slice";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const TIME_SLOT_GROUPS = [
   {
+    label: "30 Minutes",
+    options: [
+      "5:00 AM – 5:30 AM", "5:30 AM – 6:00 AM", "6:00 AM – 6:30 AM", "6:30 AM – 7:00 AM",
+      "7:00 AM – 7:30 AM", "7:30 AM – 8:00 AM", "8:00 AM – 8:30 AM", "8:30 AM – 9:00 AM",
+      "9:00 AM – 9:30 AM", "9:30 AM – 10:00 AM", "10:00 AM – 10:30 AM", "10:30 AM – 11:00 AM",
+      "11:00 AM – 11:30 AM", "11:30 AM – 12:00 PM", "12:00 PM – 12:30 PM", "12:30 PM – 1:00 PM",
+      "1:00 PM – 1:30 PM", "1:30 PM – 2:00 PM", "2:00 PM – 2:30 PM", "2:30 PM – 3:00 PM",
+      "3:00 PM – 3:30 PM", "3:30 PM – 4:00 PM", "4:00 PM – 4:30 PM", "4:30 PM – 5:00 PM",
+      "5:00 PM – 5:30 PM", "5:30 PM – 6:00 PM", "6:00 PM – 6:30 PM", "6:30 PM – 7:00 PM",
+      "7:00 PM – 7:30 PM", "7:30 PM – 8:00 PM", "8:00 PM – 8:30 PM", "8:30 PM – 9:00 PM",
+      "9:00 PM – 9:30 PM", "9:30 PM – 10:00 PM", "10:00 PM – 10:30 PM", "10:30 PM – 11:00 PM",
+      "11:00 PM – 11:30 PM",
+    ].map((v) => ({ value: v, label: v })),
+  },
+  {
     label: "60 Minutes",
     options: [
-      "6 AM – 7 AM", "7 AM – 8 AM", "8 AM – 9 AM", "9 AM – 10 AM",
+      "5 AM – 6 AM", "6 AM – 7 AM", "7 AM – 8 AM", "8 AM – 9 AM", "9 AM – 10 AM",
       "10 AM – 11 AM", "11 AM – 12 PM", "12 PM – 1 PM", "1 PM – 2 PM",
       "2 PM – 3 PM", "3 PM – 4 PM", "4 PM – 5 PM", "5 PM – 6 PM",
       "6 PM – 7 PM", "7 PM – 8 PM", "8 PM – 9 PM", "9 PM – 10 PM",
+      "10 PM – 11 PM", "11 PM – 12 AM",
     ].map((v) => ({ value: v, label: v })),
   },
   {
     label: "90 Minutes",
     options: [
-      "6:00 AM – 7:30 AM", "7:30 AM – 9:00 AM", "9:00 AM – 10:30 AM",
-      "10:30 AM – 12:00 PM", "12:00 PM – 1:30 PM", "1:30 PM – 3:00 PM",
-      "3:00 PM – 4:30 PM", "4:30 PM – 6:00 PM", "6:00 PM – 7:30 PM",
-      "7:30 PM – 9:00 PM", "9:00 PM – 10:30 PM",
-    ].map((v) => ({ value: v, label: v })),
-  },
-  {
-    label: "120 Minutes",
-    options: [
-      "6 AM – 8 AM", "8 AM – 10 AM", "10 AM – 12 PM", "12 PM – 2 PM",
-      "2 PM – 4 PM", "4 PM – 6 PM", "5 PM – 7 PM", "7 PM – 9 PM", "9 PM – 11 PM",
+      "5:00 AM – 6:30 AM", "6:00 AM – 7:30 AM", "7:00 AM – 8:30 AM",
+      "8:00 AM – 9:30 AM", "9:00 AM – 10:30 AM", "10:00 AM – 11:30 AM",
+      "11:00 AM – 12:30 PM", "12:00 PM – 1:30 PM", "1:00 PM – 2:30 PM",
+      "2:00 PM – 3:30 PM", "3:00 PM – 4:30 PM", "4:00 PM – 5:30 PM",
+      "5:00 PM – 6:30 PM", "6:00 PM – 7:30 PM", "7:00 PM – 8:30 PM",
+      "8:00 PM – 9:30 PM", "9:00 PM – 10:30 PM", "10:00 PM – 11:30 PM",
+      "11:00 PM – 12:30 AM",
     ].map((v) => ({ value: v, label: v })),
   },
 ];
 const DAY_OPTIONS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const SKILL_LEVEL_OPTIONS = ["Beginner", "Intermediate", "Advanced", "Professional"];
 const SKILL_COLORS = { Beginner: "success", Intermediate: "warning", Advanced: "danger", Professional: "dark" };
+const CREATE_OPEN_MATCH_VALUE = "__create_open_match__";
+const EMPTY_MATCH_FILTERS = { clubId: "", day: [], timeSlot: [], skillLevel: [] };
 
 const toSelectOptions = (arr) => arr.map((v) => ({ value: v, label: v }));
 
@@ -56,6 +73,71 @@ const selectStyles = {
   control: (b) => ({ ...b, borderColor: "#dee2e6", minHeight: "36px", fontSize: "13px" }),
   multiValue: (b) => ({ ...b, backgroundColor: "rgba(31,65,187,0.12)" }),
   menu: (b) => ({ ...b, zIndex: 9999 }),
+};
+
+const compactSelectStyles = {
+  ...selectStyles,
+  control: (b) => ({ ...b, borderColor: "#dee2e6", minHeight: "31px", fontSize: "13px" }),
+  valueContainer: (b) => ({ ...b, padding: "0 8px", flexWrap: "nowrap", overflow: "hidden" }),
+  input: (b) => ({ ...b, margin: 0, padding: 0 }),
+  indicatorsContainer: (b) => ({ ...b, minHeight: "31px" }),
+  placeholder: (b) => ({ ...b, color: "#111827", whiteSpace: "nowrap" }),
+  option: (b, state) => ({
+    ...b,
+    alignItems: "center",
+    backgroundColor: state.isFocused ? "rgba(31,65,187,0.08)" : "#fff",
+    color: "#111827",
+    display: "flex",
+    fontSize: 13,
+    gap: 8,
+    padding: "7px 10px",
+  }),
+  menu: (b) => ({ ...b, zIndex: 9999 }),
+};
+
+const toValueArray = (value) => {
+  if (!value) return [];
+  return Array.isArray(value) ? value.filter(Boolean) : [value].filter(Boolean);
+};
+
+const selectValues = (options, values) => {
+  const valueSet = new Set(toValueArray(values));
+  return options.filter((option) => valueSet.has(option.value));
+};
+
+const getMultiPlaceholder = (emptyText, values) => {
+  const count = toValueArray(values).length;
+  return count ? `${count} selected` : emptyText;
+};
+
+const CheckboxOption = (props) => (
+  <selectComponents.Option {...props}>
+    <span
+      aria-hidden="true"
+      style={{
+        alignItems: "center",
+        border: `1px solid ${props.isSelected ? "#1f41bb" : "#cbd5e1"}`,
+        borderRadius: 3,
+        background: props.isSelected ? "#1f41bb" : "#fff",
+        color: "#fff",
+        display: "inline-flex",
+        flex: "0 0 14px",
+        height: 14,
+        justifyContent: "center",
+        fontSize: 10,
+        lineHeight: "14px",
+        width: 14,
+      }}
+    >
+      {props.isSelected ? "✓" : ""}
+    </span>
+    <span>{props.label}</span>
+  </selectComponents.Option>
+);
+
+const compactMultiSelectComponents = {
+  MultiValue: () => null,
+  Option: CheckboxOption,
 };
 
 // A schedule entry in form state: { day: "Monday", timeSlots: [{value,label}] }
@@ -155,15 +237,26 @@ const ScheduleBuilder = ({ value, onChange }) => {
 
 const PlayerPreferences = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const routeMatchId = location.state?.selectedOpenMatchId || searchParams.get("matchId") || "";
+  const routeTab = location.state?.tab || searchParams.get("tab");
+  const initialTab = routeTab === "findPlayers" || routeMatchId ? "findPlayers" : "preferences";
+  const pendingRouteMatchIdRef = useRef(routeMatchId);
   const {
     preferences, loading, pagination,
     lookupLoading, lookupResult,
     saveLoading, deleteLoading,
-    matchSearchResults, matchSearchLoading, matchSearchPagination,
+    matchSearchResults, matchSearchLoading, matchSearchError, matchSearchPagination,
+    selectedMatchContext,
   } = useSelector((s) => s.playerPreferences);
 
   const [clubs, setClubs] = useState([]);
   const [clubOptions, setClubOptions] = useState([]);
+  const [openMatches, setOpenMatches] = useState([]);
+  const [openMatchesLoading, setOpenMatchesLoading] = useState(false);
+  const [selectedOpenMatchId, setSelectedOpenMatchId] = useState("");
   const [search, setSearch] = useState("");
   const [filterSkillLevel, setFilterSkillLevel] = useState("");
 
@@ -179,7 +272,9 @@ const PlayerPreferences = () => {
   const [form, setForm] = useState(EMPTY_FORM);
   const [formErrors, setFormErrors] = useState({});
 
-  const [matchFilters, setMatchFilters] = useState({ clubId: "", day: "", timeSlot: "", skillLevel: "" });
+  const [matchFilters, setMatchFilters] = useState(EMPTY_MATCH_FILTERS);
+  const [activeTab, setActiveTab] = useState(initialTab);
+  const [requestingPlayerId, setRequestingPlayerId] = useState("");
 
   // Load clubs
   useEffect(() => {
@@ -188,6 +283,18 @@ const PlayerPreferences = () => {
       setClubs(list);
       setClubOptions(list.map((c) => ({ value: c._id, label: c.clubName || c.name })));
     }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    setOpenMatchesLoading(true);
+    ownerApi
+      .get(`${SUPER_ADMIN_OPEN_MATCH_OVERVIEW}?page=1&limit=100`)
+      .then((res) => {
+        const list = res.data?.data?.openMatches || res.data?.data || [];
+        setOpenMatches(Array.isArray(list) ? list : []);
+      })
+      .catch(() => setOpenMatches([]))
+      .finally(() => setOpenMatchesLoading(false));
   }, []);
 
   // Load preferences
@@ -297,7 +404,217 @@ const PlayerPreferences = () => {
   // ── Search for match ──────────────────────────────────────────────────────────
 
   const handleMatchSearch = () => {
+    if (selectedOpenMatchId) {
+      dispatch(searchPlayersByOpenMatch({ matchId: selectedOpenMatchId, page: 1, limit: 20 }));
+      return;
+    }
     dispatch(searchPlayersForMatch({ ...matchFilters, page: 1, limit: 20 }));
+  };
+
+  const getMatchDayName = (dateString) => {
+    if (!dateString) return "";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      weekday: "long",
+      timeZone: "Asia/Kolkata",
+    });
+  };
+
+  const formatMatchDateShort = (dateString) => {
+    if (!dateString) return "Date N/A";
+    return new Date(dateString).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      weekday: "short",
+    });
+  };
+
+  const getOpenMatchTimeLabel = (match) => {
+    if (!match) return "Time N/A";
+    if (Array.isArray(match?.matchTime) && match.matchTime.length > 0) return match.matchTime[0];
+    if (match?.bookingId?.startTime && match?.bookingId?.endTime) return `${match.bookingId.startTime} - ${match.bookingId.endTime}`;
+    if (match?.startTime && match?.endTime) return `${match.startTime} - ${match.endTime}`;
+    if (typeof match?.matchTime === "string" && match.matchTime) return match.matchTime;
+    return "Time N/A";
+  };
+
+  const normalizeTimeSlotText = (value) =>
+    String(value || "")
+      .replace(/[–—]/g, "-")
+      .replace(/\s+/g, " ")
+      .replace(/\s*-\s*/g, "-")
+      .trim()
+      .toUpperCase();
+
+  const getTimeSlotOptionsForSearch = () => {
+    const allOptions = TIME_SLOT_GROUPS.flatMap((group) => group.options);
+    const selectedTimes = toValueArray(matchFilters.timeSlot);
+    if (!selectedTimes.length) return TIME_SLOT_GROUPS;
+
+    const selectedMatchOptions = selectedTimes
+      .filter((selectedTime) => !allOptions.some(
+        (option) => normalizeTimeSlotText(option.value) === normalizeTimeSlotText(selectedTime)
+      ))
+      .map((selectedTime) => ({ value: selectedTime, label: selectedTime }));
+
+    if (!selectedMatchOptions.length) return TIME_SLOT_GROUPS;
+
+    return [
+      { label: "Selected Match", options: selectedMatchOptions },
+      ...TIME_SLOT_GROUPS,
+    ];
+  };
+
+  const getOpenMatchLabel = (match) => {
+    const clubName = match?.clubId?.clubName || match?.clubName || "Club N/A";
+    const courtName = match?.slot?.[0]?.courtName ? ` | ${match.slot[0].courtName}` : "";
+    return `${formatMatchDateShort(match?.matchDate || match?.bookingDate)} | ${getOpenMatchTimeLabel(match)} | ${clubName}${courtName} | ${match?.skillLevel || "Level N/A"}`;
+  };
+
+  const handleOpenMatchSelect = (matchId) => {
+    if (matchId === CREATE_OPEN_MATCH_VALUE) {
+      navigate("/admin/open-matches/create", {
+        state: {
+          fromPlayerPreferences: true,
+          clubId: matchFilters.clubId || "",
+        },
+      });
+      return;
+    }
+
+    setSelectedOpenMatchId(matchId);
+    dispatch(resetMatchSearch());
+    const match = openMatches.find((item) => item?._id === matchId);
+
+    if (!matchId || !match) {
+      setMatchFilters(EMPTY_MATCH_FILTERS);
+      return;
+    }
+
+    setMatchFilters({
+      clubId: match?.clubId?._id || match?.clubId || "",
+      day: [getMatchDayName(match?.matchDate || match?.bookingDate)].filter(Boolean),
+      timeSlot: [getOpenMatchTimeLabel(match)].filter((value) => value && value !== "Time N/A"),
+      skillLevel: [match?.skillLevel].filter(Boolean),
+    });
+    dispatch(searchPlayersByOpenMatch({ matchId, page: 1, limit: 20 }));
+  };
+
+  useEffect(() => {
+    const nextMatchId = location.state?.selectedOpenMatchId || new URLSearchParams(location.search).get("matchId") || "";
+    const nextTab = location.state?.tab || new URLSearchParams(location.search).get("tab");
+
+    if (nextTab === "findPlayers" || nextMatchId) {
+      setActiveTab("findPlayers");
+    }
+
+    if (nextMatchId && nextMatchId !== selectedOpenMatchId) {
+      pendingRouteMatchIdRef.current = nextMatchId;
+    }
+  }, [location.search, location.state, selectedOpenMatchId]);
+
+  useEffect(() => {
+    const pendingMatchId = pendingRouteMatchIdRef.current;
+    if (!pendingMatchId || openMatchesLoading || openMatches.length === 0) return;
+
+    const matchExists = openMatches.some((match) => match?._id === pendingMatchId);
+    if (!matchExists) return;
+
+    pendingRouteMatchIdRef.current = "";
+    handleOpenMatchSelect(pendingMatchId);
+  }, [openMatches, openMatchesLoading]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleManualFilterChange = (field, value) => {
+    if (selectedOpenMatchId) {
+      setSelectedOpenMatchId("");
+      dispatch(resetMatchSearch());
+    }
+    setMatchFilters((filters) => ({ ...filters, [field]: value }));
+  };
+
+  const handleResetMatchFilters = () => {
+    setSelectedOpenMatchId("");
+    setMatchFilters(EMPTY_MATCH_FILTERS);
+    setRequestingPlayerId("");
+    dispatch(resetMatchSearch());
+  };
+
+  const hasMatchFilters = Boolean(
+    selectedOpenMatchId ||
+    matchFilters.clubId ||
+    toValueArray(matchFilters.day).length ||
+    toValueArray(matchFilters.timeSlot).length ||
+    toValueArray(matchFilters.skillLevel).length
+  );
+
+  const refreshSelectedMatchSearch = () => {
+    if (selectedOpenMatchId) {
+      dispatch(searchPlayersByOpenMatch({ matchId: selectedOpenMatchId, page: 1, limit: 20 }));
+      return;
+    }
+
+    dispatch(searchPlayersForMatch({ ...matchFilters, page: 1, limit: 20 }));
+  };
+
+  const handleSendMatchRequest = async (preference) => {
+    const playerId = preference?.customerId?._id || preference?.customerId;
+    if (!selectedOpenMatchId || !playerId || preference?.isAlreadyInMatch || preference?.isRequestAlreadySent) return;
+
+    setRequestingPlayerId(playerId);
+    try {
+      const result = await dispatch(sendMatchRequest({
+        matchId: selectedOpenMatchId,
+        playerId,
+        preferredTeam: "any",
+      }));
+
+      if (!result.error) {
+        refreshSelectedMatchSearch();
+      }
+    } finally {
+      setRequestingPlayerId("");
+    }
+  };
+
+  const getMatchRequestButton = (preference) => {
+    if (!selectedOpenMatchId) {
+      return <Badge bg="light" text="dark" className="border fw-medium">Select match</Badge>;
+    }
+    if (preference?.isAlreadyInMatch) {
+      return <Badge bg="success">Joined</Badge>;
+    }
+    if (preference?.isRequestAlreadySent || preference?.requestStatus === "pending") {
+      return <Badge bg="warning" text="dark">Requested</Badge>;
+    }
+    if (preference?.requestStatus === "accepted") {
+      return <Badge bg="success">Accepted</Badge>;
+    }
+    if (preference?.requestStatus === "rejected") {
+      return (
+        <Button
+          size="sm"
+          variant="outline-primary"
+          onClick={() => handleSendMatchRequest(preference)}
+          disabled={requestingPlayerId === (preference?.customerId?._id || preference?.customerId)}
+        >
+          {requestingPlayerId === (preference?.customerId?._id || preference?.customerId)
+            ? <ButtonLoading size={6} color="blue" />
+            : "Send Again"}
+        </Button>
+      );
+    }
+
+    return (
+      <Button
+        size="sm"
+        onClick={() => handleSendMatchRequest(preference)}
+        disabled={requestingPlayerId === (preference?.customerId?._id || preference?.customerId)}
+        style={{ backgroundColor: "#1f41bb", border: "none", fontFamily: "Poppins", minWidth: 82 }}
+      >
+        {requestingPlayerId === (preference?.customerId?._id || preference?.customerId)
+          ? <ButtonLoading size={6} />
+          : "Request"}
+      </Button>
+    );
   };
 
   // ── Customer banner (form modal) ──────────────────────────────────────────────
@@ -428,13 +745,107 @@ const PlayerPreferences = () => {
 
   // ── Schedule summary for table cells ─────────────────────────────────────────
 
-  const formatScheduleSummary = (preferredSchedule) => {
+  const getSlotRangeLabel = (slots = []) => {
+    if (!slots.length) return "Any time";
+
+    const firstParts = normalizeTimeSlotText(slots[0]).split("-");
+    const lastParts = normalizeTimeSlotText(slots[slots.length - 1]).split("-");
+    const start = firstParts[0]?.trim();
+    const end = (lastParts[1] || lastParts[0])?.trim();
+
+    return start && end ? `${start} - ${end}` : slots[0];
+  };
+
+  const formatScheduleSummary = (preferredSchedule, compact = false) => {
     if (!preferredSchedule?.length) return null;
+
+    if (compact) {
+      const groupedByRange = preferredSchedule.reduce((acc, entry) => {
+        const range = entry.timeSlots?.length ? getSlotRangeLabel(entry.timeSlots) : "Any time";
+        if (!acc[range]) acc[range] = [];
+        acc[range].push(entry.day);
+        return acc;
+      }, {});
+
+      return Object.entries(groupedByRange).map(([range, days]) => {
+        const dayLabel = days.length === 7
+          ? "All week"
+          : days.map((day) => day.slice(0, 3)).join(", ");
+
+        return (
+          <div
+            key={`${dayLabel}-${range}`}
+            className="d-flex align-items-center gap-2 mb-1"
+            style={{ fontSize: 12, lineHeight: 1.4, minWidth: 260 }}
+          >
+            <span
+              style={{
+                background: "rgba(31,65,187,0.08)",
+                borderRadius: 4,
+                color: "#1f41bb",
+                flex: "0 0 auto",
+                fontWeight: 700,
+                padding: "2px 7px",
+              }}
+            >
+              {dayLabel}
+            </span>
+            <span className="text-muted">{range}</span>
+          </div>
+        );
+      });
+    }
+
     return preferredSchedule.map((e) => (
-      <div key={e.day} style={{ fontSize: 11, lineHeight: 1.6 }}>
-        <span style={{ fontWeight: 600, color: "#1f41bb" }}>{e.day.slice(0, 3)}</span>
-        {e.timeSlots?.length > 0 && (
-          <span className="text-muted"> — {e.timeSlots.join(", ")}</span>
+      <div
+        key={e.day}
+        className="d-flex align-items-center gap-2 mb-1"
+        style={{ fontSize: 11, lineHeight: 1.35, minWidth: compact ? 260 : undefined }}
+      >
+        <span
+          style={{
+            background: "rgba(31,65,187,0.08)",
+            borderRadius: 4,
+            color: "#1f41bb",
+            flex: "0 0 34px",
+            fontWeight: 700,
+            padding: "2px 5px",
+            textAlign: "center",
+          }}
+        >
+          {e.day.slice(0, 3)}
+        </span>
+        {e.timeSlots?.length > 0 ? (
+          <>
+            <span
+              className="text-muted"
+              style={{
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: compact ? "nowrap" : "normal",
+              }}
+            >
+              {compact ? getSlotRangeLabel(e.timeSlots) : e.timeSlots.join(", ")}
+            </span>
+            {compact && e.timeSlots.length > 1 && (
+              <span
+                style={{
+                  background: "#f3f4f6",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: 4,
+                  color: "#6b7280",
+                  flex: "0 0 auto",
+                  fontSize: 10,
+                  fontWeight: 600,
+                  padding: "1px 5px",
+                }}
+              >
+                {e.timeSlots.length} slots
+              </span>
+            )}
+          </>
+        ) : (
+          <span className="text-muted">Any time</span>
         )}
       </div>
     ));
@@ -449,7 +860,7 @@ const PlayerPreferences = () => {
 
   return (
     <Container fluid className="px-0 px-md-4 mt-md-0 mt-2">
-      <Tab.Container defaultActiveKey="preferences">
+      <Tab.Container activeKey={activeTab} onSelect={(key) => setActiveTab(key || "preferences")}>
         <Row className="mb-3">
           <Col>
             <Nav variant="tabs" className="border-bottom-0">
@@ -618,105 +1029,170 @@ const PlayerPreferences = () => {
             <div className="bg-white rounded shadow-sm p-md-3 p-2">
               <h6 className="mb-1 tabel-title">Find Players for Open Match</h6>
               <p className="text-muted small mb-3">
-                Filter by match details to find players whose schedule preferences match.
+                Select an open match to automatically find players by club, day, time, and skill level.
               </p>
 
-              <Row className="g-2 mb-3">
-                <Col xs={12} md={3}>
+              <Row
+                className="g-2 mb-3 align-items-start"
+                style={{
+                  background: "#f8fafc",
+                  border: "1px solid #eef2f7",
+                  borderRadius: 6,
+                  margin: 0,
+                  padding: "10px 8px",
+                }}
+              >
+                <Col xs={12} xl={4} lg={6}>
+                  <Form.Label className="small mb-1">Open Match</Form.Label>
+                  <Form.Select
+                    size="sm"
+                    value={selectedOpenMatchId}
+                    onChange={(e) => handleOpenMatchSelect(e.target.value)}
+                    disabled={openMatchesLoading}
+                  >
+                    <option value="">
+                      {openMatchesLoading ? "Loading open matches..." : "Select an open match"}
+                    </option>
+                    <option value={CREATE_OPEN_MATCH_VALUE}>+ Create Open Match</option>
+                    {openMatches.map((match) => (
+                      <option key={match?._id} value={match?._id}>
+                        {getOpenMatchLabel(match)}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Col>
+                <Col xs={12} xl={2} lg={3} md={6}>
                   <Form.Label className="small mb-1">Club</Form.Label>
                   <Form.Select size="sm" value={matchFilters.clubId}
-                    onChange={(e) => setMatchFilters((f) => ({ ...f, clubId: e.target.value }))}>
+                    onChange={(e) => handleManualFilterChange("clubId", e.target.value)}>
                     <option value="">All Clubs</option>
                     {clubs.map((c) => <option key={c._id} value={c._id}>{c.clubName || c.name}</option>)}
                   </Form.Select>
                 </Col>
-                <Col xs={6} md={2}>
+                <Col xs={12} xl={1} lg={3} md={6}>
                   <Form.Label className="small mb-1">Day</Form.Label>
-                  <Form.Select size="sm" value={matchFilters.day}
-                    onChange={(e) => setMatchFilters((f) => ({ ...f, day: e.target.value }))}>
-                    <option value="">Any Day</option>
-                    {DAY_OPTIONS.map((d) => <option key={d} value={d}>{d}</option>)}
-                  </Form.Select>
+                  <Select
+                    isMulti
+                    closeMenuOnSelect={false}
+                    controlShouldRenderValue={false}
+                    components={compactMultiSelectComponents}
+                    hideSelectedOptions={false}
+                    options={toSelectOptions(DAY_OPTIONS)}
+                    value={selectValues(toSelectOptions(DAY_OPTIONS), matchFilters.day)}
+                    onChange={(value) => handleManualFilterChange("day", (value || []).map((option) => option.value))}
+                    placeholder={getMultiPlaceholder("Any Day", matchFilters.day)}
+                    styles={compactSelectStyles}
+                  />
                 </Col>
-                <Col xs={6} md={3}>
+                <Col xs={12} xl={2} lg={4} md={6}>
                   <Form.Label className="small mb-1">Time Slot</Form.Label>
-                  <Form.Select size="sm" value={matchFilters.timeSlot}
-                    onChange={(e) => setMatchFilters((f) => ({ ...f, timeSlot: e.target.value }))}>
-                    <option value="">Any Time</option>
-                    {TIME_SLOT_GROUPS.map((group) => (
-                      <optgroup key={group.label} label={group.label}>
-                        {group.options.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-                      </optgroup>
-                    ))}
-                  </Form.Select>
+                  <Select
+                    isMulti
+                    closeMenuOnSelect={false}
+                    controlShouldRenderValue={false}
+                    components={compactMultiSelectComponents}
+                    hideSelectedOptions={false}
+                    options={getTimeSlotOptionsForSearch()}
+                    value={selectValues(getTimeSlotOptionsForSearch().flatMap((group) => group.options), matchFilters.timeSlot)}
+                    onChange={(value) => handleManualFilterChange("timeSlot", (value || []).map((option) => option.value))}
+                    placeholder={getMultiPlaceholder("Any Time", matchFilters.timeSlot)}
+                    styles={compactSelectStyles}
+                  />
                 </Col>
-                <Col xs={6} md={2}>
+                <Col xs={12} xl={1} lg={4} md={6}>
                   <Form.Label className="small mb-1">Skill Level</Form.Label>
-                  <Form.Select size="sm" value={matchFilters.skillLevel}
-                    onChange={(e) => setMatchFilters((f) => ({ ...f, skillLevel: e.target.value }))}>
-                    <option value="">Any Level</option>
-                    {SKILL_LEVEL_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
-                  </Form.Select>
+                  <Select
+                    isMulti
+                    closeMenuOnSelect={false}
+                    controlShouldRenderValue={false}
+                    components={compactMultiSelectComponents}
+                    hideSelectedOptions={false}
+                    options={toSelectOptions(SKILL_LEVEL_OPTIONS)}
+                    value={selectValues(toSelectOptions(SKILL_LEVEL_OPTIONS), matchFilters.skillLevel)}
+                    onChange={(value) => handleManualFilterChange("skillLevel", (value || []).map((option) => option.value))}
+                    placeholder={getMultiPlaceholder("Any Level", matchFilters.skillLevel)}
+                    styles={compactSelectStyles}
+                  />
                 </Col>
-                <Col xs={6} md={2} className="d-flex align-items-end">
+                <Col xs={6} xl={1} lg={4} md={6} className="d-flex align-items-start" style={{ paddingTop: 25 }}>
                   <Button size="sm" className="w-100" onClick={handleMatchSearch} disabled={matchSearchLoading}
                     style={{ backgroundColor: "#1f41bb", border: "none", fontFamily: "Poppins" }}>
                     {matchSearchLoading ? <ButtonLoading size={8} /> : <><FaSearch size={12} className="me-1" />Search</>}
+                  </Button>
+                </Col>
+                <Col xs={6} xl={1} lg={4} md={6} className="d-flex align-items-start" style={{ paddingTop: 25 }}>
+                  <Button size="sm" variant="outline-secondary" className="w-100" onClick={handleResetMatchFilters}>
+                    <FaTimes size={12} className="me-1" />Reset
                   </Button>
                 </Col>
               </Row>
 
               {matchSearchLoading ? (
                 <DataLoading height="200px" />
+              ) : matchSearchError ? (
+                <div className="text-center text-danger py-4" style={{ fontSize: 14 }}>
+                  {matchSearchError}
+                </div>
               ) : matchSearchResults.length === 0 ? (
                 <div className="text-center text-muted py-4" style={{ fontSize: 14 }}>
-                  Use the filters above and click Search to find matching players.
+                  {hasMatchFilters
+                    ? "No matching player preferences found for the selected filters."
+                    : "Select an open match above, or use the manual filters and click Search."}
                 </div>
               ) : (
                 <>
                   <div className="text-muted small mb-2">
                     Found <strong>{matchSearchPagination.total}</strong> matching player{matchSearchPagination.total !== 1 ? "s" : ""}
+                    {selectedMatchContext?.day && (
+                      <span> for <strong>{selectedMatchContext.day}</strong></span>
+                    )}
                   </div>
 
                   {/* Desktop */}
                   <div className="d-none d-md-block">
-                    <Table responsive borderless size="sm" className="custom-table">
+                    <Table responsive borderless size="sm" className="custom-table align-middle" style={{ tableLayout: "fixed" }}>
                       <thead>
                         <tr>
-                          <th>#</th><th>Player</th><th>Phone</th>
-                          <th>Skill Level</th><th>Schedule</th><th>Notes</th>
+                          <th className="text-center" style={{ width: 45 }}>#</th>
+                          <th className="text-start" style={{ width: 160 }}>Player</th>
+                          <th className="text-start" style={{ width: 150 }}>Phone</th>
+                          <th className="text-center" style={{ width: 105 }}>Skill</th>
+                          <th className="text-start">Schedule</th>
+                          <th className="text-center" style={{ width: 95 }}>Notes</th>
+                          <th className="text-center" style={{ width: 125 }}>Action</th>
                         </tr>
                       </thead>
                       <tbody>
                         {matchSearchResults.map((pref, idx) => (
                           <tr key={pref._id}>
-                            <td className="text-muted">{idx + 1}</td>
+                            <td className="text-muted text-center">{idx + 1}</td>
                             <td>
-                              <div className="fw-semibold" style={{ fontSize: 13 }}>
+                              <div className="fw-semibold text-truncate" style={{ fontSize: 13 }}>
                                 {pref.customerId?.name} {pref.customerId?.lastName || ""}
                               </div>
                               {pref.customerId?.email && (
-                                <div className="text-muted" style={{ fontSize: 11 }}>{pref.customerId.email}</div>
+                                <div className="text-muted text-truncate" style={{ fontSize: 11 }}>{pref.customerId.email}</div>
                               )}
                             </td>
-                            <td>
-                              <strong style={{ fontSize: 13 }}>
+                            <td className="text-nowrap">
+                              <strong style={{ fontSize: 12 }}>
                                 {pref.customerId?.countryCode} {pref.customerId?.phoneNumber}
                               </strong>
                             </td>
-                            <td>
+                            <td className="text-center">
                               {pref.skillLevel
                                 ? <Badge bg={SKILL_COLORS[pref.skillLevel] || "secondary"}>{pref.skillLevel}</Badge>
                                 : <span className="text-muted">—</span>}
                             </td>
                             <td>
                               {(pref.preferredSchedule || []).length > 0
-                                ? formatScheduleSummary(pref.preferredSchedule)
+                                ? formatScheduleSummary(pref.preferredSchedule, true)
                                 : <span className="text-muted">—</span>}
                             </td>
-                            <td style={{ fontSize: 12 }}>
+                            <td className="text-center" style={{ fontSize: 12 }}>
                               {pref.notes || <span className="text-muted">—</span>}
                             </td>
+                            <td className="text-center">{getMatchRequestButton(pref)}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -742,6 +1218,7 @@ const PlayerPreferences = () => {
                           {(pref.preferredSchedule || []).length > 0 && (
                             <div className="mt-1">{formatScheduleSummary(pref.preferredSchedule)}</div>
                           )}
+                          <div className="mt-2">{getMatchRequestButton(pref)}</div>
                         </div>
                       </div>
                     ))}

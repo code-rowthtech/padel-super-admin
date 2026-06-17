@@ -6,6 +6,7 @@ import {
   deletePlayerPreference,
   lookupCustomerByPhone,
   searchPlayersForMatch,
+  searchPlayersByOpenMatch,
 } from "./thunk";
 
 const initialState = {
@@ -28,6 +29,8 @@ const initialState = {
   // Search for match
   matchSearchResults: [],
   matchSearchLoading: false,
+  matchSearchError: null,
+  selectedMatchContext: null,
   matchSearchPagination: { page: 1, limit: 20, total: 0, totalPages: 1 },
 };
 
@@ -41,6 +44,8 @@ const playerPreferencesSlice = createSlice({
     },
     resetMatchSearch: (state) => {
       state.matchSearchResults = [];
+      state.matchSearchError = null;
+      state.selectedMatchContext = null;
     },
     setFilters: (state, action) => {
       state.filters = { ...state.filters, ...action.payload };
@@ -128,10 +133,12 @@ const playerPreferencesSlice = createSlice({
     builder
       .addCase(searchPlayersForMatch.pending, (state) => {
         state.matchSearchLoading = true;
+        state.matchSearchError = null;
       })
       .addCase(searchPlayersForMatch.fulfilled, (state, action) => {
         state.matchSearchLoading = false;
         state.matchSearchResults = action.payload.players;
+        state.selectedMatchContext = null;
         state.matchSearchPagination = {
           ...state.matchSearchPagination,
           total: action.payload.total,
@@ -139,8 +146,29 @@ const playerPreferencesSlice = createSlice({
           totalPages: action.payload.totalPages,
         };
       })
-      .addCase(searchPlayersForMatch.rejected, (state) => {
+      .addCase(searchPlayersForMatch.rejected, (state, action) => {
         state.matchSearchLoading = false;
+        state.matchSearchError = action.payload;
+      })
+      .addCase(searchPlayersByOpenMatch.pending, (state) => {
+        state.matchSearchLoading = true;
+        state.matchSearchError = null;
+        state.selectedMatchContext = null;
+      })
+      .addCase(searchPlayersByOpenMatch.fulfilled, (state, action) => {
+        state.matchSearchLoading = false;
+        state.matchSearchResults = action.payload.players;
+        state.selectedMatchContext = action.payload.matchContext;
+        state.matchSearchPagination = {
+          ...state.matchSearchPagination,
+          total: action.payload.total,
+          page: action.payload.currentPage,
+          totalPages: action.payload.totalPages,
+        };
+      })
+      .addCase(searchPlayersByOpenMatch.rejected, (state, action) => {
+        state.matchSearchLoading = false;
+        state.matchSearchError = action.payload;
       });
   },
 });

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Container, Card, Table, Pagination } from "react-bootstrap";
+import { Container, Card, Table, Pagination, Button } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { getOpenMatchOverview } from "../../../redux/thunks";
 import { useSuperAdminContext } from "../../../contexts/SuperAdminContext";
 import { formatDate } from "../../../helpers/Formatting";
@@ -32,8 +33,17 @@ const getOpenMatchDisplayStatus = (match) => {
   return match?.openMatchStatus || match?.status || "upcoming";
 };
 
+const getMatchCreator = (match) => match?.createdBy || match?.creatorId || match?.userId || null;
+
+const getCreatorDisplayName = (creator) =>
+  creator?.name || creator?.nickName || creator?.email || "N/A";
+
+const getCreatorPhone = (creator) =>
+  creator?.phoneNumber ? `${creator?.countryCode || ""}${creator.phoneNumber}` : "";
+
 const OpenMatchesOverview = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { selectedOwnerId } = useSuperAdminContext();
   const { openMatchOverview, openMatchOverviewLoading, openMatchOverviewError } = useSelector((state) => state.dashboard);
   const [showPlayersModal, setShowPlayersModal] = useState(false);
@@ -97,6 +107,17 @@ const OpenMatchesOverview = () => {
     setShowRequestModal(true);
   };
 
+  const handleFindPlayersClick = (match) => {
+    if (!match?._id) return;
+
+    navigate(`/admin/player-preferences?tab=findPlayers&matchId=${match._id}`, {
+      state: {
+        tab: "findPlayers",
+        selectedOpenMatchId: match._id,
+      },
+    });
+  };
+
   const allMatches = openMatchOverview?.openMatches || [];
   const pagination = openMatchOverview?.pagination || {};
   const totalPages = pagination.totalPages || 1;
@@ -115,6 +136,13 @@ const OpenMatchesOverview = () => {
             <h4 className="mb-0 fw-bold" style={{ color: "#1f2937" }}>
               Open Matches Overview
             </h4>
+            <Button
+              size="sm"
+              onClick={() => navigate("/admin/open-matches/create")}
+              style={{ backgroundColor: "#1F41BB", borderColor: "#1F41BB", fontWeight: 600 }}
+            >
+              Create Open Match
+            </Button>
           </div>
 
           {openMatchOverviewLoading ? (
@@ -162,8 +190,9 @@ const OpenMatchesOverview = () => {
                       const progressPct = Math.min(100, (joinedCount / maxCount) * 100);
                       const skill = item?.skillLevel || "All Skills";
                       const priceText = item?.teamA?.[0]?.amountPaid !== undefined ? `₹${item.teamA[0].amountPaid}` : (item?.totalMatchPayment !== undefined ? `₹${item.totalMatchPayment}` : "N/A");
-                      const hostName = item?.createdBy?.name || item?.creatorId?.name || item?.userId?.name || "N/A";
-                      const hostPhone = item?.createdBy?.phoneNumber ? `${item?.createdBy?.countryCode || ""}${item?.createdBy?.phoneNumber}` : "";
+                      const creator = getMatchCreator(item);
+                      const hostName = getCreatorDisplayName(creator);
+                      const hostPhone = getCreatorPhone(creator);
                       const clubName = item?.clubId?.clubName || "N/A";
                       const courtName = item?.slot?.[0]?.courtName || "";
                       const bookingDate = item?.matchDate || item?.bookingDate;
@@ -175,7 +204,13 @@ const OpenMatchesOverview = () => {
                       const statusStyle = getStatusBadgeStyle(status);
 
                       return (
-                        <tr key={item?._id || index} className="table-data border-bottom text-center" style={approachingStyle}>
+                        <tr
+                          key={item?._id || index}
+                          className="table-data border-bottom text-center"
+                          style={{ ...approachingStyle, cursor: "pointer" }}
+                          onClick={() => handleFindPlayersClick(item)}
+                          title="Find matching players for this open match"
+                        >
                           <td className="fw-semibold" style={approachingStyle}>{displayIndex}</td>
                           <td className="text-start" style={approachingStyle}>
                             <div>
@@ -221,6 +256,7 @@ const OpenMatchesOverview = () => {
                               }
                             }}
                             onMouseLeave={schedulePlayersModalClose}
+                            onClick={(e) => e.stopPropagation()}
                           >
                             <div
                               className="d-flex flex-column align-items-center justify-content-center players-joined-cell"
@@ -265,7 +301,10 @@ const OpenMatchesOverview = () => {
                           <td className="text-center" style={approachingStyle}>
                             <button
                               className="btn btn-sm"
-                              onClick={() => handleRequestClick(item)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRequestClick(item);
+                              }}
                               disabled={isMatchCompleted}
                               title={isMatchCompleted ? "Requests are disabled for completed matches." : "Send request"}
                               style={{
@@ -297,8 +336,9 @@ const OpenMatchesOverview = () => {
                   const progressPct = Math.min(100, (joinedCount / maxCount) * 100);
                   const skill = item?.skillLevel || "All Skills";
                   const priceText = item?.teamA?.[0]?.amountPaid !== undefined ? `₹${item.teamA[0].amountPaid}` : (item?.totalMatchPayment !== undefined ? `₹${item.totalMatchPayment}` : "N/A");
-                  const hostName = item?.createdBy?.name || item?.creatorId?.name || item?.userId?.name || "N/A";
-                  const hostPhone = item?.createdBy?.phoneNumber ? `${item?.createdBy?.countryCode || ""}${item?.createdBy?.phoneNumber}` : "";
+                  const creator = getMatchCreator(item);
+                  const hostName = getCreatorDisplayName(creator);
+                  const hostPhone = getCreatorPhone(creator);
                   const clubName = item?.clubId?.clubName || "N/A";
                   const courtName = item?.slot?.[0]?.courtName || "";
                   const bookingDate = item?.matchDate || item?.bookingDate;
@@ -312,7 +352,12 @@ const OpenMatchesOverview = () => {
                     <div
                       key={item?._id || index}
                       className="card mb-2 border"
-                      style={isApproaching ? { backgroundColor: "#fffbeb", borderColor: "#f59e0b" } : undefined}
+                      style={{
+                        ...(isApproaching ? { backgroundColor: "#fffbeb", borderColor: "#f59e0b" } : {}),
+                        cursor: "pointer",
+                      }}
+                      onClick={() => handleFindPlayersClick(item)}
+                      title="Find matching players for this open match"
                     >
                       <div className="card-body p-3">
                         <div className="d-flex justify-content-between align-items-center mb-2">
@@ -369,6 +414,7 @@ const OpenMatchesOverview = () => {
                                 }
                               }}
                               onMouseLeave={schedulePlayersModalClose}
+                              onClick={(e) => e.stopPropagation()}
                             >
                               {joinedCount}/{maxCount} ({progressPct.toFixed(0)}%)
                             </span>
@@ -387,7 +433,10 @@ const OpenMatchesOverview = () => {
                         <div className="mt-3">
                           <button
                             className="btn btn-sm w-100"
-                            onClick={() => handleRequestClick(item)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRequestClick(item);
+                            }}
                             disabled={isMatchCompleted}
                             title={isMatchCompleted ? "Requests are disabled for completed matches." : "Send request"}
                             style={{
