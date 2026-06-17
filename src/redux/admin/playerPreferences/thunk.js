@@ -3,6 +3,14 @@ import * as Url from "../../../helpers/api/apiEndpoint";
 import { ownerApi } from "../../../helpers/api/apiCore";
 import { showError, showSuccess } from "../../../helpers/Toast";
 
+const appendSearchParam = (query, key, value) => {
+  if (Array.isArray(value)) {
+    if (value.length) query.append(key, value.join(","));
+    return;
+  }
+  if (value) query.append(key, value);
+};
+
 export const lookupCustomerByPhone = createAsyncThunk(
   "playerPreferences/lookupCustomer",
   async (phoneNumber, { rejectWithValue }) => {
@@ -112,9 +120,9 @@ export const searchPlayersForMatch = createAsyncThunk(
     try {
       const query = new URLSearchParams();
       if (params.clubId) query.append("clubId", params.clubId);
-      if (params.day) query.append("day", params.day);
-      if (params.timeSlot) query.append("timeSlot", params.timeSlot);
-      if (params.skillLevel) query.append("skillLevel", params.skillLevel);
+      appendSearchParam(query, "day", params.day);
+      appendSearchParam(query, "timeSlot", params.timeSlot);
+      appendSearchParam(query, "skillLevel", params.skillLevel);
       if (params.page) query.append("page", params.page);
       if (params.limit) query.append("limit", params.limit);
 
@@ -131,6 +139,34 @@ export const searchPlayersForMatch = createAsyncThunk(
       return rejectWithValue("Failed to search players");
     } catch (error) {
       const msg = error?.response?.data?.message || "Error searching players";
+      showError(msg);
+      return rejectWithValue(msg);
+    }
+  }
+);
+
+export const searchPlayersByOpenMatch = createAsyncThunk(
+  "playerPreferences/searchByOpenMatch",
+  async ({ matchId, page = 1, limit = 20 }, { rejectWithValue }) => {
+    try {
+      const query = new URLSearchParams();
+      if (page) query.append("page", page);
+      if (limit) query.append("limit", limit);
+
+      const res = await ownerApi.get(`${Url.PLAYER_PREF_SEARCH_BY_OPEN_MATCH}/${matchId}?${query.toString()}`);
+      const { status, data } = res || {};
+      if (status === 200) {
+        return {
+          players: data?.data || [],
+          total: data?.total || 0,
+          currentPage: data?.currentPage || 1,
+          totalPages: data?.totalPages || 1,
+          matchContext: data?.matchContext || null,
+        };
+      }
+      return rejectWithValue("Failed to search players for selected match");
+    } catch (error) {
+      const msg = error?.response?.data?.message || "Error searching players for selected match";
       showError(msg);
       return rejectWithValue(msg);
     }

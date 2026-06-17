@@ -110,11 +110,13 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
   const versionRef = useRef(null);
   const xpRef = useRef(null);
   const playerPrefsRef = useRef(null);
+  const openMatchesRef = useRef(null);
 
   const isBookingsActive = location.pathname.startsWith('/admin/booking') || location.pathname.startsWith('/admin/schedules');
   const isTournamentActive = location.pathname.startsWith('/admin/tournament') || location.pathname.startsWith('/admin/new-tournament') || location.pathname.startsWith('/admin/tournament/schedule');
   const isPaymentsActive = location.pathname.startsWith('/admin/payments') || location.pathname === '/admin/wallet' || location.pathname === '/admin/all-transactions';
   const isLeagueActive = location.pathname.startsWith('/admin/league') || location.pathname.startsWith('/admin/new-league') || location.pathname.startsWith('/admin/view-league-schedule');
+  const isOpenMatchesActive = location.pathname.startsWith('/admin/open-matches');
 
   useEffect(() => { if (isTournamentActive) setTournamentExpanded(true); }, [isTournamentActive]);
   useEffect(() => { if (isPaymentsActive) setPaymentsExpanded(true); }, [isPaymentsActive]);
@@ -439,6 +441,22 @@ const AdminSidebar = ({ isOpen, onClose, isCollapsed }) => {
               {!isDesktopCollapsed && "App Users"}
             </NavLink>
             <SimpleTooltip label="App Users" anchorRef={appUsersRef} visible={isDesktopCollapsed && hoveredItem === "appUsers"} />
+          </div>
+        )}
+
+        {/* Open Matches */}
+        {isSuperAdmin && !isSubAdmin && (
+          <div className="position-relative" ref={openMatchesRef}
+            onMouseEnter={() => isDesktopCollapsed && setHoveredItem("openMatches")}
+            onMouseLeave={() => setHoveredItem(null)}>
+            <NavLink to="/admin/open-matches" end
+              className={isDesktopCollapsed ? collapsedIconClass : linkClasses(isOpenMatchesActive)}
+              style={() => iconStyle(isOpenMatchesActive)}
+              onClick={() => window.innerWidth <= 768 && onClose()}>
+              <FaCalendarAlt className={isDesktopCollapsed ? "" : "me-4"} size={isDesktopCollapsed ? 18 : 20} />
+              {!isDesktopCollapsed && "Open Matches"}
+            </NavLink>
+            <SimpleTooltip label="Open Matches" anchorRef={openMatchesRef} visible={isDesktopCollapsed && hoveredItem === "openMatches"} />
           </div>
         )}
 
