@@ -11,6 +11,7 @@ import {
 
 const initialState = {
   preferences: [],
+  residenceOptions: [],
   loading: false,
   error: null,
   pagination: { page: 1, limit: 10, total: 0, totalPages: 1 },
@@ -78,6 +79,7 @@ const playerPreferencesSlice = createSlice({
       .addCase(getAllPlayerPreferences.fulfilled, (state, action) => {
         state.loading = false;
         state.preferences = action.payload.preferences;
+        state.residenceOptions = action.payload.residenceOptions || [];
         state.pagination = {
           ...state.pagination,
           total: action.payload.total,
