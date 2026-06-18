@@ -209,6 +209,7 @@ export const UPDATE_VERSION = "/api/app-version/update";
 // get match request match and post matcj
 export const GET_MATCH_REQUEST = "/api/super-admin/match-request-players";
 export const POST_MATCH_REQUEST = "/api/super-admin/match-request/send";
+export const POST_MATCH_REQUEST_PAYMENT_LINK = "/api/super-admin/match-request/payment-link";
 export const POST_MATCH_REQUEST_AUTO = "/api/super-admin/match-request/send-automatic";
 
 // All Transactions

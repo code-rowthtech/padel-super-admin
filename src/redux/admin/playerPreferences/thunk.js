@@ -33,10 +33,13 @@ export const getAllPlayerPreferences = createAsyncThunk(
       if (params.page) query.append("page", params.page);
       if (params.limit) query.append("limit", params.limit);
       if (params.search) query.append("search", params.search);
-      if (params.skillLevel) query.append("skillLevel", params.skillLevel);
-      if (params.clubId) query.append("clubId", params.clubId);
-      if (params.day) query.append("day", params.day);
-      if (params.timeSlot) query.append("timeSlot", params.timeSlot);
+      appendSearchParam(query, "skillLevel", params.skillLevel);
+      appendSearchParam(query, "clubId", params.clubId);
+      appendSearchParam(query, "gender", params.gender);
+      appendSearchParam(query, "residence", params.residence);
+      appendSearchParam(query, "hasPreference", params.hasPreference);
+      appendSearchParam(query, "day", params.day);
+      appendSearchParam(query, "timeSlot", params.timeSlot);
 
       const res = await ownerApi.get(`${Url.PLAYER_PREF_GET_ALL}?${query.toString()}`);
       const { status, data } = res || {};
@@ -46,6 +49,7 @@ export const getAllPlayerPreferences = createAsyncThunk(
           total: data?.total || 0,
           currentPage: data?.currentPage || 1,
           totalPages: data?.totalPages || 1,
+          residenceOptions: data?.residenceOptions || [],
         };
       }
       return rejectWithValue("Failed to fetch preferences");
@@ -64,7 +68,7 @@ export const createPlayerPreference = createAsyncThunk(
       const res = await ownerApi.post(Url.PLAYER_PREF_CREATE, data);
       const { status, data: resData } = res || {};
       if (status === 200 || status === 201) {
-        showSuccess("Player preference saved successfully");
+        showSuccess(resData?.message || "Player saved successfully");
         return resData?.data;
       }
       return rejectWithValue("Failed to create preference");
