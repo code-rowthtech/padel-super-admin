@@ -3,6 +3,13 @@ import {
   getActiveCourts,
   getOwnerRegisteredClub,
   manualBookingByOwner,
+  getCourtByRegisterClubId,
+  getAdminSlotBooking,
+  getAdminHalfSlotPrice,
+  getAdminSlotPrice,
+  getAdminMatchesSlot,
+  adminCheckBooking,
+  adminRemoveBookedBooking
 } from "./thunk";
 
 const initialState = {
@@ -17,6 +24,20 @@ const initialState = {
   activeCourtsData: null,
   activeCourtsLoading: false,
   activeCourtsError: null,
+
+  courtByClubIdData: null,
+  courtByClubIdLoading: false,
+  courtByClubIdError: null,
+
+  slotData: null,
+  slotLoading: false,
+  slotError: null,
+
+  slotPriceData: null,
+  slotPriceLoading: false,
+  slotPriceError: null,
+
+  selectedSlots: {},
 };
 
 const manualBookingSlice = createSlice({
@@ -35,6 +56,31 @@ const manualBookingSlice = createSlice({
       state.activeCourtsData = null;
       state.activeCourtsLoading = false;
       state.activeCourtsError = null;
+
+      state.slotData = null;
+      state.slotLoading = false;
+      state.slotError = null;
+
+      state.slotPriceData = null;
+      state.slotPriceLoading = false;
+      state.slotPriceError = null;
+    },
+    setSlotWiseDataFromSocket(state, action) {
+      const payload = action?.payload || {};
+      const nextData = payload?.data ?? payload;
+
+      if (!Array.isArray(nextData)) return;
+
+      state.slotLoading = false;
+      state.slotError = null;
+      state.slotData = {
+        ...(state.slotData || {}),
+        status: (state.slotData && state.slotData.status) ? state.slotData.status : 200,
+        data: nextData,
+      };
+    },
+    setSelectedSlots(state, action) {
+      state.selectedSlots = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -74,8 +120,100 @@ const manualBookingSlice = createSlice({
       state.activeCourtsLoading = false;
       state.activeCourtsError = action.payload;
     });
+    builder.addCase(getCourtByRegisterClubId.pending, (state) => {
+      state.courtByClubIdLoading = true;
+      state.courtByClubIdError = null;
+    });
+    builder.addCase(getCourtByRegisterClubId.fulfilled, (state, action) => {
+      state.courtByClubIdLoading = false;
+      state.courtByClubIdData = action.payload;
+    });
+    builder.addCase(getCourtByRegisterClubId.rejected, (state, action) => {
+      state.courtByClubIdLoading = false;
+      state.courtByClubIdError = action.payload;
+    });
+
+    // Admin Slot Booking
+    builder.addCase(getAdminSlotBooking.pending, (state) => {
+      state.slotLoading = true;
+      state.slotError = null;
+    });
+    builder.addCase(getAdminSlotBooking.fulfilled, (state, action) => {
+      state.slotLoading = false;
+      state.slotData = action.payload;
+    });
+    builder.addCase(getAdminSlotBooking.rejected, (state, action) => {
+      state.slotLoading = false;
+      state.slotError = action.payload;
+    });
+
+    // Admin Half Slot Price
+    builder.addCase(getAdminHalfSlotPrice.pending, (state) => {
+      state.slotPriceLoading = true;
+      state.slotPriceError = null;
+    });
+    builder.addCase(getAdminHalfSlotPrice.fulfilled, (state, action) => {
+      state.slotPriceLoading = false;
+      state.slotPriceData = action.payload;
+    });
+    builder.addCase(getAdminHalfSlotPrice.rejected, (state, action) => {
+      state.slotPriceLoading = false;
+      state.slotPriceError = action.payload;
+    });
+
+    // Admin Slot Price
+    builder.addCase(getAdminSlotPrice.pending, (state) => {
+      state.slotPriceLoading = true;
+      state.slotPriceError = null;
+    });
+    builder.addCase(getAdminSlotPrice.fulfilled, (state, action) => {
+      state.slotPriceLoading = false;
+      state.slotPriceData = action.payload;
+    });
+    builder.addCase(getAdminSlotPrice.rejected, (state, action) => {
+      state.slotPriceLoading = false;
+      state.slotPriceError = action.payload;
+    });
+
+    // Admin Matches Slot
+    builder.addCase(getAdminMatchesSlot.pending, (state) => {
+      state.slotLoading = true;
+      state.slotError = null;
+    });
+    builder.addCase(getAdminMatchesSlot.fulfilled, (state, action) => {
+      state.slotLoading = false;
+      state.slotData = action.payload;
+    });
+    builder.addCase(getAdminMatchesSlot.rejected, (state, action) => {
+      state.slotLoading = false;
+      state.slotError = action.payload;
+    });
+
+    // Admin Check Booking
+    builder.addCase(adminCheckBooking.pending, (state) => {
+      state.manualBookingLoading = true;
+    });
+    builder.addCase(adminCheckBooking.fulfilled, (state) => {
+      state.manualBookingLoading = false;
+    });
+    builder.addCase(adminCheckBooking.rejected, (state, action) => {
+      state.manualBookingLoading = false;
+      state.manualBookingError = action.payload;
+    });
+
+    // Admin Remove Booked Booking
+    builder.addCase(adminRemoveBookedBooking.pending, (state) => {
+      state.manualBookingLoading = true;
+    });
+    builder.addCase(adminRemoveBookedBooking.fulfilled, (state) => {
+      state.manualBookingLoading = false;
+    });
+    builder.addCase(adminRemoveBookedBooking.rejected, (state, action) => {
+      state.manualBookingLoading = false;
+      state.manualBookingError = action.payload;
+    });
   },
 });
 
-export const { resetOwnerClub } = manualBookingSlice.actions;
+export const { resetOwnerClub, setSlotWiseDataFromSocket, setSelectedSlots } = manualBookingSlice.actions;
 export default manualBookingSlice.reducer;

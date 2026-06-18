@@ -9,8 +9,8 @@ export const GET_CLUB_API = "/api/club/getAllRegisteredCourts";
 export const GET_CLUB_WITH_STATE = "/api/club/getClubsWithState";
 export const GET_SLOT_API = "/api/slot/getAllActiveCourts";
 export const GET_SLOT_BOOKING_API = "/api/slot/getAllActiveCourtsForSlotWise";
-export const GET_SLOT_PRICES = "/api/price/prices";
-export const GET_SLOT_HALF_PRICES = "/api/price/getPrioritizedPrices";
+export const GET_SLOT_PRICES = "/api/price/getAllPricesByCategoryAndLocation";
+export const GET_SLOT_HALF_PRICES = "/api/price/getPrioritizedPricesByDuration";
 export const GET_MATCHES_SLOT_API = "/api/slot/getAvailableSlot";
 export const CREATE_BOOKING_API = "/api/booking/manualBookingByOwner";
 export const CHECK_BOOKING_API = "/api/booking/createOrGetSlotHistory";
@@ -53,6 +53,7 @@ export const GET_OWNER = "/api/owners/getowner";
 export const REGISTER_CLUB = "/api/club/registerClub";
 export const CREATE_SLOT = "/api/slot/createSlot";
 export const GET_SLOT = "/api/slot/getSlot";
+export const GET_COURT_BY_REGISTER_CLUB_ID = "/api/slot/getCourtByRegisterClubId";
 export const GET_CLUB_REGISTER = "/api/club/getRegisterClubDataById";
 export const UPDATE_COURT = "/api/slot/updateCourt";
 export const UPDATE_SLOT_PRICE = "/api/price/prices";
@@ -110,6 +111,7 @@ export const UPDATE_LOGO = "/api/logo/updateLogo";
 export const GET_OPEN_MATCHES = "/api/openmatch/getAllOpenMatches";
 export const GET_OPEN_MATCH_BY_ID = "/api/openmatch/findByOpenMatchId";
 export const CREATE_OPEN_MATCH = "/api/openmatch/createOpenMatch ";
+export const CREATE_OPEN_MATCH_ADMIN = "/api/openmatch/createAdminOpenMatch";
 
 
 export const SEARCH_USER_BY_PHONE_NUMBER =
@@ -207,7 +209,18 @@ export const UPDATE_VERSION = "/api/app-version/update";
 // get match request match and post matcj
 export const GET_MATCH_REQUEST = "/api/super-admin/match-request-players";
 export const POST_MATCH_REQUEST = "/api/super-admin/match-request/send";
+export const POST_MATCH_REQUEST_PAYMENT_LINK = "/api/super-admin/match-request/payment-link";
 export const POST_MATCH_REQUEST_AUTO = "/api/super-admin/match-request/send-automatic";
 
 // All Transactions
 export const SUPER_ADMIN_ALL_TRANSACTIONS = "/api/super-admin/club-payments-bookings";
+
+// Player Preferences
+export const PLAYER_PREF_LOOKUP_CUSTOMER = "/api/player-preferences/lookup-customer";
+export const PLAYER_PREF_SEARCH_FOR_MATCH = "/api/player-preferences/search-for-match";
+export const PLAYER_PREF_SEARCH_BY_OPEN_MATCH = "/api/player-preferences/search-by-open-match";
+export const PLAYER_PREF_CREATE = "/api/player-preferences";
+export const PLAYER_PREF_GET_ALL = "/api/player-preferences";
+export const PLAYER_PREF_GET_BY_ID = "/api/player-preferences";
+export const PLAYER_PREF_UPDATE = "/api/player-preferences";
+export const PLAYER_PREF_DELETE = "/api/player-preferences";
