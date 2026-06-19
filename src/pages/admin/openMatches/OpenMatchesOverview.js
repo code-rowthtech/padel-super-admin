@@ -74,8 +74,8 @@ const OpenMatchesOverview = () => {
   };
 
   useEffect(() => {
-    const params = { 
-      page: currentPage, 
+    const params = {
+      page: currentPage,
       limit: recordsPerPage,
       ...(selectedOwnerId && { ownerId: selectedOwnerId })
     };
@@ -132,10 +132,8 @@ const OpenMatchesOverview = () => {
     <Container fluid className="p-2 pt-md-0 p-md-4 px-md-0" style={{ background: "#f9fafb", minHeight: "100vh" }}>
       <Card className="border-0">
         <Card.Body>
-          <div className="d-flex justify-content-between align-items-center mb-4">
-            <h4 className="mb-0 fw-bold" style={{ color: "#1f2937" }}>
-              Open Matches Overview
-            </h4>
+          <div className="d-flex justify-content-between align-items-center mb-2">
+            <div></div>
             <Button
               size="sm"
               onClick={() => navigate("/admin/open-matches/create")}

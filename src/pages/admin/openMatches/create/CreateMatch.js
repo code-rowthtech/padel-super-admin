@@ -59,7 +59,7 @@ const getEntityId = (value) => {
   return value._id || value.id || "";
 };
 
-const CreateMatches = () => {
+const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null }) => {
   const selectedCourtsRef = React.useRef([]);
   const selectedTimesRef = React.useRef({});
   const halfSelectedSlotsRef = React.useRef(new Set());
@@ -113,7 +113,7 @@ const CreateMatches = () => {
   const [superAdminClubs, setSuperAdminClubs] = React.useState([]);
   const [allCategories, setAllCategories] = React.useState([]);
   const [clubsLoading, setClubsLoading] = React.useState(false);
-  const [selectedClubId, setSelectedClubId] = React.useState(location?.state?.clubId || "");
+  const [selectedClubId, setSelectedClubId] = React.useState(initialClubId || location?.state?.clubId || "");
   const [selectedLocationId, setSelectedLocationId] = React.useState("");
   const [selectedCategoryId, setSelectedCategoryId] = React.useState("");
   const selectedClub = useMemo(
@@ -928,7 +928,7 @@ const CreateMatches = () => {
       }
     }
 
-    const isSlotBookedFor30Min = slot?.duration === 30 && (bookingTime );
+    const isSlotBookedFor30Min = slot?.duration === 30 && (bookingTime);
     if (isSlotBookedFor30Min) {
       const isLeftBooked = (bookingTime && (/:(00|0)\s*(AM|PM)?$/i.test(bookingTime) || /^\d{1,2}\s*(am|pm)$/i.test(bookingTime)));
       const isRightBooked = (bookingTime && /:30\s*(AM|PM)?$/i.test(bookingTime));
@@ -1322,13 +1322,15 @@ const CreateMatches = () => {
           <div className="calendar-strip" style={{ position: "relative", zIndex: 2 }}>
             <div className="d-flex justify-content-between align-items-center mb-md-2 mb-1">
               <div className="custom-heading-use d-flex align-items-center text-nowrap">
-                <button
-                  className="btn btn-light rounded-circle p-2 d-flex align-items-center justify-content-center "
-                  style={{ width: 40, height: 40 }}
-                  onClick={() => navigate('/admin/open-matches')}
-                >
-                  <FaArrowLeftLong size={18} />
-                </button>
+                {!isModal && (
+                  <button
+                    className="btn btn-light rounded-circle p-2 d-flex align-items-center justify-content-center "
+                    style={{ width: 40, height: 40 }}
+                    onClick={() => navigate('/admin/open-matches')}
+                  >
+                    <FaArrowLeftLong size={18} />
+                  </button>
+                )}
                 Select Date
                 <div className="position-relative d-inline-block" ref={wrapperRef}>
                   <span

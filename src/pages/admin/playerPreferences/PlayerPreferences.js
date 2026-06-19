@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, Col, Container, Form, Modal, Offcanvas, Row, Table } from "react-bootstrap";
-import { FaEdit, FaPhone, FaPlus, FaSave, FaSearch, FaTimes, FaUser } from "react-icons/fa";
+import { Badge, Button, Col, Container, Form, Modal, OverlayTrigger, Row, Table, Tooltip } from "react-bootstrap";
+import { FaEdit, FaFilter, FaPhone, FaPlus, FaRegEye, FaSave, FaSearch, FaTimes, FaUser } from "react-icons/fa";
 import Select, { components as selectComponents } from "react-select";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -19,6 +19,9 @@ import {
 } from "../../../redux/admin/playerPreferences/thunk";
 import { resetLookup } from "../../../redux/admin/playerPreferences/slice";
 import { sendMatchRequest } from "../../../redux/admin/matchRequest/thunk";
+import PlayerFiltersPanel from "./PlayerFiltersPanel";
+import CreateMatchModal from "../openMatches/create/CreateMatchModal";
+import PlayerDetailsModal from "./PlayerDetailsModal";
 
 const TIME_SLOT_GROUPS = [
   {
@@ -307,57 +310,60 @@ const getMatchFee = (match) => {
 
 const getSlotRangeLabel = (slots = []) => {
   if (!slots.length) return "Any time";
-  const firstParts = normalizeTimeSlotText(slots[0]).split("-");
-  const lastParts = normalizeTimeSlotText(slots[slots.length - 1]).split("-");
+  // Handle both string and object formats
+  const getSlotValue = (slot) => (typeof slot === 'string' ? slot : slot?.value || slot?.label || slot);
+  const firstSlot = getSlotValue(slots[0]);
+  const lastSlot = getSlotValue(slots[slots.length - 1]);
+  const firstParts = normalizeTimeSlotText(firstSlot).split("-");
+  const lastParts = normalizeTimeSlotText(lastSlot).split("-");
   const start = firstParts[0]?.trim();
   const end = (lastParts[1] || lastParts[0])?.trim();
-  return start && end ? `${start} - ${end}` : slots[0];
+  return start && end ? `${start} - ${end}` : firstSlot;
 };
 
 const formatScheduleSummary = (preferredSchedule = [], maxRows = 2) => {
   if (!preferredSchedule.length) return <span className="text-muted">No schedule</span>;
 
-  const groupedByRange = preferredSchedule.reduce((acc, entry) => {
-    const range = entry.timeSlots?.length ? getSlotRangeLabel(entry.timeSlots) : "Any time";
-    if (!acc[range]) acc[range] = [];
-    acc[range].push(entry.day);
-    return acc;
-  }, {});
-
-  const entries = Object.entries(groupedByRange);
-  const visibleEntries = entries.slice(0, maxRows);
-  const hiddenCount = entries.length - visibleEntries.length;
-
   return (
-    <div>
-      {visibleEntries.map(([range, days]) => (
-        <div
-          key={`${range}-${days.join("-")}`}
-          className="d-flex align-items-center gap-2 mb-1"
-          style={{ fontSize: 12, minWidth: 0 }}
-        >
-          <span
-            style={{
-              background: "rgba(31,65,187,0.08)",
-              borderRadius: 4,
-              color: "#1f41bb",
-              flex: "0 0 auto",
-              fontWeight: 700,
-              maxWidth: 120,
-              overflow: "hidden",
-              padding: "2px 7px",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
+    <div className="d-flex flex-wrap gap-1 justify-content-center">
+      {preferredSchedule.map((entry, index) => {
+        const dayAbbr = entry.day.slice(0, 3);
+        const timeSlots = entry.timeSlots || [];
+        const getSlotValue = (slot) => (typeof slot === 'string' ? slot : slot?.value || slot?.label || slot);
+        const timeRange = timeSlots.length
+          ? timeSlots.map(getSlotValue).join(", ")
+          : "Any time";
+
+        const tooltipContent = (
+          <div>
+            <div className="fw-bold mb-1">{entry.day}</div>
+            <div style={{ fontSize: 11 }}>{timeRange}</div>
+          </div>
+        );
+
+        return (
+          <OverlayTrigger
+            key={`${entry.day}-${index}`}
+            placement="top"
+            overlay={<Tooltip id={`tooltip-${entry.day}-${index}`}>{tooltipContent}</Tooltip>}
           >
-            {days.length === 7 ? "All week" : days.map((day) => day.slice(0, 3)).join(", ")}
-          </span>
-          <span className="text-muted text-truncate" style={{ minWidth: 0 }}>{range}</span>
-        </div>
-      ))}
-      {hiddenCount > 0 && (
-        <span className="text-muted" style={{ fontSize: 11 }}>+{hiddenCount} more</span>
-      )}
+            <span
+              style={{
+                background: "rgba(31,65,187,0.12)",
+                borderRadius: 4,
+                color: "#1f41bb",
+                cursor: "help",
+                fontSize: 11,
+                fontWeight: 600,
+                padding: "3px 8px",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {dayAbbr}
+            </span>
+          </OverlayTrigger>
+        );
+      })}
     </div>
   );
 };
@@ -515,6 +521,15 @@ const PlayerPreferences = () => {
   const [generatingLinkPlayerId, setGeneratingLinkPlayerId] = useState("");
   const [paymentLinksByPlayerId, setPaymentLinksByPlayerId] = useState({});
   const [routeOpenMatchLoaded, setRouteOpenMatchLoaded] = useState(false);
+  const [showFiltersPanel, setShowFiltersPanel] = useState(false);
+  const [showCreateMatchModal, setShowCreateMatchModal] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [scheduleModalData, setScheduleModalData] = useState({ schedule: [], playerId: "" });
+  const [matchSearchQuery, setMatchSearchQuery] = useState("");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [showPlayerDetailsModal, setShowPlayerDetailsModal] = useState(false);
+  const [selectedPlayerDetails, setSelectedPlayerDetails] = useState(null);
+  const filterButtonRef = React.useRef(null);
 
   useEffect(() => {
     ownerApi.get(SUPER_ADMIN_GET_ALL_CLUBS).then((res) => {
@@ -528,7 +543,7 @@ const PlayerPreferences = () => {
         });
       });
       setClubLocationOptions([...uniqueLocations.values()]);
-    }).catch(() => {});
+    }).catch(() => { });
   }, []);
 
   const residenceDropdownOptions = useMemo(() => {
@@ -579,10 +594,11 @@ const PlayerPreferences = () => {
 
   const getPlayerId = (row) => row?.customerId?._id || "";
 
-  const loadOpenMatches = useCallback(async () => {
+  const loadOpenMatches = useCallback(async (searchQuery = "") => {
     setOpenMatchesLoading(true);
     try {
-      const res = await ownerApi.get(`${SUPER_ADMIN_OPEN_MATCH_OVERVIEW}?page=1&limit=50`);
+      const searchParam = searchQuery.trim() ? `&search=${encodeURIComponent(searchQuery)}` : "";
+      const res = await ownerApi.get(`${SUPER_ADMIN_OPEN_MATCH_OVERVIEW}?page=1&limit=50${searchParam}`);
       const payload = res?.data?.data || res?.data || {};
       setOpenMatches(payload?.openMatches || payload?.data || []);
     } catch (error) {
@@ -591,6 +607,14 @@ const PlayerPreferences = () => {
       setOpenMatchesLoading(false);
     }
   }, []);
+
+  // Debounce search for open matches
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadOpenMatches(matchSearchQuery);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [matchSearchQuery]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (showOpenMatchPanel && openMatches.length === 0) loadOpenMatches();
@@ -696,6 +720,16 @@ const PlayerPreferences = () => {
     document.body.removeChild(textarea);
   };
 
+  const handleViewPlayerDetails = (row) => {
+    setSelectedPlayerDetails(row);
+    setShowPlayerDetailsModal(true);
+  };
+
+  const closePlayerDetailsModal = () => {
+    setShowPlayerDetailsModal(false);
+    setSelectedPlayerDetails(null);
+  };
+
   const openAddPlayer = () => {
     setPlayerForm(EMPTY_PLAYER_FORM);
     setPlayerFormErrors({});
@@ -734,19 +768,51 @@ const PlayerPreferences = () => {
     });
   };
 
+  // Auto-lookup when phone number reaches 10 digits
+  useEffect(() => {
+    const phone = String(playerForm.phoneNumber || "").trim();
+
+    // If phone number is modified after a successful lookup, reset the form
+    if (phoneSubmitted && phone.length !== 10) {
+      setPhoneSubmitted(false);
+      setPlayerForm((current) => ({
+        ...current,
+        name: "",
+        email: "",
+        gender: "",
+        residence: "",
+      }));
+      setPlayerFormErrors({});
+      dispatch(resetLookup());
+    }
+
+    // Auto-lookup when exactly 10 digits
+    if (phone.length === 10 && !phoneSubmitted && !lookupLoading) {
+      handleLookup();
+    }
+  }, [playerForm.phoneNumber]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleSavePlayer = async (event) => {
     event.preventDefault();
 
     const errors = {};
-    if (!String(playerForm.phoneNumber || "").trim()) errors.phoneNumber = "Phone number is required";
+    const phone = String(playerForm.phoneNumber || "").trim();
+
+    if (!phone) {
+      errors.phoneNumber = "Phone number is required";
+    } else if (phone.length !== 10) {
+      errors.phoneNumber = "Phone number must be exactly 10 digits";
+    }
+
     if (!String(playerForm.name || "").trim()) errors.name = "Name is required";
+
     if (Object.keys(errors).length) {
       setPlayerFormErrors(errors);
       return;
     }
 
     const result = await dispatch(createPlayerPreference({
-      phoneNumber: Number(String(playerForm.phoneNumber).trim()),
+      phoneNumber: Number(phone),
       name: playerForm.name.trim(),
       email: playerForm.email.trim() || undefined,
       gender: playerForm.gender || undefined,
@@ -759,8 +825,9 @@ const PlayerPreferences = () => {
     }
   };
 
-  const openPreferenceEditor = (row) => {
-    setEditingPreferencePlayerId(getPlayerId(row));
+  const handleEditPreference = (row) => {
+    const playerId = getPlayerId(row);
+    setEditingPreferencePlayerId(playerId);
     setPreferenceForm({
       preferredClubs: (row.preferredClubs || []).map((club) => ({
         value: club._id,
@@ -776,7 +843,7 @@ const PlayerPreferences = () => {
     });
   };
 
-  const closePreferenceEditor = () => {
+  const handleCancelEdit = () => {
     setEditingPreferencePlayerId("");
     setPreferenceForm(EMPTY_PREFERENCE_FORM);
   };
@@ -801,619 +868,819 @@ const PlayerPreferences = () => {
       }));
 
     if (!result.error) {
-      closePreferenceEditor();
+      handleCancelEdit();
       loadPlayers(pagination.page);
     }
   };
 
-  const renderPreferenceEditor = (row) => (
-    <tr>
-      <td colSpan={6} style={{ background: "#f8fafc", padding: 16 }}>
-        <Row className="g-3">
-          <Col xs={12} lg={4}>
-            <Form.Label className="small mb-1">Preferred Clubs</Form.Label>
-            <CheckboxMultiSelect
-              options={clubOptions}
-              value={preferenceForm.preferredClubs.map((club) => club.value)}
-              onChange={(values) => setPreferenceForm((form) => ({
-                ...form,
-                preferredClubs: selectValues(clubOptions, values),
-              }))}
-              placeholder={getMultiPlaceholder("Select clubs...", preferenceForm.preferredClubs)}
-            />
-          </Col>
-          <Col xs={12} lg={2}>
-            <Form.Label className="small mb-1">Skill Level</Form.Label>
-            <Form.Select
-              size="sm"
-              value={preferenceForm.skillLevel}
-              onChange={(event) => setPreferenceForm((form) => ({ ...form, skillLevel: event.target.value }))}
-            >
-              <option value="">Select level</option>
-              {SKILL_LEVEL_OPTIONS.map((level) => <option key={level} value={level}>{level}</option>)}
-            </Form.Select>
-          </Col>
-          <Col xs={12} lg={3}>
-            <Form.Label className="small mb-1">Player Tendency</Form.Label>
-            <Form.Control
-              size="sm"
-              value={preferenceForm.playerTendency}
-              onChange={(event) => setPreferenceForm((form) => ({ ...form, playerTendency: event.target.value }))}
-              placeholder="e.g. evening regular, last-minute, competitive"
-            />
-          </Col>
-          <Col xs={12} lg={3}>
-            <Form.Label className="small mb-1">Notes</Form.Label>
-            <Form.Control
-              size="sm"
-              value={preferenceForm.notes}
-              onChange={(event) => setPreferenceForm((form) => ({ ...form, notes: event.target.value }))}
-              placeholder="Optional notes"
-            />
-          </Col>
-          <Col xs={12}>
-            <Form.Label className="small mb-2">Preferred Playing Schedule</Form.Label>
-            <ScheduleBuilder
-              value={preferenceForm.preferredSchedule}
-              onChange={(value) => setPreferenceForm((form) => ({ ...form, preferredSchedule: value }))}
-            />
-          </Col>
-          <Col xs={12} className="d-flex justify-content-end gap-2">
-            <Button size="sm" variant="outline-secondary" onClick={closePreferenceEditor} disabled={saveLoading}>
-              <FaTimes size={12} className="me-1" />Cancel
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => handleSavePreference(row)}
-              disabled={saveLoading}
-              style={{ backgroundColor: "#1f41bb", border: "none", fontFamily: "Poppins" }}
-            >
-              {saveLoading ? <ButtonLoading size={8} /> : <><FaSave size={12} className="me-1" />Save Preferences</>}
-            </Button>
-          </Col>
-        </Row>
-      </td>
-    </tr>
-  );
+  const openScheduleModal = (row) => {
+    setScheduleModalData({
+      schedule: preferenceForm.preferredSchedule,
+      playerId: getPlayerId(row),
+      row: row,
+    });
+    setShowScheduleModal(true);
+  };
+
+  const closeScheduleModal = () => {
+    setShowScheduleModal(false);
+    setScheduleModalData({ schedule: [], playerId: "", row: null });
+  };
+
+  const handleSaveScheduleFromModal = () => {
+    setPreferenceForm((form) => ({
+      ...form,
+      preferredSchedule: scheduleModalData.schedule,
+    }));
+    closeScheduleModal();
+  };
 
   return (
-    <Container
-      fluid
-      className={`player-preferences-workspace px-0 px-md-4 mt-md-0 mt-2 ${showOpenMatchPanel ? "open-match-panel-active" : ""}`}
-    >
+    <Container fluid className="player-preferences-workspace px-0 px-md-0 mt-md-0 mt-2">
       <style>
         {`
-          @media (min-width: 1200px) {
-            .player-preferences-workspace.open-match-panel-active {
-              padding-right: 376px !important;
-              transition: padding-right 0.2s ease;
+          @keyframes scrollMatches {
+            0% {
+              transform: translateY(0);
             }
-            .player-preferences-open-match-panel {
-              width: 376px !important;
+            100% {
+              transform: translateY(-50%);
             }
           }
-          @media (max-width: 1199.98px) {
-            .player-preferences-open-match-panel {
-              width: min(376px, 100vw) !important;
-            }
+
+          .open-matches-scroll-container {
+            cursor: default !important;
+          }
+
+          .open-matches-scroll-container.scrolling .open-matches-list {
+            animation: scrollMatches 30s linear infinite;
+            cursor: default !important;
+          }
+
+          .open-matches-scroll-container.scrolling:hover .open-matches-list {
+            animation-play-state: paused;
+            cursor: default !important;
+          }
+
+          .open-matches-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            cursor: default !important;
           }
         `}
       </style>
-      <div className="bg-white rounded shadow-sm p-md-3 p-2">
-        <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-          <div>
-            <h6 className="mb-1 tabel-title">Players</h6>
-            <div className="text-muted small">Manage players and update their preferences directly from the list.</div>
-          </div>
-          <div className="d-flex gap-2">
-            <Button
-              size="sm"
-              variant="outline-primary"
-              onClick={() => setShowOpenMatchPanel(true)}
-              style={{ fontFamily: "Poppins", fontWeight: 600 }}
-            >
-              Open Match
-            </Button>
-            <Button
-              size="sm"
-              onClick={openAddPlayer}
-              style={{ backgroundColor: "#1f41bb", border: "none", fontFamily: "Poppins" }}
-            >
-              <FaPlus size={12} className="me-1" />Add Player
-            </Button>
-          </div>
-        </div>
-
-        {selectedOpenMatch && (
-          <div
-            className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3"
-            style={{
-              background: "#f0f4ff",
-              border: "1px solid #c7d3f8",
-              borderRadius: 6,
-              padding: "8px 10px",
-            }}
-          >
-            <div style={{ minWidth: 0 }}>
-              <div className="fw-semibold text-truncate" style={{ fontSize: 13, color: "#111827" }}>
-                {formatMatchDate(selectedOpenMatch)} | {getMatchTime(selectedOpenMatch)} | {getMatchClubName(selectedOpenMatch)}
-                {getMatchCourtName(selectedOpenMatch) ? ` | ${getMatchCourtName(selectedOpenMatch)}` : ""} | {selectedOpenMatch.skillLevel || "Any Level"}
+      <Row className="g-3">
+        {/* Player Table - col-9 */}
+        <Col lg={10} xs={12}>
+          <div className="bg-white rounded shadow-sm p-md-3 p-2 h-100">
+            <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+              <div>
+                <h6 className="mb-1 tabel-title">Players</h6>
               </div>
-              <div className="text-muted" style={{ fontSize: 12 }}>
-                Player payable estimate: ₹{selectedMatchFee?.share || 0} match share + ₹{selectedMatchFee?.platformFee || 30} platform fee + ₹{selectedMatchFee?.gstOnPlatformFee || 5.4} GST = ₹{selectedMatchFee?.payable || 0}
+              <div className="d-flex gap-2 flex-wrap" style={{ position: "relative" }}>
+                <Button
+                  ref={filterButtonRef}
+                  size="sm"
+                  variant="outline-secondary"
+                  onClick={() => setShowFiltersPanel(!showFiltersPanel)}
+                  style={{ fontFamily: "Poppins", fontWeight: 600 }}
+                >
+                  <FaFilter size={12} className="me-1" />
+                  Filters
+                  {(filters.search || filters.gender?.length > 0 || filters.residence?.length > 0 ||
+                    filters.skillLevel?.length > 0 || filters.clubId?.length > 0 || filters.day?.length > 0 ||
+                    filters.timeSlot?.length > 0 || filters.hasPreference?.length > 0) && (
+                      <Badge bg="danger" className="ms-1" style={{ fontSize: 9 }}>
+                        {[
+                          filters.search ? 1 : 0,
+                          filters.gender?.length || 0,
+                          filters.residence?.length || 0,
+                          filters.skillLevel?.length || 0,
+                          filters.clubId?.length || 0,
+                          filters.day?.length || 0,
+                          filters.timeSlot?.length || 0,
+                          filters.hasPreference?.length || 0,
+                        ].reduce((a, b) => a + (b > 0 ? 1 : 0), 0)}
+                      </Badge>
+                    )}
+                </Button>
+                <PlayerFiltersPanel
+                  show={showFiltersPanel}
+                  onHide={() => setShowFiltersPanel(false)}
+                  filters={filters}
+                  onFilterChange={updateFilter}
+                  onReset={resetFilters}
+                  clubOptions={clubOptions}
+                  residenceDropdownOptions={residenceDropdownOptions}
+                  CheckboxMultiSelect={CheckboxMultiSelect}
+                  toSelectOptions={toSelectOptions}
+                  getMultiPlaceholder={getMultiPlaceholder}
+                  TIME_SLOT_GROUPS={TIME_SLOT_GROUPS}
+                  DAY_OPTIONS={DAY_OPTIONS}
+                  SKILL_LEVEL_OPTIONS={SKILL_LEVEL_OPTIONS}
+                  GENDER_OPTIONS={GENDER_OPTIONS}
+                  anchorRef={filterButtonRef}
+                />
+                <Button
+                  size="sm"
+                  variant="outline-primary"
+                  onClick={() => setShowOpenMatchPanel(true)}
+                  style={{ fontFamily: "Poppins", fontWeight: 600 }}
+                  className="d-lg-none"
+                >
+                  Open Match
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={openAddPlayer}
+                  style={{ backgroundColor: "#1f41bb", border: "none", fontFamily: "Poppins", fontWeight: 600 }}
+                >
+                  <FaPlus size={12} className="me-1" />Add Player
+                </Button>
               </div>
             </div>
-            <Button
-              size="sm"
-              variant="outline-secondary"
-              onClick={() => {
-                setSelectedOpenMatch(null);
-                resetFilters();
-              }}
-            >
-              <FaTimes size={11} className="me-1" />Clear Match
-            </Button>
-          </div>
-        )}
 
-        <Row
-          className="g-2 mb-3 align-items-end"
-          style={{
-            background: "#f8fafc",
-            border: "1px solid #eef2f7",
-            borderRadius: 6,
-            margin: 0,
-            padding: 10,
-          }}
-        >
-          <Col xs={12} xl={2} lg={3} md={6}>
-            <Form.Label className="small mb-1">Player</Form.Label>
-            <Form.Control
-              size="sm"
-              placeholder="Name or phone..."
-              value={filters.search}
-              onChange={(event) => updateFilter("search", event.target.value)}
-            />
-          </Col>
-          <Col xs={6} xl={1} lg={2} md={3}>
-            <Form.Label className="small mb-1">Gender</Form.Label>
-            <CheckboxMultiSelect
-              options={toSelectOptions(GENDER_OPTIONS)}
-              value={filters.gender}
-              onChange={(value) => updateFilter("gender", value)}
-              placeholder={getMultiPlaceholder("All", filters.gender)}
-            />
-          </Col>
-          <Col xs={6} xl={1} lg={2} md={3}>
-            <Form.Label className="small mb-1">Residence</Form.Label>
-            <CheckboxMultiSelect
-              options={residenceDropdownOptions}
-              value={filters.residence}
-              onChange={(value) => updateFilter("residence", value)}
-              placeholder={getMultiPlaceholder("All", filters.residence)}
-            />
-          </Col>
-          <Col xs={6} xl={1} lg={2} md={3}>
-            <Form.Label className="small mb-1">Skill</Form.Label>
-            <CheckboxMultiSelect
-              options={toSelectOptions(SKILL_LEVEL_OPTIONS)}
-              value={filters.skillLevel}
-              onChange={(value) => updateFilter("skillLevel", value)}
-              placeholder={getMultiPlaceholder("All Levels", filters.skillLevel)}
-            />
-          </Col>
-          <Col xs={12} xl={2} lg={3} md={4}>
-            <Form.Label className="small mb-1">Club Preference</Form.Label>
-            <CheckboxMultiSelect
-              options={clubOptions}
-              value={filters.clubId}
-              onChange={(value) => updateFilter("clubId", value)}
-              placeholder={getMultiPlaceholder("All Clubs", filters.clubId)}
-            />
-          </Col>
-          <Col xs={12} xl={1} lg={2} md={4}>
-            <Form.Label className="small mb-1">Day</Form.Label>
-            <CheckboxMultiSelect
-              options={toSelectOptions(DAY_OPTIONS)}
-              value={filters.day}
-              onChange={(value) => updateFilter("day", value)}
-              placeholder={getMultiPlaceholder("Any", filters.day)}
-            />
-          </Col>
-          <Col xs={12} xl={2} lg={3} md={4}>
-            <Form.Label className="small mb-1">Time Slot</Form.Label>
-            <CheckboxMultiSelect
-              options={TIME_SLOT_GROUPS}
-              value={filters.timeSlot}
-              onChange={(value) => updateFilter("timeSlot", value)}
-              placeholder={getMultiPlaceholder("Any Time", filters.timeSlot)}
-            />
-          </Col>
-          <Col xs={8} xl={1} lg={2} md={8}>
-            <Form.Label className="small mb-1">Prefs</Form.Label>
-            <CheckboxMultiSelect
-              options={[
-                { value: "yes", label: "Saved" },
-                { value: "no", label: "Missing" },
-              ]}
-              value={filters.hasPreference}
-              onChange={(value) => updateFilter("hasPreference", value)}
-              placeholder={getMultiPlaceholder("All", filters.hasPreference)}
-            />
-          </Col>
-          <Col xs={4} xl={1} lg={2} md={4}>
-            <Button size="sm" variant="outline-secondary" className="w-100" onClick={resetFilters}>
-              Reset
-            </Button>
-          </Col>
-        </Row>
-
-        {loading ? (
-          <DataLoading height="300px" />
-        ) : players.length === 0 ? (
-          <div className="d-flex justify-content-center align-items-center text-muted" style={{ height: 200 }}>
-            No players found
-          </div>
-        ) : (
-          <>
-            <div className="d-none d-lg-block">
-              <Table
-                responsive
-                borderless
-                size="sm"
-                className="custom-table align-middle"
-                style={{ tableLayout: "fixed", minWidth: 1080 }}
+            {selectedOpenMatch && (
+              <div
+                className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3"
+                style={{
+                  background: "#f0f4ff",
+                  border: "1px solid #c7d3f8",
+                  borderRadius: 6,
+                  padding: "8px 10px",
+                }}
               >
-                <thead>
-                  <tr>
-                    <th className="text-center" style={{ width: 48 }}>#</th>
-                    <th style={{ width: 245 }}>Player</th>
-                    <th style={{ width: 92 }}>Gender</th>
-                    <th style={{ width: 135 }}>Residence</th>
-                    <th>Player Preferences</th>
-                    <th className="text-center" style={{ width: 145 }}>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {players.map((row, index) => {
+                <div style={{ minWidth: 0 }}>
+                  <div className="fw-semibold text-truncate" style={{ fontSize: 13, color: "#111827" }}>
+                    {formatMatchDate(selectedOpenMatch)} | {getMatchTime(selectedOpenMatch)} | {getMatchClubName(selectedOpenMatch)}
+                    {getMatchCourtName(selectedOpenMatch) ? ` | ${getMatchCourtName(selectedOpenMatch)}` : ""} | {selectedOpenMatch.skillLevel || "Any Level"}
+                  </div>
+                  <div className="text-muted" style={{ fontSize: 12 }}>
+                    Player payable estimate: ₹{selectedMatchFee?.share || 0} match share + ₹{selectedMatchFee?.platformFee || 30} platform fee + ₹{selectedMatchFee?.gstOnPlatformFee || 5.4} GST = ₹{selectedMatchFee?.payable || 0}
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline-secondary"
+                  onClick={() => {
+                    setSelectedOpenMatch(null);
+                    resetFilters();
+                  }}
+                >
+                  <FaTimes size={11} className="me-1" />Clear Match
+                </Button>
+              </div>
+            )}
+
+
+            {loading ? (
+              <DataLoading height="300px" />
+            ) : players.length === 0 ? (
+              <div className="d-flex justify-content-center align-items-center text-muted" style={{ height: 200 }}>
+                No players found
+              </div>
+            ) : (
+              <>
+                <div className="d-none d-lg-block">
+                  <Table
+                    responsive
+                    borderless
+                    size="sm"
+                    className="custom-table align-middle"
+                    style={{ tableLayout: "fixed", minWidth: 1080 }}
+                  >
+                    <thead>
+                      <tr>
+                        <th className="text-center" style={{ width: 48 }}>#</th>
+                        <th style={{ width: 200 }}>Player</th>
+                        <th style={{ width: 85 }}>Gender</th>
+                        <th style={{ width: 120 }}>Residence</th>
+                        <th style={{ width: 200 }}>Preferred Clubs</th>
+                        <th style={{ width: 120 }}>Skill Level</th>
+                        <th style={{ width: 250 }}>Schedule</th>
+                        <th style={{ width: 150 }}>Player Tendency</th>
+                        <th style={{ width: 150 }}>Notes</th>
+                        <th className="text-center" style={{ width: 145 }}>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {players.map((row, index) => {
+                        const playerId = getPlayerId(row);
+                        const isEditing = editingPreferencePlayerId === playerId;
+                        return (
+                          <tr key={row._id || playerId}>
+                            <td className="text-muted text-center">{(pagination.page - 1) * pagination.limit + index + 1}</td>
+                            <td style={{ minWidth: 0 }}>
+                              <div className="fw-semibold text-truncate" style={{ fontSize: 13 }}>
+                                {row.customerId?.name || "N/A"} {row.customerId?.lastName || ""}
+                              </div>
+                              <div className="text-muted text-truncate" style={{ fontSize: 12 }}>
+                                {row.customerId?.countryCode || "+91"} {row.customerId?.phoneNumber || "N/A"}
+                              </div>
+                            </td>
+                            <td>
+                              {row.customerId?.gender ? (
+                                <Badge bg="light" text="dark" className="border">{row.customerId.gender}</Badge>
+                              ) : (
+                                <span className="text-muted">N/A</span>
+                              )}
+                            </td>
+                            <td>
+                              {row.customerId?.city ? (
+                                <OverlayTrigger
+                                  placement="top"
+                                  overlay={<Tooltip>{row.customerId.city}</Tooltip>}
+                                >
+                                  <span className="text-muted text-truncate d-block" style={{ fontSize: 12, cursor: 'help' }}>
+                                    {row.customerId.city}
+                                  </span>
+                                </OverlayTrigger>
+                              ) : (
+                                <span className="text-muted" style={{ fontSize: 12 }}>N/A</span>
+                              )}
+                            </td>
+                            <td style={{ minWidth: 0 }}>
+                              {isEditing ? (
+                                <CheckboxMultiSelect
+                                  options={clubOptions}
+                                  value={preferenceForm.preferredClubs.map((club) => club.value)}
+                                  onChange={(values) => setPreferenceForm((form) => ({
+                                    ...form,
+                                    preferredClubs: selectValues(clubOptions, values),
+                                  }))}
+                                  placeholder={getMultiPlaceholder("Select clubs...", preferenceForm.preferredClubs)}
+                                />
+                              ) : (
+                                <OverlayTrigger
+                                  placement="top"
+                                  overlay={
+                                    <Tooltip>
+                                      {(row.preferredClubs || []).map((club) => club.clubName || club.name).filter(Boolean).join(", ") || "No clubs"}
+                                    </Tooltip>
+                                  }
+                                >
+                                  <span className="text-muted text-truncate d-block" style={{ fontSize: 12, cursor: 'help' }}>
+                                    {(row.preferredClubs || []).map((club) => club.clubName || club.name).filter(Boolean).join(", ") || "No clubs"}
+                                  </span>
+                                </OverlayTrigger>
+                              )}
+                            </td>
+                            <td>
+                              {isEditing ? (
+                                <Form.Select
+                                  size="sm"
+                                  value={preferenceForm.skillLevel}
+                                  onChange={(event) => setPreferenceForm((form) => ({ ...form, skillLevel: event.target.value }))}
+                                >
+                                  <option value="">Select level</option>
+                                  {SKILL_LEVEL_OPTIONS.map((level) => <option key={level} value={level}>{level}</option>)}
+                                </Form.Select>
+                              ) : row.skillLevel === "Beginner" ? (
+                                <Form.Select
+                                  size="sm"
+                                  value={row.skillLevel}
+                                  onChange={async (event) => {
+                                    const newSkillLevel = event.target.value;
+                                    if (row.preferenceId) {
+                                      await dispatch(updatePlayerPreference({
+                                        id: row.preferenceId,
+                                        data: { skillLevel: newSkillLevel }
+                                      }));
+                                      loadPlayers(pagination.page);
+                                    }
+                                  }}
+                                  style={{ fontSize: 12 }}
+                                >
+                                  {SKILL_LEVEL_OPTIONS.map((level) => <option key={level} value={level}>{level}</option>)}
+                                </Form.Select>
+                              ) : row.skillLevel ? (
+                                <Badge bg={SKILL_COLORS[row.skillLevel] || "secondary"}>{row.skillLevel}</Badge>
+                              ) : (
+                                <span className="text-muted">No level</span>
+                              )}
+                            </td>
+                            <td style={{ minWidth: 0 }}>
+                              {isEditing ? (
+                                <div className="d-flex align-items-center gap-2">
+                                  <div style={{ flex: 1, minWidth: 0 }}>
+                                    {formatScheduleSummary(preferenceForm.preferredSchedule, 2)}
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    variant="outline-primary"
+                                    onClick={() => openScheduleModal(row)}
+                                    style={{ flexShrink: 0 }}
+                                    title="Edit Schedule"
+                                  >
+                                    <FaEdit size={12} />
+                                  </Button>
+                                </div>
+                              ) : (
+                                formatScheduleSummary(row.preferredSchedule, 2)
+                              )}
+                            </td>
+                            <td style={{ minWidth: 0 }}>
+                              {isEditing ? (
+                                <Form.Control
+                                  size="sm"
+                                  value={preferenceForm.playerTendency}
+                                  onChange={(event) => setPreferenceForm((form) => ({ ...form, playerTendency: event.target.value }))}
+                                  placeholder="e.g. evening regular"
+                                />
+                              ) : row.playerTendency ? (
+                                <OverlayTrigger
+                                  placement="top"
+                                  overlay={<Tooltip>{row.playerTendency}</Tooltip>}
+                                >
+                                  <span className="text-muted text-truncate d-block" style={{ fontSize: 12, cursor: 'help' }}>
+                                    {row.playerTendency}
+                                  </span>
+                                </OverlayTrigger>
+                              ) : (
+                                <span className="text-muted" style={{ fontSize: 12 }}>N/A</span>
+                              )}
+                            </td>
+                            <td style={{ minWidth: 0 }}>
+                              {isEditing ? (
+                                <Form.Control
+                                  size="sm"
+                                  value={preferenceForm.notes}
+                                  onChange={(event) => setPreferenceForm((form) => ({ ...form, notes: event.target.value }))}
+                                  placeholder="Optional notes"
+                                />
+                              ) : row.notes ? (
+                                <OverlayTrigger
+                                  placement="top"
+                                  overlay={<Tooltip>{row.notes}</Tooltip>}
+                                >
+                                  <span className="text-muted text-truncate d-block" style={{ fontSize: 12, cursor: 'help' }}>
+                                    {row.notes}
+                                  </span>
+                                </OverlayTrigger>
+                              ) : (
+                                <span className="text-muted" style={{ fontSize: 12 }}>N/A</span>
+                              )}
+                            </td>
+                            <td className="text-center">
+                              <div className="d-flex flex-column gap-1 align-items-center">
+                                {selectedOpenMatch && (
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handleRequestPlayer(row)}
+                                      disabled={requestingPlayerId === playerId}
+                                      style={{
+                                        backgroundColor: "#1f41bb",
+                                        border: "none",
+                                        fontSize: 11,
+                                        minWidth: 118,
+                                      }}
+                                    >
+                                      {requestingPlayerId === playerId ? <ButtonLoading size={6} /> : "Request Match"}
+                                    </Button>
+                                    {paymentLinksByPlayerId[playerId]?.paymentLink ? (
+                                      <>
+                                        <Button
+                                          size="sm"
+                                          variant="outline-success"
+                                          onClick={() => handleCopyPaymentLink(playerId)}
+                                          style={{ fontSize: 11, minWidth: 118 }}
+                                        >
+                                          Copy Link
+                                        </Button>
+                                        <span className="text-muted" style={{ fontSize: 11 }}>
+                                          ₹{paymentLinksByPlayerId[playerId]?.paymentAmount || 0}
+                                        </span>
+                                      </>
+                                    ) : (
+                                      <Button
+                                        size="sm"
+                                        variant="outline-primary"
+                                        onClick={() => handleGeneratePaymentLink(row)}
+                                        disabled={generatingLinkPlayerId === playerId}
+                                        style={{ fontSize: 11, minWidth: 118 }}
+                                      >
+                                        {generatingLinkPlayerId === playerId ? <ButtonLoading size={6} color="blue" /> : "Generate Link"}
+                                      </Button>
+                                    )}
+                                  </>
+                                )}
+                                {isEditing ? (
+                                  <div className="d-flex gap-2">
+                                    <FaTimes onClick={handleCancelEdit} size={13} style={{ cursor: 'pointer' }} className="text-danger" />
+                                    <FaSave onClick={() => handleSavePreference(row)} size={13} style={{ cursor: 'pointer' }} className="text-success" />
+                                  </div>
+                                ) : (
+                                  <div className="d-flex gap-2">
+                                    <FaRegEye onClick={() => handleViewPlayerDetails(row)} className="text-info" size={13} style={{ cursor: 'pointer' }} />
+                                    <FaEdit onClick={() => handleEditPreference(row)} className="text-primary" size={13} style={{ cursor: 'pointer' }} />
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </Table>
+                </div>
+
+                <div className="d-block d-lg-none">
+                  {players.map((row) => {
                     const playerId = getPlayerId(row);
                     const isEditing = editingPreferencePlayerId === playerId;
                     return (
-                      <React.Fragment key={row._id || playerId}>
-                        <tr>
-                          <td className="text-muted text-center">{(pagination.page - 1) * pagination.limit + index + 1}</td>
-                          <td style={{ minWidth: 0 }}>
-                            <div className="fw-semibold text-truncate" style={{ fontSize: 13 }}>
-                              {row.customerId?.name || "N/A"} {row.customerId?.lastName || ""}
+                      <div key={row._id || playerId} className="card mb-2 border-0 shadow-sm">
+                        <div className="card-body p-2">
+                          <div className="d-flex justify-content-between gap-2 align-items-start mb-2">
+                            <div style={{ minWidth: 0 }}>
+                              <div className="fw-semibold text-truncate" style={{ fontSize: 13 }}>
+                                {row.customerId?.name || "N/A"} {row.customerId?.lastName || ""}
+                              </div>
+                              <div className="text-muted" style={{ fontSize: 12 }}>
+                                {row.customerId?.countryCode || "+91"} {row.customerId?.phoneNumber || "N/A"}
+                              </div>
+                              <div className="text-muted" style={{ fontSize: 12 }}>
+                                Gender: {row.customerId?.gender || "N/A"}
+                              </div>
+                              <div className="text-muted text-truncate" style={{ fontSize: 12 }}>
+                                Residence: {row.customerId?.city || "N/A"}
+                              </div>
                             </div>
-                            <div className="text-muted text-truncate" style={{ fontSize: 12 }}>
-                              {row.customerId?.countryCode || "+91"} {row.customerId?.phoneNumber || "N/A"}
-                            </div>
-                          </td>
-                          <td>
-                            {row.customerId?.gender ? (
-                              <Badge bg="light" text="dark" className="border">{row.customerId.gender}</Badge>
-                            ) : (
-                              <span className="text-muted">N/A</span>
-                            )}
-                          </td>
-                          <td>
-                            <span className="text-muted text-truncate d-block" style={{ fontSize: 12 }}>
-                              {row.customerId?.city || "N/A"}
-                            </span>
-                          </td>
-                          <td>
-                            {renderPreferenceSummary(row)}
-                          </td>
-                          <td className="text-center">
-                            <div className="d-flex flex-column gap-1 align-items-center">
+                            <div className="d-flex flex-column gap-1" style={{ flex: "0 0 auto" }}>
                               {selectedOpenMatch && (
                                 <>
                                   <Button
                                     size="sm"
                                     onClick={() => handleRequestPlayer(row)}
                                     disabled={requestingPlayerId === playerId}
-                                    style={{
-                                      backgroundColor: "#1f41bb",
-                                      border: "none",
-                                      fontSize: 11,
-                                      minWidth: 118,
-                                    }}
+                                    style={{ backgroundColor: "#1f41bb", border: "none" }}
                                   >
-                                    {requestingPlayerId === playerId ? <ButtonLoading size={6} /> : "Request Match"}
+                                    {requestingPlayerId === playerId ? <ButtonLoading size={6} /> : "Request"}
                                   </Button>
                                   {paymentLinksByPlayerId[playerId]?.paymentLink ? (
-                                    <>
-                                      <Button
-                                        size="sm"
-                                        variant="outline-success"
-                                        onClick={() => handleCopyPaymentLink(playerId)}
-                                        style={{ fontSize: 11, minWidth: 118 }}
-                                      >
-                                        Copy Link
-                                      </Button>
-                                      <span className="text-muted" style={{ fontSize: 11 }}>
-                                        ₹{paymentLinksByPlayerId[playerId]?.paymentAmount || 0}
-                                      </span>
-                                    </>
+                                    <Button
+                                      size="sm"
+                                      variant="outline-success"
+                                      onClick={() => handleCopyPaymentLink(playerId)}
+                                    >
+                                      Copy Link
+                                    </Button>
                                   ) : (
                                     <Button
                                       size="sm"
                                       variant="outline-primary"
                                       onClick={() => handleGeneratePaymentLink(row)}
                                       disabled={generatingLinkPlayerId === playerId}
-                                      style={{ fontSize: 11, minWidth: 118 }}
                                     >
                                       {generatingLinkPlayerId === playerId ? <ButtonLoading size={6} color="blue" /> : "Generate Link"}
                                     </Button>
                                   )}
                                 </>
                               )}
-                            <Button
-                              size="sm"
-                              variant={isEditing ? "secondary" : "outline-primary"}
-                              onClick={() => (isEditing ? closePreferenceEditor() : openPreferenceEditor(row))}
-                              style={{ minWidth: 118 }}
-                            >
-                              {isEditing ? <><FaTimes size={12} className="me-1" />Cancel</> : <><FaEdit size={12} className="me-1" />Preferences</>}
-                            </Button>
                             </div>
-                          </td>
-                        </tr>
-                        {isEditing && renderPreferenceEditor(row)}
-                      </React.Fragment>
+                          </div>
+
+                          <div className="border-top pt-2">
+                            <Row className="g-2">
+                              <Col xs={12}>
+                                <Form.Label className="small mb-1 fw-semibold">Preferred Clubs</Form.Label>
+                                {isEditing ? (
+                                  <CheckboxMultiSelect
+                                    options={clubOptions}
+                                    value={preferenceForm.preferredClubs.map((club) => club.value)}
+                                    onChange={(values) => setPreferenceForm((form) => ({
+                                      ...form,
+                                      preferredClubs: selectValues(clubOptions, values),
+                                    }))}
+                                    placeholder={getMultiPlaceholder("Select clubs...", preferenceForm.preferredClubs)}
+                                  />
+                                ) : (
+                                  <div className="text-muted" style={{ fontSize: 12 }}>
+                                    {(row.preferredClubs || []).map((club) => club.clubName || club.name).filter(Boolean).join(", ") || "No clubs"}
+                                  </div>
+                                )}
+                              </Col>
+                              <Col xs={12}>
+                                <Form.Label className="small mb-1 fw-semibold">Skill Level</Form.Label>
+                                {isEditing ? (
+                                  <Form.Select
+                                    size="sm"
+                                    value={preferenceForm.skillLevel}
+                                    onChange={(event) => setPreferenceForm((form) => ({ ...form, skillLevel: event.target.value }))}
+                                  >
+                                    <option value="">Select level</option>
+                                    {SKILL_LEVEL_OPTIONS.map((level) => <option key={level} value={level}>{level}</option>)}
+                                  </Form.Select>
+                                ) : row.skillLevel ? (
+                                  <Badge bg={SKILL_COLORS[row.skillLevel] || "secondary"}>{row.skillLevel}</Badge>
+                                ) : (
+                                  <span className="text-muted">No level</span>
+                                )}
+                              </Col>
+                              <Col xs={12}>
+                                <Form.Label className="small mb-1 fw-semibold">Schedule</Form.Label>
+                                {isEditing ? (
+                                  <div className="d-flex align-items-start gap-2">
+                                    <div style={{ flex: 1 }}>
+                                      {formatScheduleSummary(preferenceForm.preferredSchedule, 3)}
+                                    </div>
+                                    <Button
+                                      size="sm"
+                                      variant="outline-primary"
+                                      onClick={() => openScheduleModal(row)}
+                                      title="Edit Schedule"
+                                    >
+                                      <FaEdit size={12} />
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  formatScheduleSummary(row.preferredSchedule, 3)
+                                )}
+                              </Col>
+                              <Col xs={12}>
+                                <Form.Label className="small mb-1 fw-semibold">Player Tendency</Form.Label>
+                                {isEditing ? (
+                                  <Form.Control
+                                    size="sm"
+                                    placeholder="e.g. evening regular, last-minute, competitive"
+                                    value={preferenceForm.playerTendency}
+                                    onChange={(event) => setPreferenceForm((form) => ({ ...form, playerTendency: event.target.value }))}
+                                  />
+                                ) : (
+                                  <div className="text-muted" style={{ fontSize: 12 }}>
+                                    {row.playerTendency || "N/A"}
+                                  </div>
+                                )}
+                              </Col>
+                              <Col xs={12}>
+                                <Form.Label className="small mb-1 fw-semibold">Notes</Form.Label>
+                                {isEditing ? (
+                                  <Form.Control
+                                    size="sm"
+                                    placeholder="Optional notes"
+                                    value={preferenceForm.notes}
+                                    onChange={(event) => setPreferenceForm((form) => ({ ...form, notes: event.target.value }))}
+                                  />
+                                ) : (
+                                  <div className="text-muted" style={{ fontSize: 12 }}>
+                                    {row.notes || "N/A"}
+                                  </div>
+                                )}
+                              </Col>
+                              <Col xs={12} className="d-flex justify-content-end gap-2 mt-2">
+                                {isEditing ? (
+                                  <>
+                                    <Button size="sm" variant="outline-secondary" onClick={handleCancelEdit}>
+                                      <FaTimes size={12} className="me-1" />Cancel
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handleSavePreference(row)}
+                                      disabled={saveLoading}
+                                      style={{ backgroundColor: "#1f41bb", border: "none" }}
+                                    >
+                                      {saveLoading ? <ButtonLoading size={8} /> : <><FaSave size={12} className="me-1" />Save</>}
+                                    </Button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      variant="outline-info"
+                                      onClick={() => handleViewPlayerDetails(row)}
+                                    >
+                                      <FaRegEye size={12} className="me-1" />View
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline-primary"
+                                      onClick={() => handleEditPreference(row)}
+                                    >
+                                      <FaEdit size={12} className="me-1" />Edit
+                                    </Button>
+                                  </>
+                                )}
+                              </Col>
+                            </Row>
+                          </div>
+                        </div>
+                      </div>
                     );
                   })}
-                </tbody>
-              </Table>
-            </div>
+                </div>
 
-            <div className="d-block d-lg-none">
-              {players.map((row) => {
-                const playerId = getPlayerId(row);
-                const isEditing = editingPreferencePlayerId === playerId;
-                return (
-                  <div key={row._id || playerId} className="card mb-2 border-0 shadow-sm">
-                    <div className="card-body p-2">
-                      <div className="d-flex justify-content-between gap-2 align-items-start">
-                        <div style={{ minWidth: 0 }}>
-                          <div className="fw-semibold text-truncate" style={{ fontSize: 13 }}>
-                            {row.customerId?.name || "N/A"} {row.customerId?.lastName || ""}
-                          </div>
-                          <div className="text-muted" style={{ fontSize: 12 }}>
-                            {row.customerId?.countryCode || "+91"} {row.customerId?.phoneNumber || "N/A"}
-                          </div>
-                          <div className="text-muted" style={{ fontSize: 12 }}>
-                            Gender: {row.customerId?.gender || "N/A"}
-                          </div>
-                          <div className="text-muted text-truncate" style={{ fontSize: 12 }}>
-                            Residence: {row.customerId?.city || "N/A"}
-                          </div>
-                        </div>
-                        <div className="d-flex flex-column gap-1" style={{ flex: "0 0 auto" }}>
-                          {selectedOpenMatch && (
-                            <>
-                              <Button
-                                size="sm"
-                                onClick={() => handleRequestPlayer(row)}
-                                disabled={requestingPlayerId === playerId}
-                                style={{ backgroundColor: "#1f41bb", border: "none" }}
-                              >
-                                {requestingPlayerId === playerId ? <ButtonLoading size={6} /> : "Request"}
-                              </Button>
-                              {paymentLinksByPlayerId[playerId]?.paymentLink ? (
-                                <Button
-                                  size="sm"
-                                  variant="outline-success"
-                                  onClick={() => handleCopyPaymentLink(playerId)}
-                                >
-                                  Copy Link
-                                </Button>
-                              ) : (
-                                <Button
-                                  size="sm"
-                                  variant="outline-primary"
-                                  onClick={() => handleGeneratePaymentLink(row)}
-                                  disabled={generatingLinkPlayerId === playerId}
-                                >
-                                  {generatingLinkPlayerId === playerId ? <ButtonLoading size={6} color="blue" /> : "Generate Link"}
-                                </Button>
-                              )}
-                            </>
-                          )}
-                          <Button
-                            size="sm"
-                            variant={isEditing ? "secondary" : "outline-primary"}
-                            onClick={() => (isEditing ? closePreferenceEditor() : openPreferenceEditor(row))}
-                          >
-                            {isEditing ? "Cancel" : "Preferences"}
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="mt-2">
-                        {renderPreferenceSummary(row)}
-                      </div>
-                      {isEditing && (
-                        <div className="mt-3 p-2 rounded" style={{ background: "#f8fafc" }}>
-                          <Row className="g-2">
-                            <Col xs={12}>
-                              <Form.Label className="small mb-1">Preferred Clubs</Form.Label>
-                              <CheckboxMultiSelect
-                                options={clubOptions}
-                                value={preferenceForm.preferredClubs.map((club) => club.value)}
-                                onChange={(values) => setPreferenceForm((form) => ({
-                                  ...form,
-                                  preferredClubs: selectValues(clubOptions, values),
-                                }))}
-                                placeholder={getMultiPlaceholder("Select clubs...", preferenceForm.preferredClubs)}
-                              />
-                            </Col>
-                            <Col xs={12}>
-                              <Form.Label className="small mb-1">Skill Level</Form.Label>
-                              <Form.Select
-                                size="sm"
-                                value={preferenceForm.skillLevel}
-                                onChange={(event) => setPreferenceForm((form) => ({ ...form, skillLevel: event.target.value }))}
-                              >
-                                <option value="">Select level</option>
-                                {SKILL_LEVEL_OPTIONS.map((level) => <option key={level} value={level}>{level}</option>)}
-                              </Form.Select>
-                            </Col>
-                            <Col xs={12}>
-                              <Form.Label className="small mb-2">Schedule</Form.Label>
-                              <ScheduleBuilder
-                                value={preferenceForm.preferredSchedule}
-                                onChange={(value) => setPreferenceForm((form) => ({ ...form, preferredSchedule: value }))}
-                              />
-                            </Col>
-                            <Col xs={12}>
-                              <Form.Label className="small mb-1">Player Tendency</Form.Label>
-                              <Form.Control
-                                size="sm"
-                                placeholder="e.g. evening regular, last-minute, competitive"
-                                value={preferenceForm.playerTendency}
-                                onChange={(event) => setPreferenceForm((form) => ({ ...form, playerTendency: event.target.value }))}
-                              />
-                            </Col>
-                            <Col xs={12}>
-                              <Form.Control
-                                size="sm"
-                                placeholder="Optional notes"
-                                value={preferenceForm.notes}
-                                onChange={(event) => setPreferenceForm((form) => ({ ...form, notes: event.target.value }))}
-                              />
-                            </Col>
-                            <Col xs={12} className="d-flex justify-content-end gap-2">
-                              <Button size="sm" variant="outline-secondary" onClick={closePreferenceEditor}>Cancel</Button>
-                              <Button
-                                size="sm"
-                                onClick={() => handleSavePreference(row)}
-                                disabled={saveLoading}
-                                style={{ backgroundColor: "#1f41bb", border: "none" }}
-                              >
-                                {saveLoading ? <ButtonLoading size={8} /> : "Save"}
-                              </Button>
-                            </Col>
-                          </Row>
-                        </div>
-                      )}
-                    </div>
+                {pagination.totalPages > 1 && (
+                  <div className="d-flex justify-content-center gap-2 mt-3">
+                    <Button
+                      size="sm"
+                      variant="outline-secondary"
+                      disabled={pagination.page <= 1}
+                      onClick={() => loadPlayers(pagination.page - 1)}
+                    >
+                      Prev
+                    </Button>
+                    <span className="align-self-center text-muted" style={{ fontSize: 13 }}>
+                      {pagination.page} / {pagination.totalPages}
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="outline-secondary"
+                      disabled={pagination.page >= pagination.totalPages}
+                      onClick={() => loadPlayers(pagination.page + 1)}
+                    >
+                      Next
+                    </Button>
                   </div>
-                );
-              })}
+                )}
+              </>
+            )}
+          </div>
+        </Col>
+        {/* Open Matches Sidebar - col-3 */}
+        <Col lg={2} className="d-none d-lg-block">
+          <div className="bg-white rounded shadow-sm p-3" style={{ position: 'sticky', top: 20 }}>
+            <h6 className="mb-3" style={{ fontFamily: "Poppins", fontSize: 16, fontWeight: 700 }}>
+              Open Matches
+            </h6>
+            <div className="mb-3">
+              <Form.Control
+                size="sm"
+                placeholder="Search..."
+                value={matchSearchQuery}
+                onChange={(e) => setMatchSearchQuery(e.target.value)}
+                onFocus={() => setIsSearchFocused(true)}
+                onBlur={() => setIsSearchFocused(false)}
+                style={{ fontFamily: "Poppins", fontSize: 13 }}
+              />
             </div>
+            <div className="d-flex gap-2 mb-3">
+              <Button
+                size="sm"
+                className="flex-fill"
+                onClick={() => setShowCreateMatchModal(true)}
+                style={{ backgroundColor: "#1f41bb", border: "none", fontFamily: "Poppins", fontWeight: 600, fontSize: 11 }}
+              >
+                <FaPlus size={10} className="me-1" />Add
+              </Button>
+              <Button size="sm" variant="outline-secondary" onClick={() => loadOpenMatches("")} disabled={openMatchesLoading} style={{ fontSize: 11 }}>
+                Refresh
+              </Button>
+            </div>
+            {openMatchesLoading ? (
+              <DataLoading height="220px" />
+            ) : openMatches.length === 0 ? (
+              <div className="text-center text-muted py-5" style={{ fontSize: 13 }}>
+                No open matches found.
+              </div>
+            ) : (
+              <div
+                className={`open-matches-scroll-container ${!isSearchFocused ? 'scrolling' : ''}`}
+                style={{
+                  height: 'calc(100vh - 280px)',
+                  maxHeight: 'calc(100vh - 280px)',
+                  overflow: 'hidden',
+                  position: 'relative'
+                }}
+              >
+                <div className="open-matches-list">
+                  {openMatches.map((match, index) => {
+                    const joinedCount = match?.totalPlayers ?? (Number(match?.teamA?.length || 0) + Number(match?.teamB?.length || 0));
+                    const maxPlayers = match?.totalPlayersCount ?? match?.maxPlayers ?? 4;
+                    const fee = getMatchFee(match);
+                    const isSelected = selectedOpenMatch?._id === match?._id;
 
-            {pagination.totalPages > 1 && (
-              <div className="d-flex justify-content-center gap-2 mt-3">
-                <Button
-                  size="sm"
-                  variant="outline-secondary"
-                  disabled={pagination.page <= 1}
-                  onClick={() => loadPlayers(pagination.page - 1)}
-                >
-                  Prev
-                </Button>
-                <span className="align-self-center text-muted" style={{ fontSize: 13 }}>
-                  {pagination.page} / {pagination.totalPages}
-                </span>
-                <Button
-                  size="sm"
-                  variant="outline-secondary"
-                  disabled={pagination.page >= pagination.totalPages}
-                  onClick={() => loadPlayers(pagination.page + 1)}
-                >
-                  Next
-                </Button>
+                    return (
+                      <button
+                        key={`${match._id}-${index}`}
+                        type="button"
+                        onClick={() => handleOpenMatchSelect(match)}
+                        className="text-start"
+                        style={{
+                          background: isSelected ? "#f0f4ff" : "#fff",
+                          border: `1px solid ${isSelected ? "#1f41bb" : "#eef2f7"}`,
+                          borderRadius: 6,
+                          cursor: "pointer",
+                          padding: 10,
+                        }}
+                      >
+                        <div className="d-flex justify-content-between gap-2 align-items-start">
+                          <div style={{ minWidth: 0 }}>
+                            <div className="fw-semibold text-truncate" style={{ fontSize: 12 }}>
+                              {getMatchClubName(match)}
+                            </div>
+                            <div className="text-muted text-truncate" style={{ fontSize: 11 }}>
+                              {getMatchCourtName(match) || "Court N/A"}
+                            </div>
+                          </div>
+                          <Badge bg={SKILL_COLORS[match?.skillLevel] || "light"} text={match?.skillLevel ? undefined : "dark"} style={{ fontSize: 10 }}>
+                            {match?.skillLevel || "Any"}
+                          </Badge>
+                        </div>
+                        <div className="d-flex justify-content-between mt-2 text-muted" style={{ fontSize: 11 }}>
+                          <span>{formatMatchDate(match)}</span>
+                          <span>{getMatchTime(match)}</span>
+                        </div>
+                        <div className="d-flex justify-content-between mt-2" style={{ fontSize: 11 }}>
+                          <span className="text-muted">Players {joinedCount}/{maxPlayers}</span>
+                          <span className="fw-semibold text-success">₹{fee.payable || 0}</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                  {!isSearchFocused && openMatches.map((match, index) => {
+                    const joinedCount = match?.totalPlayers ?? (Number(match?.teamA?.length || 0) + Number(match?.teamB?.length || 0));
+                    const maxPlayers = match?.totalPlayersCount ?? match?.maxPlayers ?? 4;
+                    const fee = getMatchFee(match);
+                    const isSelected = selectedOpenMatch?._id === match?._id;
+
+                    return (
+                      <button
+                        key={`duplicate-${match._id}-${index}`}
+                        type="button"
+                        onClick={() => handleOpenMatchSelect(match)}
+                        className="text-start"
+                        style={{
+                          background: isSelected ? "#f0f4ff" : "#fff",
+                          border: `1px solid ${isSelected ? "#1f41bb" : "#eef2f7"}`,
+                          borderRadius: 6,
+                          cursor: "pointer",
+                          padding: 10,
+                        }}
+                      >
+                        <div className="d-flex justify-content-between gap-2 align-items-start">
+                          <div style={{ minWidth: 0 }}>
+                            <div className="fw-semibold text-truncate" style={{ fontSize: 12 }}>
+                              {getMatchClubName(match)}
+                            </div>
+                            <div className="text-muted text-truncate" style={{ fontSize: 11 }}>
+                              {getMatchCourtName(match) || "Court N/A"}
+                            </div>
+                          </div>
+                          <Badge bg={SKILL_COLORS[match?.skillLevel] || "light"} text={match?.skillLevel ? undefined : "dark"} style={{ fontSize: 10 }}>
+                            {match?.skillLevel || "Any"}
+                          </Badge>
+                        </div>
+                        <div className="d-flex justify-content-between mt-2 text-muted" style={{ fontSize: 11 }}>
+                          <span>{formatMatchDate(match)}</span>
+                          <span>{getMatchTime(match)}</span>
+                        </div>
+                        <div className="d-flex justify-content-between mt-2" style={{ fontSize: 11 }}>
+                          <span className="text-muted">Players {joinedCount}/{maxPlayers}</span>
+                          <span className="fw-semibold text-success">₹{fee.payable || 0}</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
-          </>
-        )}
-      </div>
-
-      <Offcanvas
-        show={showOpenMatchPanel}
-        onHide={() => setShowOpenMatchPanel(false)}
-        placement="end"
-        backdrop={false}
-        scroll
-        className="player-preferences-open-match-panel"
-      >
-        <Offcanvas.Header closeButton>
-          <Offcanvas.Title style={{ fontFamily: "Poppins", fontSize: 16, fontWeight: 700 }}>
-            Open Matches
-          </Offcanvas.Title>
-        </Offcanvas.Header>
-        <Offcanvas.Body>
-          <div className="d-flex gap-2 mb-3">
-            <Button
-              size="sm"
-              className="flex-fill"
-              onClick={() => navigate("/admin/open-matches/create")}
-              style={{ backgroundColor: "#1f41bb", border: "none", fontFamily: "Poppins", fontWeight: 600 }}
-            >
-              <FaPlus size={12} className="me-1" />Add Open Match
-            </Button>
-            <Button size="sm" variant="outline-secondary" onClick={loadOpenMatches} disabled={openMatchesLoading}>
-              Refresh
-            </Button>
           </div>
+        </Col>
+      </Row>
 
-          {openMatchesLoading ? (
-            <DataLoading height="220px" />
-          ) : openMatches.length === 0 ? (
-            <div className="text-center text-muted py-5" style={{ fontSize: 13 }}>
-              No open matches found.
-            </div>
-          ) : (
-            <div className="d-flex flex-column gap-2">
-              {openMatches.map((match) => {
-                const joinedCount = match?.totalPlayers ?? (Number(match?.teamA?.length || 0) + Number(match?.teamB?.length || 0));
-                const maxPlayers = match?.totalPlayersCount ?? match?.maxPlayers ?? 4;
-                const fee = getMatchFee(match);
-                const isSelected = selectedOpenMatch?._id === match?._id;
+      {/* Schedule Edit Modal */}
+      <Modal show={showScheduleModal} onHide={closeScheduleModal} size="lg" centered>
+        <Modal.Header closeButton>
+          <Modal.Title style={{ fontSize: 18, fontFamily: "Poppins" }}>Edit Schedule</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <ScheduleBuilder
+            value={scheduleModalData.schedule}
+            onChange={(value) => setScheduleModalData((data) => ({ ...data, schedule: value }))}
+          />
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="outline-secondary" onClick={closeScheduleModal}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSaveScheduleFromModal}
+            style={{ backgroundColor: "#1f41bb", border: "none", fontFamily: "Poppins" }}
+          >
+            <FaSave size={12} className="me-1" />
+            Save Schedule
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
-                return (
-                  <button
-                    key={match._id}
-                    type="button"
-                    onClick={() => handleOpenMatchSelect(match)}
-                    className="text-start"
-                    style={{
-                      background: isSelected ? "#f0f4ff" : "#fff",
-                      border: `1px solid ${isSelected ? "#1f41bb" : "#eef2f7"}`,
-                      borderRadius: 6,
-                      cursor: "pointer",
-                      padding: 10,
-                    }}
-                  >
-                    <div className="d-flex justify-content-between gap-2 align-items-start">
-                      <div style={{ minWidth: 0 }}>
-                        <div className="fw-semibold text-truncate" style={{ fontSize: 13 }}>
-                          {getMatchClubName(match)}
-                        </div>
-                        <div className="text-muted text-truncate" style={{ fontSize: 12 }}>
-                          {getMatchCourtName(match) || "Court N/A"}
-                        </div>
-                      </div>
-                      <Badge bg={SKILL_COLORS[match?.skillLevel] || "light"} text={match?.skillLevel ? undefined : "dark"}>
-                        {match?.skillLevel || "Any"}
-                      </Badge>
-                    </div>
-                    <div className="d-flex justify-content-between mt-2 text-muted" style={{ fontSize: 12 }}>
-                      <span>{formatMatchDate(match)}</span>
-                      <span>{getMatchTime(match)}</span>
-                    </div>
-                    <div className="d-flex justify-content-between mt-2" style={{ fontSize: 12 }}>
-                      <span className="text-muted">Players {joinedCount}/{maxPlayers}</span>
-                      <span className="fw-semibold text-success">Payable ₹{fee.payable || 0}</span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </Offcanvas.Body>
-      </Offcanvas>
+      <PlayerFiltersPanel
+        show={showFiltersPanel}
+        onHide={() => setShowFiltersPanel(false)}
+        filters={filters}
+        onFilterChange={updateFilter}
+        onReset={resetFilters}
+        clubOptions={clubOptions}
+        residenceDropdownOptions={residenceDropdownOptions}
+        CheckboxMultiSelect={CheckboxMultiSelect}
+        toSelectOptions={toSelectOptions}
+        getMultiPlaceholder={getMultiPlaceholder}
+        TIME_SLOT_GROUPS={TIME_SLOT_GROUPS}
+        DAY_OPTIONS={DAY_OPTIONS}
+        SKILL_LEVEL_OPTIONS={SKILL_LEVEL_OPTIONS}
+        GENDER_OPTIONS={GENDER_OPTIONS}
+      />
 
       <Modal show={showPlayerModal} onHide={closeAddPlayer} size="md" backdrop="static">
         <Modal.Header closeButton>
@@ -1422,9 +1689,12 @@ const PlayerPreferences = () => {
         <Form onSubmit={handleSavePlayer}>
           <Modal.Body>
             <Form.Group className="mb-3">
-              <Form.Label>Phone Number <span className="text-danger">*</span></Form.Label>
+              <Form.Label style={{ fontSize: 13, fontFamily: "Poppins" }}>
+                Phone Number <span className="text-danger">*</span>
+              </Form.Label>
               <div className="d-flex gap-2">
                 <Form.Control
+                  size="sm"
                   type="number"
                   placeholder="e.g. 9876543210"
                   value={playerForm.phoneNumber}
@@ -1433,16 +1703,18 @@ const PlayerPreferences = () => {
                     setPhoneSubmitted(false);
                   }}
                   isInvalid={!!playerFormErrors.phoneNumber}
+                  style={{ fontSize: 13 }}
                 />
-                <Button
+                {/* <Button
                   type="button"
+                  size="sm"
                   variant="outline-primary"
                   onClick={handleLookup}
                   disabled={lookupLoading || !String(playerForm.phoneNumber || "").trim()}
-                  style={{ minWidth: 92 }}
+                  style={{ minWidth: 80, fontFamily: "Poppins", fontSize: 13 }}
                 >
-                  {lookupLoading ? <ButtonLoading size={8} color="blue" /> : <><FaSearch size={12} /> Lookup</>}
-                </Button>
+                  {lookupLoading ? <ButtonLoading size={8} color="blue" /> : <><FaSearch size={11} className="me-1" /> Lookup</>}
+                </Button> */}
               </div>
               <Form.Control.Feedback type="invalid">{playerFormErrors.phoneNumber}</Form.Control.Feedback>
             </Form.Group>
@@ -1470,33 +1742,43 @@ const PlayerPreferences = () => {
             <Row>
               <Col xs={12}>
                 <Form.Group className="mb-3">
-                  <Form.Label>Name <span className="text-danger">*</span></Form.Label>
+                  <Form.Label style={{ fontSize: 13, fontFamily: "Poppins" }}>
+                    Name <span className="text-danger">*</span>
+                  </Form.Label>
                   <Form.Control
+                    size="sm"
                     placeholder="Player name"
                     value={playerForm.name}
                     onChange={(event) => setPlayerForm((form) => ({ ...form, name: event.target.value }))}
                     isInvalid={!!playerFormErrors.name}
+                    style={{ fontSize: 13 }}
                   />
                   <Form.Control.Feedback type="invalid">{playerFormErrors.name}</Form.Control.Feedback>
                 </Form.Group>
               </Col>
               <Col xs={12}>
                 <Form.Group className="mb-3">
-                  <Form.Label>Email <span className="text-muted">(optional)</span></Form.Label>
+                  <Form.Label style={{ fontSize: 13, fontFamily: "Poppins" }}>
+                    Email <span className="text-muted">(optional)</span>
+                  </Form.Label>
                   <Form.Control
+                    size="sm"
                     type="email"
                     placeholder="email@example.com"
                     value={playerForm.email}
                     onChange={(event) => setPlayerForm((form) => ({ ...form, email: event.target.value }))}
+                    style={{ fontSize: 13 }}
                   />
                 </Form.Group>
               </Col>
               <Col xs={12}>
                 <Form.Group className="mb-2">
-                  <Form.Label>Gender</Form.Label>
+                  <Form.Label style={{ fontSize: 13, fontFamily: "Poppins" }}>Gender</Form.Label>
                   <Form.Select
+                    size="sm"
                     value={playerForm.gender}
                     onChange={(event) => setPlayerForm((form) => ({ ...form, gender: event.target.value }))}
+                    style={{ fontSize: 13 }}
                   >
                     <option value="">Select gender</option>
                     {GENDER_OPTIONS.map((gender) => <option key={gender} value={gender}>{gender}</option>)}
@@ -1505,10 +1787,12 @@ const PlayerPreferences = () => {
               </Col>
               <Col xs={12}>
                 <Form.Group className="mb-2">
-                  <Form.Label>Residence</Form.Label>
+                  <Form.Label style={{ fontSize: 13, fontFamily: "Poppins" }}>Residence</Form.Label>
                   <Form.Select
+                    size="sm"
                     value={playerForm.residence}
                     onChange={(event) => setPlayerForm((form) => ({ ...form, residence: event.target.value }))}
+                    style={{ fontSize: 13 }}
                   >
                     <option value="">Select residence</option>
                     {residenceDropdownOptions.map((option) => (
@@ -1520,15 +1804,38 @@ const PlayerPreferences = () => {
             </Row>
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="secondary" onClick={closeAddPlayer} disabled={saveLoading}>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={closeAddPlayer}
+              disabled={saveLoading}
+              style={{ fontFamily: "Poppins", fontSize: 13 }}
+            >
               {lookupResult?.exists ? "Cancel Update" : "Cancel"}
             </Button>
-            <Button type="submit" disabled={saveLoading} style={{ backgroundColor: "#1f41bb", border: "none" }}>
+            <Button
+              size="sm"
+              type="submit"
+              disabled={saveLoading}
+              style={{ backgroundColor: "#1f41bb", border: "none", fontFamily: "Poppins", fontSize: 13 }}
+            >
               {saveLoading ? <ButtonLoading size={8} /> : (lookupResult?.exists ? "Update Player" : "Add Player")}
             </Button>
           </Modal.Footer>
         </Form>
       </Modal>
+
+      <CreateMatchModal
+        show={showCreateMatchModal}
+        onHide={() => setShowCreateMatchModal(false)}
+        clubId={null}
+      />
+
+      <PlayerDetailsModal
+        show={showPlayerDetailsModal}
+        onHide={closePlayerDetailsModal}
+        playerData={selectedPlayerDetails}
+      />
     </Container>
   );
 };

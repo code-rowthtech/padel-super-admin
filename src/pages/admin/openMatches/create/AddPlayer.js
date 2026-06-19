@@ -439,7 +439,7 @@ const AddPlayer = ({
           </div>
           <div className="mb-md-2 mb-1">
             <label className="form-label label_font mb-1">
-             Full Name <span className="text-danger">*</span>
+              Full Name <span className="text-danger">*</span>
             </label>
             <input
               type="text"
