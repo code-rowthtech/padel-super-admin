@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, Col, Container, Form, Modal, OverlayTrigger, Row, Table, Tooltip } from "react-bootstrap";
+import { Badge, Button, Col, Container, Dropdown, Form, Modal, OverlayTrigger, Row, Table, Tooltip } from "react-bootstrap";
 import { FaEdit, FaFilter, FaPhone, FaPlus, FaRegEye, FaSave, FaSearch, FaTimes, FaUser } from "react-icons/fa";
 import Select, { components as selectComponents } from "react-select";
 import { useDispatch, useSelector } from "react-redux";
@@ -22,6 +22,7 @@ import { sendMatchRequest } from "../../../redux/admin/matchRequest/thunk";
 import PlayerFiltersPanel from "./PlayerFiltersPanel";
 import CreateMatchModal from "../openMatches/create/CreateMatchModal";
 import PlayerDetailsModal from "./PlayerDetailsModal";
+import { showError, showSuccess } from "../../../helpers/Toast";
 
 const TIME_SLOT_GROUPS = [
   {
@@ -528,8 +529,13 @@ const PlayerPreferences = () => {
   const [matchSearchQuery, setMatchSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [showPlayerDetailsModal, setShowPlayerDetailsModal] = useState(false);
+  const [openDropdownKey, setOpenDropdownKey] = useState(null); // Track which dropdown is open
+  const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
+  const [selectedPlayerForAdd, setSelectedPlayerForAdd] = useState(null);
+  const [addingPlayerToMatch, setAddingPlayerToMatch] = useState(false);
   const [selectedPlayerDetails, setSelectedPlayerDetails] = useState(null);
   const filterButtonRef = React.useRef(null);
+  const scrollContainerRef = React.useRef(null);
 
   useEffect(() => {
     ownerApi.get(SUPER_ADMIN_GET_ALL_CLUBS).then((res) => {
@@ -730,6 +736,40 @@ const PlayerPreferences = () => {
     setSelectedPlayerDetails(null);
   };
 
+  const handleAddPlayerToMatch = async () => {
+    if (!selectedPlayerForAdd) return;
+
+    const { player, match, team, slotIndex } = selectedPlayerForAdd;
+    const playerId = player._id || player.customerId?._id;
+    const matchId = match._id;
+
+    // Convert team letter to API format (A -> teamA, B -> teamB)
+    const teamName = team === 'A' ? 'teamA' : 'teamB';
+
+    setAddingPlayerToMatch(true);
+    try {
+      const response = await ownerApi.post('/openmatch/addPlayerToMatch', {
+        matchId,
+        playerId,
+        team: teamName
+      });
+
+      if (response.data) {
+        // Success - refresh the open matches list
+        await loadOpenMatches();
+        setShowAddPlayerModal(false);
+        setSelectedPlayerForAdd(null);
+
+        // Show success message
+        showSuccess(`Player added to ${team === 'A' ? 'Team A' : 'Team B'} successfully!`);
+      }
+    } catch (error) {
+      showError(error.response?.data?.message || 'Failed to add player to match. Please try again.');
+    } finally {
+      setAddingPlayerToMatch(false);
+    }
+  };
+
   const openAddPlayer = () => {
     setPlayerForm(EMPTY_PLAYER_FORM);
     setPlayerFormErrors({});
@@ -915,6 +955,7 @@ const PlayerPreferences = () => {
           .open-matches-scroll-container.scrolling .open-matches-list {
             animation: scrollMatches 30s linear infinite;
             cursor: default !important;
+            will-change: transform;
           }
 
           .open-matches-scroll-container.scrolling:hover .open-matches-list {
@@ -927,6 +968,34 @@ const PlayerPreferences = () => {
             flex-direction: column;
             gap: 0.5rem;
             cursor: default !important;
+          }
+
+          .open-matches-scroll-container *,
+          .open-matches-list * {
+            cursor: default !important;
+          }
+
+          .open-matches-list .clone-list {
+            pointer-events: none;
+          }
+
+          .custom-dropdown-toggle {
+            background: none !important;
+            border: none !important;
+            box-shadow: none !important;
+          }
+
+          .custom-dropdown-toggle:hover,
+          .custom-dropdown-toggle:focus,
+          .custom-dropdown-toggle:active {
+            background: none !important;
+            border: none !important;
+            box-shadow: none !important;
+            outline: none !important;
+          }
+
+          .custom-dropdown-toggle::after {
+            display: none !important;
           }
         `}
       </style>
@@ -1166,15 +1235,9 @@ const PlayerPreferences = () => {
                                   <div style={{ flex: 1, minWidth: 0 }}>
                                     {formatScheduleSummary(preferenceForm.preferredSchedule, 2)}
                                   </div>
-                                  <Button
-                                    size="sm"
-                                    variant="outline-primary"
+                                  <FaEdit
                                     onClick={() => openScheduleModal(row)}
-                                    style={{ flexShrink: 0 }}
-                                    title="Edit Schedule"
-                                  >
-                                    <FaEdit size={12} />
-                                  </Button>
+                                    size={13} className="text-info" />
                                 </div>
                               ) : (
                                 formatScheduleSummary(row.preferredSchedule, 2)
@@ -1537,10 +1600,12 @@ const PlayerPreferences = () => {
             ) : (
               <div
                 className={`open-matches-scroll-container ${!isSearchFocused ? 'scrolling' : ''}`}
+                ref={scrollContainerRef}
                 style={{
-                  height: 'calc(100vh - 280px)',
-                  maxHeight: 'calc(100vh - 280px)',
-                  overflow: 'hidden',
+                  height: '600px',
+                  maxHeight: '600px',
+                  overflowY: 'auto',
+                  overflowX: 'hidden',
                   position: 'relative'
                 }}
               >
@@ -1550,6 +1615,88 @@ const PlayerPreferences = () => {
                     const maxPlayers = match?.totalPlayersCount ?? match?.maxPlayers ?? 4;
                     const fee = getMatchFee(match);
                     const isSelected = selectedOpenMatch?._id === match?._id;
+                    const teamA = isSelected ? (match?.teamA || []) : [];
+                    const teamB = isSelected ? (match?.teamB || []) : [];
+
+                    const renderPlayerIcon = (team, slotIndex, color) => {
+                      const teamPlayers = team === 'A' ? teamA : teamB;
+                      const player = teamPlayers[slotIndex];
+                      const playerCount = teamPlayers.length;
+                      const totalTeamSlots = 2;
+                      const isEmpty = !player;
+
+                      // Filter available players based on match requirements
+                      const filteredAvailablePlayers = (players || []).filter(p => {
+                        // Filter by gender if match has gender requirement
+                        const matchGender = match?.gender || '';
+
+                        // For Mixed or Mixed Doubles, show all players
+                        if (!matchGender || matchGender.toLowerCase().includes('mixed')) {
+                          return true;
+                        }
+
+                        // For gender-specific matches (Male Only, Female Only, etc.)
+                        // Extract the base gender (Male, Female)
+                        const matchGenderBase = matchGender.replace(' Only', '').trim();
+                        const playerGender = p.customerId?.gender;
+                        return playerGender === matchGenderBase;
+                      });
+
+                      const dropdownKey = `${match._id}-${team}-${slotIndex}`;
+                      const isDropdownOpen = openDropdownKey === dropdownKey;
+
+                      return (
+                        <div style={{ position: "relative" }}>
+                          <div
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenDropdownKey(isDropdownOpen ? null : dropdownKey);
+                            }}
+                            style={{
+                              width: 20,
+                              height: 20,
+                              borderRadius: "50%",
+                              backgroundColor: player ? color : "#fff",
+                              border: `1px solid ${color}`,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              cursor: "pointer",
+                              position: "relative",
+                              padding: 0,
+                            }}
+                          >
+                            {player ? (
+                              <FaUser size={8} color="#fff" />
+                            ) : (
+                              <span style={{ color: color, fontSize: 12, fontWeight: "bold", lineHeight: "1", marginTop: "-1px" }}>+</span>
+                            )}
+                            {slotIndex === 0 && playerCount > 0 && (
+                              <span
+                                style={{
+                                  position: "absolute",
+                                  top: -5,
+                                  right: -5,
+                                  backgroundColor: color,
+                                  color: "#fff",
+                                  borderRadius: "50%",
+                                  width: 14,
+                                  height: 14,
+                                  fontSize: 8,
+                                  fontWeight: "bold",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  border: "1px solid #fff",
+                                }}
+                              >
+                                {playerCount}/{totalTeamSlots}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    };
 
                     return (
                       <button
@@ -1582,30 +1729,161 @@ const PlayerPreferences = () => {
                           <span>{formatMatchDate(match)}</span>
                           <span>{getMatchTime(match)}</span>
                         </div>
-                        <div className="d-flex justify-content-between mt-2" style={{ fontSize: 11 }}>
+                        <div className="d-flex justify-content-between align-items-center mt-2" style={{ fontSize: 11 }}>
                           <span className="text-muted">Players {joinedCount}/{maxPlayers}</span>
                           <span className="fw-semibold text-success">₹{fee.payable || 0}</span>
                         </div>
+
+                        {/* Player Icons Row - Only show for selected match */}
+                        {isSelected && (
+                          <>
+                            <div className="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                              <div className="d-flex gap-1 align-items-center">
+                                <span style={{ fontSize: 13, color: "#3DBE64", fontWeight: 600, marginRight: 3 }}>A:</span>
+                                {renderPlayerIcon('A', 0, '#3DBE64')}
+                                {renderPlayerIcon('A', 1, '#3DBE64')}
+                              </div>
+                              <div className="d-flex gap-1 align-items-center">
+                                <span style={{ fontSize: 13, color: "#1F41BB", fontWeight: 600, marginRight: 3 }}>B:</span>
+                                {renderPlayerIcon('B', 0, '#1F41BB')}
+                                {renderPlayerIcon('B', 1, '#1F41BB')}
+                              </div>
+                            </div>
+
+                            {/* Dropdown Menu - Show below card when any icon is clicked */}
+                            {openDropdownKey && openDropdownKey.startsWith(match._id) && (() => {
+                              const [, team, slotIndex] = openDropdownKey.split('-');
+                              const color = team === 'A' ? '#3DBE64' : '#1F41BB';
+                              const teamPlayers = team === 'A' ? teamA : teamB;
+                              const player = teamPlayers[parseInt(slotIndex)];
+                              const isEmpty = !player;
+
+                              // Filter available players
+                              const matchGender = match?.gender || '';
+                              const filteredAvailablePlayers = (players || []).filter(p => {
+                                if (!matchGender || matchGender.toLowerCase().includes('mixed')) {
+                                  return true;
+                                }
+                                const matchGenderBase = matchGender.replace(' Only', '').trim();
+                                return p.customerId?.gender === matchGenderBase;
+                              });
+
+                              return (
+                                <div
+                                  style={{
+                                    marginTop: 8,
+                                    minWidth: '100%',
+                                    maxHeight: 250,
+                                    overflowY: "auto",
+                                    fontSize: 11,
+                                    backgroundColor: "#f8f9fa",
+                                    boxShadow: "inset 0 2px 4px rgba(0,0,0,0.1)",
+                                    border: "1px solid #dee2e6",
+                                    borderRadius: "6px",
+                                    padding: "8px 0",
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <div style={{ fontSize: 11, fontWeight: 600, padding: "8px 12px", color: "#1f41bb" }}>
+                                    Add Player to Team {team} - Slot {parseInt(slotIndex) + 1}
+                                  </div>
+                                  {filteredAvailablePlayers.length > 0 ? (
+                                    filteredAvailablePlayers.slice(0, 20).map((p, idx) => {
+                                      const playerName = p.customerId?.name || "Unknown";
+                                      const playerPhone = p.customerId?.phoneNumber || "N/A";
+                                      const playerGender = p.customerId?.gender || "";
+                                      const playerSkillLevel = p.skillLevel || "";
+
+                                      return (
+                                        <div
+                                          key={p._id || idx}
+                                          style={{
+                                            fontSize: 11,
+                                            padding: "8px 12px",
+                                            cursor: 'pointer',
+                                            backgroundColor: "#fff",
+                                            marginBottom: 4,
+                                            marginLeft: 8,
+                                            marginRight: 8,
+                                            borderRadius: 4,
+                                          }}
+                                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#e3f2fd"}
+                                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#fff"}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setOpenDropdownKey(null);
+                                            setSelectedPlayerForAdd({
+                                              player: p,
+                                              playerName,
+                                              playerPhone,
+                                              playerGender,
+                                              playerSkillLevel,
+                                              team,
+                                              slotIndex: parseInt(slotIndex),
+                                              match,
+                                              color
+                                            });
+                                            setShowAddPlayerModal(true);
+                                          }}
+                                        >
+                                          <div className="d-flex align-items-center gap-2">
+                                            <div
+                                              style={{
+                                                width: 24,
+                                                height: 24,
+                                                borderRadius: "50%",
+                                                backgroundColor: color,
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                color: "#fff",
+                                                fontSize: 10,
+                                                fontWeight: 600,
+                                              }}
+                                            >
+                                              {playerName.charAt(0)?.toUpperCase() || "?"}
+                                            </div>
+                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                              <div className="fw-semibold text-truncate" style={{ fontSize: 11 }}>
+                                                {playerName}
+                                              </div>
+                                              <div className="text-muted" style={{ fontSize: 9 }}>
+                                                {playerSkillLevel && `${playerSkillLevel} • `}
+                                                {playerGender && `${playerGender} • `}
+                                                {playerPhone}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      );
+                                    })
+                                  ) : (
+                                    <div style={{ fontSize: 11, padding: "8px 12px", color: "#999", textAlign: "center" }}>
+                                      No available players
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })()}
+                          </>
+                        )}
                       </button>
                     );
                   })}
-                  {!isSearchFocused && openMatches.map((match, index) => {
+                  {!isSearchFocused && <div className="clone-list" aria-hidden="true" style={{ pointerEvents: "none", userSelect: "none" }}>{openMatches.map((match, index) => {
                     const joinedCount = match?.totalPlayers ?? (Number(match?.teamA?.length || 0) + Number(match?.teamB?.length || 0));
                     const maxPlayers = match?.totalPlayersCount ?? match?.maxPlayers ?? 4;
                     const fee = getMatchFee(match);
                     const isSelected = selectedOpenMatch?._id === match?._id;
 
                     return (
-                      <button
-                        key={`duplicate-${match._id}-${index}`}
-                        type="button"
-                        onClick={() => handleOpenMatchSelect(match)}
-                        className="text-start"
+                      <div
+                        key={`clone-${match._id}-${index}`}
+                        tabIndex={-1}
                         style={{
                           background: isSelected ? "#f0f4ff" : "#fff",
                           border: `1px solid ${isSelected ? "#1f41bb" : "#eef2f7"}`,
                           borderRadius: 6,
-                          cursor: "pointer",
                           padding: 10,
                         }}
                       >
@@ -1626,13 +1904,13 @@ const PlayerPreferences = () => {
                           <span>{formatMatchDate(match)}</span>
                           <span>{getMatchTime(match)}</span>
                         </div>
-                        <div className="d-flex justify-content-between mt-2" style={{ fontSize: 11 }}>
+                        <div className="d-flex justify-content-between align-items-center mt-2" style={{ fontSize: 11 }}>
                           <span className="text-muted">Players {joinedCount}/{maxPlayers}</span>
                           <span className="fw-semibold text-success">₹{fee.payable || 0}</span>
                         </div>
-                      </button>
+                      </div>
                     );
-                  })}
+                  })}</div>}
                 </div>
               </div>
             )}
@@ -1836,6 +2114,120 @@ const PlayerPreferences = () => {
         onHide={closePlayerDetailsModal}
         playerData={selectedPlayerDetails}
       />
+
+      {/* Add Player Confirmation Modal */}
+      <Modal show={showAddPlayerModal} onHide={() => setShowAddPlayerModal(false)} centered>
+        <Modal.Header closeButton style={{ borderBottom: "2px solid #1f41bb" }}>
+          <Modal.Title style={{ color: "#1f41bb", fontSize: 18, fontWeight: 600 }}>
+            Confirm Player Addition
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body style={{ padding: "24px" }}>
+          {selectedPlayerForAdd && (
+            <>
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 14, color: "#666", marginBottom: 8 }}>
+                  You are about to add the following player:
+                </div>
+                <div style={{
+                  backgroundColor: "#f8f9fa",
+                  padding: 16,
+                  borderRadius: 8,
+                  border: "1px solid #dee2e6"
+                }}>
+                  <div className="d-flex align-items-center gap-3 mb-3">
+                    <div
+                      style={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: "50%",
+                        backgroundColor: selectedPlayerForAdd.color,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "#fff",
+                        fontSize: 20,
+                        fontWeight: 600,
+                      }}
+                    >
+                      {selectedPlayerForAdd.playerName?.charAt(0)?.toUpperCase() || "?"}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>
+                        {selectedPlayerForAdd.playerName}
+                      </div>
+                      <div style={{ fontSize: 13, color: "#666" }}>
+                        {selectedPlayerForAdd.playerPhone}
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, fontSize: 13 }}>
+                    <div>
+                      <span style={{ color: "#666" }}>Gender:</span>{" "}
+                      <span style={{ fontWeight: 600 }}>{selectedPlayerForAdd.playerGender || "N/A"}</span>
+                    </div>
+                    <div>
+                      <span style={{ color: "#666" }}>Skill:</span>{" "}
+                      <span style={{ fontWeight: 600 }}>{selectedPlayerForAdd.playerSkillLevel || "N/A"}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{
+                backgroundColor: "#e3f2fd",
+                padding: 16,
+                borderRadius: 8,
+                marginBottom: 20
+              }}>
+                <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8, color: "#1f41bb" }}>
+                  Match Details
+                </div>
+                <div style={{ fontSize: 13, color: "#333", marginBottom: 4 }}>
+                  <strong>Club:</strong> {selectedPlayerForAdd.match?.clubName || "N/A"}
+                </div>
+                <div style={{ fontSize: 13, color: "#333", marginBottom: 4 }}>
+                  <strong>Court:</strong> {selectedPlayerForAdd.match?.courtName || "N/A"}
+                </div>
+                <div style={{ fontSize: 13, color: "#333" }}>
+                  <strong>Position:</strong> Team {selectedPlayerForAdd.team} - Slot {selectedPlayerForAdd.slotIndex + 1}
+                </div>
+              </div>
+
+              <div style={{
+                backgroundColor: "#fff3cd",
+                padding: 12,
+                borderRadius: 6,
+                fontSize: 12,
+                color: "#856404",
+                border: "1px solid #ffeaa7"
+              }}>
+                <strong>Note:</strong> This action will add the player to the match. Make sure all details are correct before confirming.
+              </div>
+            </>
+          )}
+        </Modal.Body>
+        <Modal.Footer style={{ borderTop: "1px solid #dee2e6", padding: "16px 24px" }}>
+          <Button
+            variant="outline-secondary"
+            onClick={() => setShowAddPlayerModal(false)}
+            style={{ minWidth: 100 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            style={{
+              backgroundColor: "#1f41bb",
+              border: "none",
+              minWidth: 100
+            }}
+            onClick={handleAddPlayerToMatch}
+            disabled={addingPlayerToMatch}
+          >
+            {addingPlayerToMatch ? <ButtonLoading size={8} /> : "Confirm"}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Container>
   );
 };

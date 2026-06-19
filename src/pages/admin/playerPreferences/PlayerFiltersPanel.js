@@ -23,17 +23,47 @@ const PlayerFiltersPanel = ({
 
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (
-                panelRef.current &&
-                !panelRef.current.contains(event.target) &&
-                anchorRef?.current &&
-                !anchorRef.current.contains(event.target)
-            ) {
-                onHide();
+            const target = event.target;
+
+            // If the clicked node is no longer in the document (e.g. react-select removed
+            // a menu item from the DOM before this handler ran), treat it as an inside click.
+            if (!document.documentElement.contains(target)) {
+                return;
             }
+
+            // Don't close if clicking inside the panel
+            if (panelRef.current && panelRef.current.contains(target)) {
+                return;
+            }
+
+            // Don't close if clicking on the anchor button
+            if (anchorRef?.current && anchorRef.current.contains(target)) {
+                return;
+            }
+
+            // Don't close if clicking inside a react-select menu that has been portalled
+            // outside the panel (identified by react-select class names)
+            if (
+                target.closest('[class*="menu"]') ||
+                target.closest('[class*="-option"]') ||
+                target.closest('[class*="indicatorContainer"]') ||
+                target.closest('[class*="clearIndicator"]') ||
+                target.closest('[class*="multiValue"]')
+            ) {
+                return;
+            }
+
+            // Don't close if clicking inside a MUI Modal (like AddPlayer modal)
+            if (target.closest('.MuiModal-root')) {
+                return;
+            }
+
+            // Close the panel for any other click
+            onHide();
         };
 
         if (show) {
+            // Use 'mousedown' to catch the event before react-select processes it
             document.addEventListener("mousedown", handleClickOutside);
             return () => document.removeEventListener("mousedown", handleClickOutside);
         }
@@ -60,6 +90,7 @@ const PlayerFiltersPanel = ({
         <Card
             className="border border-muted shadow-lg "
             ref={panelRef}
+            onMouseDown={(e) => e.stopPropagation()}
             style={{
                 position: "absolute",
                 top: "100%",
@@ -83,8 +114,10 @@ const PlayerFiltersPanel = ({
                 }}
             >
                 <div className="d-flex justify-content-between align-items-center">
-                    <div style={{ fontFamily: "Poppins", fontSize: 14, fontWeight: 600 }}>
-                        Filters
+                    <div className="d-flex align-items-center gap-2">
+                        <div style={{ fontFamily: "Poppins", fontSize: 14, fontWeight: 600 }}>
+                            Filters
+                        </div>
                     </div>
                     <Button
                         variant="link"
@@ -93,8 +126,6 @@ const PlayerFiltersPanel = ({
                         style={{
                             fontFamily: "Poppins",
                             fontSize: 12,
-                            // textDecoration: "none",
-                            // color: "#6c757d",
                             padding: 0,
                         }}
                     >
@@ -214,6 +245,23 @@ const PlayerFiltersPanel = ({
                         />
                     </Form.Group>
                 </Form>
+                <Row>
+                    <div className='col-12 mt-2 d-flex justify-content-end align-items-center py-2'>
+                        <Button
+                            size="sm"
+                            onClick={onHide}
+                            className=" text-white px-3 py-2"
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                            }}
+                            title="Close filters"
+                        >
+                            Close
+                        </Button>
+                    </div>
+                </Row>
             </Card.Body>
         </Card>
     );

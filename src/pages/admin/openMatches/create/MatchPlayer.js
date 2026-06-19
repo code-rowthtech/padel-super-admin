@@ -69,6 +69,7 @@ const MatchPlayer = ({
     selectedClubId,
     activeLocationId,
     activeCategoryId,
+    onAddPlayerToggle,
 }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -77,6 +78,12 @@ const MatchPlayer = ({
     const [defaultSkillLevel, setDefaultSkillLevel] = useState("Open Match");
     const [showAddMeForm, setShowAddMeForm] = useState(false);
     const [activeSlot, setActiveSlot] = useState(null);
+
+    const setShowAddMeFormWithCallback = (value) => {
+        const next = typeof value === 'function' ? value(showAddMeForm) : value;
+        setShowAddMeForm(next);
+        if (onAddPlayerToggle) onAddPlayerToggle(next);
+    };
     const createMatchesLoading = useSelector((state) => state?.openMatches?.openMatchesLoading);
     const resolveId = (value) => {
         if (!value) return "";
@@ -149,7 +156,7 @@ const MatchPlayer = ({
             showError("Please select game type");
             return;
         }
-        setShowAddMeForm((prev) => (prev && activeSlot === slot ? false : true));
+        setShowAddMeFormWithCallback((prev) => (prev && activeSlot === slot ? false : true));
         setActiveSlot((prev) => (prev === slot ? null : slot));
     };
 
@@ -997,7 +1004,7 @@ const MatchPlayer = ({
             <AddPlayer
                 showAddMeForm={showAddMeForm}
                 activeSlot={activeSlot}
-                setShowAddMeForm={setShowAddMeForm}
+                setShowAddMeForm={setShowAddMeFormWithCallback}
                 setActiveSlot={setActiveSlot}
                 selectedGender={selectedGender}
                 editPlayerData={getEditPlayerData(activeSlot)}

@@ -59,7 +59,7 @@ const getEntityId = (value) => {
   return value._id || value.id || "";
 };
 
-const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null }) => {
+const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null, onAddPlayerToggle = null }) => {
   const selectedCourtsRef = React.useRef([]);
   const selectedTimesRef = React.useRef({});
   const halfSelectedSlotsRef = React.useRef(new Set());
@@ -1774,9 +1774,8 @@ const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null }
                     ) && (
                         <div className="d-flex justify-content-end pt-2 pb-2 d-lg-none">
                           <Button
-                            className="rounded-pill px-4 py-1"
+                            className="rounded-pill bg-white px-4 py-1"
                             style={{
-                              background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
                               border: "none",
                               fontWeight: "600",
                               fontSize: "13px",
@@ -2198,7 +2197,7 @@ const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null }
 
               <div className="px-3 pb-2 mt-auto">
                 <div className="d-flex justify-content-center align-items-center">
-                  <Button
+                  <button
                     className="w-100 py-2"
                     style={{
                       background: "#fff",
@@ -2207,14 +2206,14 @@ const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null }
                       fontWeight: "600",
                       fontSize: "16px",
                       borderRadius: "25px",
-                      opacity: (selectedCourts.length === 0 && halfSelectedSlots.size === 0) ? 0.5 : 1,
+                      // opacity: (selectedCourts.length === 0 && halfSelectedSlots.size === 0) ? 0.5 : 1,
                       cursor: (selectedCourts.length === 0 && halfSelectedSlots.size === 0) ? "not-allowed" : "pointer",
                     }}
                     disabled={selectedCourts.length === 0 && halfSelectedSlots.size === 0 || slotPrice?.length === 0 || slotPrice === undefined || !slotPrice}
                     onClick={() => setMatchPlayer(true)}
                   >
                     Next
-                  </Button>
+                  </button>
                 </div>
               </div>
             </div>
@@ -2240,6 +2239,7 @@ const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null }
               selectedClubId={savedClubId}
               activeLocationId={activeLocationId}
               activeCategoryId={activeCategoryId}
+              onAddPlayerToggle={onAddPlayerToggle}
             />
           }
         </Col>

@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { Modal } from "react-bootstrap";
 import CreateMatches from "./CreateMatch";
 
 const CreateMatchModal = ({ show, onHide, clubId }) => {
+    const [addPlayerOpen, setAddPlayerOpen] = useState(false);
+
     return (
         <Modal
             show={show}
@@ -11,7 +13,7 @@ const CreateMatchModal = ({ show, onHide, clubId }) => {
             centered
             backdrop="static"
             keyboard={false}
-            dialogClassName="modal-90w"
+            dialogClassName={`modal-90w${addPlayerOpen ? " d-none" : ""}`}
             style={{ zIndex: 1055 }}
         >
             <style>
@@ -31,12 +33,15 @@ const CreateMatchModal = ({ show, onHide, clubId }) => {
                 </Modal.Title>
             </Modal.Header>
             <Modal.Body style={{ padding: 0, maxHeight: "calc(90vh - 60px)", overflowY: "auto" }}>
-                <CreateMatches isModal={true} onClose={onHide} initialClubId={clubId} />
+                <CreateMatches
+                    isModal={true}
+                    onClose={onHide}
+                    initialClubId={clubId}
+                    onAddPlayerToggle={setAddPlayerOpen}
+                />
             </Modal.Body>
         </Modal>
     );
 };
 
 export default CreateMatchModal;
-
-// Made with Bob

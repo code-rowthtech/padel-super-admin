@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { Badge, Button, Form, Offcanvas } from "react-bootstrap";
-import { FaPlus } from "react-icons/fa";
+iimport React, { useState, useEffect } from "react";
+import { Badge, Button, Form, Offcanvas, Dropdown } from "react-bootstrap";
+import { FaPlus, FaUser } from "react-icons/fa";
 import { DataLoading } from "../../../helpers/loading/Loaders";
 
 const SKILL_COLORS = {
@@ -25,6 +25,8 @@ const OpenMatchesPanel = ({
     formatMatchDate,
     getMatchTime,
     onAddOpenMatch,
+    availablePlayers = [],
+    onAddPlayerToMatch,
 }) => {
     const [matchSearchQuery, setMatchSearchQuery] = useState("");
     const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -45,6 +47,192 @@ const OpenMatchesPanel = ({
         const maxPlayers = match?.totalPlayersCount ?? match?.maxPlayers ?? 4;
         const fee = getMatchFee(match);
         const isSelected = selectedOpenMatch?._id === match?._id;
+
+        // Get team players - only for selected match
+        const teamA = isSelected ? (match?.teamA || []) : [];
+        const teamB = isSelected ? (match?.teamB || []) : [];
+
+        const renderPlayerIcon = (team, slotIndex, color) => {
+            const players = team === 'A' ? teamA : teamB;
+            const player = players[slotIndex];
+            const playerCount = players.length;
+            const totalTeamSlots = 2;
+            const isEmpty = !player;
+
+            // Filter available players based on match requirements
+            const filteredAvailablePlayers = availablePlayers.filter(p => {
+                // Filter by gender if match has gender requirement
+                if (match?.gender && match.gender !== 'Mixed') {
+                    return p.gender === match.gender;
+                }
+                return true;
+            });
+
+            return (
+                <Dropdown
+                    onClick={(e) => e.stopPropagation()}
+                    onToggle={(isOpen, event, metadata) => {
+                        if (event && typeof event.stopPropagation === 'function') {
+                            event.stopPropagation();
+                        }
+                    }}
+                    align="end"
+                >
+                    <Dropdown.Toggle
+                        variant="link"
+                        bsPrefix="custom-dropdown-toggle"
+                        style={{
+                            width: 24,
+                            height: 24,
+                            borderRadius: "50%",
+                            backgroundColor: player ? color : "#fff",
+                            border: `2px solid ${color}`,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            cursor: "pointer",
+                            position: "relative",
+                            padding: 0,
+                            textDecoration: "none",
+                        }}
+                    >
+                        {player ? (
+                            <FaUser size={10} color="#fff" />
+                        ) : (
+                            <span style={{ color: color, fontSize: 14, fontWeight: "bold", lineHeight: "1", marginTop: "-2px" }}>+</span>
+                        )}
+                        {slotIndex === 0 && playerCount > 0 && (
+                            <span
+                                style={{
+                                    position: "absolute",
+                                    top: -6,
+                                    right: -6,
+                                    backgroundColor: color,
+                                    color: "#fff",
+                                    borderRadius: "50%",
+                                    width: 16,
+                                    height: 16,
+                                    fontSize: 9,
+                                    fontWeight: "bold",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    border: "1px solid #fff",
+                                }}
+                            >
+                                {playerCount}/{totalTeamSlots}
+                            </span>
+                        )}
+                    </Dropdown.Toggle>
+
+                    <Dropdown.Menu
+                        style={{
+                            minWidth: 200,
+                            maxHeight: 250,
+                            overflowY: "auto",
+                            fontSize: 12,
+                            zIndex: 9999,
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {isEmpty ? (
+                            // Show available players when slot is empty
+                            <>
+                                <Dropdown.Header style={{ fontSize: 11, fontWeight: 600 }}>
+                                    Add Player to Team {team}
+                                </Dropdown.Header>
+                                {filteredAvailablePlayers.length > 0 ? (
+                                    filteredAvailablePlayers.map((p, idx) => (
+                                        <Dropdown.Item
+                                            key={idx}
+                                            style={{ fontSize: 12, padding: "8px 12px" }}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (onAddPlayerToMatch) {
+                                                    onAddPlayerToMatch(match, team, slotIndex, p);
+                                                }
+                                            }}
+                                        >
+                                            <div className="d-flex align-items-center gap-2">
+                                                <div
+                                                    style={{
+                                                        width: 28,
+                                                        height: 28,
+                                                        borderRadius: "50%",
+                                                        backgroundColor: color,
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        justifyContent: "center",
+                                                        color: "#fff",
+                                                        fontSize: 11,
+                                                        fontWeight: 600,
+                                                    }}
+                                                >
+                                                    {p?.name?.charAt(0)?.toUpperCase() || "?"}
+                                                </div>
+                                                <div style={{ flex: 1, minWidth: 0 }}>
+                                                    <div className="fw-semibold text-truncate" style={{ fontSize: 12 }}>
+                                                        {p?.name || "Unknown"}
+                                                    </div>
+                                                    <div className="text-muted" style={{ fontSize: 10 }}>
+                                                        {p?.skillLevel && `${p.skillLevel} • `}
+                                                        {p?.phoneNumber}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </Dropdown.Item>
+                                    ))
+                                ) : (
+                                    <Dropdown.Item disabled style={{ fontSize: 12 }}>
+                                        No available players
+                                    </Dropdown.Item>
+                                )}
+                            </>
+                        ) : (
+                            // Show current player when slot is filled
+                            <>
+                                <Dropdown.Header style={{ fontSize: 11, fontWeight: 600 }}>
+                                    Team {team} - Slot {slotIndex + 1}
+                                </Dropdown.Header>
+                                <Dropdown.Item
+                                    style={{ fontSize: 12, padding: "8px 12px" }}
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <div className="d-flex align-items-center gap-2">
+                                        <div
+                                            style={{
+                                                width: 28,
+                                                height: 28,
+                                                borderRadius: "50%",
+                                                backgroundColor: color,
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                color: "#fff",
+                                                fontSize: 11,
+                                                fontWeight: 600,
+                                            }}
+                                        >
+                                            {player?.name?.charAt(0)?.toUpperCase() || "?"}
+                                        </div>
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <div className="fw-semibold text-truncate" style={{ fontSize: 12 }}>
+                                                {player?.name || "Unknown"}
+                                            </div>
+                                            {player?.level && (
+                                                <div className="text-muted" style={{ fontSize: 10 }}>
+                                                    Level: {player.level}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </Dropdown.Item>
+                            </>
+                        )}
+                    </Dropdown.Menu>
+                </Dropdown>
+            );
+        };
 
         return (
             <button
@@ -78,10 +266,26 @@ const OpenMatchesPanel = ({
                     <span>{formatMatchDate(match)}</span>
                     <span>{getMatchTime(match)}</span>
                 </div>
-                <div className="d-flex justify-content-between mt-2" style={{ fontSize: 12 }}>
+                <div className="d-flex justify-content-between align-items-center mt-2" style={{ fontSize: 12 }}>
                     <span className="text-muted">Players {joinedCount}/{maxPlayers}</span>
                     <span className="fw-semibold text-success">Payable ₹{fee.payable || 0}</span>
                 </div>
+
+                {/* Player Icons Row - Only show for selected match */}
+                {isSelected && (
+                    <div className="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                        <div className="d-flex gap-1 align-items-center">
+                            <span style={{ fontSize: 10, color: "#3DBE64", fontWeight: 600, marginRight: 4 }}>A:</span>
+                            {renderPlayerIcon('A', 0, '#3DBE64')}
+                            {renderPlayerIcon('A', 1, '#3DBE64')}
+                        </div>
+                        <div className="d-flex gap-1 align-items-center">
+                            <span style={{ fontSize: 10, color: "#1F41BB", fontWeight: 600, marginRight: 4 }}>B:</span>
+                            {renderPlayerIcon('B', 0, '#1F41BB')}
+                            {renderPlayerIcon('B', 1, '#1F41BB')}
+                        </div>
+                    </div>
+                )}
             </button>
         );
     };
@@ -120,6 +324,25 @@ const OpenMatchesPanel = ({
             gap: 0.5rem;
             padding-bottom: 0;
             cursor: default !important;
+          }
+
+          .custom-dropdown-toggle {
+            background: none !important;
+            border: none !important;
+            box-shadow: none !important;
+          }
+
+          .custom-dropdown-toggle:hover,
+          .custom-dropdown-toggle:focus,
+          .custom-dropdown-toggle:active {
+            background: none !important;
+            border: none !important;
+            box-shadow: none !important;
+            outline: none !important;
+          }
+
+          .custom-dropdown-toggle::after {
+            display: none !important;
           }
         `}
             </style>
