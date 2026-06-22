@@ -2190,6 +2190,105 @@ const PlayerPreferences = () => {
         </Modal.Body>
       </Modal>
 
+      {/* Duration Confirmation Modal */}
+      <Modal
+        show={durationConfirm.show}
+        onHide={() => setDurationConfirm({ show: false, row: null, field: null, loading: false })}
+        size="md"
+        centered
+      >
+        <Modal.Body style={{ padding: "28px 24px 20px" }}>
+          <div style={{ textAlign: "center" }}>
+            {(() => {
+              const label = durationConfirm.field === "is90" ? "90 min" : "60 min";
+              const isActive = !!durationConfirm.row?.preferredDuration?.[durationConfirm.field];
+              const willAdd = !isActive;
+              const theme = durationConfirm.field === "is90"
+                ? { bg: "#F5F3FF", border: "#DDD6FE", color: "#6D28D9" }
+                : { bg: "#EFF6FF", border: "#BFDBFE", color: "#1D4ED8" };
+
+              return (
+                <>
+                  <div
+                    style={{
+                      alignItems: "center",
+                      background: theme.bg,
+                      border: `1.5px solid ${theme.border}`,
+                      borderRadius: "50%",
+                      color: theme.color,
+                      display: "inline-flex",
+                      fontSize: 13,
+                      fontWeight: 700,
+                      height: 48,
+                      justifyContent: "center",
+                      marginBottom: 14,
+                      width: 48,
+                    }}
+                  >
+                    {label.replace(" min", "")}
+                  </div>
+                  <div style={{ color: "#0F172A", fontSize: 15, fontWeight: 700, marginBottom: 6 }}>
+                    {willAdd ? "Add Duration?" : "Remove Duration?"}
+                  </div>
+                  <div style={{ color: "#64748B", fontSize: 13, lineHeight: 1.5, marginBottom: 20 }}>
+                    {willAdd ? "Add" : "Remove"} <strong>{label}</strong> for{" "}
+                    <strong>{durationConfirm.row?.customerId?.name || "this player"}</strong>?
+                  </div>
+                </>
+              );
+            })()}
+            <div className="d-flex gap-2 justify-content-center">
+              <button
+                type="button"
+                onClick={() => setDurationConfirm({ show: false, row: null, field: null, loading: false })}
+                disabled={durationConfirm.loading}
+                style={{
+                  background: "#F8FAFC",
+                  border: "1px solid #E2E8F0",
+                  borderRadius: 8,
+                  color: "#374151",
+                  cursor: durationConfirm.loading ? "not-allowed" : "pointer",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  opacity: durationConfirm.loading ? 0.7 : 1,
+                  padding: "8px 20px",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDurationConfirm}
+                disabled={durationConfirm.loading}
+                style={{
+                  alignItems: "center",
+                  background: "#1f41bb",
+                  border: "none",
+                  borderRadius: 8,
+                  color: "#fff",
+                  cursor: durationConfirm.loading ? "not-allowed" : "pointer",
+                  display: "inline-flex",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  gap: 6,
+                  opacity: durationConfirm.loading ? 0.7 : 1,
+                  padding: "8px 20px",
+                }}
+              >
+                {durationConfirm.loading ? (
+                  <ButtonLoading size={8} />
+                ) : (
+                  <>
+                    <FaCheck size={11} />
+                    Confirm
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
+
       {/* Schedule Edit Modal */}
       <Modal show={showScheduleModal} onHide={closeScheduleModal} size="lg" centered>
         <Modal.Header closeButton>
