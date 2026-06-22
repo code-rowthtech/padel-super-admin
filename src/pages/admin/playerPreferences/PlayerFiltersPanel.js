@@ -1,6 +1,5 @@
 import React, { useRef, useEffect } from "react";
-import { Badge, Button, Card, Col, Form, Row } from "react-bootstrap";
-import { FaTimes } from "react-icons/fa";
+import { Button, Card, Col, Form, Row } from "react-bootstrap";
 
 const PlayerFiltersPanel = ({
     show,
@@ -24,46 +23,21 @@ const PlayerFiltersPanel = ({
     useEffect(() => {
         const handleClickOutside = (event) => {
             const target = event.target;
-
-            // If the clicked node is no longer in the document (e.g. react-select removed
-            // a menu item from the DOM before this handler ran), treat it as an inside click.
-            if (!document.documentElement.contains(target)) {
-                return;
-            }
-
-            // Don't close if clicking inside the panel
-            if (panelRef.current && panelRef.current.contains(target)) {
-                return;
-            }
-
-            // Don't close if clicking on the anchor button
-            if (anchorRef?.current && anchorRef.current.contains(target)) {
-                return;
-            }
-
-            // Don't close if clicking inside a react-select menu that has been portalled
-            // outside the panel (identified by react-select class names)
+            if (!document.documentElement.contains(target)) return;
+            if (panelRef.current && panelRef.current.contains(target)) return;
+            if (anchorRef?.current && anchorRef.current.contains(target)) return;
             if (
                 target.closest('[class*="menu"]') ||
                 target.closest('[class*="-option"]') ||
                 target.closest('[class*="indicatorContainer"]') ||
                 target.closest('[class*="clearIndicator"]') ||
                 target.closest('[class*="multiValue"]')
-            ) {
-                return;
-            }
-
-            // Don't close if clicking inside a MUI Modal (like AddPlayer modal)
-            if (target.closest('.MuiModal-root')) {
-                return;
-            }
-
-            // Close the panel for any other click
+            ) return;
+            if (target.closest('.MuiModal-root')) return;
             onHide();
         };
 
         if (show) {
-            // Use 'mousedown' to catch the event before react-select processes it
             document.addEventListener("mousedown", handleClickOutside);
             return () => document.removeEventListener("mousedown", handleClickOutside);
         }
@@ -73,7 +47,6 @@ const PlayerFiltersPanel = ({
 
     const getActiveFilterCount = () => {
         let count = 0;
-        if (filters.search) count++;
         if (filters.gender?.length > 0) count++;
         if (filters.residence?.length > 0) count++;
         if (filters.skillLevel?.length > 0) count++;
@@ -81,14 +54,18 @@ const PlayerFiltersPanel = ({
         if (filters.day?.length > 0) count++;
         if (filters.timeSlot?.length > 0) count++;
         if (filters.hasPreference?.length > 0) count++;
+        if (filters.preferredDuration?.length > 0) count++;
         return count;
     };
 
-    const activeCount = getActiveFilterCount();
+    const DURATION_OPTIONS = [
+        { value: "is60", label: "60 min" },
+        { value: "is90", label: "90 min" },
+    ];
 
     return (
         <Card
-            className="border border-muted shadow-lg "
+            className="border border-muted shadow-lg"
             ref={panelRef}
             onMouseDown={(e) => e.stopPropagation()}
             style={{
@@ -114,40 +91,30 @@ const PlayerFiltersPanel = ({
                 }}
             >
                 <div className="d-flex justify-content-between align-items-center">
-                    <div className="d-flex align-items-center gap-2">
-                        <div style={{ fontFamily: "Poppins", fontSize: 14, fontWeight: 600 }}>
-                            Filters
-                        </div>
+                    <div style={{ fontFamily: "Poppins", fontSize: 14, fontWeight: 600 }}>
+                        Filters
+                        {getActiveFilterCount() > 0 && (
+                            <span style={{
+                                background: "#EF4444",
+                                borderRadius: 10,
+                                color: "#fff",
+                                fontSize: 10,
+                                fontWeight: 700,
+                                marginLeft: 6,
+                                padding: "1px 6px",
+                            }}>
+                                {getActiveFilterCount()}
+                            </span>
+                        )}
                     </div>
-                    <Button
-                        variant="link"
-                        size="sm"
-                        onClick={onReset}
-                        style={{
-                            fontFamily: "Poppins",
-                            fontSize: 12,
-                            padding: 0,
-                        }}
-                    >
+                    <Button variant="link" size="sm" onClick={onReset} style={{ fontFamily: "Poppins", fontSize: 12, padding: 0 }}>
                         Clear all
                     </Button>
                 </div>
             </Card.Header>
+
             <Card.Body style={{ padding: 16 }}>
                 <Form>
-                    <Form.Group className="mb-3">
-                        <Form.Label style={{ fontFamily: "Poppins", fontSize: 12, fontWeight: 600, marginBottom: 6 }}>
-                            Search Player
-                        </Form.Label>
-                        <Form.Control
-                            size="sm"
-                            placeholder="Name or phone number..."
-                            value={filters.search}
-                            onChange={(e) => onFilterChange("search", e.target.value)}
-                            style={{ fontFamily: "Poppins", fontSize: 13 }}
-                        />
-                    </Form.Group>
-
                     <Row className="g-2">
                         <Col xs={6}>
                             <Form.Group className="mb-3">
@@ -233,6 +200,52 @@ const PlayerFiltersPanel = ({
                         </Col>
                     </Row>
 
+                    {/* Preferred Duration */}
+                    <Form.Group className="mb-3">
+                        <Form.Label style={{ fontFamily: "Poppins", fontSize: 12, fontWeight: 600, marginBottom: 8 }}>
+                            Preferred Duration
+                        </Form.Label>
+                        <div className="d-flex gap-3">
+                            {DURATION_OPTIONS.map((opt) => {
+                                const checked = (filters.preferredDuration || []).includes(opt.value);
+                                return (
+                                    <label
+                                        key={opt.value}
+                                        style={{
+                                            alignItems: "center",
+                                            background: checked ? "#EFF6FF" : "#F8FAFC",
+                                            border: `1.5px solid ${checked ? "#2563EB" : "#E2E8F0"}`,
+                                            borderRadius: 8,
+                                            color: checked ? "#1D4ED8" : "#374151",
+                                            cursor: "pointer",
+                                            display: "flex",
+                                            fontSize: 13,
+                                            fontWeight: checked ? 600 : 400,
+                                            gap: 8,
+                                            padding: "7px 16px",
+                                            transition: "all 0.12s",
+                                            userSelect: "none",
+                                        }}
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={checked}
+                                            onChange={() => {
+                                                const current = filters.preferredDuration || [];
+                                                const next = checked
+                                                    ? current.filter((v) => v !== opt.value)
+                                                    : [...current, opt.value];
+                                                onFilterChange("preferredDuration", next);
+                                            }}
+                                            style={{ accentColor: "#2563EB", cursor: "pointer", height: 14, width: 14 }}
+                                        />
+                                        {opt.label}
+                                    </label>
+                                );
+                            })}
+                        </div>
+                    </Form.Group>
+
                     <Form.Group className="mb-0">
                         <Form.Label style={{ fontFamily: "Poppins", fontSize: 12, fontWeight: 600, marginBottom: 6 }}>
                             Time Slot
@@ -245,17 +258,14 @@ const PlayerFiltersPanel = ({
                         />
                     </Form.Group>
                 </Form>
+
                 <Row>
-                    <div className='col-12 mt-2 d-flex justify-content-end align-items-center py-2'>
+                    <div className="col-12 mt-2 d-flex justify-content-end align-items-center py-2">
                         <Button
                             size="sm"
                             onClick={onHide}
-                            className=" text-white px-3 py-2"
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                            }}
+                            className="text-white px-3 py-2"
+                            style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
                             title="Close filters"
                         >
                             Close
@@ -268,5 +278,3 @@ const PlayerFiltersPanel = ({
 };
 
 export default PlayerFiltersPanel;
-
-// Made with Bob
