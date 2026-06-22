@@ -1,6 +1,6 @@
-iimport React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Badge, Button, Form, Offcanvas, Dropdown } from "react-bootstrap";
-import { FaPlus, FaUser } from "react-icons/fa";
+import { FaPlus, FaTimes, FaUser } from "react-icons/fa";
 import { DataLoading } from "../../../helpers/loading/Loaders";
 
 const SKILL_COLORS = {
@@ -247,8 +247,34 @@ const OpenMatchesPanel = ({
                     cursor: "pointer",
                     padding: 10,
                     flexShrink: 0,
+                    position: "relative",
                 }}
             >
+                {isSelected && (
+                    <span
+                        title="Deselect match and resume animation"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onMatchSelect(null);
+                        }}
+                        style={{
+                            position: "absolute",
+                            top: 5,
+                            right: 5,
+                            width: 16,
+                            height: 16,
+                            borderRadius: "50%",
+                            backgroundColor: "#1f41bb",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            cursor: "pointer",
+                            zIndex: 1,
+                        }}
+                    >
+                        <FaTimes size={8} color="#fff" />
+                    </span>
+                )}
                 <div className="d-flex justify-content-between gap-2 align-items-start">
                     <div style={{ minWidth: 0 }}>
                         <div className="fw-semibold text-truncate" style={{ fontSize: 13 }}>

@@ -604,7 +604,7 @@ const PlayerPreferences = () => {
     setOpenMatchesLoading(true);
     try {
       const searchParam = searchQuery.trim() ? `&search=${encodeURIComponent(searchQuery)}` : "";
-      const res = await ownerApi.get(`${SUPER_ADMIN_OPEN_MATCH_OVERVIEW}?page=1&limit=50${searchParam}`);
+      const res = await ownerApi.get(`${SUPER_ADMIN_OPEN_MATCH_OVERVIEW}?page=1&limit=50${searchParam}&playerPreferences=true`);
       const payload = res?.data?.data || res?.data || {};
       setOpenMatches(payload?.openMatches || payload?.data || []);
     } catch (error) {
@@ -1599,7 +1599,7 @@ const PlayerPreferences = () => {
               </div>
             ) : (
               <div
-                className={`open-matches-scroll-container ${!isSearchFocused ? 'scrolling' : ''}`}
+                className={`open-matches-scroll-container ${!isSearchFocused && !selectedOpenMatch ? 'scrolling' : ''}`}
                 ref={scrollContainerRef}
                 style={{
                   height: '600px',
@@ -1710,8 +1710,32 @@ const PlayerPreferences = () => {
                           borderRadius: 6,
                           cursor: "pointer",
                           padding: 10,
+                          position: "relative",
                         }}
                       >
+                        {isSelected && (
+                          <span
+                            title="Deselect match and resume animation"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedOpenMatch(null);
+                              resetFilters();
+                            }}
+                            style={{
+                              position: "absolute",
+                              top: -6,
+                              right: -2,
+                              width: 16,
+                              height: 16,
+                              borderRadius: "50%",
+                              backgroundColor: "#1f41bb",
+                              zIndex: 1,
+                            }}
+                            className="d-flex align-items-center justify-content-center cursor-pointer cp"
+                          >
+                            <FaTimes size={10} color="#fff" />
+                          </span>
+                        )}
                         <div className="d-flex justify-content-between gap-2 align-items-start">
                           <div style={{ minWidth: 0 }}>
                             <div className="fw-semibold text-truncate" style={{ fontSize: 12 }}>
@@ -1870,7 +1894,7 @@ const PlayerPreferences = () => {
                       </button>
                     );
                   })}
-                  {!isSearchFocused && <div className="clone-list" aria-hidden="true" style={{ pointerEvents: "none", userSelect: "none" }}>{openMatches.map((match, index) => {
+                  {!isSearchFocused && !selectedOpenMatch && <div className="clone-list" aria-hidden="true" style={{ pointerEvents: "none", userSelect: "none" }}>{openMatches.map((match, index) => {
                     const joinedCount = match?.totalPlayers ?? (Number(match?.teamA?.length || 0) + Number(match?.teamB?.length || 0));
                     const maxPlayers = match?.totalPlayersCount ?? match?.maxPlayers ?? 4;
                     const fee = getMatchFee(match);
