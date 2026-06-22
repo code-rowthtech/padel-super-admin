@@ -73,7 +73,6 @@ const PlayerFiltersPanel = ({
 
     const getActiveFilterCount = () => {
         let count = 0;
-        if (filters.search) count++;
         if (filters.gender?.length > 0) count++;
         if (filters.residence?.length > 0) count++;
         if (filters.skillLevel?.length > 0) count++;
@@ -135,19 +134,6 @@ const PlayerFiltersPanel = ({
             </Card.Header>
             <Card.Body style={{ padding: 16 }}>
                 <Form>
-                    <Form.Group className="mb-3">
-                        <Form.Label style={{ fontFamily: "Poppins", fontSize: 12, fontWeight: 600, marginBottom: 6 }}>
-                            Search Player
-                        </Form.Label>
-                        <Form.Control
-                            size="sm"
-                            placeholder="Name or phone number..."
-                            value={filters.search}
-                            onChange={(e) => onFilterChange("search", e.target.value)}
-                            style={{ fontFamily: "Poppins", fontSize: 13 }}
-                        />
-                    </Form.Group>
-
                     <Row className="g-2">
                         <Col xs={6}>
                             <Form.Group className="mb-3">
@@ -262,8 +248,8 @@ const PlayerFiltersPanel = ({
                         </Button>
                     </div>
                 </Row>
-            </Card.Body>
-        </Card>
+            </Card.Body >
+        </Card >
     );
 };
 

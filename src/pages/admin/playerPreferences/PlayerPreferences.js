@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, Col, Container, Dropdown, Form, Modal, OverlayTrigger, Row, Table, Tooltip } from "react-bootstrap";
-import { FaEdit, FaFilter, FaPhone, FaPlus, FaRegEye, FaSave, FaSearch, FaTimes, FaUser } from "react-icons/fa";
+import { FaCheck, FaEdit, FaFilter, FaPhone, FaPlus, FaRegEye, FaSave, FaSearch, FaTimes, FaUser } from "react-icons/fa";
 import Select, { components as selectComponents } from "react-select";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -529,6 +529,7 @@ const PlayerPreferences = () => {
   const [matchSearchQuery, setMatchSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [showPlayerDetailsModal, setShowPlayerDetailsModal] = useState(false);
+  const [callConfirm, setCallConfirm] = useState({ show: false, row: null, nextValue: false, loading: false });
   const [openDropdownKey, setOpenDropdownKey] = useState(null); // Track which dropdown is open
   const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
   const [selectedPlayerForAdd, setSelectedPlayerForAdd] = useState(null);
@@ -604,7 +605,7 @@ const PlayerPreferences = () => {
     setOpenMatchesLoading(true);
     try {
       const searchParam = searchQuery.trim() ? `&search=${encodeURIComponent(searchQuery)}` : "";
-      const res = await ownerApi.get(`${SUPER_ADMIN_OPEN_MATCH_OVERVIEW}?page=1&limit=50${searchParam}&playerPreferences=true`);
+      const res = await ownerApi.get(`${SUPER_ADMIN_OPEN_MATCH_OVERVIEW}?page=1&limit=50${searchParam}`);
       const payload = res?.data?.data || res?.data || {};
       setOpenMatches(payload?.openMatches || payload?.data || []);
     } catch (error) {
@@ -767,6 +768,54 @@ const PlayerPreferences = () => {
       showError(error.response?.data?.message || 'Failed to add player to match. Please try again.');
     } finally {
       setAddingPlayerToMatch(false);
+    }
+  };
+
+  const handleCallStatusClick = (row) => {
+    const nextValue = !row.isCalled;
+    setCallConfirm({ show: true, row, nextValue, loading: false });
+  };
+
+  const handleCallStatusConfirm = async () => {
+    const { row, nextValue } = callConfirm;
+    setCallConfirm((c) => ({ ...c, loading: true }));
+    try {
+      // Build the same full payload shape that handleSavePreference uses,
+      // so the API doesn't reject unknown / missing fields.
+      const payload = {
+        preferredClubs: (row.preferredClubs || []).map((club) =>
+          typeof club === "string" ? club : club._id,
+        ),
+        preferredSchedule: (row.preferredSchedule || []).map((entry) => ({
+          day: entry.day,
+          timeSlots: (entry.timeSlots || []).map((slot) =>
+            typeof slot === "string" ? slot : slot.value || slot.label || slot,
+          ),
+        })),
+        skillLevel: row.skillLevel || undefined,
+        notes: row.notes || undefined,
+        playerTendency: row.playerTendency || undefined,
+        isCalled: nextValue,
+      };
+
+      let result;
+      if (row?.preferenceId) {
+        result = await dispatch(updatePlayerPreference({ id: row.preferenceId, data: payload }));
+      } else {
+        result = await dispatch(createPlayerPreference({
+          phoneNumber: Number(row.customerId?.phoneNumber),
+          ...payload,
+        }));
+      }
+
+      // Only reload on success — thunk already shows error toast on failure
+      if (!result.error) {
+        loadPlayers(pagination.page);
+      }
+    } catch {
+      // swallow — error toast is handled inside the thunk
+    } finally {
+      setCallConfirm({ show: false, row: null, nextValue: false, loading: false });
     }
   };
 
@@ -939,40 +988,10 @@ const PlayerPreferences = () => {
     <Container fluid className="player-preferences-workspace px-0 px-md-0 mt-md-0 mt-2">
       <style>
         {`
-          @keyframes scrollMatches {
-            0% {
-              transform: translateY(0);
-            }
-            100% {
-              transform: translateY(-50%);
-            }
-          }
-
-          .open-matches-scroll-container {
-            cursor: default !important;
-          }
-
-          .open-matches-scroll-container.scrolling .open-matches-list {
-            animation: scrollMatches 30s linear infinite;
-            cursor: default !important;
-            will-change: transform;
-          }
-
-          .open-matches-scroll-container.scrolling:hover .open-matches-list {
-            animation-play-state: paused;
-            cursor: default !important;
-          }
-
           .open-matches-list {
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
-            cursor: default !important;
-          }
-
-          .open-matches-scroll-container *,
-          .open-matches-list * {
-            cursor: default !important;
           }
 
           .open-matches-list .clone-list {
@@ -1007,7 +1026,14 @@ const PlayerPreferences = () => {
               <div>
                 <h6 className="mb-1 tabel-title">Players</h6>
               </div>
-              <div className="d-flex gap-2 flex-wrap" style={{ position: "relative" }}>
+              <div className="d-flex gap-2 flex-wrap align-items-center" style={{ position: "relative" }}>
+                <Form.Control
+                  size="sm"
+                  placeholder="Search players..."
+                  value={filters.search}
+                  onChange={(e) => updateFilter("search", e.target.value)}
+                  style={{ fontFamily: "Poppins", fontSize: 13, width: 180 }}
+                />
                 <Button
                   ref={filterButtonRef}
                   size="sm"
@@ -1017,12 +1043,11 @@ const PlayerPreferences = () => {
                 >
                   <FaFilter size={12} className="me-1" />
                   Filters
-                  {(filters.search || filters.gender?.length > 0 || filters.residence?.length > 0 ||
+                  {(filters.gender?.length > 0 || filters.residence?.length > 0 ||
                     filters.skillLevel?.length > 0 || filters.clubId?.length > 0 || filters.day?.length > 0 ||
                     filters.timeSlot?.length > 0 || filters.hasPreference?.length > 0) && (
                       <Badge bg="danger" className="ms-1" style={{ fontSize: 9 }}>
                         {[
-                          filters.search ? 1 : 0,
                           filters.gender?.length || 0,
                           filters.residence?.length || 0,
                           filters.skillLevel?.length || 0,
@@ -1128,8 +1153,7 @@ const PlayerPreferences = () => {
                         <th style={{ width: 200 }}>Preferred Clubs</th>
                         <th style={{ width: 120 }}>Skill Level</th>
                         <th style={{ width: 250 }}>Schedule</th>
-                        <th style={{ width: 150 }}>Player Tendency</th>
-                        <th style={{ width: 150 }}>Notes</th>
+                        <th className="text-center" style={{ width: 80 }}>Call Status</th>
                         <th className="text-center" style={{ width: 145 }}>Action</th>
                       </tr>
                     </thead>
@@ -1159,10 +1183,10 @@ const PlayerPreferences = () => {
                               {row.customerId?.city ? (
                                 <OverlayTrigger
                                   placement="top"
-                                  overlay={<Tooltip>{row.customerId.city}</Tooltip>}
+                                  overlay={<Tooltip>{row?.customerId?.cityName || row.customerId.city}</Tooltip>}
                                 >
                                   <span className="text-muted text-truncate d-block" style={{ fontSize: 12, cursor: 'help' }}>
-                                    {row.customerId.city}
+                                    {row?.customerId?.cityName || row.customerId.city}
                                   </span>
                                 </OverlayTrigger>
                               ) : (
@@ -1243,47 +1267,27 @@ const PlayerPreferences = () => {
                                 formatScheduleSummary(row.preferredSchedule, 2)
                               )}
                             </td>
-                            <td style={{ minWidth: 0 }}>
-                              {isEditing ? (
-                                <Form.Control
-                                  size="sm"
-                                  value={preferenceForm.playerTendency}
-                                  onChange={(event) => setPreferenceForm((form) => ({ ...form, playerTendency: event.target.value }))}
-                                  placeholder="e.g. evening regular"
-                                />
-                              ) : row.playerTendency ? (
-                                <OverlayTrigger
-                                  placement="top"
-                                  overlay={<Tooltip>{row.playerTendency}</Tooltip>}
-                                >
-                                  <span className="text-muted text-truncate d-block" style={{ fontSize: 12, cursor: 'help' }}>
-                                    {row.playerTendency}
-                                  </span>
-                                </OverlayTrigger>
-                              ) : (
-                                <span className="text-muted" style={{ fontSize: 12 }}>N/A</span>
-                              )}
-                            </td>
-                            <td style={{ minWidth: 0 }}>
-                              {isEditing ? (
-                                <Form.Control
-                                  size="sm"
-                                  value={preferenceForm.notes}
-                                  onChange={(event) => setPreferenceForm((form) => ({ ...form, notes: event.target.value }))}
-                                  placeholder="Optional notes"
-                                />
-                              ) : row.notes ? (
-                                <OverlayTrigger
-                                  placement="top"
-                                  overlay={<Tooltip>{row.notes}</Tooltip>}
-                                >
-                                  <span className="text-muted text-truncate d-block" style={{ fontSize: 12, cursor: 'help' }}>
-                                    {row.notes}
-                                  </span>
-                                </OverlayTrigger>
-                              ) : (
-                                <span className="text-muted" style={{ fontSize: 12 }}>N/A</span>
-                              )}
+                            <td className="text-center">
+                              <button
+                                type="button"
+                                onClick={() => handleCallStatusClick(row)}
+                                title={row.isCalled ? "Mark as not called" : "Mark as called"}
+                                style={{
+                                  alignItems: "center",
+                                  background: row.isCalled ? "#ECFDF5" : "#F8FAFC",
+                                  border: `1.5px solid ${row.isCalled ? "#6EE7B7" : "#CBD5E1"}`,
+                                  borderRadius: 8,
+                                  color: row.isCalled ? "#059669" : "#94A3B8",
+                                  cursor: "pointer",
+                                  display: "inline-flex",
+                                  height: 28,
+                                  justifyContent: "center",
+                                  transition: "all 0.15s",
+                                  width: 28,
+                                }}
+                              >
+                                <FaCheck size={11} />
+                              </button>
                             </td>
                             <td className="text-center">
                               <div className="d-flex flex-column gap-1 align-items-center">
@@ -1523,6 +1527,27 @@ const PlayerPreferences = () => {
                                     >
                                       <FaEdit size={12} className="me-1" />Edit
                                     </Button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleCallStatusClick(row)}
+                                      title={row.isCalled ? "Mark as not called" : "Mark as called"}
+                                      style={{
+                                        alignItems: "center",
+                                        background: row.isCalled ? "#ECFDF5" : "#F8FAFC",
+                                        border: `1.5px solid ${row.isCalled ? "#6EE7B7" : "#CBD5E1"}`,
+                                        borderRadius: 6,
+                                        color: row.isCalled ? "#059669" : "#94A3B8",
+                                        cursor: "pointer",
+                                        display: "inline-flex",
+                                        fontSize: 11,
+                                        fontWeight: 600,
+                                        gap: 5,
+                                        padding: "4px 10px",
+                                      }}
+                                    >
+                                      <FaCheck size={10} />
+                                      {row.isCalled ? "Called" : "Not Called"}
+                                    </button>
                                   </>
                                 )}
                               </Col>
@@ -1592,18 +1617,18 @@ const PlayerPreferences = () => {
               </Button>
             </div>
             {openMatchesLoading ? (
-              <DataLoading height="220px" />
+              <DataLoading height="73vh" />
             ) : openMatches.length === 0 ? (
-              <div className="text-center text-muted py-5" style={{ fontSize: 13 }}>
+              <div className="text-center text-muted py-5" style={{ fontSize: 13, height: '73vh', }}>
                 No open matches found.
               </div>
             ) : (
               <div
-                className={`open-matches-scroll-container ${!isSearchFocused && !selectedOpenMatch ? 'scrolling' : ''}`}
+                className="open-matches-scroll-container"
                 ref={scrollContainerRef}
                 style={{
-                  height: '600px',
-                  maxHeight: '600px',
+                  height: '73vh',
+                  maxHeight: '73vh',
                   overflowY: 'auto',
                   overflowX: 'hidden',
                   position: 'relative'
@@ -1941,6 +1966,97 @@ const PlayerPreferences = () => {
           </div>
         </Col>
       </Row>
+
+      {/* Call Status Confirmation Modal */}
+      <Modal
+        show={callConfirm.show}
+        onHide={() => setCallConfirm({ show: false, row: null, nextValue: false, loading: false })}
+        size="md"
+        centered
+      >
+        <Modal.Body style={{ padding: "28px 24px 20px" }}>
+          <div style={{ textAlign: "center" }}>
+            <div
+              style={{
+                alignItems: "center",
+                background: callConfirm.nextValue ? "#ECFDF5" : "#FEF2F2",
+                border: `1.5px solid ${callConfirm.nextValue ? "#6EE7B7" : "#FECACA"}`,
+                borderRadius: "50%",
+                color: callConfirm.nextValue ? "#059669" : "#DC2626",
+                display: "inline-flex",
+                height: 48,
+                justifyContent: "center",
+                marginBottom: 14,
+                width: 48,
+              }}
+            >
+              <FaPhone size={18} />
+            </div>
+            <div style={{ color: "#0F172A", fontSize: 15, fontWeight: 700, marginBottom: 6 }}>
+              {callConfirm.nextValue ? "Mark as Called?" : "Mark as Not Called?"}
+            </div>
+            <div style={{ color: "#64748B", fontSize: 13, lineHeight: 1.5, marginBottom: 20 }}>
+              {callConfirm.nextValue ? (
+                <>
+                  Mark <strong>{callConfirm.row?.customerId?.name || "this player"}</strong> as called?
+                </>
+              ) : (
+                <>
+                  Remove the called status for{" "}
+                  <strong>{callConfirm.row?.customerId?.name || "this player"}</strong>?
+                </>
+              )}
+            </div>
+            <div className="d-flex gap-2 justify-content-center">
+              <button
+                type="button"
+                onClick={() => setCallConfirm({ show: false, row: null, nextValue: false, loading: false })}
+                disabled={callConfirm.loading}
+                style={{
+                  background: "#F8FAFC",
+                  border: "1px solid #E2E8F0",
+                  borderRadius: 8,
+                  color: "#374151",
+                  cursor: "pointer",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  padding: "8px 20px",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleCallStatusConfirm}
+                disabled={callConfirm.loading}
+                style={{
+                  alignItems: "center",
+                  background: callConfirm.nextValue ? "#059669" : "#DC2626",
+                  border: "none",
+                  borderRadius: 8,
+                  color: "#fff",
+                  cursor: callConfirm.loading ? "not-allowed" : "pointer",
+                  display: "inline-flex",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  gap: 6,
+                  opacity: callConfirm.loading ? 0.7 : 1,
+                  padding: "8px 20px",
+                }}
+              >
+                {callConfirm.loading ? (
+                  <ButtonLoading size={8} />
+                ) : (
+                  <>
+                    <FaCheck size={11} />
+                    Confirm
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
 
       {/* Schedule Edit Modal */}
       <Modal show={showScheduleModal} onHide={closeScheduleModal} size="lg" centered>

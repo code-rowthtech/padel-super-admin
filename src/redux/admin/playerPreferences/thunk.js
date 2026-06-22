@@ -87,12 +87,14 @@ export const updatePlayerPreference = createAsyncThunk(
       const res = await ownerApi.put(`${Url.PLAYER_PREF_UPDATE}/${id}`, data);
       const { status, data: resData } = res || {};
       if (status === 200) {
-        showSuccess("Player preference updated successfully");
+        showSuccess(resData?.message || "Player preference updated successfully");
         return resData?.data;
       }
-      return rejectWithValue("Failed to update preference");
+      const failMsg = resData?.message || "Failed to update preference";
+      showError(failMsg);
+      return rejectWithValue(failMsg);
     } catch (error) {
-      const msg = error?.response?.data?.message || "Error updating preference";
+      const msg = error?.message || error || error?.response?.data?.message || "Error updating preference";
       showError(msg);
       return rejectWithValue(msg);
     }
