@@ -1,4 +1,5 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Button, Card, Col, Form, Row } from "react-bootstrap";
 
 const PlayerFiltersPanel = ({
@@ -19,6 +20,47 @@ const PlayerFiltersPanel = ({
     anchorRef,
 }) => {
     const panelRef = useRef(null);
+    const [panelStyle, setPanelStyle] = useState({});
+
+    // Position the panel relative to the anchor button using fixed coordinates
+    useEffect(() => {
+        if (!show || !anchorRef?.current) return;
+
+        const reposition = () => {
+            const rect = anchorRef.current?.getBoundingClientRect();
+            if (!rect) return;
+
+            const panelWidth = 550;
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+
+            let left = rect.right - panelWidth;
+            if (left < 8) left = 8;
+            if (left + panelWidth > viewportWidth - 8) left = viewportWidth - panelWidth - 8;
+
+            const topBelow = rect.bottom + 8;
+            const spaceBelow = viewportHeight - topBelow - 16;
+            const maxHeight = Math.min(spaceBelow, viewportHeight - 200);
+
+            setPanelStyle({
+                position: "fixed",
+                top: topBelow,
+                left,
+                width: panelWidth,
+                maxWidth: `calc(100vw - 32px)`,
+                zIndex: 1055,
+                maxHeight: Math.max(maxHeight, 200),
+            });
+        };
+
+        reposition();
+        window.addEventListener("resize", reposition);
+        window.addEventListener("scroll", reposition, true);
+        return () => {
+            window.removeEventListener("resize", reposition);
+            window.removeEventListener("scroll", reposition, true);
+        };
+    }, [show, anchorRef]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -36,7 +78,6 @@ const PlayerFiltersPanel = ({
             if (target.closest('.MuiModal-root')) return;
             onHide();
         };
-
         if (show) {
             document.addEventListener("mousedown", handleClickOutside);
             return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -46,16 +87,17 @@ const PlayerFiltersPanel = ({
     if (!show) return null;
 
     const getActiveFilterCount = () => {
-        let count = 0;
-        if (filters.gender?.length > 0) count++;
-        if (filters.residence?.length > 0) count++;
-        if (filters.skillLevel?.length > 0) count++;
-        if (filters.clubId?.length > 0) count++;
-        if (filters.day?.length > 0) count++;
-        if (filters.timeSlot?.length > 0) count++;
-        if (filters.hasPreference?.length > 0) count++;
-        if (filters.preferredDuration?.length > 0) count++;
-        return count;
+        return [
+            filters.gender?.length || 0,
+            filters.residence?.length || 0,
+            filters.skillLevel?.length || 0,
+            filters.clubId?.length || 0,
+            filters.day?.length || 0,
+            filters.timeSlot?.length || 0,
+            filters.hasPreference?.length || 0,
+            filters.preferredDuration?.length || 0,
+            filters.isCalled !== null ? 1 : 0,
+        ].reduce((a, b) => a + (b > 0 ? 1 : 0), 0);
     };
 
     const DURATION_OPTIONS = [
@@ -64,20 +106,13 @@ const PlayerFiltersPanel = ({
         { value: "is120", label: "120 min" },
     ];
 
-    return (
+    return createPortal(
         <Card
             className="border border-muted shadow-lg"
             ref={panelRef}
             onMouseDown={(e) => e.stopPropagation()}
             style={{
-                position: "absolute",
-                top: "100%",
-                right: 0,
-                marginTop: 8,
-                width: 550,
-                maxWidth: "calc(100vw - 32px)",
-                zIndex: 1050,
-                maxHeight: "calc(100vh - 200px)",
+                ...panelStyle,
                 overflowY: "auto",
             }}
         >
@@ -113,7 +148,6 @@ const PlayerFiltersPanel = ({
                     </Button>
                 </div>
             </Card.Header>
-
             <Card.Body style={{ padding: 16 }}>
                 <Form>
                     <Row className="g-2">
@@ -144,7 +178,6 @@ const PlayerFiltersPanel = ({
                             </Form.Group>
                         </Col>
                     </Row>
-
                     <Form.Group className="mb-3">
                         <Form.Label style={{ fontFamily: "Poppins", fontSize: 12, fontWeight: 600, marginBottom: 6 }}>
                             Residence
@@ -156,7 +189,7 @@ const PlayerFiltersPanel = ({
                             placeholder={getMultiPlaceholder("All States", filters.residence)}
                         />
                     </Form.Group>
-
+                    {/* Club Preference */}
                     <Form.Group className="mb-3">
                         <Form.Label style={{ fontFamily: "Poppins", fontSize: 12, fontWeight: 600, marginBottom: 6 }}>
                             Club Preference
@@ -168,7 +201,6 @@ const PlayerFiltersPanel = ({
                             placeholder={getMultiPlaceholder("All Clubs", filters.clubId)}
                         />
                     </Form.Group>
-
                     <Row className="g-2">
                         <Col xs={6}>
                             <Form.Group className="mb-3">
@@ -200,7 +232,24 @@ const PlayerFiltersPanel = ({
                             </Form.Group>
                         </Col>
                     </Row>
-
+                    {/* Intro Call */}
+                    <Form.Group className="mb-3">
+                        <Form.Label style={{ fontFamily: "Poppins", fontSize: 12, fontWeight: 600, marginBottom: 6 }}>
+                            Intro Call
+                        </Form.Label>
+                        <Form.Select
+                            value={filters.isCalled === null ? "all" : filters.isCalled ? "yes" : "no"}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                const newVal = val === "all" ? null : val === "yes";
+                                onFilterChange("isCalled", newVal);
+                            }}
+                        >
+                            <option value="all">All</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </Form.Select>
+                    </Form.Group>
                     {/* Preferred Duration */}
                     <Form.Group className="mb-3">
                         <Form.Label style={{ fontFamily: "Poppins", fontSize: 12, fontWeight: 600, marginBottom: 8 }}>
@@ -246,7 +295,7 @@ const PlayerFiltersPanel = ({
                             })}
                         </div>
                     </Form.Group>
-
+                    {/* Time Slot */}
                     <Form.Group className="mb-0">
                         <Form.Label style={{ fontFamily: "Poppins", fontSize: 12, fontWeight: 600, marginBottom: 6 }}>
                             Time Slot
@@ -259,7 +308,6 @@ const PlayerFiltersPanel = ({
                         />
                     </Form.Group>
                 </Form>
-
                 <Row>
                     <div className="col-12 mt-2 d-flex justify-content-end align-items-center py-2">
                         <Button
@@ -267,14 +315,14 @@ const PlayerFiltersPanel = ({
                             onClick={onHide}
                             className="text-white px-3 py-2"
                             style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
-                            title="Close filters"
                         >
                             Close
                         </Button>
                     </div>
                 </Row>
             </Card.Body>
-        </Card>
+        </Card>,
+        document.body
     );
 };
 

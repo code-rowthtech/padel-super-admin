@@ -44,7 +44,8 @@ export const getAllPlayerPreferences = createAsyncThunk(
       if (params.is60 === true) query.append("is60", "true");
       if (params.is90 === true) query.append("is90", "true");
       if (params.is120 === true) query.append("is120", "true");
-
+      if (params.isCalled !== undefined) query.append("isCalled", params.isCalled.toString());
+      
       const res = await ownerApi.get(`${Url.PLAYER_PREF_GET_ALL}?${query.toString()}`);
       const { status, data } = res || {};
       if (status === 200) {
