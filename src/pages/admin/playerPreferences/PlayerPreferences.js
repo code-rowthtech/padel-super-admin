@@ -1305,7 +1305,7 @@ const PlayerPreferences = () => {
                       const isEditing = editingPreferencePlayerId === playerId;
                       return (
                         <tr key={row._id || playerId}>
-                          <td className="text-muted text-center">{(pagination.page - 1) * pagination.limit + index + 1}</td>
+                          <td className="text-muted text-center">{(pagination.page - 1) * 25 + index + 1}</td>
                           <td style={{ minWidth: 0 }}>
                             <div className="fw-semibold text-truncate" style={{ fontSize: 13 }}>
                               {row.customerId?.name || "N/A"} {row.customerId?.lastName || ""}
