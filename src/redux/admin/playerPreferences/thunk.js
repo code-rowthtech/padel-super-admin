@@ -40,6 +40,8 @@ export const getAllPlayerPreferences = createAsyncThunk(
       appendSearchParam(query, "hasPreference", params.hasPreference);
       appendSearchParam(query, "day", params.day);
       appendSearchParam(query, "timeSlot", params.timeSlot);
+      if (params.is60 === true) query.append("is60", "true");
+      if (params.is90 === true) query.append("is90", "true");
 
       const res = await ownerApi.get(`${Url.PLAYER_PREF_GET_ALL}?${query.toString()}`);
       const { status, data } = res || {};

@@ -82,6 +82,7 @@ const EMPTY_FILTERS = {
   day: [],
   timeSlot: [],
   hasPreference: [],
+  preferredDuration: [],
 };
 
 const selectStyles = {
@@ -537,6 +538,56 @@ const PlayerPreferences = () => {
   const [selectedPlayerDetails, setSelectedPlayerDetails] = useState(null);
   const filterButtonRef = React.useRef(null);
   const scrollContainerRef = React.useRef(null);
+  const autoScrollRef = React.useRef(null);
+  const scrollPausedRef = React.useRef(false);
+
+  // ref callback — fires the moment the DOM node is assigned or removed.
+  // Starts the RAF loop as soon as the container exists in the DOM.
+  const setScrollContainer = React.useCallback((node) => {
+    // Cleanup previous node
+    if (scrollContainerRef.current) {
+      cancelAnimationFrame(autoScrollRef.current);
+      autoScrollRef.current = null;
+      scrollContainerRef.current.removeEventListener("mouseenter", scrollContainerRef._onEnter);
+      scrollContainerRef.current.removeEventListener("mouseleave", scrollContainerRef._onLeave);
+    }
+
+    scrollContainerRef.current = node;
+
+    if (!node) return;
+
+    const onEnter = () => { scrollPausedRef.current = true; };
+    const onLeave = () => { scrollPausedRef.current = false; };
+    scrollContainerRef._onEnter = onEnter;
+    scrollContainerRef._onLeave = onLeave;
+    node.addEventListener("mouseenter", onEnter);
+    node.addEventListener("mouseleave", onLeave);
+
+    const step = () => {
+      const container = scrollContainerRef.current;
+      if (!container) return;
+
+      const isSearching = !!scrollContainerRef._isSearchFocused;
+      const hasSelected = !!scrollContainerRef._selectedMatch;
+
+      if (!isSearching && !hasSelected && !scrollPausedRef.current) {
+        const half = container.scrollHeight / 2;
+        if (half > container.clientHeight) {
+          container.scrollTop += 0.5;
+          if (container.scrollTop >= half) {
+            container.scrollTop -= half;
+          }
+        }
+      }
+      autoScrollRef.current = requestAnimationFrame(step);
+    };
+
+    autoScrollRef.current = requestAnimationFrame(step);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Keep side-channel refs updated each render so the RAF reads fresh values
+  scrollContainerRef._isSearchFocused = isSearchFocused;
+  scrollContainerRef._selectedMatch = selectedOpenMatch;
 
   useEffect(() => {
     ownerApi.get(SUPER_ADMIN_GET_ALL_CLUBS).then((res) => {
@@ -583,6 +634,8 @@ const PlayerPreferences = () => {
       day: filters.day,
       timeSlot: filters.timeSlot,
       hasPreference: filters.hasPreference,
+      is60: filters.preferredDuration?.includes("is60") || undefined,
+      is90: filters.preferredDuration?.includes("is90") || undefined,
     }));
   }, [dispatch, filters, pagination.limit]);
 
@@ -1055,6 +1108,7 @@ const PlayerPreferences = () => {
                           filters.day?.length || 0,
                           filters.timeSlot?.length || 0,
                           filters.hasPreference?.length || 0,
+                          filters.preferredDuration?.length || 0,
                         ].reduce((a, b) => a + (b > 0 ? 1 : 0), 0)}
                       </Badge>
                     )}
@@ -1152,8 +1206,9 @@ const PlayerPreferences = () => {
                         <th style={{ width: 120 }}>Residence</th>
                         <th style={{ width: 200 }}>Preferred Clubs</th>
                         <th style={{ width: 120 }}>Skill Level</th>
-                        <th style={{ width: 250 }}>Schedule</th>
-                        <th className="text-center" style={{ width: 80 }}>Call Status</th>
+                        <th style={{ width: 200 }}>Schedule</th>
+                        <th style={{ width: 110 }}>Duration</th>
+                        <th className="text-center" style={{ width: 80 }}>Called</th>
                         <th className="text-center" style={{ width: 145 }}>Action</th>
                       </tr>
                     </thead>
@@ -1266,6 +1321,38 @@ const PlayerPreferences = () => {
                               ) : (
                                 formatScheduleSummary(row.preferredSchedule, 2)
                               )}
+                            </td>
+                            {/* Duration column */}
+                            <td>
+                              <div className="d-flex flex-wrap gap-1">
+                                {row.preferredDuration?.is60 && (
+                                  <span style={{
+                                    background: "#EFF6FF",
+                                    border: "1px solid #BFDBFE",
+                                    borderRadius: 20,
+                                    color: "#1D4ED8",
+                                    fontSize: 11,
+                                    fontWeight: 600,
+                                    padding: "2px 9px",
+                                    whiteSpace: "nowrap",
+                                  }}>60 min</span>
+                                )}
+                                {row.preferredDuration?.is90 && (
+                                  <span style={{
+                                    background: "#F5F3FF",
+                                    border: "1px solid #DDD6FE",
+                                    borderRadius: 20,
+                                    color: "#6D28D9",
+                                    fontSize: 11,
+                                    fontWeight: 600,
+                                    padding: "2px 9px",
+                                    whiteSpace: "nowrap",
+                                  }}>90 min</span>
+                                )}
+                                {!row.preferredDuration?.is60 && !row.preferredDuration?.is90 && (
+                                  <span className="text-muted" style={{ fontSize: 12 }}>—</span>
+                                )}
+                              </div>
                             </td>
                             <td className="text-center">
                               <button
@@ -1625,7 +1712,7 @@ const PlayerPreferences = () => {
             ) : (
               <div
                 className="open-matches-scroll-container"
-                ref={scrollContainerRef}
+                ref={setScrollContainer}
                 style={{
                   height: '73vh',
                   maxHeight: '73vh',
@@ -1919,7 +2006,8 @@ const PlayerPreferences = () => {
                       </button>
                     );
                   })}
-                  {!isSearchFocused && !selectedOpenMatch && <div className="clone-list" aria-hidden="true" style={{ pointerEvents: "none", userSelect: "none" }}>{openMatches.map((match, index) => {
+                  {/* Clone list — always rendered so scrollHeight is always doubled for the RAF loop */}
+                  <div className="clone-list" aria-hidden="true" style={{ pointerEvents: "none", userSelect: "none" }}>{openMatches.map((match, index) => {
                     const joinedCount = match?.totalPlayers ?? (Number(match?.teamA?.length || 0) + Number(match?.teamB?.length || 0));
                     const maxPlayers = match?.totalPlayersCount ?? match?.maxPlayers ?? 4;
                     const fee = getMatchFee(match);
@@ -1959,7 +2047,7 @@ const PlayerPreferences = () => {
                         </div>
                       </div>
                     );
-                  })}</div>}
+                  })}</div>
                 </div>
               </div>
             )}
