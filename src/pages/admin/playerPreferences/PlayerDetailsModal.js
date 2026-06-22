@@ -287,7 +287,7 @@ const PlayerDetailsModal = ({ show, onHide, playerData }) => {
             </Modal.Header>
 
             {/* ── Body ── */}
-            <Modal.Body style={{ background: T.bg, overflowY: "auto", padding: "20px 24px" }}>
+            <Modal.Body style={{ background: T.bg, height: "70vh", overflowY: "auto", padding: "20px 24px" }}>
 
                 {/* Stats row */}
                 <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
@@ -299,7 +299,7 @@ const PlayerDetailsModal = ({ show, onHide, playerData }) => {
 
                 <Row className="g-3">
                     {/* ── Left column ── */}
-                    <Col xs={12} lg={clubBookings.length > 0 ? 6 : 12}>
+                    {/* <Col xs={12} lg={clubBookings.length > 0 ? 6 : 12}>
                         <Section title="Personal Information">
                             <InfoRow icon={FaUser} label="Full Name" value={customer.name} />
                             <InfoRow icon={FaVenusMars} label="Gender" value={customer.gender} />
@@ -311,7 +311,7 @@ const PlayerDetailsModal = ({ show, onHide, playerData }) => {
                             <InfoRow icon={FaEnvelope} label="Email" value={customer.email} />
                             <InfoRow icon={FaMapMarkerAlt} label="Residence" value={customer.cityName || customer.city} />
                         </Section>
-                    </Col>
+                    </Col> */}
 
                     {/* ── Right column — Bookings by Club ── */}
                     {clubBookings.length > 0 && (

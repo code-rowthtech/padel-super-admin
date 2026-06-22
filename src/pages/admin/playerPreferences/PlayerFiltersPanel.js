@@ -61,6 +61,7 @@ const PlayerFiltersPanel = ({
     const DURATION_OPTIONS = [
         { value: "is60", label: "60 min" },
         { value: "is90", label: "90 min" },
+        { value: "is120", label: "120 min" },
     ];
 
     return (
@@ -152,7 +153,7 @@ const PlayerFiltersPanel = ({
                             options={residenceDropdownOptions}
                             value={filters.residence}
                             onChange={(value) => onFilterChange("residence", value)}
-                            placeholder={getMultiPlaceholder("All Locations", filters.residence)}
+                            placeholder={getMultiPlaceholder("All States", filters.residence)}
                         />
                     </Form.Group>
 
