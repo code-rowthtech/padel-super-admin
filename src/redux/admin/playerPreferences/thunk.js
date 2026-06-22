@@ -33,6 +33,7 @@ export const getAllPlayerPreferences = createAsyncThunk(
       if (params.page) query.append("page", params.page);
       if (params.limit) query.append("limit", params.limit);
       if (params.search) query.append("search", params.search);
+      if (params.categoryType) query.append("categoryType", params.categoryType);
       appendSearchParam(query, "skillLevel", params.skillLevel);
       appendSearchParam(query, "clubId", params.clubId);
       appendSearchParam(query, "gender", params.gender);
@@ -42,6 +43,7 @@ export const getAllPlayerPreferences = createAsyncThunk(
       appendSearchParam(query, "timeSlot", params.timeSlot);
       if (params.is60 === true) query.append("is60", "true");
       if (params.is90 === true) query.append("is90", "true");
+      if (params.is120 === true) query.append("is120", "true");
 
       const res = await ownerApi.get(`${Url.PLAYER_PREF_GET_ALL}?${query.toString()}`);
       const { status, data } = res || {};

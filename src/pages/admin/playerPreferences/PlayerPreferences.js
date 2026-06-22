@@ -23,23 +23,9 @@ import PlayerFiltersPanel from "./PlayerFiltersPanel";
 import CreateMatchModal from "../openMatches/create/CreateMatchModal";
 import PlayerDetailsModal from "./PlayerDetailsModal";
 import { showError, showSuccess } from "../../../helpers/Toast";
+import { getCategoryList } from "../../../redux/thunks";
 
 const TIME_SLOT_GROUPS = [
-  {
-    label: "30 Minutes",
-    options: [
-      "5:00 AM – 5:30 AM", "5:30 AM – 6:00 AM", "6:00 AM – 6:30 AM", "6:30 AM – 7:00 AM",
-      "7:00 AM – 7:30 AM", "7:30 AM – 8:00 AM", "8:00 AM – 8:30 AM", "8:30 AM – 9:00 AM",
-      "9:00 AM – 9:30 AM", "9:30 AM – 10:00 AM", "10:00 AM – 10:30 AM", "10:30 AM – 11:00 AM",
-      "11:00 AM – 11:30 AM", "11:30 AM – 12:00 PM", "12:00 PM – 12:30 PM", "12:30 PM – 1:00 PM",
-      "1:00 PM – 1:30 PM", "1:30 PM – 2:00 PM", "2:00 PM – 2:30 PM", "2:30 PM – 3:00 PM",
-      "3:00 PM – 3:30 PM", "3:30 PM – 4:00 PM", "4:00 PM – 4:30 PM", "4:30 PM – 5:00 PM",
-      "5:00 PM – 5:30 PM", "5:30 PM – 6:00 PM", "6:00 PM – 6:30 PM", "6:30 PM – 7:00 PM",
-      "7:00 PM – 7:30 PM", "7:30 PM – 8:00 PM", "8:00 PM – 8:30 PM", "8:30 PM – 9:00 PM",
-      "9:00 PM – 9:30 PM", "9:30 PM – 10:00 PM", "10:00 PM – 10:30 PM", "10:30 PM – 11:00 PM",
-      "11:00 PM – 11:30 PM",
-    ].map((value) => ({ value, label: value })),
-  },
   {
     label: "60 Minutes",
     options: [
@@ -59,16 +45,41 @@ const TIME_SLOT_GROUPS = [
       "9:00 PM – 10:30 PM", "10:00 PM – 11:30 PM", "11:00 PM – 12:30 AM",
     ].map((value) => ({ value, label: value })),
   },
+  {
+    label: "120 Minutes",
+    options: [
+      "5:00 AM – 7:00 AM",
+      "6:00 AM – 8:00 AM",
+      "7:00 AM – 9:00 AM",
+      "8:00 AM – 10:00 AM",
+      "9:00 AM – 11:00 AM",
+      "10:00 AM – 12:00 PM",
+      "11:00 AM – 1:00 PM",
+      "12:00 PM – 2:00 PM",
+      "1:00 PM – 3:00 PM",
+      "2:00 PM – 4:00 PM",
+      "3:00 PM – 5:00 PM",
+      "4:00 PM – 6:00 PM",
+      "5:00 PM – 7:00 PM",
+      "6:00 PM – 8:00 PM",
+      "7:00 PM – 9:00 PM",
+      "8:00 PM – 10:00 PM",
+      "9:00 PM – 11:00 PM",
+      "10:00 PM – 12:00 AM",
+    ].map((value) => ({ value, label: value })),
+  }
 ];
 
 const DAY_OPTIONS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const SKILL_LEVEL_OPTIONS = ["Beginner", "Intermediate", "Advanced", "Professional"];
 const GENDER_OPTIONS = ["Male", "Female", "Other"];
+const SCHEDULE_TIME_SLOT_GROUPS = TIME_SLOT_GROUPS.filter((group) => group.label === "60 Minutes");
 const SKILL_COLORS = { Beginner: "success", Intermediate: "warning", Advanced: "danger", Professional: "dark" };
 const EMPTY_PREFERENCE_FORM = {
   preferredClubs: [],
   preferredSchedule: [],
   skillLevel: "",
+  residence: "",
   notes: "",
   playerTendency: "",
 };
@@ -472,8 +483,10 @@ const ScheduleBuilder = ({ value, onChange }) => {
           </div>
           <div style={{ flex: 1 }}>
             <CheckboxMultiSelect
-              options={TIME_SLOT_GROUPS}
-              value={(entry.timeSlots || []).map((slot) => slot.value)}
+              options={SCHEDULE_TIME_SLOT_GROUPS}
+              value={(entry.timeSlots || []).map((slot) => (
+                typeof slot === "string" ? slot : slot?.value || slot?.label || slot
+              ))}
               onChange={(values) => handleTimeSlotsChange(entry.day, toSelectOptions(values))}
               placeholder={getMultiPlaceholder("Select time slots...", entry.timeSlots)}
             />
@@ -505,9 +518,9 @@ const PlayerPreferences = () => {
     saveLoading,
     residenceOptions,
   } = useSelector((state) => state.playerPreferences);
-
+  const categoryList = useSelector((state) => state?.booking?.categoryList) || [];
   const [clubOptions, setClubOptions] = useState([]);
-  const [clubLocationOptions, setClubLocationOptions] = useState([]);
+  const [residenceStateOptions, setResidenceStateOptions] = useState([]);
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [showPlayerModal, setShowPlayerModal] = useState(false);
   const [playerForm, setPlayerForm] = useState(EMPTY_PLAYER_FORM);
@@ -541,6 +554,11 @@ const PlayerPreferences = () => {
   const scrollContainerRef = React.useRef(null);
   const autoScrollRef = React.useRef(null);
   const scrollPausedRef = React.useRef(false);
+
+
+  useEffect(() => {
+    dispatch(getCategoryList());
+  }, [dispatch]);
 
   // ref callback — fires the moment the DOM node is assigned or removed.
   // Starts the RAF loop as soon as the container exists in the DOM.
@@ -592,27 +610,28 @@ const PlayerPreferences = () => {
 
   useEffect(() => {
     ownerApi.get(SUPER_ADMIN_GET_ALL_CLUBS).then((res) => {
-      const list = res.data?.data?.clubs || res.data?.data || [];
+      const responseData = res.data?.data;
+      const list = responseData?.clubs || (Array.isArray(responseData) ? responseData : []);
+      const states = res.data?.states || responseData?.states || [];
       setClubOptions(list.map((club) => ({ value: club._id, label: club.clubName || club.name })));
-      const uniqueLocations = new Map();
-      list.forEach((club) => {
-        (club.locations || []).forEach((location, index) => {
-          const label = location?.name || location?.locationName || location?.address || `Location ${index + 1}`;
-          if (label) uniqueLocations.set(label, { value: label, label });
-        });
-      });
-      setClubLocationOptions([...uniqueLocations.values()]);
+      setResidenceStateOptions(
+        states
+          .filter((state) => state?._id && state?.name && state.isActive !== false)
+          .map((state) => ({ value: state._id, label: state.name })),
+      );
     }).catch(() => { });
   }, []);
 
   const residenceDropdownOptions = useMemo(() => {
     const uniqueOptions = new Map();
-    clubLocationOptions.forEach((option) => uniqueOptions.set(option.value, option));
-    (residenceOptions || []).forEach((residence) => {
-      if (residence) uniqueOptions.set(residence, { value: residence, label: residence });
+    const sourceOptions = residenceStateOptions.length
+      ? residenceStateOptions
+      : (residenceOptions || []).map((residence) => ({ value: residence, label: residence }));
+    sourceOptions.forEach((option) => {
+      if (option?.value) uniqueOptions.set(option.value, option);
     });
     return [...uniqueOptions.values()];
-  }, [clubLocationOptions, residenceOptions]);
+  }, [residenceOptions, residenceStateOptions]);
 
   const selectedMatchFee = useMemo(() => (
     selectedOpenMatch ? getMatchFee(selectedOpenMatch) : null
@@ -637,6 +656,7 @@ const PlayerPreferences = () => {
       hasPreference: filters.hasPreference,
       is60: filters.preferredDuration?.includes("is60") || undefined,
       is90: filters.preferredDuration?.includes("is90") || undefined,
+      is120: filters.preferredDuration?.includes("is120") || undefined,
     }));
   }, [dispatch, filters, pagination.limit]);
 
@@ -659,7 +679,7 @@ const PlayerPreferences = () => {
     setOpenMatchesLoading(true);
     try {
       const searchParam = searchQuery.trim() ? `&search=${encodeURIComponent(searchQuery)}` : "";
-      const res = await ownerApi.get(`${SUPER_ADMIN_OPEN_MATCH_OVERVIEW}?page=1&limit=50${searchParam}`);
+      const res = await ownerApi.get(`${SUPER_ADMIN_OPEN_MATCH_OVERVIEW}?page=1&limit=50${searchParam}&playerPreferences=true`);
       const payload = res?.data?.data || res?.data || {};
       setOpenMatches(payload?.openMatches || payload?.data || []);
     } catch (error) {
@@ -839,6 +859,7 @@ const PlayerPreferences = () => {
     const nextDuration = {
       is60: field === "is60" ? !current.is60 : (current.is60 === true),
       is90: field === "is90" ? !current.is90 : (current.is90 === true),
+      is120: field === "is120" ? !current.is120 : (current.is120 === true),
     };
 
     const payload = {
@@ -852,6 +873,7 @@ const PlayerPreferences = () => {
         ),
       })),
       skillLevel: row.skillLevel || undefined,
+      city: row.customerId?.city || undefined,
       notes: row.notes || undefined,
       playerTendency: row.playerTendency || undefined,
       preferredDuration: nextDuration,
@@ -887,6 +909,7 @@ const PlayerPreferences = () => {
           ),
         })),
         skillLevel: row.skillLevel || undefined,
+        city: row.customerId?.city || undefined,
         notes: row.notes || undefined,
         playerTendency: row.playerTendency || undefined,
         isCalled: nextValue,
@@ -999,7 +1022,7 @@ const PlayerPreferences = () => {
       name: playerForm.name.trim(),
       email: playerForm.email.trim() || undefined,
       gender: playerForm.gender || undefined,
-      residence: playerForm.residence.trim() || undefined,
+      city: playerForm.residence.trim() || undefined,
     }));
 
     if (!result.error) {
@@ -1018,9 +1041,13 @@ const PlayerPreferences = () => {
       })),
       preferredSchedule: (row.preferredSchedule || []).map((entry) => ({
         day: entry.day,
-        timeSlots: toSelectOptions(entry.timeSlots || []),
+        timeSlots: (entry.timeSlots || []).map((slot) => {
+          const value = typeof slot === "string" ? slot : slot?.value || slot?.label || slot;
+          return { value, label: value };
+        }),
       })),
       skillLevel: row.skillLevel || "",
+      residence: row.customerId?.city || "",
       notes: row.notes || "",
       playerTendency: row.playerTendency || "",
     });
@@ -1036,9 +1063,12 @@ const PlayerPreferences = () => {
       preferredClubs: preferenceForm.preferredClubs.map((option) => option.value),
       preferredSchedule: preferenceForm.preferredSchedule.map((entry) => ({
         day: entry.day,
-        timeSlots: entry.timeSlots.map((slot) => slot.value),
+        timeSlots: entry.timeSlots.map((slot) => (
+          typeof slot === "string" ? slot : slot?.value || slot?.label || slot
+        )),
       })),
       skillLevel: preferenceForm.skillLevel || undefined,
+      city: preferenceForm.residence || undefined,
       notes: preferenceForm.notes || undefined,
       playerTendency: preferenceForm.playerTendency || undefined,
     };
@@ -1121,6 +1151,15 @@ const PlayerPreferences = () => {
                 <h6 className="mb-1 tabel-title">Players</h6>
               </div>
               <div className="d-flex gap-2 flex-wrap align-items-center" style={{ position: "relative" }}>
+                <Form.Select
+                  value={filters.categoryType}
+                  onChange={(e) => updateFilter("categoryType", e.target.value)}
+                  style={{ fontFamily: "Poppins", fontSize: 13, width: 180 }}>
+                  <option value=''>All Categories</option>
+                  {categoryList?.map((category) => (
+                    <option value={category?._id} key={category?._id}>{category?.name}</option>
+                  ))}
+                </Form.Select>
                 <Form.Control
                   size="sm"
                   placeholder="Search players..."
@@ -1139,7 +1178,8 @@ const PlayerPreferences = () => {
                   Filters
                   {(filters.gender?.length > 0 || filters.residence?.length > 0 ||
                     filters.skillLevel?.length > 0 || filters.clubId?.length > 0 || filters.day?.length > 0 ||
-                    filters.timeSlot?.length > 0 || filters.hasPreference?.length > 0) && (
+                    filters.timeSlot?.length > 0 || filters.hasPreference?.length > 0 ||
+                    filters.preferredDuration?.length > 0) && (
                       <Badge bg="danger" className="ms-1" style={{ fontSize: 9 }}>
                         {[
                           filters.gender?.length || 0,
@@ -1222,74 +1262,369 @@ const PlayerPreferences = () => {
               </div>
             )}
 
-
-            {loading ? (
-              <DataLoading height="300px" />
-            ) : players.length === 0 ? (
-              <div className="d-flex justify-content-center align-items-center text-muted" style={{ height: 200 }}>
-                No players found
-              </div>
-            ) : (
-              <>
-                <div className="d-none d-lg-block">
-                  <Table
-                    responsive
-                    borderless
-                    size="sm"
-                    className="custom-table align-middle"
-                    style={{ tableLayout: "fixed", minWidth: 1080 }}
-                  >
-                    <thead>
+            <>
+              <div className="d-none d-lg-block">
+                <Table
+                  responsive
+                  borderless
+                  size="sm"
+                  className="custom-table align-middle"
+                  style={{ tableLayout: "fixed", minWidth: 1080 }}
+                >
+                  <thead>
+                    <tr>
+                      <th className="text-center" style={{ width: 48 }}>#</th>
+                      <th style={{ width: 200 }}>Player</th>
+                      <th style={{ width: 85 }}>Gender</th>
+                      <th style={{ width: 120 }}>Residence</th>
+                      <th style={{ width: 200 }}>Preferred Clubs</th>
+                      <th style={{ width: 120 }}>Skill Level</th>
+                      <th className='pe-2' style={{ width: 200 }}>Schedule</th>
+                      <th style={{ width: 130 }}>Duration</th>
+                      <th className="text-center" style={{ width: 100 }}>Intro Call</th>
+                      <th className="text-center" style={{ width: 145 }}>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loading ? (
                       <tr>
-                        <th className="text-center" style={{ width: 48 }}>#</th>
-                        <th style={{ width: 200 }}>Player</th>
-                        <th style={{ width: 85 }}>Gender</th>
-                        <th style={{ width: 120 }}>Residence</th>
-                        <th style={{ width: 200 }}>Preferred Clubs</th>
-                        <th style={{ width: 120 }}>Skill Level</th>
-                        <th style={{ width: 200 }}>Schedule</th>
-                        <th style={{ width: 110 }}>Duration</th>
-                        <th className="text-center" style={{ width: 80 }}>Called</th>
-                        <th className="text-center" style={{ width: 145 }}>Action</th>
+                        <td colSpan={10}>
+                          <DataLoading height="240px" />
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {players.map((row, index) => {
-                        const playerId = getPlayerId(row);
-                        const isEditing = editingPreferencePlayerId === playerId;
-                        return (
-                          <tr key={row._id || playerId}>
-                            <td className="text-muted text-center">{(pagination.page - 1) * pagination.limit + index + 1}</td>
-                            <td style={{ minWidth: 0 }}>
-                              <div className="fw-semibold text-truncate" style={{ fontSize: 13 }}>
-                                {row.customerId?.name || "N/A"} {row.customerId?.lastName || ""}
+                    ) : players.length === 0 ? (
+                      <tr>
+                        <td colSpan={10}>
+                          <div className="d-flex justify-content-center align-items-center text-muted" style={{ height: 200 }}>
+                            No players found
+                          </div>
+                        </td>
+                      </tr>
+                    ) : players.map((row, index) => {
+                      const playerId = getPlayerId(row);
+                      const isEditing = editingPreferencePlayerId === playerId;
+                      return (
+                        <tr key={row._id || playerId}>
+                          <td className="text-muted text-center">{(pagination.page - 1) * pagination.limit + index + 1}</td>
+                          <td style={{ minWidth: 0 }}>
+                            <div className="fw-semibold text-truncate" style={{ fontSize: 13 }}>
+                              {row.customerId?.name || "N/A"} {row.customerId?.lastName || ""}
+                            </div>
+                            <div className="text-muted text-truncate" style={{ fontSize: 12 }}>
+                              {row.customerId?.countryCode || "+91"} {row.customerId?.phoneNumber || "N/A"}
+                            </div>
+                          </td>
+                          <td>
+                            {row.customerId?.gender ? (
+                              <Badge bg="light" text="dark" className="border">{row.customerId.gender}</Badge>
+                            ) : (
+                              <span className="text-muted">N/A</span>
+                            )}
+                          </td>
+                          <td>
+                            {isEditing ? (
+                              <Form.Select
+                                size="sm"
+                                value={preferenceForm.residence}
+                                onChange={(event) => setPreferenceForm((form) => ({ ...form, residence: event.target.value }))}
+                                style={{ fontSize: 12 }}
+                              >
+                                <option value="">Select residence</option>
+                                {residenceDropdownOptions.map((option) => (
+                                  <option key={option.value} value={option.value}>{option.label}</option>
+                                ))}
+                              </Form.Select>
+                            ) : row.customerId?.city ? (
+                              <OverlayTrigger
+                                placement="top"
+                                overlay={<Tooltip>{row?.customerId?.cityName || row.customerId.city}</Tooltip>}
+                              >
+                                <span className="text-muted text-truncate d-block" style={{ fontSize: 12, cursor: 'help' }}>
+                                  {row?.customerId?.cityName || row.customerId.city}
+                                </span>
+                              </OverlayTrigger>
+                            ) : (
+                              <span className="text-muted" style={{ fontSize: 12 }}>N/A</span>
+                            )}
+                          </td>
+                          <td style={{ minWidth: 0 }}>
+                            {isEditing ? (
+                              <CheckboxMultiSelect
+                                options={clubOptions}
+                                value={preferenceForm.preferredClubs.map((club) => club.value)}
+                                onChange={(values) => setPreferenceForm((form) => ({
+                                  ...form,
+                                  preferredClubs: selectValues(clubOptions, values),
+                                }))}
+                                placeholder={getMultiPlaceholder("Select clubs...", preferenceForm.preferredClubs)}
+                              />
+                            ) : (
+                              <OverlayTrigger
+                                placement="top"
+                                overlay={
+                                  <Tooltip>
+                                    {(row.preferredClubs || []).map((club) => club.clubName || club.name).filter(Boolean).join(", ") || "No clubs"}
+                                  </Tooltip>
+                                }
+                              >
+                                <span className="text-muted text-truncate d-block" style={{ fontSize: 12, cursor: 'help' }}>
+                                  {(row.preferredClubs || []).map((club) => club.clubName || club.name).filter(Boolean).join(", ") || "No clubs"}
+                                </span>
+                              </OverlayTrigger>
+                            )}
+                          </td>
+                          <td>
+                            {isEditing ? (
+                              <Form.Select
+                                size="sm"
+                                value={preferenceForm.skillLevel}
+                                onChange={(event) => setPreferenceForm((form) => ({ ...form, skillLevel: event.target.value }))}
+                              >
+                                <option value="">Select level</option>
+                                {SKILL_LEVEL_OPTIONS.map((level) => <option key={level} value={level}>{level}</option>)}
+                              </Form.Select>
+                            ) : row.skillLevel === "Beginner" ? (
+                              <Form.Select
+                                size="sm"
+                                value={row.skillLevel}
+                                onChange={async (event) => {
+                                  const newSkillLevel = event.target.value;
+                                  if (row.preferenceId) {
+                                    await dispatch(updatePlayerPreference({
+                                      id: row.preferenceId,
+                                      data: { skillLevel: newSkillLevel }
+                                    }));
+                                    loadPlayers(pagination.page);
+                                  }
+                                }}
+                                style={{ fontSize: 12 }}
+                              >
+                                {SKILL_LEVEL_OPTIONS.map((level) => <option key={level} value={level}>{level}</option>)}
+                              </Form.Select>
+                            ) : row.skillLevel ? (
+                              <Badge bg={SKILL_COLORS[row.skillLevel] || "secondary"}>{row.skillLevel}</Badge>
+                            ) : (
+                              <span className="text-muted">No level</span>
+                            )}
+                          </td>
+                          <td style={{ minWidth: 0 }}>
+                            {isEditing ? (
+                              <div className="d-flex align-items-center gap-2">
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  {formatScheduleSummary(preferenceForm.preferredSchedule, 2)}
+                                </div>
+                                <FaEdit
+                                  onClick={() => openScheduleModal(row)}
+                                  size={13} className="text-info" />
                               </div>
+                            ) : (
+                              formatScheduleSummary(row.preferredSchedule, 2)
+                            )}
+                          </td>
+                          {/* Duration column — always-editable inline toggles */}
+                          <td>
+                            <div className="d-flex flex-wrap gap-1">
+                              {[
+                                { field: "is60", label: "60 min", activeBg: "#EFF6FF", activeBorder: "#BFDBFE", activeColor: "#1D4ED8" },
+                                { field: "is90", label: "90 min", activeBg: "#F5F3FF", activeBorder: "#DDD6FE", activeColor: "#6D28D9" },
+                                { field: "is120", label: "120 min", activeBg: "#ECFDF5", activeBorder: "#BBF7D0", activeColor: "#047857" },
+                              ].map(({ field, label, activeBg, activeBorder, activeColor }) => {
+                                const active = !!row.preferredDuration?.[field];
+                                return (
+                                  <button
+                                    key={field}
+                                    type="button"
+                                    disabled={!row.preferenceId}
+                                    onClick={() => handleDurationToggle(row, field)}
+                                    title={row.preferenceId ? (active ? `Remove ${label}` : `Add ${label}`) : "No preference record"}
+                                    style={{
+                                      background: active ? activeBg : "#F8FAFC",
+                                      border: `1.5px solid ${active ? activeBorder : "#E2E8F0"}`,
+                                      borderRadius: 20,
+                                      color: active ? activeColor : "#94A3B8",
+                                      // cursor: "pointer",
+                                      cursor: row.preferenceId ? "pointer" : "not-allowed",
+                                      fontSize: 11,
+                                      fontWeight: active ? 600 : 400,
+                                      opacity: row.preferenceId ? 1 : 0.5,
+                                      padding: "3px 10px",
+                                      transition: "all 0.12s",
+                                      whiteSpace: "nowrap",
+                                    }}
+                                  >
+                                    {label}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </td>
+                          <td className="text-center">
+                            <button
+                              type="button"
+                              onClick={() => handleCallStatusClick(row)}
+                              title={row.isCalled ? "Mark as not called" : "Mark as called"}
+                              style={{
+                                alignItems: "center",
+                                background: row.isCalled ? "#ECFDF5" : "#F8FAFC",
+                                border: `1.5px solid ${row.isCalled ? "#6EE7B7" : "#CBD5E1"}`,
+                                borderRadius: 8,
+                                color: row.isCalled ? "#059669" : "#94A3B8",
+                                cursor: "pointer",
+                                display: "inline-flex",
+                                height: 28,
+                                justifyContent: "center",
+                                transition: "all 0.15s",
+                                width: 28,
+                              }}
+                            >
+                              <FaCheck size={11} />
+                            </button>
+                          </td>
+                          <td className="text-center">
+                            <div className="d-flex flex-column gap-1 align-items-center">
+                              {selectedOpenMatch && (
+                                <>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleRequestPlayer(row)}
+                                    disabled={requestingPlayerId === playerId}
+                                    style={{
+                                      backgroundColor: "#1f41bb",
+                                      border: "none",
+                                      fontSize: 11,
+                                      minWidth: 118,
+                                    }}
+                                  >
+                                    {requestingPlayerId === playerId ? <ButtonLoading size={6} /> : "Request Match"}
+                                  </Button>
+                                  {paymentLinksByPlayerId[playerId]?.paymentLink ? (
+                                    <>
+                                      <Button
+                                        size="sm"
+                                        variant="outline-success"
+                                        onClick={() => handleCopyPaymentLink(playerId)}
+                                        style={{ fontSize: 11, minWidth: 118 }}
+                                      >
+                                        Copy Link
+                                      </Button>
+                                      <span className="text-muted" style={{ fontSize: 11 }}>
+                                        ₹{paymentLinksByPlayerId[playerId]?.paymentAmount || 0}
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <Button
+                                      size="sm"
+                                      variant="outline-primary"
+                                      onClick={() => handleGeneratePaymentLink(row)}
+                                      disabled={generatingLinkPlayerId === playerId}
+                                      style={{ fontSize: 11, minWidth: 118 }}
+                                    >
+                                      {generatingLinkPlayerId === playerId ? <ButtonLoading size={6} color="blue" /> : "Generate Link"}
+                                    </Button>
+                                  )}
+                                </>
+                              )}
+                              {isEditing ? (
+                                <div className="d-flex gap-2">
+                                  <FaTimes onClick={handleCancelEdit} size={13} style={{ cursor: 'pointer' }} className="text-danger" />
+                                  <FaSave onClick={() => handleSavePreference(row)} size={13} style={{ cursor: 'pointer' }} className="text-success" />
+                                </div>
+                              ) : (
+                                <div className="d-flex gap-2">
+                                  <FaRegEye onClick={() => handleViewPlayerDetails(row)} className="text-info" size={13} style={{ cursor: 'pointer' }} />
+                                  <FaEdit onClick={() => handleEditPreference(row)} className="text-primary" size={13} style={{ cursor: 'pointer' }} />
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </Table>
+              </div>
+
+              <div className="d-block d-lg-none">
+                {loading ? (
+                  <DataLoading height="240px" />
+                ) : players.length === 0 ? (
+                  <div className="d-flex justify-content-center align-items-center text-muted" style={{ height: 200 }}>
+                    No players found
+                  </div>
+                ) : players.map((row) => {
+                  const playerId = getPlayerId(row);
+                  const isEditing = editingPreferencePlayerId === playerId;
+                  return (
+                    <div key={row._id || playerId} className="card mb-2 border-0 shadow-sm">
+                      <div className="card-body p-2">
+                        <div className="d-flex justify-content-between gap-2 align-items-start mb-2">
+                          <div style={{ minWidth: 0 }}>
+                            <div className="fw-semibold text-truncate" style={{ fontSize: 13 }}>
+                              {row.customerId?.name || "N/A"} {row.customerId?.lastName || ""}
+                            </div>
+                            <div className="text-muted" style={{ fontSize: 12 }}>
+                              {row.customerId?.countryCode || "+91"} {row.customerId?.phoneNumber || "N/A"}
+                            </div>
+                            <div className="text-muted" style={{ fontSize: 12 }}>
+                              Gender: {row.customerId?.gender || "N/A"}
+                            </div>
+                            {isEditing ? (
+                              <Form.Select
+                                size="sm"
+                                value={preferenceForm.residence}
+                                onChange={(event) => setPreferenceForm((form) => ({ ...form, residence: event.target.value }))}
+                                className="mt-1"
+                                style={{ fontSize: 12 }}
+                              >
+                                <option value="">Select residence</option>
+                                {residenceDropdownOptions.map((option) => (
+                                  <option key={option.value} value={option.value}>{option.label}</option>
+                                ))}
+                              </Form.Select>
+                            ) : (
                               <div className="text-muted text-truncate" style={{ fontSize: 12 }}>
-                                {row.customerId?.countryCode || "+91"} {row.customerId?.phoneNumber || "N/A"}
+                                Residence: {row.customerId?.cityName || row.customerId?.city || "N/A"}
                               </div>
-                            </td>
-                            <td>
-                              {row.customerId?.gender ? (
-                                <Badge bg="light" text="dark" className="border">{row.customerId.gender}</Badge>
-                              ) : (
-                                <span className="text-muted">N/A</span>
-                              )}
-                            </td>
-                            <td>
-                              {row.customerId?.city ? (
-                                <OverlayTrigger
-                                  placement="top"
-                                  overlay={<Tooltip>{row?.customerId?.cityName || row.customerId.city}</Tooltip>}
+                            )}
+                          </div>
+                          <div className="d-flex flex-column gap-1" style={{ flex: "0 0 auto" }}>
+                            {selectedOpenMatch && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleRequestPlayer(row)}
+                                  disabled={requestingPlayerId === playerId}
+                                  style={{ backgroundColor: "#1f41bb", border: "none" }}
                                 >
-                                  <span className="text-muted text-truncate d-block" style={{ fontSize: 12, cursor: 'help' }}>
-                                    {row?.customerId?.cityName || row.customerId.city}
-                                  </span>
-                                </OverlayTrigger>
-                              ) : (
-                                <span className="text-muted" style={{ fontSize: 12 }}>N/A</span>
-                              )}
-                            </td>
-                            <td style={{ minWidth: 0 }}>
+                                  {requestingPlayerId === playerId ? <ButtonLoading size={6} /> : "Request"}
+                                </Button>
+                                {paymentLinksByPlayerId[playerId]?.paymentLink ? (
+                                  <Button
+                                    size="sm"
+                                    variant="outline-success"
+                                    onClick={() => handleCopyPaymentLink(playerId)}
+                                  >
+                                    Copy Link
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    size="sm"
+                                    variant="outline-primary"
+                                    onClick={() => handleGeneratePaymentLink(row)}
+                                    disabled={generatingLinkPlayerId === playerId}
+                                  >
+                                    {generatingLinkPlayerId === playerId ? <ButtonLoading size={6} color="blue" /> : "Generate Link"}
+                                  </Button>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="border-top pt-2">
+                          <Row className="g-2">
+                            <Col xs={12}>
+                              <Form.Label className="small mb-1 fw-semibold">Preferred Clubs</Form.Label>
                               {isEditing ? (
                                 <CheckboxMultiSelect
                                   options={clubOptions}
@@ -1301,21 +1636,13 @@ const PlayerPreferences = () => {
                                   placeholder={getMultiPlaceholder("Select clubs...", preferenceForm.preferredClubs)}
                                 />
                               ) : (
-                                <OverlayTrigger
-                                  placement="top"
-                                  overlay={
-                                    <Tooltip>
-                                      {(row.preferredClubs || []).map((club) => club.clubName || club.name).filter(Boolean).join(", ") || "No clubs"}
-                                    </Tooltip>
-                                  }
-                                >
-                                  <span className="text-muted text-truncate d-block" style={{ fontSize: 12, cursor: 'help' }}>
-                                    {(row.preferredClubs || []).map((club) => club.clubName || club.name).filter(Boolean).join(", ") || "No clubs"}
-                                  </span>
-                                </OverlayTrigger>
+                                <div className="text-muted" style={{ fontSize: 12 }}>
+                                  {(row.preferredClubs || []).map((club) => club.clubName || club.name).filter(Boolean).join(", ") || "No clubs"}
+                                </div>
                               )}
-                            </td>
-                            <td>
+                            </Col>
+                            <Col xs={12}>
+                              <Form.Label className="small mb-1 fw-semibold">Skill Level</Form.Label>
                               {isEditing ? (
                                 <Form.Select
                                   size="sm"
@@ -1325,396 +1652,149 @@ const PlayerPreferences = () => {
                                   <option value="">Select level</option>
                                   {SKILL_LEVEL_OPTIONS.map((level) => <option key={level} value={level}>{level}</option>)}
                                 </Form.Select>
-                              ) : row.skillLevel === "Beginner" ? (
-                                <Form.Select
-                                  size="sm"
-                                  value={row.skillLevel}
-                                  onChange={async (event) => {
-                                    const newSkillLevel = event.target.value;
-                                    if (row.preferenceId) {
-                                      await dispatch(updatePlayerPreference({
-                                        id: row.preferenceId,
-                                        data: { skillLevel: newSkillLevel }
-                                      }));
-                                      loadPlayers(pagination.page);
-                                    }
-                                  }}
-                                  style={{ fontSize: 12 }}
-                                >
-                                  {SKILL_LEVEL_OPTIONS.map((level) => <option key={level} value={level}>{level}</option>)}
-                                </Form.Select>
                               ) : row.skillLevel ? (
                                 <Badge bg={SKILL_COLORS[row.skillLevel] || "secondary"}>{row.skillLevel}</Badge>
                               ) : (
                                 <span className="text-muted">No level</span>
                               )}
-                            </td>
-                            <td style={{ minWidth: 0 }}>
+                            </Col>
+                            <Col xs={12}>
+                              <Form.Label className="small mb-1 fw-semibold">Schedule</Form.Label>
                               {isEditing ? (
-                                <div className="d-flex align-items-center gap-2">
-                                  <div style={{ flex: 1, minWidth: 0 }}>
-                                    {formatScheduleSummary(preferenceForm.preferredSchedule, 2)}
+                                <div className="d-flex align-items-start gap-2">
+                                  <div style={{ flex: 1 }}>
+                                    {formatScheduleSummary(preferenceForm.preferredSchedule, 3)}
                                   </div>
-                                  <FaEdit
+                                  <Button
+                                    size="sm"
+                                    variant="outline-primary"
                                     onClick={() => openScheduleModal(row)}
-                                    size={13} className="text-info" />
+                                    title="Edit Schedule"
+                                  >
+                                    <FaEdit size={12} />
+                                  </Button>
                                 </div>
                               ) : (
-                                formatScheduleSummary(row.preferredSchedule, 2)
+                                formatScheduleSummary(row.preferredSchedule, 3)
                               )}
-                            </td>
-                            {/* Duration column — always-editable inline toggles */}
-                            <td>
-                              <div className="d-flex flex-wrap gap-1">
-                                {[
-                                  { field: "is60", label: "60 min", activeBg: "#EFF6FF", activeBorder: "#BFDBFE", activeColor: "#1D4ED8" },
-                                  { field: "is90", label: "90 min", activeBg: "#F5F3FF", activeBorder: "#DDD6FE", activeColor: "#6D28D9" },
-                                ].map(({ field, label, activeBg, activeBorder, activeColor }) => {
-                                  const active = !!row.preferredDuration?.[field];
-                                  return (
-                                    <button
-                                      key={field}
-                                      type="button"
-                                      disabled={!row.preferenceId}
-                                      onClick={() => handleDurationToggle(row, field)}
-                                      title={row.preferenceId ? (active ? `Remove ${label}` : `Add ${label}`) : "No preference record"}
-                                      style={{
-                                        background: active ? activeBg : "#F8FAFC",
-                                        border: `1.5px solid ${active ? activeBorder : "#E2E8F0"}`,
-                                        borderRadius: 20,
-                                        color: active ? activeColor : "#94A3B8",
-                                        cursor: row.preferenceId ? "pointer" : "not-allowed",
-                                        fontSize: 11,
-                                        fontWeight: active ? 600 : 400,
-                                        opacity: row.preferenceId ? 1 : 0.5,
-                                        padding: "3px 10px",
-                                        transition: "all 0.12s",
-                                        whiteSpace: "nowrap",
-                                      }}
-                                    >
-                                      {label}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </td>
-                            <td className="text-center">
-                              <button
-                                type="button"
-                                onClick={() => handleCallStatusClick(row)}
-                                title={row.isCalled ? "Mark as not called" : "Mark as called"}
-                                style={{
-                                  alignItems: "center",
-                                  background: row.isCalled ? "#ECFDF5" : "#F8FAFC",
-                                  border: `1.5px solid ${row.isCalled ? "#6EE7B7" : "#CBD5E1"}`,
-                                  borderRadius: 8,
-                                  color: row.isCalled ? "#059669" : "#94A3B8",
-                                  cursor: "pointer",
-                                  display: "inline-flex",
-                                  height: 28,
-                                  justifyContent: "center",
-                                  transition: "all 0.15s",
-                                  width: 28,
-                                }}
-                              >
-                                <FaCheck size={11} />
-                              </button>
-                            </td>
-                            <td className="text-center">
-                              <div className="d-flex flex-column gap-1 align-items-center">
-                                {selectedOpenMatch && (
-                                  <>
-                                    <Button
-                                      size="sm"
-                                      onClick={() => handleRequestPlayer(row)}
-                                      disabled={requestingPlayerId === playerId}
-                                      style={{
-                                        backgroundColor: "#1f41bb",
-                                        border: "none",
-                                        fontSize: 11,
-                                        minWidth: 118,
-                                      }}
-                                    >
-                                      {requestingPlayerId === playerId ? <ButtonLoading size={6} /> : "Request Match"}
-                                    </Button>
-                                    {paymentLinksByPlayerId[playerId]?.paymentLink ? (
-                                      <>
-                                        <Button
-                                          size="sm"
-                                          variant="outline-success"
-                                          onClick={() => handleCopyPaymentLink(playerId)}
-                                          style={{ fontSize: 11, minWidth: 118 }}
-                                        >
-                                          Copy Link
-                                        </Button>
-                                        <span className="text-muted" style={{ fontSize: 11 }}>
-                                          ₹{paymentLinksByPlayerId[playerId]?.paymentAmount || 0}
-                                        </span>
-                                      </>
-                                    ) : (
-                                      <Button
-                                        size="sm"
-                                        variant="outline-primary"
-                                        onClick={() => handleGeneratePaymentLink(row)}
-                                        disabled={generatingLinkPlayerId === playerId}
-                                        style={{ fontSize: 11, minWidth: 118 }}
-                                      >
-                                        {generatingLinkPlayerId === playerId ? <ButtonLoading size={6} color="blue" /> : "Generate Link"}
-                                      </Button>
-                                    )}
-                                  </>
-                                )}
-                                {isEditing ? (
-                                  <div className="d-flex gap-2">
-                                    <FaTimes onClick={handleCancelEdit} size={13} style={{ cursor: 'pointer' }} className="text-danger" />
-                                    <FaSave onClick={() => handleSavePreference(row)} size={13} style={{ cursor: 'pointer' }} className="text-success" />
-                                  </div>
-                                ) : (
-                                  <div className="d-flex gap-2">
-                                    <FaRegEye onClick={() => handleViewPlayerDetails(row)} className="text-info" size={13} style={{ cursor: 'pointer' }} />
-                                    <FaEdit onClick={() => handleEditPreference(row)} className="text-primary" size={13} style={{ cursor: 'pointer' }} />
-                                  </div>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </Table>
-                </div>
-
-                <div className="d-block d-lg-none">
-                  {players.map((row) => {
-                    const playerId = getPlayerId(row);
-                    const isEditing = editingPreferencePlayerId === playerId;
-                    return (
-                      <div key={row._id || playerId} className="card mb-2 border-0 shadow-sm">
-                        <div className="card-body p-2">
-                          <div className="d-flex justify-content-between gap-2 align-items-start mb-2">
-                            <div style={{ minWidth: 0 }}>
-                              <div className="fw-semibold text-truncate" style={{ fontSize: 13 }}>
-                                {row.customerId?.name || "N/A"} {row.customerId?.lastName || ""}
-                              </div>
-                              <div className="text-muted" style={{ fontSize: 12 }}>
-                                {row.customerId?.countryCode || "+91"} {row.customerId?.phoneNumber || "N/A"}
-                              </div>
-                              <div className="text-muted" style={{ fontSize: 12 }}>
-                                Gender: {row.customerId?.gender || "N/A"}
-                              </div>
-                              <div className="text-muted text-truncate" style={{ fontSize: 12 }}>
-                                Residence: {row.customerId?.city || "N/A"}
-                              </div>
-                            </div>
-                            <div className="d-flex flex-column gap-1" style={{ flex: "0 0 auto" }}>
-                              {selectedOpenMatch && (
+                            </Col>
+                            <Col xs={12}>
+                              <Form.Label className="small mb-1 fw-semibold">Player Tendency</Form.Label>
+                              {isEditing ? (
+                                <Form.Control
+                                  size="sm"
+                                  placeholder="e.g. evening regular, last-minute, competitive"
+                                  value={preferenceForm.playerTendency}
+                                  onChange={(event) => setPreferenceForm((form) => ({ ...form, playerTendency: event.target.value }))}
+                                />
+                              ) : (
+                                <div className="text-muted" style={{ fontSize: 12 }}>
+                                  {row.playerTendency || "N/A"}
+                                </div>
+                              )}
+                            </Col>
+                            <Col xs={12}>
+                              <Form.Label className="small mb-1 fw-semibold">Notes</Form.Label>
+                              {isEditing ? (
+                                <Form.Control
+                                  size="sm"
+                                  placeholder="Optional notes"
+                                  value={preferenceForm.notes}
+                                  onChange={(event) => setPreferenceForm((form) => ({ ...form, notes: event.target.value }))}
+                                />
+                              ) : (
+                                <div className="text-muted" style={{ fontSize: 12 }}>
+                                  {row.notes || "N/A"}
+                                </div>
+                              )}
+                            </Col>
+                            <Col xs={12} className="d-flex justify-content-end gap-2 mt-2">
+                              {isEditing ? (
+                                <>
+                                  <Button size="sm" variant="outline-secondary" onClick={handleCancelEdit}>
+                                    <FaTimes size={12} className="me-1" />Cancel
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleSavePreference(row)}
+                                    disabled={saveLoading}
+                                    style={{ backgroundColor: "#1f41bb", border: "none" }}
+                                  >
+                                    {saveLoading ? <ButtonLoading size={8} /> : <><FaSave size={12} className="me-1" />Save</>}
+                                  </Button>
+                                </>
+                              ) : (
                                 <>
                                   <Button
                                     size="sm"
-                                    onClick={() => handleRequestPlayer(row)}
-                                    disabled={requestingPlayerId === playerId}
-                                    style={{ backgroundColor: "#1f41bb", border: "none" }}
+                                    variant="outline-info"
+                                    onClick={() => handleViewPlayerDetails(row)}
                                   >
-                                    {requestingPlayerId === playerId ? <ButtonLoading size={6} /> : "Request"}
+                                    <FaRegEye size={12} className="me-1" />View
                                   </Button>
-                                  {paymentLinksByPlayerId[playerId]?.paymentLink ? (
-                                    <Button
-                                      size="sm"
-                                      variant="outline-success"
-                                      onClick={() => handleCopyPaymentLink(playerId)}
-                                    >
-                                      Copy Link
-                                    </Button>
-                                  ) : (
-                                    <Button
-                                      size="sm"
-                                      variant="outline-primary"
-                                      onClick={() => handleGeneratePaymentLink(row)}
-                                      disabled={generatingLinkPlayerId === playerId}
-                                    >
-                                      {generatingLinkPlayerId === playerId ? <ButtonLoading size={6} color="blue" /> : "Generate Link"}
-                                    </Button>
-                                  )}
+                                  <Button
+                                    size="sm"
+                                    variant="outline-primary"
+                                    onClick={() => handleEditPreference(row)}
+                                  >
+                                    <FaEdit size={12} className="me-1" />Edit
+                                  </Button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleCallStatusClick(row)}
+                                    title={row.isCalled ? "Mark as not called" : "Mark as called"}
+                                    style={{
+                                      alignItems: "center",
+                                      background: row.isCalled ? "#ECFDF5" : "#F8FAFC",
+                                      border: `1.5px solid ${row.isCalled ? "#6EE7B7" : "#CBD5E1"}`,
+                                      borderRadius: 6,
+                                      color: row.isCalled ? "#059669" : "#94A3B8",
+                                      cursor: "pointer",
+                                      display: "inline-flex",
+                                      fontSize: 11,
+                                      fontWeight: 600,
+                                      gap: 5,
+                                      padding: "4px 10px",
+                                    }}
+                                  >
+                                    <FaCheck size={10} />
+                                    {row.isCalled ? "Called" : "Not Called"}
+                                  </button>
                                 </>
                               )}
-                            </div>
-                          </div>
-
-                          <div className="border-top pt-2">
-                            <Row className="g-2">
-                              <Col xs={12}>
-                                <Form.Label className="small mb-1 fw-semibold">Preferred Clubs</Form.Label>
-                                {isEditing ? (
-                                  <CheckboxMultiSelect
-                                    options={clubOptions}
-                                    value={preferenceForm.preferredClubs.map((club) => club.value)}
-                                    onChange={(values) => setPreferenceForm((form) => ({
-                                      ...form,
-                                      preferredClubs: selectValues(clubOptions, values),
-                                    }))}
-                                    placeholder={getMultiPlaceholder("Select clubs...", preferenceForm.preferredClubs)}
-                                  />
-                                ) : (
-                                  <div className="text-muted" style={{ fontSize: 12 }}>
-                                    {(row.preferredClubs || []).map((club) => club.clubName || club.name).filter(Boolean).join(", ") || "No clubs"}
-                                  </div>
-                                )}
-                              </Col>
-                              <Col xs={12}>
-                                <Form.Label className="small mb-1 fw-semibold">Skill Level</Form.Label>
-                                {isEditing ? (
-                                  <Form.Select
-                                    size="sm"
-                                    value={preferenceForm.skillLevel}
-                                    onChange={(event) => setPreferenceForm((form) => ({ ...form, skillLevel: event.target.value }))}
-                                  >
-                                    <option value="">Select level</option>
-                                    {SKILL_LEVEL_OPTIONS.map((level) => <option key={level} value={level}>{level}</option>)}
-                                  </Form.Select>
-                                ) : row.skillLevel ? (
-                                  <Badge bg={SKILL_COLORS[row.skillLevel] || "secondary"}>{row.skillLevel}</Badge>
-                                ) : (
-                                  <span className="text-muted">No level</span>
-                                )}
-                              </Col>
-                              <Col xs={12}>
-                                <Form.Label className="small mb-1 fw-semibold">Schedule</Form.Label>
-                                {isEditing ? (
-                                  <div className="d-flex align-items-start gap-2">
-                                    <div style={{ flex: 1 }}>
-                                      {formatScheduleSummary(preferenceForm.preferredSchedule, 3)}
-                                    </div>
-                                    <Button
-                                      size="sm"
-                                      variant="outline-primary"
-                                      onClick={() => openScheduleModal(row)}
-                                      title="Edit Schedule"
-                                    >
-                                      <FaEdit size={12} />
-                                    </Button>
-                                  </div>
-                                ) : (
-                                  formatScheduleSummary(row.preferredSchedule, 3)
-                                )}
-                              </Col>
-                              <Col xs={12}>
-                                <Form.Label className="small mb-1 fw-semibold">Player Tendency</Form.Label>
-                                {isEditing ? (
-                                  <Form.Control
-                                    size="sm"
-                                    placeholder="e.g. evening regular, last-minute, competitive"
-                                    value={preferenceForm.playerTendency}
-                                    onChange={(event) => setPreferenceForm((form) => ({ ...form, playerTendency: event.target.value }))}
-                                  />
-                                ) : (
-                                  <div className="text-muted" style={{ fontSize: 12 }}>
-                                    {row.playerTendency || "N/A"}
-                                  </div>
-                                )}
-                              </Col>
-                              <Col xs={12}>
-                                <Form.Label className="small mb-1 fw-semibold">Notes</Form.Label>
-                                {isEditing ? (
-                                  <Form.Control
-                                    size="sm"
-                                    placeholder="Optional notes"
-                                    value={preferenceForm.notes}
-                                    onChange={(event) => setPreferenceForm((form) => ({ ...form, notes: event.target.value }))}
-                                  />
-                                ) : (
-                                  <div className="text-muted" style={{ fontSize: 12 }}>
-                                    {row.notes || "N/A"}
-                                  </div>
-                                )}
-                              </Col>
-                              <Col xs={12} className="d-flex justify-content-end gap-2 mt-2">
-                                {isEditing ? (
-                                  <>
-                                    <Button size="sm" variant="outline-secondary" onClick={handleCancelEdit}>
-                                      <FaTimes size={12} className="me-1" />Cancel
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      onClick={() => handleSavePreference(row)}
-                                      disabled={saveLoading}
-                                      style={{ backgroundColor: "#1f41bb", border: "none" }}
-                                    >
-                                      {saveLoading ? <ButtonLoading size={8} /> : <><FaSave size={12} className="me-1" />Save</>}
-                                    </Button>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Button
-                                      size="sm"
-                                      variant="outline-info"
-                                      onClick={() => handleViewPlayerDetails(row)}
-                                    >
-                                      <FaRegEye size={12} className="me-1" />View
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="outline-primary"
-                                      onClick={() => handleEditPreference(row)}
-                                    >
-                                      <FaEdit size={12} className="me-1" />Edit
-                                    </Button>
-                                    <button
-                                      type="button"
-                                      onClick={() => handleCallStatusClick(row)}
-                                      title={row.isCalled ? "Mark as not called" : "Mark as called"}
-                                      style={{
-                                        alignItems: "center",
-                                        background: row.isCalled ? "#ECFDF5" : "#F8FAFC",
-                                        border: `1.5px solid ${row.isCalled ? "#6EE7B7" : "#CBD5E1"}`,
-                                        borderRadius: 6,
-                                        color: row.isCalled ? "#059669" : "#94A3B8",
-                                        cursor: "pointer",
-                                        display: "inline-flex",
-                                        fontSize: 11,
-                                        fontWeight: 600,
-                                        gap: 5,
-                                        padding: "4px 10px",
-                                      }}
-                                    >
-                                      <FaCheck size={10} />
-                                      {row.isCalled ? "Called" : "Not Called"}
-                                    </button>
-                                  </>
-                                )}
-                              </Col>
-                            </Row>
-                          </div>
+                            </Col>
+                          </Row>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
+                    </div>
+                  );
+                })}
+              </div>
 
-                {pagination.totalPages > 1 && (
-                  <div className="d-flex justify-content-center gap-2 mt-3">
-                    <Button
-                      size="sm"
-                      variant="outline-secondary"
-                      disabled={pagination.page <= 1}
-                      onClick={() => loadPlayers(pagination.page - 1)}
-                    >
-                      Prev
-                    </Button>
-                    <span className="align-self-center text-muted" style={{ fontSize: 13 }}>
-                      {pagination.page} / {pagination.totalPages}
-                    </span>
-                    <Button
-                      size="sm"
-                      variant="outline-secondary"
-                      disabled={pagination.page >= pagination.totalPages}
-                      onClick={() => loadPlayers(pagination.page + 1)}
-                    >
-                      Next
-                    </Button>
-                  </div>
-                )}
-              </>
-            )}
+              {pagination.totalPages > 1 && (
+                <div className="d-flex justify-content-center gap-2 mt-3">
+                  <Button
+                    size="sm"
+                    variant="outline-secondary"
+                    disabled={pagination.page <= 1}
+                    onClick={() => loadPlayers(pagination.page - 1)}
+                  >
+                    Prev
+                  </Button>
+                  <span className="align-self-center text-muted" style={{ fontSize: 13 }}>
+                    {pagination.page} / {pagination.totalPages}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="outline-secondary"
+                    disabled={pagination.page >= pagination.totalPages}
+                    onClick={() => loadPlayers(pagination.page + 1)}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
+            </>
           </div>
         </Col>
         {/* Open Matches Sidebar - col-3 */}
@@ -2200,12 +2280,15 @@ const PlayerPreferences = () => {
         <Modal.Body style={{ padding: "28px 24px 20px" }}>
           <div style={{ textAlign: "center" }}>
             {(() => {
-              const label = durationConfirm.field === "is90" ? "90 min" : "60 min";
+              const durationMeta = {
+                is60: { label: "60 min", bg: "#EFF6FF", border: "#BFDBFE", color: "#1D4ED8" },
+                is90: { label: "90 min", bg: "#F5F3FF", border: "#DDD6FE", color: "#6D28D9" },
+                is120: { label: "120 min", bg: "#ECFDF5", border: "#BBF7D0", color: "#047857" },
+              };
+              const theme = durationMeta[durationConfirm.field] || durationMeta.is60;
+              const label = theme.label;
               const isActive = !!durationConfirm.row?.preferredDuration?.[durationConfirm.field];
               const willAdd = !isActive;
-              const theme = durationConfirm.field === "is90"
-                ? { bg: "#F5F3FF", border: "#DDD6FE", color: "#6D28D9" }
-                : { bg: "#EFF6FF", border: "#BFDBFE", color: "#1D4ED8" };
 
               return (
                 <>
