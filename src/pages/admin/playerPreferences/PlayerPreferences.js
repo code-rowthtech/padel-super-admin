@@ -645,7 +645,7 @@ const PlayerPreferences = () => {
   const loadPlayers = useCallback((page = 1) => {
     dispatch(getAllPlayerPreferences({
       page,
-      limit: pagination.limit,
+      limit: 25,
       search: filters.search,
       skillLevel: filters.skillLevel,
       gender: filters.gender,
@@ -658,7 +658,7 @@ const PlayerPreferences = () => {
       is90: filters.preferredDuration?.includes("is90") || undefined,
       is120: filters.preferredDuration?.includes("is120") || undefined,
     }));
-  }, [dispatch, filters, pagination.limit]);
+  }, [dispatch, filters]);
 
   useEffect(() => {
     loadPlayers(1);
@@ -1305,7 +1305,7 @@ const PlayerPreferences = () => {
                       const isEditing = editingPreferencePlayerId === playerId;
                       return (
                         <tr key={row._id || playerId}>
-                          <td className="text-muted text-center">{(pagination.page - 1) * pagination.limit + index + 1}</td>
+                          <td className="text-muted text-center">{(pagination.page - 1) * 25 + index + 1}</td>
                           <td style={{ minWidth: 0 }}>
                             <div className="fw-semibold text-truncate" style={{ fontSize: 13 }}>
                               {row.customerId?.name || "N/A"} {row.customerId?.lastName || ""}
