@@ -531,6 +531,7 @@ const PlayerPreferences = () => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [showPlayerDetailsModal, setShowPlayerDetailsModal] = useState(false);
   const [callConfirm, setCallConfirm] = useState({ show: false, row: null, nextValue: false, loading: false });
+  const [durationConfirm, setDurationConfirm] = useState({ show: false, row: null, field: null, loading: false });
   const [openDropdownKey, setOpenDropdownKey] = useState(null); // Track which dropdown is open
   const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
   const [selectedPlayerForAdd, setSelectedPlayerForAdd] = useState(null);
@@ -821,6 +822,46 @@ const PlayerPreferences = () => {
       showError(error.response?.data?.message || 'Failed to add player to match. Please try again.');
     } finally {
       setAddingPlayerToMatch(false);
+    }
+  };
+
+  const handleDurationToggle = (row, field) => {
+    if (!row?.preferenceId) return;
+    setDurationConfirm({ show: true, row, field, loading: false });
+  };
+
+  const handleDurationConfirm = async () => {
+    const { row, field } = durationConfirm;
+    if (!row?.preferenceId || !field) return;
+    setDurationConfirm((c) => ({ ...c, loading: true }));
+
+    const current = row.preferredDuration || {};
+    const nextDuration = {
+      is60: field === "is60" ? !current.is60 : (current.is60 === true),
+      is90: field === "is90" ? !current.is90 : (current.is90 === true),
+    };
+
+    const payload = {
+      preferredClubs: (row.preferredClubs || []).map((club) =>
+        typeof club === "string" ? club : club._id,
+      ),
+      preferredSchedule: (row.preferredSchedule || []).map((entry) => ({
+        day: entry.day,
+        timeSlots: (entry.timeSlots || []).map((slot) =>
+          typeof slot === "string" ? slot : slot.value || slot.label || slot,
+        ),
+      })),
+      skillLevel: row.skillLevel || undefined,
+      notes: row.notes || undefined,
+      playerTendency: row.playerTendency || undefined,
+      preferredDuration: nextDuration,
+    };
+
+    try {
+      const result = await dispatch(updatePlayerPreference({ id: row.preferenceId, data: payload }));
+      if (!result.error) loadPlayers(pagination.page);
+    } catch { /* error toast handled in thunk */ } finally {
+      setDurationConfirm({ show: false, row: null, field: null, loading: false });
     }
   };
 
@@ -1322,36 +1363,39 @@ const PlayerPreferences = () => {
                                 formatScheduleSummary(row.preferredSchedule, 2)
                               )}
                             </td>
-                            {/* Duration column */}
+                            {/* Duration column — always-editable inline toggles */}
                             <td>
                               <div className="d-flex flex-wrap gap-1">
-                                {row.preferredDuration?.is60 && (
-                                  <span style={{
-                                    background: "#EFF6FF",
-                                    border: "1px solid #BFDBFE",
-                                    borderRadius: 20,
-                                    color: "#1D4ED8",
-                                    fontSize: 11,
-                                    fontWeight: 600,
-                                    padding: "2px 9px",
-                                    whiteSpace: "nowrap",
-                                  }}>60 min</span>
-                                )}
-                                {row.preferredDuration?.is90 && (
-                                  <span style={{
-                                    background: "#F5F3FF",
-                                    border: "1px solid #DDD6FE",
-                                    borderRadius: 20,
-                                    color: "#6D28D9",
-                                    fontSize: 11,
-                                    fontWeight: 600,
-                                    padding: "2px 9px",
-                                    whiteSpace: "nowrap",
-                                  }}>90 min</span>
-                                )}
-                                {!row.preferredDuration?.is60 && !row.preferredDuration?.is90 && (
-                                  <span className="text-muted" style={{ fontSize: 12 }}>—</span>
-                                )}
+                                {[
+                                  { field: "is60", label: "60 min", activeBg: "#EFF6FF", activeBorder: "#BFDBFE", activeColor: "#1D4ED8" },
+                                  { field: "is90", label: "90 min", activeBg: "#F5F3FF", activeBorder: "#DDD6FE", activeColor: "#6D28D9" },
+                                ].map(({ field, label, activeBg, activeBorder, activeColor }) => {
+                                  const active = !!row.preferredDuration?.[field];
+                                  return (
+                                    <button
+                                      key={field}
+                                      type="button"
+                                      disabled={!row.preferenceId}
+                                      onClick={() => handleDurationToggle(row, field)}
+                                      title={row.preferenceId ? (active ? `Remove ${label}` : `Add ${label}`) : "No preference record"}
+                                      style={{
+                                        background: active ? activeBg : "#F8FAFC",
+                                        border: `1.5px solid ${active ? activeBorder : "#E2E8F0"}`,
+                                        borderRadius: 20,
+                                        color: active ? activeColor : "#94A3B8",
+                                        cursor: row.preferenceId ? "pointer" : "not-allowed",
+                                        fontSize: 11,
+                                        fontWeight: active ? 600 : 400,
+                                        opacity: row.preferenceId ? 1 : 0.5,
+                                        padding: "3px 10px",
+                                        transition: "all 0.12s",
+                                        whiteSpace: "nowrap",
+                                      }}
+                                    >
+                                      {label}
+                                    </button>
+                                  );
+                                })}
                               </div>
                             </td>
                             <td className="text-center">
