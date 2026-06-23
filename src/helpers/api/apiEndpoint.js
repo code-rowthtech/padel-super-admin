@@ -210,6 +210,8 @@ export const UPDATE_VERSION = "/api/app-version/update";
 export const GET_MATCH_REQUEST = "/api/super-admin/match-request-players";
 export const POST_MATCH_REQUEST = "/api/super-admin/match-request/send";
 export const POST_MATCH_REQUEST_PAYMENT_LINK = "/api/super-admin/match-request/payment-link";
+export const GET_OPEN_MATCH_PLATFORM_FEE = "/api/super-admin/open-match-platform-fee";
+export const UPDATE_OPEN_MATCH_PLATFORM_FEE = "/api/super-admin/open-match-platform-fee";
 export const POST_MATCH_REQUEST_AUTO = "/api/super-admin/match-request/send-automatic";
 
 // All Transactions

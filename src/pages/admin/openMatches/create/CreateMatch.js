@@ -203,9 +203,9 @@ const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null, 
       (item) => String(getEntityId(item)) === String(selectedCategoryId),
     );
 
-    if (!selectedCategoryStillExists) {
-      setSelectedCategoryId(firstCategoryId || "");
-    }
+    // if (!selectedCategoryStillExists) {
+    //   setSelectedCategoryId(firstCategoryId || "");
+    // }
   }, [categoryOptions, selectedCategoryId]);
 
   useEffect(() => {

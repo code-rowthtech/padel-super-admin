@@ -35,46 +35,46 @@ const TIME_SLOT_GROUPS = [
       "8 PM – 9 PM", "9 PM – 10 PM", "10 PM – 11 PM", "11 PM – 12 AM",
     ].map((value) => ({ value, label: value })),
   },
-  {
-    label: "90 Minutes",
-    options: [
-      "5:00 AM – 6:30 AM", "6:00 AM – 7:30 AM", "7:00 AM – 8:30 AM", "8:00 AM – 9:30 AM",
-      "9:00 AM – 10:30 AM", "10:00 AM – 11:30 AM", "11:00 AM – 12:30 PM", "12:00 PM – 1:30 PM",
-      "1:00 PM – 2:30 PM", "2:00 PM – 3:30 PM", "3:00 PM – 4:30 PM", "4:00 PM – 5:30 PM",
-      "5:00 PM – 6:30 PM", "6:00 PM – 7:30 PM", "7:00 PM – 8:30 PM", "8:00 PM – 9:30 PM",
-      "9:00 PM – 10:30 PM", "10:00 PM – 11:30 PM", "11:00 PM – 12:30 AM",
-    ].map((value) => ({ value, label: value })),
-  },
-  {
-    label: "120 Minutes",
-    options: [
-      "5:00 AM – 7:00 AM",
-      "6:00 AM – 8:00 AM",
-      "7:00 AM – 9:00 AM",
-      "8:00 AM – 10:00 AM",
-      "9:00 AM – 11:00 AM",
-      "10:00 AM – 12:00 PM",
-      "11:00 AM – 1:00 PM",
-      "12:00 PM – 2:00 PM",
-      "1:00 PM – 3:00 PM",
-      "2:00 PM – 4:00 PM",
-      "3:00 PM – 5:00 PM",
-      "4:00 PM – 6:00 PM",
-      "5:00 PM – 7:00 PM",
-      "6:00 PM – 8:00 PM",
-      "7:00 PM – 9:00 PM",
-      "8:00 PM – 10:00 PM",
-      "9:00 PM – 11:00 PM",
-      "10:00 PM – 12:00 AM",
-    ].map((value) => ({ value, label: value })),
-  }
+  // {
+  //   label: "90 Minutes",
+  //   options: [
+  //     "5:00 AM – 6:30 AM", "6:00 AM – 7:30 AM", "7:00 AM – 8:30 AM", "8:00 AM – 9:30 AM",
+  //     "9:00 AM – 10:30 AM", "10:00 AM – 11:30 AM", "11:00 AM – 12:30 PM", "12:00 PM – 1:30 PM",
+  //     "1:00 PM – 2:30 PM", "2:00 PM – 3:30 PM", "3:00 PM – 4:30 PM", "4:00 PM – 5:30 PM",
+  //     "5:00 PM – 6:30 PM", "6:00 PM – 7:30 PM", "7:00 PM – 8:30 PM", "8:00 PM – 9:30 PM",
+  //     "9:00 PM – 10:30 PM", "10:00 PM – 11:30 PM", "11:00 PM – 12:30 AM",
+  //   ].map((value) => ({ value, label: value })),
+  // },
+  // {
+  //   label: "120 Minutes",
+  //   options: [
+  //     "5:00 AM – 7:00 AM",
+  //     "6:00 AM – 8:00 AM",
+  //     "7:00 AM – 9:00 AM",
+  //     "8:00 AM – 10:00 AM",
+  //     "9:00 AM – 11:00 AM",
+  //     "10:00 AM – 12:00 PM",
+  //     "11:00 AM – 1:00 PM",
+  //     "12:00 PM – 2:00 PM",
+  //     "1:00 PM – 3:00 PM",
+  //     "2:00 PM – 4:00 PM",
+  //     "3:00 PM – 5:00 PM",
+  //     "4:00 PM – 6:00 PM",
+  //     "5:00 PM – 7:00 PM",
+  //     "6:00 PM – 8:00 PM",
+  //     "7:00 PM – 9:00 PM",
+  //     "8:00 PM – 10:00 PM",
+  //     "9:00 PM – 11:00 PM",
+  //     "10:00 PM – 12:00 AM",
+  //   ].map((value) => ({ value, label: value })),
+  // }
 ];
 
 const DAY_OPTIONS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-const SKILL_LEVEL_OPTIONS = ["Beginner", "Intermediate", "Advanced", "Professional"];
+const SKILL_LEVEL_OPTIONS = ["E", "D2", "D1", "C2", "C1", "B2", "B1", "A", "L"];
 const GENDER_OPTIONS = ["Male", "Female", "Other"];
 const SCHEDULE_TIME_SLOT_GROUPS = TIME_SLOT_GROUPS.filter((group) => group.label === "60 Minutes");
-const SKILL_COLORS = { Beginner: "success", Intermediate: "warning", Advanced: "danger", Professional: "dark" };
+const SKILL_COLORS = { E: "success", D2: "warning", D1: "danger", C2: "dark", C1: "primary", B2: "secondary", B1: "info", A: "light", L: "dark" };
 const EMPTY_PREFERENCE_FORM = {
   preferredClubs: [],
   preferredSchedule: [],
@@ -94,6 +94,7 @@ const EMPTY_FILTERS = {
   timeSlot: [],
   hasPreference: [],
   preferredDuration: [],
+  isCalled: null,
 };
 
 const selectStyles = {
@@ -198,6 +199,18 @@ const CheckboxMultiSelect = ({ options, value, onChange, placeholder }) => {
       onChange={(selected) => onChange((selected || []).map((option) => option.value))}
       placeholder={placeholder}
       styles={checkboxSelectStyles}
+      menuPortalTarget={document.body}
+      styles={{
+        ...checkboxSelectStyles,
+        menuPortal: (base) => ({
+          ...base,
+          zIndex: 9999,
+        }),
+        menu: (base) => ({
+          ...base,
+          zIndex: 9999,
+        }),
+      }}
     />
   );
 };
@@ -310,8 +323,10 @@ const getMatchFee = (match) => {
     0,
   );
   const share = Number(match?.perPlayerMatchShare || (total > 0 ? total.toFixed(2) : 0));
-  const platformFee = Number(match?.platformFee || 1);
-  const gstOnPlatformFee = Number((platformFee * 0.18).toFixed(2));
+  const platformFee = Number(match?.platformFee ?? 1);
+  const gstOnPlatformFee = Number(
+    match?.platformFeeGst ?? (platformFee * 0.18).toFixed(2),
+  );
   return {
     total,
     share,
@@ -347,10 +362,42 @@ const formatScheduleSummary = (preferredSchedule = [], maxRows = 2) => {
           ? timeSlots.map(getSlotValue).join(", ")
           : "Any time";
 
+        // const tooltipContent = (
+        //   <div>
+        //     <div className="fw-bold mb-1">{entry.day}</div>
+        //     <div style={{ fontSize: 11 }}>{timeRange}</div>
+        //   </div>
+        // );
         const tooltipContent = (
-          <div>
-            <div className="fw-bold mb-1">{entry.day}</div>
-            <div style={{ fontSize: 11 }}>{timeRange}</div>
+          <div style={{ minWidth: 180 }}>
+            <div
+              className="fw-bold mb-2 text-center"
+              style={{
+                borderBottom: "1px solid rgba(255,255,255,0.2)",
+                paddingBottom: 4,
+              }}
+            >
+              {entry.day}
+            </div>
+
+            <div className="d-flex flex-column gap-1">
+              {
+                timeSlots.map((slot, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      background: "rgba(255,255,255,0.08)",
+                      borderRadius: 4,
+                      padding: "4px 8px",
+                      fontSize: 11,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {getSlotValue(slot)}
+                  </div>
+                ))
+              }
+            </div>
           </div>
         );
 
@@ -535,12 +582,15 @@ const PlayerPreferences = () => {
   const [requestingPlayerId, setRequestingPlayerId] = useState("");
   const [generatingLinkPlayerId, setGeneratingLinkPlayerId] = useState("");
   const [paymentLinksByPlayerId, setPaymentLinksByPlayerId] = useState({});
+  const [copyVisibleUntil, setCopyVisibleUntil] = useState({});
   const [routeOpenMatchLoaded, setRouteOpenMatchLoaded] = useState(false);
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
   const [showCreateMatchModal, setShowCreateMatchModal] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [scheduleModalData, setScheduleModalData] = useState({ schedule: [], playerId: "" });
   const [matchSearchQuery, setMatchSearchQuery] = useState("");
+  const [matchGameType, setMatchGameType] = useState("");
+  const matchGameTypeRef = React.useRef("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [showPlayerDetailsModal, setShowPlayerDetailsModal] = useState(false);
   const [callConfirm, setCallConfirm] = useState({ show: false, row: null, nextValue: false, loading: false });
@@ -607,6 +657,7 @@ const PlayerPreferences = () => {
   // Keep side-channel refs updated each render so the RAF reads fresh values
   scrollContainerRef._isSearchFocused = isSearchFocused;
   scrollContainerRef._selectedMatch = selectedOpenMatch;
+  matchGameTypeRef.current = matchGameType;
 
   useEffect(() => {
     ownerApi.get(SUPER_ADMIN_GET_ALL_CLUBS).then((res) => {
@@ -657,6 +708,7 @@ const PlayerPreferences = () => {
       is60: filters.preferredDuration?.includes("is60") || undefined,
       is90: filters.preferredDuration?.includes("is90") || undefined,
       is120: filters.preferredDuration?.includes("is120") || undefined,
+      isCalled: filters.isCalled !== null ? filters.isCalled : undefined,
     }));
   }, [dispatch, filters]);
 
@@ -675,11 +727,15 @@ const PlayerPreferences = () => {
 
   const getPlayerId = (row) => row?.customerId?._id || "";
 
-  const loadOpenMatches = useCallback(async (searchQuery = "") => {
+  const loadOpenMatches = useCallback(async (searchQuery = "", gameType) => {
+    // Use the ref as the source of truth so all callers (interval, effects, etc.)
+    // automatically pick up the latest selected game type without needing it in deps.
+    const resolvedGameType = gameType !== undefined ? gameType : matchGameTypeRef.current;
     setOpenMatchesLoading(true);
     try {
       const searchParam = searchQuery.trim() ? `&search=${encodeURIComponent(searchQuery)}` : "";
-      const res = await ownerApi.get(`${SUPER_ADMIN_OPEN_MATCH_OVERVIEW}?page=1&limit=50${searchParam}&playerPreferences=true`);
+      const gameTypeParam = resolvedGameType.trim() ? `&gameType=${encodeURIComponent(resolvedGameType)}` : "";
+      const res = await ownerApi.get(`${SUPER_ADMIN_OPEN_MATCH_OVERVIEW}?page=1&limit=50${searchParam}${gameTypeParam}&playerPreferences=true`);
       const payload = res?.data?.data || res?.data || {};
       setOpenMatches(payload?.openMatches || payload?.data || []);
     } catch (error) {
@@ -695,7 +751,7 @@ const PlayerPreferences = () => {
       loadOpenMatches(matchSearchQuery);
     }, 500);
     return () => clearTimeout(timer);
-  }, [matchSearchQuery]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [matchSearchQuery, matchGameType]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (showOpenMatchPanel && openMatches.length === 0) loadOpenMatches();
@@ -758,7 +814,7 @@ const PlayerPreferences = () => {
     }
   };
 
-  const handleGeneratePaymentLink = async (row) => {
+  const handleGeneratePaymentLink = async (row, isResend = false) => {
     const playerId = getPlayerId(row);
     if (!selectedOpenMatch?._id || !playerId) return;
 
@@ -768,7 +824,7 @@ const PlayerPreferences = () => {
         matchId: selectedOpenMatch._id,
         playerId,
         preferredTeam: "any",
-        platformFee: 1,
+        // ...(isResend ? { isResend: true } : {}),
       });
       const data = res?.data?.data || {};
       if (data.paymentLink) {
@@ -776,6 +832,14 @@ const PlayerPreferences = () => {
           ...current,
           [playerId]: data,
         }));
+        // Show copy button for 5 seconds
+        setCopyVisibleUntil((current) => ({
+          ...current,
+          [playerId]: Date.now() + 5000,
+        }));
+        setTimeout(() => {
+          setCopyVisibleUntil((current) => ({ ...current, [playerId]: 0 }));
+        }, 5000);
       }
     } finally {
       setGeneratingLinkPlayerId("");
@@ -1176,7 +1240,7 @@ const PlayerPreferences = () => {
                 >
                   <FaFilter size={12} className="me-1" />
                   Filters
-                  {(filters.gender?.length > 0 || filters.residence?.length > 0 ||
+                  {(filters.isCalled || filters.residence?.length > 0 ||
                     filters.skillLevel?.length > 0 || filters.clubId?.length > 0 || filters.day?.length > 0 ||
                     filters.timeSlot?.length > 0 || filters.hasPreference?.length > 0 ||
                     filters.preferredDuration?.length > 0) && (
@@ -1246,7 +1310,7 @@ const PlayerPreferences = () => {
                     {getMatchCourtName(selectedOpenMatch) ? ` | ${getMatchCourtName(selectedOpenMatch)}` : ""} | {selectedOpenMatch.skillLevel || "Any Level"}
                   </div>
                   <div className="text-muted" style={{ fontSize: 12 }}>
-                    Player payable estimate: ₹{selectedMatchFee?.share || 0} match share + ₹{selectedMatchFee?.platformFee || 1} platform fee + ₹{selectedMatchFee?.gstOnPlatformFee || 0.18} GST = ₹{selectedMatchFee?.payable || 0}
+                    Player payable estimate: ₹{selectedMatchFee?.share || 0} match share + ₹{selectedMatchFee?.platformFee ?? 1} platform fee + ₹{selectedMatchFee?.gstOnPlatformFee ?? 0.18} GST = ₹{selectedMatchFee?.payable || 0}
                   </div>
                 </div>
                 <Button
@@ -1383,7 +1447,7 @@ const PlayerPreferences = () => {
                                 <option value="">Select level</option>
                                 {SKILL_LEVEL_OPTIONS.map((level) => <option key={level} value={level}>{level}</option>)}
                               </Form.Select>
-                            ) : row.skillLevel === "Beginner" ? (
+                            ) : row.skillLevel === "E" ? (
                               <Form.Select
                                 size="sm"
                                 value={row.skillLevel}
@@ -1421,7 +1485,7 @@ const PlayerPreferences = () => {
                               formatScheduleSummary(row.preferredSchedule, 2)
                             )}
                           </td>
-                          {/* Duration column — always-editable inline toggles */}
+                          {/* Duration column — editable only when row is in edit mode */}
                           <td>
                             <div className="d-flex flex-wrap gap-1">
                               {[
@@ -1430,23 +1494,31 @@ const PlayerPreferences = () => {
                                 { field: "is120", label: "120 min", activeBg: "#ECFDF5", activeBorder: "#BBF7D0", activeColor: "#047857" },
                               ].map(({ field, label, activeBg, activeBorder, activeColor }) => {
                                 const active = !!row.preferredDuration?.[field];
+                                const canEdit = isEditing && !!row.preferenceId;
                                 return (
                                   <button
                                     key={field}
                                     type="button"
-                                    disabled={!row.preferenceId}
-                                    onClick={() => handleDurationToggle(row, field)}
-                                    title={row.preferenceId ? (active ? `Remove ${label}` : `Add ${label}`) : "No preference record"}
+                                    disabled={!canEdit}
+                                    onClick={() => canEdit && handleDurationToggle(row, field)}
+                                    title={
+                                      !isEditing
+                                        ? "Click the edit icon to modify"
+                                        : !row.preferenceId
+                                          ? "No preference record"
+                                          : active
+                                            ? `Remove ${label}`
+                                            : `Add ${label}`
+                                    }
                                     style={{
                                       background: active ? activeBg : "#F8FAFC",
                                       border: `1.5px solid ${active ? activeBorder : "#E2E8F0"}`,
                                       borderRadius: 20,
                                       color: active ? activeColor : "#94A3B8",
-                                      // cursor: "pointer",
-                                      cursor: row.preferenceId ? "pointer" : "not-allowed",
+                                      cursor: canEdit ? "pointer" : "default",
                                       fontSize: 11,
                                       fontWeight: active ? 600 : 400,
-                                      opacity: row.preferenceId ? 1 : 0.5,
+                                      opacity: isEditing ? 1 : 0.6,
                                       padding: "3px 10px",
                                       transition: "all 0.12s",
                                       whiteSpace: "nowrap",
@@ -1498,19 +1570,31 @@ const PlayerPreferences = () => {
                                     {requestingPlayerId === playerId ? <ButtonLoading size={6} /> : "Request Match"}
                                   </Button>
                                   {paymentLinksByPlayerId[playerId]?.paymentLink ? (
-                                    <>
+                                    copyVisibleUntil[playerId] && copyVisibleUntil[playerId] > Date.now() ? (
+                                      <>
+                                        <Button
+                                          size="sm"
+                                          variant="outline-success"
+                                          onClick={() => handleCopyPaymentLink(playerId)}
+                                          style={{ fontSize: 11, minWidth: 118 }}
+                                        >
+                                          Copy Link
+                                        </Button>
+                                        <span className="text-muted" style={{ fontSize: 11 }}>
+                                          ₹{paymentLinksByPlayerId[playerId]?.paymentAmount || 0}
+                                        </span>
+                                      </>
+                                    ) : (
                                       <Button
                                         size="sm"
-                                        variant="outline-success"
-                                        onClick={() => handleCopyPaymentLink(playerId)}
+                                        variant="outline-primary"
+                                        onClick={() => handleGeneratePaymentLink(row, true)}
+                                        disabled={generatingLinkPlayerId === playerId}
                                         style={{ fontSize: 11, minWidth: 118 }}
                                       >
-                                        Copy Link
+                                        {generatingLinkPlayerId === playerId ? <ButtonLoading size={6} color="blue" /> : "Regenerate Link"}
                                       </Button>
-                                      <span className="text-muted" style={{ fontSize: 11 }}>
-                                        ₹{paymentLinksByPlayerId[playerId]?.paymentAmount || 0}
-                                      </span>
-                                    </>
+                                    )
                                   ) : (
                                     <Button
                                       size="sm"
@@ -1599,13 +1683,24 @@ const PlayerPreferences = () => {
                                   {requestingPlayerId === playerId ? <ButtonLoading size={6} /> : "Request"}
                                 </Button>
                                 {paymentLinksByPlayerId[playerId]?.paymentLink ? (
-                                  <Button
-                                    size="sm"
-                                    variant="outline-success"
-                                    onClick={() => handleCopyPaymentLink(playerId)}
-                                  >
-                                    Copy Link
-                                  </Button>
+                                  copyVisibleUntil[playerId] && copyVisibleUntil[playerId] > Date.now() ? (
+                                    <Button
+                                      size="sm"
+                                      variant="outline-success"
+                                      onClick={() => handleCopyPaymentLink(playerId)}
+                                    >
+                                      Copy Link
+                                    </Button>
+                                  ) : (
+                                    <Button
+                                      size="sm"
+                                      variant="outline-primary"
+                                      onClick={() => handleGeneratePaymentLink(row, true)}
+                                      disabled={generatingLinkPlayerId === playerId}
+                                    >
+                                      {generatingLinkPlayerId === playerId ? <ButtonLoading size={6} color="blue" /> : "Regenerate Link"}
+                                    </Button>
+                                  )
                                 ) : (
                                   <Button
                                     size="sm"
@@ -1814,6 +1909,19 @@ const PlayerPreferences = () => {
                 style={{ fontFamily: "Poppins", fontSize: 13 }}
               />
             </div>
+            <div className="mb-3">
+              <Form.Select
+                size="sm"
+                value={matchGameType}
+                onChange={(e) => setMatchGameType(e.target.value)}
+                style={{ fontFamily: "Poppins", fontSize: 13 }}
+              >
+                <option value="">All Game Types</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="mixed">Mixed</option>
+              </Form.Select>
+            </div>
             <div className="d-flex gap-2 mb-3">
               <Button
                 size="sm"
@@ -1823,7 +1931,7 @@ const PlayerPreferences = () => {
               >
                 <FaPlus size={10} className="me-1" />Add
               </Button>
-              <Button size="sm" variant="outline-secondary" onClick={() => loadOpenMatches("")} disabled={openMatchesLoading} style={{ fontSize: 11 }}>
+              <Button size="sm" variant="outline-secondary" onClick={() => loadOpenMatches(matchSearchQuery, matchGameType)} disabled={openMatchesLoading} style={{ fontSize: 11 }}>
                 Refresh
               </Button>
             </div>
@@ -1981,9 +2089,9 @@ const PlayerPreferences = () => {
                               {getMatchCourtName(match) || "Court N/A"}
                             </div>
                           </div>
-                          <Badge bg={SKILL_COLORS[match?.skillLevel] || "light"} text={match?.skillLevel ? undefined : "dark"} style={{ fontSize: 10 }}>
+                          {/* <Badge bg={SKILL_COLORS[match?.skillLevel] || "light"} text={match?.skillLevel ? undefined : "dark"} style={{ fontSize: 10 }}>
                             {match?.skillLevel || "Any"}
-                          </Badge>
+                          </Badge> */}
                         </div>
                         <div className="d-flex justify-content-between mt-2 text-muted" style={{ fontSize: 11 }}>
                           <span>{formatMatchDate(match)}</span>
@@ -1991,7 +2099,7 @@ const PlayerPreferences = () => {
                         </div>
                         <div className="d-flex justify-content-between align-items-center mt-2" style={{ fontSize: 11 }}>
                           <span className="text-muted">Players {joinedCount}/{maxPlayers}</span>
-                          <span className="fw-semibold text-success">₹{fee.payable || 0}</span>
+                          <span className="fw-semibold text-success">₹{0}</span>
                         </div>
 
                         {/* Player Icons Row - Only show for selected match */}
@@ -2130,48 +2238,50 @@ const PlayerPreferences = () => {
                       </button>
                     );
                   })}
-                  {/* Clone list — always rendered so scrollHeight is always doubled for the RAF loop */}
-                  <div className="clone-list" aria-hidden="true" style={{ pointerEvents: "none", userSelect: "none" }}>{openMatches.map((match, index) => {
-                    const joinedCount = match?.totalPlayers ?? (Number(match?.teamA?.length || 0) + Number(match?.teamB?.length || 0));
-                    const maxPlayers = match?.totalPlayersCount ?? match?.maxPlayers ?? 4;
-                    const fee = getMatchFee(match);
-                    const isSelected = selectedOpenMatch?._id === match?._id;
+                  {/* Clone list — only rendered when there are enough items to require scrolling */}
+                  {openMatches.length >= 6 && (
+                    <div className="clone-list" aria-hidden="true" style={{ pointerEvents: "none", userSelect: "none" }}>{openMatches.map((match, index) => {
+                      const joinedCount = match?.totalPlayers ?? (Number(match?.teamA?.length || 0) + Number(match?.teamB?.length || 0));
+                      const maxPlayers = match?.totalPlayersCount ?? match?.maxPlayers ?? 4;
+                      const fee = getMatchFee(match);
+                      const isSelected = selectedOpenMatch?._id === match?._id;
 
-                    return (
-                      <div
-                        key={`clone-${match._id}-${index}`}
-                        tabIndex={-1}
-                        style={{
-                          background: isSelected ? "#f0f4ff" : "#fff",
-                          border: `1px solid ${isSelected ? "#1f41bb" : "#eef2f7"}`,
-                          borderRadius: 6,
-                          padding: 10,
-                        }}
-                      >
-                        <div className="d-flex justify-content-between gap-2 align-items-start">
-                          <div style={{ minWidth: 0 }}>
-                            <div className="fw-semibold text-truncate" style={{ fontSize: 12 }}>
-                              {getMatchClubName(match)}
+                      return (
+                        <div
+                          key={`clone-${match._id}-${index}`}
+                          tabIndex={-1}
+                          style={{
+                            background: isSelected ? "#f0f4ff" : "#fff",
+                            border: `1px solid ${isSelected ? "#1f41bb" : "#eef2f7"}`,
+                            borderRadius: 6,
+                            padding: 10,
+                          }}
+                        >
+                          <div className="d-flex justify-content-between gap-2 align-items-start">
+                            <div style={{ minWidth: 0 }}>
+                              <div className="fw-semibold text-truncate" style={{ fontSize: 12 }}>
+                                {getMatchClubName(match)}
+                              </div>
+                              <div className="text-muted text-truncate" style={{ fontSize: 11 }}>
+                                {getMatchCourtName(match) || "Court N/A"}
+                              </div>
                             </div>
-                            <div className="text-muted text-truncate" style={{ fontSize: 11 }}>
-                              {getMatchCourtName(match) || "Court N/A"}
-                            </div>
+                            <Badge bg={SKILL_COLORS[match?.skillLevel] || "light"} text={match?.skillLevel ? undefined : "dark"} style={{ fontSize: 10 }}>
+                              {match?.skillLevel || "Any"}
+                            </Badge>
                           </div>
-                          <Badge bg={SKILL_COLORS[match?.skillLevel] || "light"} text={match?.skillLevel ? undefined : "dark"} style={{ fontSize: 10 }}>
-                            {match?.skillLevel || "Any"}
-                          </Badge>
+                          <div className="d-flex justify-content-between mt-2 text-muted" style={{ fontSize: 11 }}>
+                            <span>{formatMatchDate(match)}</span>
+                            <span>{getMatchTime(match)}</span>
+                          </div>
+                          <div className="d-flex justify-content-between align-items-center mt-2" style={{ fontSize: 11 }}>
+                            <span className="text-muted">Players {joinedCount}/{maxPlayers}</span>
+                            <span className="fw-semibold text-success">₹{fee.payable || 0}</span>
+                          </div>
                         </div>
-                        <div className="d-flex justify-content-between mt-2 text-muted" style={{ fontSize: 11 }}>
-                          <span>{formatMatchDate(match)}</span>
-                          <span>{getMatchTime(match)}</span>
-                        </div>
-                        <div className="d-flex justify-content-between align-items-center mt-2" style={{ fontSize: 11 }}>
-                          <span className="text-muted">Players {joinedCount}/{maxPlayers}</span>
-                          <span className="fw-semibold text-success">₹{fee.payable || 0}</span>
-                        </div>
-                      </div>
-                    );
-                  })}</div>
+                      );
+                    })}</div>
+                  )}
                 </div>
               </div>
             )}
@@ -2396,23 +2506,6 @@ const PlayerPreferences = () => {
           </Button>
         </Modal.Footer>
       </Modal>
-
-      <PlayerFiltersPanel
-        show={showFiltersPanel}
-        onHide={() => setShowFiltersPanel(false)}
-        filters={filters}
-        onFilterChange={updateFilter}
-        onReset={resetFilters}
-        clubOptions={clubOptions}
-        residenceDropdownOptions={residenceDropdownOptions}
-        CheckboxMultiSelect={CheckboxMultiSelect}
-        toSelectOptions={toSelectOptions}
-        getMultiPlaceholder={getMultiPlaceholder}
-        TIME_SLOT_GROUPS={TIME_SLOT_GROUPS}
-        DAY_OPTIONS={DAY_OPTIONS}
-        SKILL_LEVEL_OPTIONS={SKILL_LEVEL_OPTIONS}
-        GENDER_OPTIONS={GENDER_OPTIONS}
-      />
 
       <Modal show={showPlayerModal} onHide={closeAddPlayer} size="md" backdrop="static">
         <Modal.Header closeButton>
