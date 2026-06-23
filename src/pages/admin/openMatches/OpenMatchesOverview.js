@@ -35,6 +35,19 @@ const getOpenMatchDisplayStatus = (match) => {
   return match?.openMatchStatus || match?.status || "upcoming";
 };
 
+const isPayShareMatch = (match) =>
+  Boolean(
+    match?.payShareMode ||
+    match?.type === "super_admin_pay_share",
+  );
+
+const getPlayerFeeText = (match) => {
+  const amount = isPayShareMatch(match)
+    ? match?.playerPayableAmount
+    : match?.teamA?.[0]?.amountPaid ?? match?.playerPayableAmount;
+  return Number.isFinite(Number(amount)) ? `₹${Number(amount)}` : "N/A";
+};
+
 const getMatchCreator = (match) => match?.createdBy || match?.creatorId || match?.userId || null;
 
 const getCreatorDisplayName = (creator) =>
@@ -141,7 +154,7 @@ const OpenMatchesOverview = () => {
   };
 
   const handleRemovePaySharePlayer = async (playerId) => {
-    if (!selectedMatch?.payShareMode || !playerId) return;
+    if (!isPayShareMatch(selectedMatch) || !playerId) return;
     const reason = window.prompt("Enter player removal reason");
     if (!reason?.trim()) return;
 
@@ -231,9 +244,9 @@ const OpenMatchesOverview = () => {
                       const maxCount = item?.totalPlayersCount ?? item?.maxPlayers ?? 4;
                       const progressPct = Math.min(100, (joinedCount / maxCount) * 100);
                       const skill = item?.skillLevel || "All Skills";
-                      const priceText = item?.teamA?.[0]?.amountPaid !== undefined ? `₹${item.teamA[0].amountPaid}` : (item?.totalMatchPayment !== undefined ? `₹${item.totalMatchPayment}` : "N/A");
+                      const priceText = getPlayerFeeText(item);
                       const creator = getMatchCreator(item);
-                      const hostName = item?.payShareMode ? "Super Admin" : getCreatorDisplayName(creator);
+                      const hostName = isPayShareMatch(item) ? "Super Admin" : getCreatorDisplayName(creator);
                       const hostPhone = getCreatorPhone(creator);
                       const clubName = item?.clubId?.clubName || "N/A";
                       const courtName = item?.slot?.[0]?.courtName || "";
@@ -342,26 +355,47 @@ const OpenMatchesOverview = () => {
                           </td>
                           <td className="text-center" style={approachingStyle}>
                             <div className="d-flex justify-content-center gap-1">
-                              <button
-                                className="btn btn-sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleRequestClick(item);
-                                }}
-                                disabled={isMatchCompleted}
-                                style={{
-                                  fontSize: "11px",
-                                  padding: "5px 12px",
-                                  backgroundColor: isMatchCompleted ? "#e5e7eb" : "rgba(99, 102, 241, 0.12)",
-                                  color: isMatchCompleted ? "#9ca3af" : "#4f46e5",
-                                  border: "none",
-                                  borderRadius: "4px",
-                                  fontWeight: "600",
-                                }}
-                              >
-                                Request
-                              </button>
-                              {item?.payShareMode && ["pending", "expired"].includes(String(item?.openMatchStatus || "").toLowerCase()) && (
+                              {isPayShareMatch(item) ? (
+                                <button
+                                  className="btn btn-sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleFindPlayersClick(item);
+                                  }}
+                                  style={{
+                                    fontSize: "11px",
+                                    padding: "5px 12px",
+                                    backgroundColor: "rgba(99, 102, 241, 0.12)",
+                                    color: "#4f46e5",
+                                    border: "none",
+                                    borderRadius: "4px",
+                                    fontWeight: "600",
+                                  }}
+                                >
+                                  Find Players
+                                </button>
+                              ) : (
+                                <button
+                                  className="btn btn-sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRequestClick(item);
+                                  }}
+                                  disabled={isMatchCompleted}
+                                  style={{
+                                    fontSize: "11px",
+                                    padding: "5px 12px",
+                                    backgroundColor: isMatchCompleted ? "#e5e7eb" : "rgba(99, 102, 241, 0.12)",
+                                    color: isMatchCompleted ? "#9ca3af" : "#4f46e5",
+                                    border: "none",
+                                    borderRadius: "4px",
+                                    fontWeight: "600",
+                                  }}
+                                >
+                                  Request
+                                </button>
+                              )}
+                              {isPayShareMatch(item) && ["pending", "expired"].includes(String(item?.openMatchStatus || "").toLowerCase()) && (
                                 <>
                                   <button
                                     className="btn btn-sm btn-outline-primary"
@@ -403,9 +437,9 @@ const OpenMatchesOverview = () => {
                   const maxCount = item?.totalPlayersCount ?? item?.maxPlayers ?? 4;
                   const progressPct = Math.min(100, (joinedCount / maxCount) * 100);
                   const skill = item?.skillLevel || "All Skills";
-                  const priceText = item?.teamA?.[0]?.amountPaid !== undefined ? `₹${item.teamA[0].amountPaid}` : (item?.totalMatchPayment !== undefined ? `₹${item.totalMatchPayment}` : "N/A");
+                  const priceText = getPlayerFeeText(item);
                   const creator = getMatchCreator(item);
-                  const hostName = item?.payShareMode ? "Super Admin" : getCreatorDisplayName(creator);
+                  const hostName = isPayShareMatch(item) ? "Super Admin" : getCreatorDisplayName(creator);
                   const hostPhone = getCreatorPhone(creator);
                   const clubName = item?.clubId?.clubName || "N/A";
                   const courtName = item?.slot?.[0]?.courtName || "";
@@ -503,24 +537,28 @@ const OpenMatchesOverview = () => {
                             className="btn btn-sm w-100"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleRequestClick(item);
+                              if (isPayShareMatch(item)) {
+                                handleFindPlayersClick(item);
+                              } else {
+                                handleRequestClick(item);
+                              }
                             }}
-                            disabled={isMatchCompleted}
-                            title={isMatchCompleted ? "Requests are disabled for completed matches." : "Send request"}
+                            disabled={!isPayShareMatch(item) && isMatchCompleted}
+                            title={isPayShareMatch(item) ? "Find players and send payment links" : "Send request"}
                             style={{
                               fontSize: "12px",
                               padding: "8px",
-                              backgroundColor: isMatchCompleted ? "#e5e7eb" : "rgba(99, 102, 241, 0.12)",
-                              color: isMatchCompleted ? "#9ca3af" : "#4f46e5",
+                              backgroundColor: !isPayShareMatch(item) && isMatchCompleted ? "#e5e7eb" : "rgba(99, 102, 241, 0.12)",
+                              color: !isPayShareMatch(item) && isMatchCompleted ? "#9ca3af" : "#4f46e5",
                               border: "none",
                               borderRadius: "4px",
                               fontWeight: "600",
-                              cursor: isMatchCompleted ? "not-allowed" : "pointer",
+                              cursor: !isPayShareMatch(item) && isMatchCompleted ? "not-allowed" : "pointer",
                             }}
                           >
-                            Send Request
+                            {isPayShareMatch(item) ? "Find Players" : "Send Request"}
                           </button>
-                          {item?.payShareMode && ["pending", "expired"].includes(String(item?.openMatchStatus || "").toLowerCase()) && (
+                          {isPayShareMatch(item) && ["pending", "expired"].includes(String(item?.openMatchStatus || "").toLowerCase()) && (
                             <>
                               <button
                                 className="btn btn-sm btn-outline-primary w-100 mt-2"
@@ -588,7 +626,7 @@ const OpenMatchesOverview = () => {
         onHide={schedulePlayersModalClose}
         players={selectedMatch || []}
         onRemovePlayer={
-          selectedMatch?.payShareMode &&
+          isPayShareMatch(selectedMatch) &&
           ["pending", "expired"].includes(String(selectedMatch?.openMatchStatus || "").toLowerCase())
             ? handleRemovePaySharePlayer
             : undefined

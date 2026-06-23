@@ -322,7 +322,11 @@ const getMatchFee = (match) => {
     slotTotal ||
     0,
   );
-  const share = Number(match?.perPlayerMatchShare || (total > 0 ? total.toFixed(2) : 0));
+  const share = Number(
+    match?.perPlayerMatchShare ??
+    match?.perPlayerShare ??
+    (total > 0 ? (total / 4).toFixed(2) : 0),
+  );
   const platformFee = Number(match?.platformFee ?? 1);
   const gstOnPlatformFee = Number(
     match?.platformFeeGst ?? (platformFee * 0.18).toFixed(2),
@@ -332,7 +336,10 @@ const getMatchFee = (match) => {
     share,
     platformFee,
     gstOnPlatformFee,
-    payable: Number((share + platformFee + gstOnPlatformFee).toFixed(2)),
+    payable: Number(
+      match?.playerPayableAmount ??
+      (share + platformFee + gstOnPlatformFee).toFixed(2),
+    ),
   };
 };
 
@@ -579,6 +586,10 @@ const PlayerPreferences = () => {
   const [openMatches, setOpenMatches] = useState([]);
   const [openMatchesLoading, setOpenMatchesLoading] = useState(false);
   const [selectedOpenMatch, setSelectedOpenMatch] = useState(null);
+  const selectedIsPayShareMatch = Boolean(
+    selectedOpenMatch?.payShareMode ||
+    selectedOpenMatch?.type === "super_admin_pay_share",
+  );
   const [requestingPlayerId, setRequestingPlayerId] = useState("");
   const [generatingLinkPlayerId, setGeneratingLinkPlayerId] = useState("");
   const [paymentLinksByPlayerId, setPaymentLinksByPlayerId] = useState({});
@@ -800,7 +811,7 @@ const PlayerPreferences = () => {
 
   const handleRequestPlayer = async (row) => {
     const playerId = getPlayerId(row);
-    if (!selectedOpenMatch?._id || !playerId) return;
+    if (!selectedOpenMatch?._id || !playerId || selectedIsPayShareMatch) return;
 
     setRequestingPlayerId(playerId);
     try {
@@ -820,7 +831,7 @@ const PlayerPreferences = () => {
 
     setGeneratingLinkPlayerId(playerId);
     try {
-      const paymentEndpoint = selectedOpenMatch?.payShareMode
+      const paymentEndpoint = selectedIsPayShareMatch
         ? `/api/super-admin/pay-share-open-matches/${selectedOpenMatch._id}/payment-link`
         : POST_MATCH_REQUEST_PAYMENT_LINK;
       const res = await ownerApi.post(paymentEndpoint, {
@@ -844,6 +855,9 @@ const PlayerPreferences = () => {
           setCopyVisibleUntil((current) => ({ ...current, [playerId]: 0 }));
         }, 5000);
       }
+      showSuccess(res?.data?.message || (isResend ? "Payment link resent" : "Payment link generated"));
+    } catch (error) {
+      showError(error?.response?.data?.message || error?.message || String(error) || "Unable to generate payment link");
     } finally {
       setGeneratingLinkPlayerId("");
     }
@@ -1559,19 +1573,21 @@ const PlayerPreferences = () => {
                             <div className="d-flex flex-column gap-1 align-items-center">
                               {selectedOpenMatch && (
                                 <>
-                                  <Button
-                                    size="sm"
-                                    onClick={() => handleRequestPlayer(row)}
-                                    disabled={requestingPlayerId === playerId}
-                                    style={{
-                                      backgroundColor: "#1f41bb",
-                                      border: "none",
-                                      fontSize: 11,
-                                      minWidth: 118,
-                                    }}
-                                  >
-                                    {requestingPlayerId === playerId ? <ButtonLoading size={6} /> : "Request Match"}
-                                  </Button>
+                                  {!selectedIsPayShareMatch && (
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handleRequestPlayer(row)}
+                                      disabled={requestingPlayerId === playerId}
+                                      style={{
+                                        backgroundColor: "#1f41bb",
+                                        border: "none",
+                                        fontSize: 11,
+                                        minWidth: 118,
+                                      }}
+                                    >
+                                      {requestingPlayerId === playerId ? <ButtonLoading size={6} /> : "Request Match"}
+                                    </Button>
+                                  )}
                                   {paymentLinksByPlayerId[playerId]?.paymentLink ? (
                                     copyVisibleUntil[playerId] && copyVisibleUntil[playerId] > Date.now() ? (
                                       <>
@@ -1595,7 +1611,7 @@ const PlayerPreferences = () => {
                                         disabled={generatingLinkPlayerId === playerId}
                                         style={{ fontSize: 11, minWidth: 118 }}
                                       >
-                                        {generatingLinkPlayerId === playerId ? <ButtonLoading size={6} color="blue" /> : "Regenerate Link"}
+                                        {generatingLinkPlayerId === playerId ? <ButtonLoading size={6} color="blue" /> : "Resend Link"}
                                       </Button>
                                     )
                                   ) : (
@@ -1677,14 +1693,16 @@ const PlayerPreferences = () => {
                           <div className="d-flex flex-column gap-1" style={{ flex: "0 0 auto" }}>
                             {selectedOpenMatch && (
                               <>
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleRequestPlayer(row)}
-                                  disabled={requestingPlayerId === playerId}
-                                  style={{ backgroundColor: "#1f41bb", border: "none" }}
-                                >
-                                  {requestingPlayerId === playerId ? <ButtonLoading size={6} /> : "Request"}
-                                </Button>
+                                {!selectedIsPayShareMatch && (
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleRequestPlayer(row)}
+                                    disabled={requestingPlayerId === playerId}
+                                    style={{ backgroundColor: "#1f41bb", border: "none" }}
+                                  >
+                                    {requestingPlayerId === playerId ? <ButtonLoading size={6} /> : "Request"}
+                                  </Button>
+                                )}
                                 {paymentLinksByPlayerId[playerId]?.paymentLink ? (
                                   copyVisibleUntil[playerId] && copyVisibleUntil[playerId] > Date.now() ? (
                                     <Button
@@ -1701,7 +1719,7 @@ const PlayerPreferences = () => {
                                       onClick={() => handleGeneratePaymentLink(row, true)}
                                       disabled={generatingLinkPlayerId === playerId}
                                     >
-                                      {generatingLinkPlayerId === playerId ? <ButtonLoading size={6} color="blue" /> : "Regenerate Link"}
+                                      {generatingLinkPlayerId === playerId ? <ButtonLoading size={6} color="blue" /> : "Resend Link"}
                                     </Button>
                                   )
                                 ) : (

@@ -4,12 +4,10 @@ import { FaUsers } from "react-icons/fa";
 import "./PlayersJoinedModal.css";
 
 const PlayersJoinedModal = ({ show, onHide, players, onMouseEnter, onMouseLeave, onRemovePlayer }) => {
-  console.log(players, "Players in Modal");
   const teamA = players?.teamA || [];
   const teamB = players?.teamB || [];
 
   const renderPlayer = (player, index) => {
-    console.log(player, "Player in renderPlayer");
     const userId = player.userId || player;
     const name = userId?.name || player.name || "Unknown Player";
     const phone = userId?.phoneNumber ? `${userId.countryCode || "+91"} ${userId.phoneNumber}` : "";
