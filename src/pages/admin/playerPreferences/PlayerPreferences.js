@@ -199,6 +199,18 @@ const CheckboxMultiSelect = ({ options, value, onChange, placeholder }) => {
       onChange={(selected) => onChange((selected || []).map((option) => option.value))}
       placeholder={placeholder}
       styles={checkboxSelectStyles}
+      menuPortalTarget={document.body}
+      styles={{
+        ...checkboxSelectStyles,
+        menuPortal: (base) => ({
+          ...base,
+          zIndex: 9999,
+        }),
+        menu: (base) => ({
+          ...base,
+          zIndex: 9999,
+        }),
+      }}
     />
   );
 };
