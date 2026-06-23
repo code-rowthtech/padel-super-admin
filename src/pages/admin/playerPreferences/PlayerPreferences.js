@@ -323,8 +323,10 @@ const getMatchFee = (match) => {
     0,
   );
   const share = Number(match?.perPlayerMatchShare || (total > 0 ? total.toFixed(2) : 0));
-  const platformFee = Number(match?.platformFee || 30);
-  const gstOnPlatformFee = Number((platformFee * 0.18).toFixed(2));
+  const platformFee = Number(match?.platformFee ?? 1);
+  const gstOnPlatformFee = Number(
+    match?.platformFeeGst ?? (platformFee * 0.18).toFixed(2),
+  );
   return {
     total,
     share,
@@ -822,7 +824,6 @@ const PlayerPreferences = () => {
         matchId: selectedOpenMatch._id,
         playerId,
         preferredTeam: "any",
-        platformFee: 30,
         // ...(isResend ? { isResend: true } : {}),
       });
       const data = res?.data?.data || {};
@@ -1309,7 +1310,7 @@ const PlayerPreferences = () => {
                     {getMatchCourtName(selectedOpenMatch) ? ` | ${getMatchCourtName(selectedOpenMatch)}` : ""} | {selectedOpenMatch.skillLevel || "Any Level"}
                   </div>
                   <div className="text-muted" style={{ fontSize: 12 }}>
-                    Player payable estimate: ₹{selectedMatchFee?.share || 0} match share + ₹{selectedMatchFee?.platformFee || 30} platform fee + ₹{selectedMatchFee?.gstOnPlatformFee || 5.4} GST = ₹{selectedMatchFee?.payable || 0}
+                    Player payable estimate: ₹{selectedMatchFee?.share || 0} match share + ₹{selectedMatchFee?.platformFee ?? 1} platform fee + ₹{selectedMatchFee?.gstOnPlatformFee ?? 0.18} GST = ₹{selectedMatchFee?.payable || 0}
                   </div>
                 </div>
                 <Button
