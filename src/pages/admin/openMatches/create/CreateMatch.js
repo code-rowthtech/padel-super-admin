@@ -59,6 +59,36 @@ const getEntityId = (value) => {
   return value._id || value.id || "";
 };
 
+// ─── Parent-Slot Filtering (mirrors user-side CreateMatches.js) ──────────────
+const bookingTimeToMinutes = (timeStr) => {
+  if (!timeStr) return null;
+  const match = timeStr.toString().toLowerCase().trim().match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)$/);
+  if (!match) return null;
+  let hour = parseInt(match[1], 10);
+  const minute = parseInt(match[2] || "0", 10);
+  const period = match[3];
+  if (period === "pm" && hour !== 12) hour += 12;
+  if (period === "am" && hour === 12) hour = 0;
+  return hour * 60 + minute;
+};
+
+/**
+ * Returns true if the slot should be shown as a top-level button.
+ * When has30MinPrices is active, :30 child slots are suppressed so that
+ * only the hourly "parent" slots are rendered (each split into L/R halves).
+ */
+const shouldShowParentSlot = (courtSlots, slot, has30MinPrices) => {
+  const hasThirtyMinPrice = has30MinPrices && slot?.has30MinPrice === true;
+  if (!hasThirtyMinPrice) return true;
+  const firstThirtyMinSlot = courtSlots?.find(c => has30MinPrices && c?.has30MinPrice === true);
+  const firstMinutes = bookingTimeToMinutes(firstThirtyMinSlot?.time);
+  const slotMinutes = bookingTimeToMinutes(slot?.time);
+  if (firstMinutes === null || slotMinutes === null) return true;
+  // Keep only slots that fall on an exact 60-min boundary from the first 30-min slot
+  return (slotMinutes - firstMinutes) % 60 === 0;
+};
+// ─────────────────────────────────────────────────────────────────────────────
+
 const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null, onAddPlayerToggle = null }) => {
   const selectedCourtsRef = React.useRef([]);
   const selectedTimesRef = React.useRef({});
@@ -1312,7 +1342,7 @@ const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null, 
           </Col>
         </Row>
       </div>
-      {!selectedClubId || !selectedLocationId || !selectedCategoryId ? (
+      {!selectedClubId || !selectedLocationId ? (
         <div className="bg-white rounded shadow-sm p-4 text-center text-muted">
           Select club, location, and category to load courts and create an open match.
         </div>
@@ -1652,6 +1682,9 @@ const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null, 
                         `}</style>
                       {slotData?.data?.map((court, courtIndex) => {
                         const filteredSlots = court?.slots?.filter((slot) => {
+                          // ── Parent-slot filter: hide :30 child slots when 30-min prices exist ──
+                          if (!shouldShowParentSlot(court?.slots || [], slot, has30MinPrices)) return false;
+
                           if (isPastTime(slot?.time, selectedDate?.fullDate)) return false;
 
                           const isHalfBooked =
