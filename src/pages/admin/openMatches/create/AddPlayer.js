@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Box, Button, Modal } from "@mui/material";
+import { Modal, Button as BsButton } from "react-bootstrap";
 import Select from "react-select";
 import { getPlayerLevelBySkillLevel } from "../../../../redux/user/notifiction/thunk";
 import { showError, showSuccess } from "../../../../helpers/Toast";
@@ -8,22 +8,6 @@ import { ButtonLoading } from "../../../../helpers/loading/Loaders";
 import { Usersignup } from "../../../../redux/user/auth/authThunk";
 import { searchUserByNumber } from "../../../../redux/admin/searchUserbynumber/thunk";
 import { resetSearchData } from "../../../../redux/admin/searchUserbynumber/slice";
-
-const modalStyle = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: { xs: "90%", sm: "80%", md: 500 },
-  maxWidth: "500px",
-  bgcolor: "background.paper",
-  p: { xs: 2, md: 3 },
-  borderRadius: 2,
-  border: "none",
-  zIndex: 1300,
-  maxHeight: "85vh",
-  overflowY: "auto",
-};
 
 const AddPlayer = ({
   showAddMeForm,
@@ -368,8 +352,8 @@ const AddPlayer = ({
 
   return (
     <Modal
-      open={showAddMeForm}
-      onClose={() => {
+      show={showAddMeForm}
+      onHide={() => {
         setShowAddMeForm(false);
         setActiveSlot(null);
         setErrors({});
@@ -394,16 +378,17 @@ const AddPlayer = ({
         });
         dispatch(resetSearchData());
       }}
+      centered
+      backdrop="static"
+      style={{ zIndex: 1060 }}
     >
-      <Box sx={modalStyle} className="p-md-3 px-2 py-3">
-        <h6
-          className="mb-2 text-center"
-          style={{ fontSize: "18px", fontWeight: 600, fontFamily: "Poppins" }}
-        >
+      <Modal.Header closeButton>
+        <Modal.Title style={{ fontSize: "18px", fontWeight: 600, fontFamily: "Poppins" }}>
           Player Information
-        </h6>
-
-        <form onSubmit={handleSubmit}>
+        </Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <form onSubmit={handleSubmit} id="addPlayerForm">
           <div className="mb-md-2 mb-1">
             <label className="form-label label_font mb-1">
               Phone No <span className="text-danger">*</span>
@@ -439,7 +424,7 @@ const AddPlayer = ({
           </div>
           <div className="mb-md-2 mb-1">
             <label className="form-label label_font mb-1">
-             Full Name <span className="text-danger">*</span>
+              Full Name <span className="text-danger">*</span>
             </label>
             <input
               type="text"
@@ -628,53 +613,48 @@ const AddPlayer = ({
             </div>
           )}
 
-          <div className="d-flex flex-sm-row gap-2 mt-4 aling-items-center justify-content-end">
-            <Button
-              variant="outlined"
-              color="secondary"
-              disabled={userLoading}
-              fullWidth
-              onClick={() => {
-                setShowAddMeForm(false);
-                setActiveSlot(null);
-                setErrors({});
-                setshowErrors({});
-                setFormData({
-                  name: "",
-                  email: "",
-                  phoneNumber: "",
-                  gender: "",
-                  level: "",
-                });
-                setUserEnteredData({
-                  name: "",
-                  email: "",
-                });
-                dispatch(resetSearchData());
-              }}
-              sx={{ width: { xs: "25%", sm: "25%", border: "1px solid #001b76", color: "#001B76" } }}
-              className="py-1 font_size_mobile_button"
-
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              fullWidth
-              sx={{ width: { xs: "25%", sm: "25%" } }}
-              style={{
-                background:
-                  "linear-gradient(180deg, #0034E4 0%, #001B76 100%)", color: "white"
-              }}
-              disabled={userLoading}
-              className="py-1 font_size_mobile_button"
-
-            >
-              {userLoading ? <ButtonLoading color="white" /> : editPlayerData ? 'Update' : "Add"}
-            </Button>
-          </div>
         </form>
-      </Box>
+      </Modal.Body>
+      <Modal.Footer>
+        <BsButton
+          variant="outline-primary"
+          disabled={userLoading}
+          onClick={() => {
+            setShowAddMeForm(false);
+            setActiveSlot(null);
+            setErrors({});
+            setshowErrors({});
+            setFormData({
+              name: "",
+              email: "",
+              phoneNumber: "",
+              gender: "",
+              level: "",
+            });
+            setUserEnteredData({
+              name: "",
+              email: "",
+            });
+            dispatch(resetSearchData());
+          }}
+          style={{ borderColor: "#001b76", color: "#001B76" }}
+        >
+          Cancel
+        </BsButton>
+        <BsButton
+          type="submit"
+          form="addPlayerForm"
+          variant="primary"
+          disabled={userLoading}
+          style={{
+            background: "linear-gradient(180deg, #0034E4 0%, #001B76 100%)",
+            border: "none"
+          }}
+          className='px-3'
+        >
+          {userLoading ? <ButtonLoading color="white" /> : editPlayerData ? 'Update' : "Add"}
+        </BsButton>
+      </Modal.Footer>
     </Modal>
   );
 };
