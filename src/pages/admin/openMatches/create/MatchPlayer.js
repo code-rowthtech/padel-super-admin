@@ -1,13 +1,14 @@
 import React, { useEffect, useState, useRef, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { padal } from "../../../../assets/files";
-import { showError } from "../../../../helpers/Toast";
+import { showError, showSuccess } from "../../../../helpers/Toast";
 import AddPlayer from "./AddPlayer";
 import { adminCheckBooking, createOpenMatchAdmin, adminRemoveBookedBooking } from "../../../../redux/thunks";
 import { ButtonLoading } from "../../../../helpers/loading/Loaders";
 import { parseTimeToHour } from "../../../../utils/formatters";
 import { toLocalDateString, dateOnlyToLocalDate } from "../../../../utils/dateUtils";
+import { ownerApi } from "../../../../helpers/api/apiCore";
 
 const width = 370;
 const height = 70;
@@ -73,6 +74,7 @@ const MatchPlayer = ({
 }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const location = useLocation();
     const [selectedGender, setSelectedGender] = useState('');
     const [localPlayers, setLocalPlayers] = useState(parentAddedPlayers || {});
     const [defaultSkillLevel, setDefaultSkillLevel] = useState("Open Match");
@@ -587,7 +589,33 @@ const MatchPlayer = ({
                 location: resolvedLocationId
             };
 
-            await dispatch(createOpenMatchAdmin(formattedMatch)).unwrap();
+            const rescheduleMatchId = location.state?.rescheduleMatchId;
+            if (rescheduleMatchId) {
+                await ownerApi.put(
+                    `/api/super-admin/pay-share-open-matches/${rescheduleMatchId}/reschedule`,
+                    {
+                        slot: formattedSlots,
+                        matchDate: formattedMatch.matchDate,
+                        matchTime: formattedMatch.matchTime,
+                        reason: location.state?.rescheduleReason || "Slot changed by Super Admin",
+                    },
+                );
+                showSuccess("Pay-share open match rescheduled successfully");
+            } else {
+                await dispatch(createOpenMatchAdmin(formattedMatch)).unwrap();
+            }
+            // Pay-share matches remain pending and must not reserve the slot
+            // until all four players have completed payment.
+            await Promise.allSettled(
+                formattedSlots.map((slot) => dispatch(adminRemoveBookedBooking({
+                    slotId: slot.slotId,
+                    courtId: slot.courtId,
+                    bookingDate: slot.bookingDate,
+                    time: slot.slotTimes[0]?.time,
+                    bookingTime: slot.bookingTime,
+                    duration: slot.duration
+                })))
+            );
             localStorage.removeItem("addedAdminPlayers");
             navigate('/admin/open-matches', { replace: true });
 

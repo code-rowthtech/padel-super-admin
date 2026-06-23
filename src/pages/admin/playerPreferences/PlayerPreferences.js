@@ -820,7 +820,10 @@ const PlayerPreferences = () => {
 
     setGeneratingLinkPlayerId(playerId);
     try {
-      const res = await ownerApi.post(POST_MATCH_REQUEST_PAYMENT_LINK, {
+      const paymentEndpoint = selectedOpenMatch?.payShareMode
+        ? `/api/super-admin/pay-share-open-matches/${selectedOpenMatch._id}/payment-link`
+        : POST_MATCH_REQUEST_PAYMENT_LINK;
+      const res = await ownerApi.post(paymentEndpoint, {
         matchId: selectedOpenMatch._id,
         playerId,
         preferredTeam: "any",

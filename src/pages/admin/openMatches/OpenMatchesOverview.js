@@ -10,6 +10,8 @@ import { MdOutlineGroup } from "react-icons/md";
 import PlayersJoinedModal from "../../../components/modals/PlayersJoinedModal";
 import MatchRequestModal from "../../../components/modals/MatchRequestModal";
 import "./OpenMatchesOverview.css";
+import { ownerApi } from "../../../helpers/api/apiCore";
+import { showError, showSuccess } from "../../../helpers/Toast";
 
 const isMatchRequestDisabled = (match) => {
   const statuses = [
@@ -118,6 +120,48 @@ const OpenMatchesOverview = () => {
     });
   };
 
+  const handleCancelPayShareMatch = async (match) => {
+    const reason = window.prompt("Enter cancellation reason");
+    if (!reason?.trim()) return;
+
+    try {
+      const response = await ownerApi.put(
+        `/api/super-admin/pay-share-open-matches/${match._id}/cancel`,
+        { reason: reason.trim() },
+      );
+      showSuccess(response?.data?.message || "Match cancelled");
+      dispatch(getOpenMatchOverview({
+        page: currentPage,
+        limit: recordsPerPage,
+        ...(selectedOwnerId && { ownerId: selectedOwnerId }),
+      }));
+    } catch (error) {
+      showError(error?.response?.data?.message || "Unable to cancel match");
+    }
+  };
+
+  const handleRemovePaySharePlayer = async (playerId) => {
+    if (!selectedMatch?.payShareMode || !playerId) return;
+    const reason = window.prompt("Enter player removal reason");
+    if (!reason?.trim()) return;
+
+    try {
+      const response = await ownerApi.put(
+        `/api/super-admin/pay-share-open-matches/${selectedMatch._id}/players/${playerId}/remove`,
+        { reason: reason.trim() },
+      );
+      showSuccess(response?.data?.message || "Player removed");
+      setShowPlayersModal(false);
+      dispatch(getOpenMatchOverview({
+        page: currentPage,
+        limit: recordsPerPage,
+        ...(selectedOwnerId && { ownerId: selectedOwnerId }),
+      }));
+    } catch (error) {
+      showError(error?.response?.data?.message || "Unable to remove player");
+    }
+  };
+
   const allMatches = openMatchOverview?.openMatches || [];
   const pagination = openMatchOverview?.pagination || {};
   const totalPages = pagination.totalPages || 1;
@@ -189,7 +233,7 @@ const OpenMatchesOverview = () => {
                       const skill = item?.skillLevel || "All Skills";
                       const priceText = item?.teamA?.[0]?.amountPaid !== undefined ? `₹${item.teamA[0].amountPaid}` : (item?.totalMatchPayment !== undefined ? `₹${item.totalMatchPayment}` : "N/A");
                       const creator = getMatchCreator(item);
-                      const hostName = getCreatorDisplayName(creator);
+                      const hostName = item?.payShareMode ? "Super Admin" : getCreatorDisplayName(creator);
                       const hostPhone = getCreatorPhone(creator);
                       const clubName = item?.clubId?.clubName || "N/A";
                       const courtName = item?.slot?.[0]?.courtName || "";
@@ -297,27 +341,53 @@ const OpenMatchesOverview = () => {
                             </span>
                           </td>
                           <td className="text-center" style={approachingStyle}>
-                            <button
-                              className="btn btn-sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRequestClick(item);
-                              }}
-                              disabled={isMatchCompleted}
-                              title={isMatchCompleted ? "Requests are disabled for completed matches." : "Send request"}
-                              style={{
-                                fontSize: "11px",
-                                padding: "5px 12px",
-                                backgroundColor: isMatchCompleted ? "#e5e7eb" : "rgba(99, 102, 241, 0.12)",
-                                color: isMatchCompleted ? "#9ca3af" : "#4f46e5",
-                                border: "none",
-                                borderRadius: "4px",
-                                fontWeight: "600",
-                                cursor: isMatchCompleted ? "not-allowed" : "pointer",
-                              }}
-                            >
-                              Request
-                            </button>
+                            <div className="d-flex justify-content-center gap-1">
+                              <button
+                                className="btn btn-sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRequestClick(item);
+                                }}
+                                disabled={isMatchCompleted}
+                                style={{
+                                  fontSize: "11px",
+                                  padding: "5px 12px",
+                                  backgroundColor: isMatchCompleted ? "#e5e7eb" : "rgba(99, 102, 241, 0.12)",
+                                  color: isMatchCompleted ? "#9ca3af" : "#4f46e5",
+                                  border: "none",
+                                  borderRadius: "4px",
+                                  fontWeight: "600",
+                                }}
+                              >
+                                Request
+                              </button>
+                              {item?.payShareMode && ["pending", "expired"].includes(String(item?.openMatchStatus || "").toLowerCase()) && (
+                                <>
+                                  <button
+                                    className="btn btn-sm btn-outline-primary"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      navigate("/admin/open-matches/create", {
+                                        state: { rescheduleMatchId: item._id },
+                                      });
+                                    }}
+                                    style={{ fontSize: "11px", padding: "5px 9px" }}
+                                  >
+                                    Reschedule
+                                  </button>
+                                  <button
+                                    className="btn btn-sm btn-outline-danger"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleCancelPayShareMatch(item);
+                                    }}
+                                    style={{ fontSize: "11px", padding: "5px 9px" }}
+                                  >
+                                    Cancel
+                                  </button>
+                                </>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       );
@@ -335,7 +405,7 @@ const OpenMatchesOverview = () => {
                   const skill = item?.skillLevel || "All Skills";
                   const priceText = item?.teamA?.[0]?.amountPaid !== undefined ? `₹${item.teamA[0].amountPaid}` : (item?.totalMatchPayment !== undefined ? `₹${item.totalMatchPayment}` : "N/A");
                   const creator = getMatchCreator(item);
-                  const hostName = getCreatorDisplayName(creator);
+                  const hostName = item?.payShareMode ? "Super Admin" : getCreatorDisplayName(creator);
                   const hostPhone = getCreatorPhone(creator);
                   const clubName = item?.clubId?.clubName || "N/A";
                   const courtName = item?.slot?.[0]?.courtName || "";
@@ -450,6 +520,30 @@ const OpenMatchesOverview = () => {
                           >
                             Send Request
                           </button>
+                          {item?.payShareMode && ["pending", "expired"].includes(String(item?.openMatchStatus || "").toLowerCase()) && (
+                            <>
+                              <button
+                                className="btn btn-sm btn-outline-primary w-100 mt-2"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate("/admin/open-matches/create", {
+                                    state: { rescheduleMatchId: item._id },
+                                  });
+                                }}
+                              >
+                                Reschedule Match
+                              </button>
+                              <button
+                                className="btn btn-sm btn-outline-danger w-100 mt-2"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCancelPayShareMatch(item);
+                                }}
+                              >
+                                Cancel Match
+                              </button>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -493,6 +587,12 @@ const OpenMatchesOverview = () => {
         show={showPlayersModal}
         onHide={schedulePlayersModalClose}
         players={selectedMatch || []}
+        onRemovePlayer={
+          selectedMatch?.payShareMode &&
+          ["pending", "expired"].includes(String(selectedMatch?.openMatchStatus || "").toLowerCase())
+            ? handleRemovePaySharePlayer
+            : undefined
+        }
         onMouseEnter={clearPlayersModalCloseTimer}
         onMouseLeave={schedulePlayersModalClose}
       />

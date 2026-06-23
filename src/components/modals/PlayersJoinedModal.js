@@ -3,7 +3,7 @@ import { Modal } from "react-bootstrap";
 import { FaUsers } from "react-icons/fa";
 import "./PlayersJoinedModal.css";
 
-const PlayersJoinedModal = ({ show, onHide, players, onMouseEnter, onMouseLeave }) => {
+const PlayersJoinedModal = ({ show, onHide, players, onMouseEnter, onMouseLeave, onRemovePlayer }) => {
   console.log(players, "Players in Modal");
   const teamA = players?.teamA || [];
   const teamB = players?.teamB || [];
@@ -74,6 +74,15 @@ const PlayersJoinedModal = ({ show, onHide, players, onMouseEnter, onMouseLeave 
               </span>
             </div>
           </div>
+          {onRemovePlayer && userId?._id && (
+            <button
+              type="button"
+              className="btn btn-sm btn-outline-danger"
+              onClick={() => onRemovePlayer(userId._id)}
+            >
+              Remove
+            </button>
+          )}
         </div>
       </div>
     );
