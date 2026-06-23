@@ -348,10 +348,42 @@ const formatScheduleSummary = (preferredSchedule = [], maxRows = 2) => {
           ? timeSlots.map(getSlotValue).join(", ")
           : "Any time";
 
+        // const tooltipContent = (
+        //   <div>
+        //     <div className="fw-bold mb-1">{entry.day}</div>
+        //     <div style={{ fontSize: 11 }}>{timeRange}</div>
+        //   </div>
+        // );
         const tooltipContent = (
-          <div>
-            <div className="fw-bold mb-1">{entry.day}</div>
-            <div style={{ fontSize: 11 }}>{timeRange}</div>
+          <div style={{ minWidth: 180 }}>
+            <div
+              className="fw-bold mb-2 text-center"
+              style={{
+                borderBottom: "1px solid rgba(255,255,255,0.2)",
+                paddingBottom: 4,
+              }}
+            >
+              {entry.day}
+            </div>
+
+            <div className="d-flex flex-column gap-1">
+              {
+                timeSlots.map((slot, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      background: "rgba(255,255,255,0.08)",
+                      borderRadius: 4,
+                      padding: "4px 8px",
+                      fontSize: 11,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {getSlotValue(slot)}
+                  </div>
+                ))
+              }
+            </div>
           </div>
         );
 
