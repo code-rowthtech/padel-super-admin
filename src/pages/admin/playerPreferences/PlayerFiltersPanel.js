@@ -94,7 +94,6 @@ const PlayerFiltersPanel = ({
             filters.clubId?.length || 0,
             filters.day?.length || 0,
             filters.timeSlot?.length || 0,
-            filters.hasPreference?.length || 0,
             filters.preferredDuration?.length || 0,
             filters.isCalled !== null ? 1 : 0,
         ].reduce((a, b) => a + (b > 0 ? 1 : 0), 0);
@@ -183,10 +182,10 @@ const PlayerFiltersPanel = ({
                             Residence
                         </Form.Label>
                         <CheckboxMultiSelect
-                            options={residenceDropdownOptions}
-                            value={filters.residence}
-                            onChange={(value) => onFilterChange("residence", value)}
-                            placeholder={getMultiPlaceholder("All States", filters.residence)}
+                             options={residenceDropdownOptions}
+                             value={filters.residence}
+                             onChange={(value) => onFilterChange("residence", value)}
+                             placeholder={getMultiPlaceholder("All States", filters.residence)}
                         />
                     </Form.Group>
                     {/* Club Preference */}
@@ -201,37 +200,17 @@ const PlayerFiltersPanel = ({
                             placeholder={getMultiPlaceholder("All Clubs", filters.clubId)}
                         />
                     </Form.Group>
-                    <Row className="g-2">
-                        <Col xs={6}>
-                            <Form.Group className="mb-3">
-                                <Form.Label style={{ fontFamily: "Poppins", fontSize: 12, fontWeight: 600, marginBottom: 6 }}>
-                                    Day
-                                </Form.Label>
-                                <CheckboxMultiSelect
-                                    options={toSelectOptions(DAY_OPTIONS)}
-                                    value={filters.day}
-                                    onChange={(value) => onFilterChange("day", value)}
-                                    placeholder={getMultiPlaceholder("Any", filters.day)}
-                                />
-                            </Form.Group>
-                        </Col>
-                        <Col xs={6}>
-                            <Form.Group className="mb-3">
-                                <Form.Label style={{ fontFamily: "Poppins", fontSize: 12, fontWeight: 600, marginBottom: 6 }}>
-                                    Preferences
-                                </Form.Label>
-                                <CheckboxMultiSelect
-                                    options={[
-                                        { value: "yes", label: "Saved" },
-                                        { value: "no", label: "Missing" },
-                                    ]}
-                                    value={filters.hasPreference}
-                                    onChange={(value) => onFilterChange("hasPreference", value)}
-                                    placeholder={getMultiPlaceholder("All", filters.hasPreference)}
-                                />
-                            </Form.Group>
-                        </Col>
-                    </Row>
+                    <Form.Group className="mb-3">
+                        <Form.Label style={{ fontFamily: "Poppins", fontSize: 12, fontWeight: 600, marginBottom: 6 }}>
+                            Day
+                        </Form.Label>
+                        <CheckboxMultiSelect
+                            options={toSelectOptions(DAY_OPTIONS)}
+                            value={filters.day}
+                            onChange={(value) => onFilterChange("day", value)}
+                            placeholder={getMultiPlaceholder("Any", filters.day)}
+                        />
+                    </Form.Group>
                     {/* Intro Call */}
                     <Form.Group className="mb-3">
                         <Form.Label style={{ fontFamily: "Poppins", fontSize: 12, fontWeight: 600, marginBottom: 6 }}>
