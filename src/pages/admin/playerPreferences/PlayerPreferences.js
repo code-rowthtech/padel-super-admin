@@ -270,6 +270,22 @@ const normalizeTimeRangeLabel = (value) => {
     return TIME_SLOT_LABEL_BY_COMPACT[normalizeTimeSlotText(label)] || label;
   }
 
+  if (cleanParts.length === 1) {
+    const singleTime = cleanParts[0];
+    const matchTimePattern = singleTime.match(/^(\d{1,2})\s*(AM|PM)$/i);
+    if (matchTimePattern) {
+      const hour = parseInt(matchTimePattern[1]);
+      const period = matchTimePattern[2].toUpperCase();
+      let nextHour = hour === 12 ? 1 : hour + 1;
+      let nextPeriod = period;
+      if (hour === 11) {
+        nextPeriod = period === "AM" ? "PM" : "AM";
+      }
+      const label = `${singleTime} – ${nextHour} ${nextPeriod}`;
+      return TIME_SLOT_LABEL_BY_COMPACT[normalizeTimeSlotText(label)] || label;
+    }
+  }
+
   return TIME_SLOT_LABEL_BY_COMPACT[normalizeTimeSlotText(cleanParts[0])] || cleanParts[0] || normalized;
 };
 
@@ -812,13 +828,27 @@ const PlayerPreferences = () => {
     const timeSlot = getMatchTime(match);
     const skillLevel = match?.skillLevel;
 
+    let mappedSkills = [];
+    if (skillLevel) {
+      const skillLower = skillLevel.toLowerCase().trim();
+      if (skillLower === "beginner") {
+        mappedSkills = ["E", "D2", "D1", "L"];
+      } else if (skillLower === "intermediate") {
+        mappedSkills = ["C2", "C1", "B2", "B1"];
+      } else if (skillLower === "advanced" || skillLower === "professional") {
+        mappedSkills = ["A"];
+      } else {
+        mappedSkills = [skillLevel];
+      }
+    }
+
     setSelectedOpenMatch(match);
     setFilters((current) => ({
       ...current,
       clubId: clubId ? [clubId] : [],
       day: day ? [day] : [],
       timeSlot: timeSlot && timeSlot !== "Any Time" ? [timeSlot] : [],
-      skillLevel: skillLevel ? [skillLevel] : [],
+      skillLevel: mappedSkills,
       hasPreference: ["yes"],
     }));
   };
@@ -2282,83 +2312,101 @@ const PlayerPreferences = () => {
                                   }}
                                   onClick={(e) => e.stopPropagation()}
                                 >
-                                  <div style={{ fontSize: 11, fontWeight: 600, padding: "8px 12px", color: "#1f41bb" }}>
-                                    Add Player to Team {team} - Slot {parseInt(slotIndex) + 1}
-                                  </div>
-                                  {filteredAvailablePlayers.length > 0 ? (
-                                    filteredAvailablePlayers.slice(0, 20).map((p, idx) => {
-                                      const playerName = p.customerId?.name || "Unknown";
-                                      const playerPhone = p.customerId?.phoneNumber || "N/A";
-                                      const playerGender = p.customerId?.gender || "";
-                                      const playerSkillLevel = p.skillLevel || "";
+                                  {!isEmpty ? (
+                                    <>
+                                      <div style={{ fontSize: 11, fontWeight: 600, padding: "8px 12px", color: "#1f41bb" }}>
+                                        Player Details - Team {team} Slot {parseInt(slotIndex) + 1}
+                                      </div>
+                                      <div style={{ padding: "8px 12px", backgroundColor: "#fff", margin: "0 8px 8px", borderRadius: 4, border: "1px solid #dee2e6" }}>
+                                        <div className="fw-semibold" style={{ fontSize: 11, color: "#111827" }}>
+                                          Name: {player?.userId?.name || player?.name || "Unknown"}
+                                        </div>
+                                        <div className="text-muted" style={{ fontSize: 10, marginTop: 4 }}>
+                                          Phone: {player?.userId?.phoneNumber ? `${player.userId.countryCode || "+91"} ${player.userId.phoneNumber}` : (player?.phoneNumber || "N/A")}
+                                        </div>
+                                      </div>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <div style={{ fontSize: 11, fontWeight: 600, padding: "8px 12px", color: "#1f41bb" }}>
+                                        Add Player to Team {team} - Slot {parseInt(slotIndex) + 1}
+                                      </div>
+                                      {filteredAvailablePlayers.length > 0 ? (
+                                        filteredAvailablePlayers.slice(0, 20).map((p, idx) => {
+                                          const playerName = p.customerId?.name || "Unknown";
+                                          const playerPhone = p.customerId?.phoneNumber || "N/A";
+                                          const playerGender = p.customerId?.gender || "";
+                                          const playerSkillLevel = p.skillLevel || "";
 
-                                      return (
-                                        <div
-                                          key={p._id || idx}
-                                          style={{
-                                            fontSize: 11,
-                                            padding: "8px 12px",
-                                            cursor: 'pointer',
-                                            backgroundColor: "#fff",
-                                            marginBottom: 4,
-                                            marginLeft: 8,
-                                            marginRight: 8,
-                                            borderRadius: 4,
-                                          }}
-                                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#e3f2fd"}
-                                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#fff"}
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            setOpenDropdownKey(null);
-                                            setSelectedPlayerForAdd({
-                                              player: p,
-                                              playerName,
-                                              playerPhone,
-                                              playerGender,
-                                              playerSkillLevel,
-                                              team,
-                                              slotIndex: parseInt(slotIndex),
-                                              match,
-                                              color
-                                            });
-                                            setShowAddPlayerModal(true);
-                                          }}
-                                        >
-                                          <div className="d-flex align-items-center gap-2">
+                                          return (
                                             <div
+                                              key={p._id || idx}
                                               style={{
-                                                width: 24,
-                                                height: 24,
-                                                borderRadius: "50%",
-                                                backgroundColor: color,
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                                color: "#fff",
-                                                fontSize: 10,
-                                                fontWeight: 600,
+                                                fontSize: 11,
+                                                padding: "8px 12px",
+                                                cursor: 'pointer',
+                                                backgroundColor: "#fff",
+                                                marginBottom: 4,
+                                                marginLeft: 8,
+                                                marginRight: 8,
+                                                borderRadius: 4,
+                                              }}
+                                              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#e3f2fd"}
+                                              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#fff"}
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setOpenDropdownKey(null);
+                                                setSelectedPlayerForAdd({
+                                                  player: p,
+                                                  playerName,
+                                                  playerPhone,
+                                                  playerGender,
+                                                  playerSkillLevel,
+                                                  team,
+                                                  slotIndex: parseInt(slotIndex),
+                                                  match,
+                                                  color
+                                                });
+                                                setShowAddPlayerModal(true);
                                               }}
                                             >
-                                              {playerName.charAt(0)?.toUpperCase() || "?"}
-                                            </div>
-                                            <div style={{ flex: 1, minWidth: 0 }}>
-                                              <div className="fw-semibold text-truncate" style={{ fontSize: 11 }}>
-                                                {playerName}
+                                              <div className="d-flex align-items-center gap-2">
+                                                <div
+                                                  style={{
+                                                    width: 24,
+                                                    height: 24,
+                                                    borderRadius: "50%",
+                                                    backgroundColor: color,
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    justifyContent: "center",
+                                                    color: "#fff",
+                                                    fontSize: 10,
+                                                    fontWeight: 600,
+                                                  }}
+                                                >
+                                                  {playerName.charAt(0)?.toUpperCase() || "?"}
+                                                </div>
+                                                <div style={{ flex: 1, minWidth: 0 }}>
+                                                  <div className="fw-semibold text-truncate" style={{ fontSize: 11 }}>
+                                                    {playerName}
+                                                  </div>
+                                                  <div className="text-muted" style={{ fontSize: 9 }}>
+                                                    {playerSkillLevel && `${playerSkillLevel} • `}
+                                                    {playerGender && `${playerGender} • `}
+                                                    {playerPhone}
+                                                  </div>
+                                                </div>
                                               </div>
-                                              <div className="text-muted" style={{ fontSize: 9 }}>
-                                                {playerSkillLevel && `${playerSkillLevel} • `}
-                                                {playerGender && `${playerGender} • `}
-                                                {playerPhone}
-                                              </div>
                                             </div>
-                                          </div>
+                                          );
+                                        })
+                                      ) : (
+                                        <div style={{ fontSize: 11, padding: "8px 12px", color: "#999", textAlign: "center" }}>
+                                          No available players
                                         </div>
-                                      );
-                                    })
-                                  ) : (
-                                    <div style={{ fontSize: 11, padding: "8px 12px", color: "#999", textAlign: "center" }}>
-                                      No available players
-                                    </div>
+                                      )}
+                                    </>
                                   )}
                                 </div>
                               );
