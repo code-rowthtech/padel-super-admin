@@ -140,7 +140,7 @@ export const createOpenMatch = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const res = await ownerApi.post(Url.CREATE_OPEN_MATCH, data);
-      if (res?.status === 200) {
+      if ([200, 201].includes(res?.status)) {
         showSuccess(res?.data?.message);
         return res?.data;
       } else {
@@ -172,7 +172,7 @@ export const createOpenMatchAdmin = createAsyncThunk(
       data.location = resolveApiId(data.location);
 
       const res = await ownerApi.post(Url.CREATE_OPEN_MATCH_ADMIN, data);
-      if (res?.status === 200) {
+      if ([200, 201].includes(res?.status)) {
         showSuccess(res?.data?.message);
         return res?.data;
       } else {

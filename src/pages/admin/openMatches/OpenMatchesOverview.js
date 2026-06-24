@@ -9,7 +9,10 @@ import { ButtonLoading } from "../../../helpers/loading/Loaders";
 import { MdOutlineGroup } from "react-icons/md";
 import PlayersJoinedModal from "../../../components/modals/PlayersJoinedModal";
 import MatchRequestModal from "../../../components/modals/MatchRequestModal";
+import ReasonActionModal from "../../../components/modals/ReasonActionModal";
 import "./OpenMatchesOverview.css";
+import { ownerApi } from "../../../helpers/api/apiCore";
+import { showError, showSuccess } from "../../../helpers/Toast";
 
 const isMatchRequestDisabled = (match) => {
   const statuses = [
@@ -33,6 +36,27 @@ const getOpenMatchDisplayStatus = (match) => {
   return match?.openMatchStatus || match?.status || "upcoming";
 };
 
+const isPayShareMatch = (match) =>
+  Boolean(
+    match?.payShareMode ||
+    match?.type === "super_admin_pay_share",
+  );
+
+const isSlotConflictCancelledPayShareMatch = (match) => {
+  if (!isPayShareMatch(match)) return false;
+  const status = String(match?.openMatchStatus || match?.status || "").toLowerCase();
+  const reason = String(match?.cancellationReason || "").toLowerCase();
+  return ["cancelled", "canceled"].includes(status) &&
+    reason.includes("booked by another user");
+};
+
+const getPlayerFeeText = (match) => {
+  const amount = isPayShareMatch(match)
+    ? match?.playerPayableAmount
+    : match?.teamA?.[0]?.amountPaid ?? match?.playerPayableAmount;
+  return Number.isFinite(Number(amount)) ? `₹${Number(amount)}` : "N/A";
+};
+
 const getMatchCreator = (match) => match?.createdBy || match?.creatorId || match?.userId || null;
 
 const getCreatorDisplayName = (creator) =>
@@ -49,6 +73,8 @@ const OpenMatchesOverview = () => {
   const [showPlayersModal, setShowPlayersModal] = useState(false);
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState([]);
+  const [reasonModal, setReasonModal] = useState({ show: false, type: "", match: null, playerId: "", reason: "", loading: false });
+  const [removingPlayerId, setRemovingPlayerId] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 15;
   const playersModalCloseTimer = useRef(null);
@@ -64,13 +90,6 @@ const OpenMatchesOverview = () => {
     clearPlayersModalCloseTimer();
     setSelectedMatch(match);
     setShowPlayersModal(true);
-  };
-
-  const schedulePlayersModalClose = () => {
-    clearPlayersModalCloseTimer();
-    playersModalCloseTimer.current = setTimeout(() => {
-      setShowPlayersModal(false);
-    }, 180);
   };
 
   useEffect(() => {
@@ -116,6 +135,73 @@ const OpenMatchesOverview = () => {
         selectedOpenMatchId: match._id,
       },
     });
+  };
+
+  const refreshOpenMatches = () => {
+    dispatch(getOpenMatchOverview({
+      page: currentPage,
+      limit: recordsPerPage,
+      ...(selectedOwnerId && { ownerId: selectedOwnerId }),
+    }));
+  };
+
+  const openCancelReasonModal = (match) => {
+    setReasonModal({ show: true, type: "cancel", match, playerId: "", reason: "", loading: false });
+  };
+
+  const openRemoveReasonModal = (playerId) => {
+    if (!isPayShareMatch(selectedMatch) || !playerId) return;
+    setReasonModal({ show: true, type: "remove", match: selectedMatch, playerId, reason: "", loading: false });
+  };
+
+  const closeReasonModal = () => {
+    if (reasonModal.loading) return;
+    setReasonModal({ show: false, type: "", match: null, playerId: "", reason: "", loading: false });
+  };
+
+  const handleCancelPayShareMatch = async () => {
+    const match = reasonModal.match;
+    const reason = reasonModal.reason.trim();
+    if (!match?._id || reason.length < 3) return;
+
+    setReasonModal((current) => ({ ...current, loading: true }));
+    try {
+      const response = await ownerApi.put(
+        `/api/super-admin/pay-share-open-matches/${match._id}/cancel`,
+        { reason },
+      );
+      showSuccess(response?.data?.message || "Match cancelled");
+      setReasonModal({ show: false, type: "", match: null, playerId: "", reason: "", loading: false });
+      refreshOpenMatches();
+    } catch (error) {
+      showError(error?.response?.data?.message || "Unable to cancel match");
+      setReasonModal((current) => ({ ...current, loading: false }));
+    }
+  };
+
+  const handleRemovePaySharePlayer = async () => {
+    const match = reasonModal.match;
+    const playerId = reasonModal.playerId;
+    const reason = reasonModal.reason.trim();
+    if (!isPayShareMatch(match) || !playerId || reason.length < 3) return;
+
+    setReasonModal((current) => ({ ...current, loading: true }));
+    setRemovingPlayerId(playerId);
+    try {
+      const response = await ownerApi.put(
+        `/api/super-admin/pay-share-open-matches/${match._id}/players/${playerId}/remove`,
+        { reason },
+      );
+      showSuccess(response?.data?.message || "Player removed");
+      setShowPlayersModal(false);
+      setReasonModal({ show: false, type: "", match: null, playerId: "", reason: "", loading: false });
+      refreshOpenMatches();
+    } catch (error) {
+      showError(error?.response?.data?.message || "Unable to remove player");
+      setReasonModal((current) => ({ ...current, loading: false }));
+    } finally {
+      setRemovingPlayerId("");
+    }
   };
 
   const allMatches = openMatchOverview?.openMatches || [];
@@ -187,17 +273,18 @@ const OpenMatchesOverview = () => {
                       const maxCount = item?.totalPlayersCount ?? item?.maxPlayers ?? 4;
                       const progressPct = Math.min(100, (joinedCount / maxCount) * 100);
                       const skill = item?.skillLevel || "All Skills";
-                      const priceText = item?.teamA?.[0]?.amountPaid !== undefined ? `₹${item.teamA[0].amountPaid}` : (item?.totalMatchPayment !== undefined ? `₹${item.totalMatchPayment}` : "N/A");
+                      const priceText = getPlayerFeeText(item);
                       const creator = getMatchCreator(item);
-                      const hostName = getCreatorDisplayName(creator);
+                      const hostName = isPayShareMatch(item) ? "Super Admin" : getCreatorDisplayName(creator);
                       const hostPhone = getCreatorPhone(creator);
                       const clubName = item?.clubId?.clubName || "N/A";
                       const courtName = item?.slot?.[0]?.courtName || "";
                       const bookingDate = item?.matchDate || item?.bookingDate;
                       const timeText = item?.matchTime?.[0] || (item?.startTime && item?.endTime ? `${item.startTime} - ${item.endTime}` : "N/A");
-                      const status = getOpenMatchDisplayStatus(item);
-                      const isMatchCompleted = isMatchRequestDisabled(item);
-                      const isApproaching = item?.isWithin24Hours;
+	                      const status = getOpenMatchDisplayStatus(item);
+	                      const isMatchCompleted = isMatchRequestDisabled(item);
+	                      const canRescheduleConflict = isSlotConflictCancelledPayShareMatch(item);
+	                      const isApproaching = item?.isWithin24Hours;
                       const approachingStyle = isApproaching ? { backgroundColor: "#fffbeb" } : undefined;
                       const statusStyle = getStatusBadgeStyle(status);
 
@@ -243,22 +330,15 @@ const OpenMatchesOverview = () => {
                           </td>
                           <td
                             style={approachingStyle}
-                            onMouseEnter={() => {
-                              if (joinedCount > 0) {
-                                openPlayersModal(item);
-                              }
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openPlayersModal(item);
                             }}
-                            onMouseMove={() => {
-                              if (joinedCount > 0) {
-                                openPlayersModal(item);
-                              }
-                            }}
-                            onMouseLeave={schedulePlayersModalClose}
-                            onClick={(e) => e.stopPropagation()}
                           >
                             <div
                               className="d-flex flex-column align-items-center justify-content-center players-joined-cell"
-                              style={{ minWidth: "120px", cursor: joinedCount > 0 ? "pointer" : "default" }}
+                              style={{ minWidth: "120px", cursor: "pointer" }}
+                              title="View joined players"
                             >
                               <div className="d-flex justify-content-between w-100 px-2 mb-1" style={{ fontSize: "10.5px" }}>
                                 <span className="fw-bold text-dark">{joinedCount}/{maxCount}</span>
@@ -297,27 +377,74 @@ const OpenMatchesOverview = () => {
                             </span>
                           </td>
                           <td className="text-center" style={approachingStyle}>
-                            <button
-                              className="btn btn-sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRequestClick(item);
-                              }}
-                              disabled={isMatchCompleted}
-                              title={isMatchCompleted ? "Requests are disabled for completed matches." : "Send request"}
-                              style={{
-                                fontSize: "11px",
-                                padding: "5px 12px",
-                                backgroundColor: isMatchCompleted ? "#e5e7eb" : "rgba(99, 102, 241, 0.12)",
-                                color: isMatchCompleted ? "#9ca3af" : "#4f46e5",
-                                border: "none",
-                                borderRadius: "4px",
-                                fontWeight: "600",
-                                cursor: isMatchCompleted ? "not-allowed" : "pointer",
-                              }}
-                            >
-                              Request
-                            </button>
+                            <div className="d-flex justify-content-center gap-1">
+                              {isPayShareMatch(item) ? (
+                                <button
+                                  className="btn btn-sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleFindPlayersClick(item);
+                                  }}
+                                  style={{
+                                    fontSize: "11px",
+                                    padding: "5px 12px",
+                                    backgroundColor: "rgba(99, 102, 241, 0.12)",
+                                    color: "#4f46e5",
+                                    border: "none",
+                                    borderRadius: "4px",
+                                    fontWeight: "600",
+                                  }}
+                                >
+                                  Find Players
+                                </button>
+                              ) : (
+                                <button
+                                  className="btn btn-sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRequestClick(item);
+                                  }}
+                                  disabled={isMatchCompleted}
+                                  style={{
+                                    fontSize: "11px",
+                                    padding: "5px 12px",
+                                    backgroundColor: isMatchCompleted ? "#e5e7eb" : "rgba(99, 102, 241, 0.12)",
+                                    color: isMatchCompleted ? "#9ca3af" : "#4f46e5",
+                                    border: "none",
+                                    borderRadius: "4px",
+                                    fontWeight: "600",
+                                  }}
+                                >
+                                  Request
+                                </button>
+                              )}
+	                              {canRescheduleConflict && (
+	                                  <button
+	                                    className="btn btn-sm btn-outline-primary"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      navigate("/admin/open-matches/create", {
+                                        state: { rescheduleMatchId: item._id },
+                                      });
+                                    }}
+                                    style={{ fontSize: "11px", padding: "5px 9px" }}
+	                                  >
+	                                    Reschedule
+	                                  </button>
+	                              )}
+	                              {isPayShareMatch(item) && ["pending", "expired"].includes(String(item?.openMatchStatus || "").toLowerCase()) && (
+	                                  <button
+	                                    className="btn btn-sm btn-outline-danger"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      openCancelReasonModal(item);
+                                    }}
+                                    style={{ fontSize: "11px", padding: "5px 9px" }}
+	                                  >
+	                                    Cancel
+	                                  </button>
+	                              )}
+                            </div>
                           </td>
                         </tr>
                       );
@@ -333,17 +460,18 @@ const OpenMatchesOverview = () => {
                   const maxCount = item?.totalPlayersCount ?? item?.maxPlayers ?? 4;
                   const progressPct = Math.min(100, (joinedCount / maxCount) * 100);
                   const skill = item?.skillLevel || "All Skills";
-                  const priceText = item?.teamA?.[0]?.amountPaid !== undefined ? `₹${item.teamA[0].amountPaid}` : (item?.totalMatchPayment !== undefined ? `₹${item.totalMatchPayment}` : "N/A");
+                  const priceText = getPlayerFeeText(item);
                   const creator = getMatchCreator(item);
-                  const hostName = getCreatorDisplayName(creator);
+                  const hostName = isPayShareMatch(item) ? "Super Admin" : getCreatorDisplayName(creator);
                   const hostPhone = getCreatorPhone(creator);
                   const clubName = item?.clubId?.clubName || "N/A";
                   const courtName = item?.slot?.[0]?.courtName || "";
                   const bookingDate = item?.matchDate || item?.bookingDate;
                   const timeText = item?.matchTime?.[0] || (item?.startTime && item?.endTime ? `${item.startTime} - ${item.endTime}` : "N/A");
-                  const status = getOpenMatchDisplayStatus(item);
-                  const isMatchCompleted = isMatchRequestDisabled(item);
-                  const isApproaching = item?.isWithin24Hours;
+	                  const status = getOpenMatchDisplayStatus(item);
+	                  const isMatchCompleted = isMatchRequestDisabled(item);
+	                  const canRescheduleConflict = isSlotConflictCancelledPayShareMatch(item);
+	                  const isApproaching = item?.isWithin24Hours;
                   const statusStyle = getStatusBadgeStyle(status);
 
                   return (
@@ -404,15 +532,12 @@ const OpenMatchesOverview = () => {
                           <div className="d-flex justify-content-between mb-1" style={{ fontSize: "11px" }}>
                             <span className="fw-bold text-dark">Players Joined:</span>
                             <span
-                              className="text-muted fw-bold"
-                              style={{ cursor: joinedCount > 0 ? "pointer" : "default", textDecoration: joinedCount > 0 ? "underline" : "none" }}
-                              onMouseEnter={() => {
-                                if (joinedCount > 0) {
-                                  openPlayersModal(item);
-                                }
-                              }}
-                              onMouseLeave={schedulePlayersModalClose}
-                              onClick={(e) => e.stopPropagation()}
+	                              className="text-muted fw-bold"
+	                              style={{ cursor: "pointer", textDecoration: "underline" }}
+	                              onClick={(e) => {
+	                                e.stopPropagation();
+	                                openPlayersModal(item);
+	                              }}
                             >
                               {joinedCount}/{maxCount} ({progressPct.toFixed(0)}%)
                             </span>
@@ -433,23 +558,51 @@ const OpenMatchesOverview = () => {
                             className="btn btn-sm w-100"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleRequestClick(item);
+                              if (isPayShareMatch(item)) {
+                                handleFindPlayersClick(item);
+                              } else {
+                                handleRequestClick(item);
+                              }
                             }}
-                            disabled={isMatchCompleted}
-                            title={isMatchCompleted ? "Requests are disabled for completed matches." : "Send request"}
+                            disabled={!isPayShareMatch(item) && isMatchCompleted}
+                            title={isPayShareMatch(item) ? "Find players and send payment links" : "Send request"}
                             style={{
                               fontSize: "12px",
                               padding: "8px",
-                              backgroundColor: isMatchCompleted ? "#e5e7eb" : "rgba(99, 102, 241, 0.12)",
-                              color: isMatchCompleted ? "#9ca3af" : "#4f46e5",
+                              backgroundColor: !isPayShareMatch(item) && isMatchCompleted ? "#e5e7eb" : "rgba(99, 102, 241, 0.12)",
+                              color: !isPayShareMatch(item) && isMatchCompleted ? "#9ca3af" : "#4f46e5",
                               border: "none",
                               borderRadius: "4px",
                               fontWeight: "600",
-                              cursor: isMatchCompleted ? "not-allowed" : "pointer",
+                              cursor: !isPayShareMatch(item) && isMatchCompleted ? "not-allowed" : "pointer",
                             }}
                           >
-                            Send Request
+                            {isPayShareMatch(item) ? "Find Players" : "Send Request"}
                           </button>
+	                          {canRescheduleConflict && (
+	                              <button
+	                                className="btn btn-sm btn-outline-primary w-100 mt-2"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate("/admin/open-matches/create", {
+                                    state: { rescheduleMatchId: item._id },
+                                  });
+                                }}
+	                              >
+	                                Reschedule Match
+	                              </button>
+	                          )}
+	                          {isPayShareMatch(item) && ["pending", "expired"].includes(String(item?.openMatchStatus || "").toLowerCase()) && (
+	                              <button
+	                                className="btn btn-sm btn-outline-danger w-100 mt-2"
+	                                onClick={(e) => {
+	                                  e.stopPropagation();
+	                                  openCancelReasonModal(item);
+	                                }}
+	                              >
+	                                Cancel Match
+	                              </button>
+	                          )}
                         </div>
                       </div>
                     </div>
@@ -491,10 +644,28 @@ const OpenMatchesOverview = () => {
 
       <PlayersJoinedModal
         show={showPlayersModal}
-        onHide={schedulePlayersModalClose}
+        onHide={() => setShowPlayersModal(false)}
         players={selectedMatch || []}
-        onMouseEnter={clearPlayersModalCloseTimer}
-        onMouseLeave={schedulePlayersModalClose}
+        onRemovePlayer={isPayShareMatch(selectedMatch) ? openRemoveReasonModal : undefined}
+        removingPlayerId={removingPlayerId}
+        subtitle={selectedMatch?._id ? `${selectedMatch?.clubId?.clubName || "Open match"} • ${selectedMatch?.openMatchStatus || selectedMatch?.status || ""}` : ""}
+      />
+
+      <ReasonActionModal
+        show={reasonModal.show}
+        title={reasonModal.type === "cancel" ? "Cancel Open Match" : "Remove Player"}
+        description={
+          reasonModal.type === "cancel"
+            ? "This will cancel the selected pay-share open match and release eligible payments."
+            : "This will remove the selected player from the match and release eligible payment holds."
+        }
+        reason={reasonModal.reason}
+        onReasonChange={(reason) => setReasonModal((current) => ({ ...current, reason }))}
+        onHide={closeReasonModal}
+        onConfirm={reasonModal.type === "cancel" ? handleCancelPayShareMatch : handleRemovePaySharePlayer}
+        confirmText={reasonModal.type === "cancel" ? "Cancel Match" : "Remove Player"}
+        loading={reasonModal.loading}
+        placeholder={reasonModal.type === "cancel" ? "Why is this match being cancelled?" : "Why is this player being removed?"}
       />
 
       <MatchRequestModal
