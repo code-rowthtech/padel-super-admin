@@ -1,25 +1,36 @@
 import React from "react";
-import { Modal } from "react-bootstrap";
-import { FaUsers } from "react-icons/fa";
+import { Modal, Spinner } from "react-bootstrap";
+import { FaTrashAlt, FaUsers } from "react-icons/fa";
 import "./PlayersJoinedModal.css";
 
-const PlayersJoinedModal = ({ show, onHide, players, onMouseEnter, onMouseLeave, onRemovePlayer }) => {
+const PlayersJoinedModal = ({
+  show,
+  onHide,
+  players,
+  onMouseEnter,
+  onMouseLeave,
+  onRemovePlayer,
+  removingPlayerId,
+  title = "Players Joined",
+  subtitle = "",
+  hoverMode = false,
+}) => {
   const teamA = players?.teamA || [];
   const teamB = players?.teamB || [];
 
-  const renderPlayer = (player, index) => {
+  const renderPlayer = (player, index, teamLabel) => {
     const userId = player.userId || player;
     const name = userId?.name || player.name || "Unknown Player";
     const phone = userId?.phoneNumber ? `${userId.countryCode || "+91"} ${userId.phoneNumber}` : "";
     const email = userId?.email || player.email;
     const level = userId?.level || player.level;
     const gender = userId?.gender || player.gender;
+    const playerId = userId?._id;
 
     return (
       <div
         key={player._id || index}
-        className="p-3 mb-2 border rounded"
-        style={{ backgroundColor: "#f9fafb", borderColor: "#e5e7eb" }}
+        className="player-joined-item"
       >
         <div className="d-flex align-items-start gap-3">
           <div
@@ -72,13 +83,20 @@ const PlayersJoinedModal = ({ show, onHide, players, onMouseEnter, onMouseLeave,
               </span>
             </div>
           </div>
-          {onRemovePlayer && userId?._id && (
+          {onRemovePlayer && playerId && (
             <button
               type="button"
-              className="btn btn-sm btn-outline-danger"
-              onClick={() => onRemovePlayer(userId._id)}
+              className="player-remove-icon"
+              title={`Remove ${name}`}
+              aria-label={`Remove ${name}`}
+              disabled={removingPlayerId === playerId}
+              onClick={() => onRemovePlayer(playerId, { player, team: teamLabel })}
             >
-              Remove
+              {removingPlayerId === playerId ? (
+                <Spinner animation="border" size="sm" />
+              ) : (
+                <FaTrashAlt size={12} />
+              )}
             </button>
           )}
         </div>
@@ -87,12 +105,22 @@ const PlayersJoinedModal = ({ show, onHide, players, onMouseEnter, onMouseLeave,
   };
 
   return (
-    <Modal show={show} onHide={onHide} size="md" centered backdrop={false} className="players-joined-hover-modal">
+    <Modal
+      show={show}
+      onHide={onHide}
+      size="md"
+      centered
+      backdrop={hoverMode ? false : true}
+      className={hoverMode ? "players-joined-hover-modal" : "players-joined-modal"}
+    >
       <div onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       <Modal.Header closeButton className="border-0 pb-2">
-        <Modal.Title className="fw-bold" style={{ fontSize: "18px", color: "#111827" }}>
-          Players Joined
-        </Modal.Title>
+        <div>
+          <Modal.Title className="fw-bold" style={{ fontSize: "18px", color: "#111827" }}>
+            {title}
+          </Modal.Title>
+          {subtitle && <div className="text-muted mt-1" style={{ fontSize: "12px" }}>{subtitle}</div>}
+        </div>
       </Modal.Header>
       <Modal.Body className="px-4 py-3">
         {teamA.length === 0 && teamB.length === 0 ? (
@@ -111,7 +139,7 @@ const PlayersJoinedModal = ({ show, onHide, players, onMouseEnter, onMouseLeave,
                     Team A ({teamA.length})
                   </h6>
                 </div>
-                {teamA.map((player, index) => renderPlayer(player, `teamA-${index}`))}
+                {teamA.map((player, index) => renderPlayer(player, `teamA-${index}`, "teamA"))}
               </div>
             )}
 
@@ -127,7 +155,7 @@ const PlayersJoinedModal = ({ show, onHide, players, onMouseEnter, onMouseLeave,
                     Team B ({teamB.length})
                   </h6>
                 </div>
-                {teamB.map((player, index) => renderPlayer(player, `teamB-${index}`))}
+                {teamB.map((player, index) => renderPlayer(player, `teamB-${index}`, "teamB"))}
               </div>
             )}
           </div>
