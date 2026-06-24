@@ -77,6 +77,7 @@ const SKILL_LEVEL_OPTIONS = ["E", "D2", "D1", "C2", "C1", "B2", "B1", "A", "L"];
 const GENDER_OPTIONS = ["Male", "Female", "Other"];
 const SCHEDULE_TIME_SLOT_GROUPS = TIME_SLOT_GROUPS.filter((group) => group.label === "60 Minutes");
 const SKILL_COLORS = { E: "success", D2: "warning", D1: "danger", C2: "dark", C1: "primary", B2: "secondary", B1: "info", A: "light", L: "dark" };
+const EDITABLE_SKILL_LEVELS = new Set(["", "E", "NE", "N/E"]);
 const EMPTY_PREFERENCE_FORM = {
   preferredClubs: [],
   preferredSchedule: [],
@@ -134,6 +135,16 @@ const checkboxSelectStyles = {
     padding: "7px 10px",
   }),
   menu: (base) => ({ ...base, zIndex: 9999 }),
+};
+
+const normalizeSkillLevel = (skillLevel) => String(skillLevel || "").trim().toUpperCase();
+const canUpdateSkillLevel = (skillLevel) => {
+  const normalized = normalizeSkillLevel(skillLevel);
+  return normalized === "E" || normalized === "" || !SKILL_LEVEL_OPTIONS.includes(normalized);
+};
+const getEditableSkillSelectValue = (skillLevel) => {
+  const normalized = normalizeSkillLevel(skillLevel);
+  return SKILL_LEVEL_OPTIONS.includes(normalized) ? normalized : "";
 };
 
 const toSelectOptions = (arr) => arr.map((value) => ({ value, label: value }));
@@ -1238,7 +1249,9 @@ const PlayerPreferences = () => {
           return { value, label: value };
         }),
       })),
-      skillLevel: row.skillLevel || "",
+      skillLevel: canUpdateSkillLevel(row.skillLevel)
+        ? getEditableSkillSelectValue(row.skillLevel)
+        : row.skillLevel || "",
       residence: row.customerId?.city || "",
       notes: row.notes || "",
       playerTendency: row.playerTendency || "",
@@ -1259,7 +1272,9 @@ const PlayerPreferences = () => {
           typeof slot === "string" ? slot : slot?.value || slot?.label || slot
         )),
       })),
-      skillLevel: preferenceForm.skillLevel || undefined,
+      skillLevel: canUpdateSkillLevel(row.skillLevel)
+        ? preferenceForm.skillLevel || undefined
+        : row.skillLevel || undefined,
       city: preferenceForm.residence || undefined,
       notes: preferenceForm.notes || undefined,
       playerTendency: preferenceForm.playerTendency || undefined,
@@ -1572,7 +1587,7 @@ const PlayerPreferences = () => {
                             )}
                           </td>
                           <td>
-                            {isEditing ? (
+                            {isEditing && canUpdateSkillLevel(row.skillLevel) ? (
                               <Form.Select
                                 size="sm"
                                 value={preferenceForm.skillLevel}
@@ -1581,12 +1596,13 @@ const PlayerPreferences = () => {
                                 <option value="">Select level</option>
                                 {SKILL_LEVEL_OPTIONS.map((level) => <option key={level} value={level}>{level}</option>)}
                               </Form.Select>
-                            ) : row.skillLevel === "E" ? (
+                            ) : canUpdateSkillLevel(row.skillLevel) && row.skillLevel ? (
                               <Form.Select
                                 size="sm"
-                                value={row.skillLevel}
+                                value={getEditableSkillSelectValue(row.skillLevel)}
                                 onChange={async (event) => {
                                   const newSkillLevel = event.target.value;
+                                  if (!newSkillLevel || newSkillLevel === row.skillLevel) return;
                                   if (row.preferenceId) {
                                     await dispatch(updatePlayerPreference({
                                       id: row.preferenceId,
@@ -1890,7 +1906,7 @@ const PlayerPreferences = () => {
                             </Col>
                             <Col xs={12}>
                               <Form.Label className="small mb-1 fw-semibold">Skill Level</Form.Label>
-                              {isEditing ? (
+                              {isEditing && canUpdateSkillLevel(row.skillLevel) ? (
                                 <Form.Select
                                   size="sm"
                                   value={preferenceForm.skillLevel}
