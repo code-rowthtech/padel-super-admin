@@ -50,11 +50,82 @@ const isSlotConflictCancelledPayShareMatch = (match) => {
     reason.includes("booked by another user");
 };
 
+const formatCurrencyAmount = (amount) => {
+  const numericAmount = Number(amount);
+  if (!Number.isFinite(numericAmount)) return "N/A";
+  return `₹${Number.isInteger(numericAmount) ? numericAmount : numericAmount.toFixed(2)}`;
+};
+
+const getSlotTotalAmount = (match) =>
+  (match?.slot || []).reduce(
+    (total, slot) =>
+      total +
+      (slot?.slotTimes || []).reduce(
+        (slotTotal, slotTime) => slotTotal + Number(slotTime?.amount || 0),
+        0,
+      ),
+    0,
+  );
+
 const getPlayerFeeText = (match) => {
   const amount = isPayShareMatch(match)
-    ? match?.playerPayableAmount
+    ? match?.totalCourtAmount ?? getSlotTotalAmount(match)
     : match?.teamA?.[0]?.amountPaid ?? match?.playerPayableAmount;
-  return Number.isFinite(Number(amount)) ? `₹${Number(amount)}` : "N/A";
+  return formatCurrencyAmount(amount);
+};
+
+const normalizeTimeText = (timeValue) =>
+  String(timeValue || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+
+const timeToMinutes = (timeValue) => {
+  const normalized = normalizeTimeText(timeValue);
+  const match = normalized.match(/^(\d{1,2})(?::(\d{2}))?\s?(am|pm)$/i);
+  if (!match) return Number.MAX_SAFE_INTEGER;
+  let hours = Number(match[1]);
+  const minutes = Number(match[2] || 0);
+  const modifier = match[3].toLowerCase();
+  if (modifier === "pm" && hours !== 12) hours += 12;
+  if (modifier === "am" && hours === 12) hours = 0;
+  return hours * 60 + minutes;
+};
+
+const getSlotTimesText = (match) => {
+  const times = [];
+  for (const slot of match?.slot || []) {
+    for (const slotTime of slot?.slotTimes || []) {
+      const time = slotTime?.bookingTime || slotTime?.time;
+      if (time && !times.includes(time)) times.push(time);
+    }
+  }
+
+  if (times.length) {
+    return times.sort((a, b) => timeToMinutes(a) - timeToMinutes(b)).join(", ");
+  }
+
+  if (Array.isArray(match?.matchTime)) {
+    return match.matchTime.filter(Boolean).join(", ") || "N/A";
+  }
+
+  if (typeof match?.matchTime === "string" && match.matchTime.trim()) {
+    return match.matchTime.split(",").map((time) => time.trim()).filter(Boolean).join(", ");
+  }
+
+  if (match?.startTime && match?.endTime) return `${match.startTime} - ${match.endTime}`;
+  return "N/A";
+};
+
+const getBookingDate = (match) =>
+  match?.slot?.[0]?.bookingDate || match?.matchDate || match?.bookingDate;
+
+const getCourtNameText = (match) => {
+  const courtNames = (match?.slot || [])
+    .map((slot) => slot?.courtName)
+    .filter(Boolean);
+  const uniqueCourtNames = [...new Set(courtNames)];
+  return uniqueCourtNames.join(", ");
 };
 
 const getMatchCreator = (match) => match?.createdBy || match?.creatorId || match?.userId || null;
@@ -207,7 +278,6 @@ const OpenMatchesOverview = () => {
   const allMatches = openMatchOverview?.openMatches || [];
   const pagination = openMatchOverview?.pagination || {};
   const totalPages = pagination.totalPages || 1;
-  const totalItems = pagination.totalItems || allMatches.length;
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
@@ -278,9 +348,9 @@ const OpenMatchesOverview = () => {
                       const hostName = isPayShareMatch(item) ? "Super Admin" : getCreatorDisplayName(creator);
                       const hostPhone = getCreatorPhone(creator);
                       const clubName = item?.clubId?.clubName || "N/A";
-                      const courtName = item?.slot?.[0]?.courtName || "";
-                      const bookingDate = item?.matchDate || item?.bookingDate;
-                      const timeText = item?.matchTime?.[0] || (item?.startTime && item?.endTime ? `${item.startTime} - ${item.endTime}` : "N/A");
+                      const courtName = getCourtNameText(item);
+                      const bookingDate = getBookingDate(item);
+                      const timeText = getSlotTimesText(item);
 	                      const status = getOpenMatchDisplayStatus(item);
 	                      const isMatchCompleted = isMatchRequestDisabled(item);
 	                      const canRescheduleConflict = isSlotConflictCancelledPayShareMatch(item);
@@ -465,9 +535,9 @@ const OpenMatchesOverview = () => {
                   const hostName = isPayShareMatch(item) ? "Super Admin" : getCreatorDisplayName(creator);
                   const hostPhone = getCreatorPhone(creator);
                   const clubName = item?.clubId?.clubName || "N/A";
-                  const courtName = item?.slot?.[0]?.courtName || "";
-                  const bookingDate = item?.matchDate || item?.bookingDate;
-                  const timeText = item?.matchTime?.[0] || (item?.startTime && item?.endTime ? `${item.startTime} - ${item.endTime}` : "N/A");
+                  const courtName = getCourtNameText(item);
+                  const bookingDate = getBookingDate(item);
+                  const timeText = getSlotTimesText(item);
 	                  const status = getOpenMatchDisplayStatus(item);
 	                  const isMatchCompleted = isMatchRequestDisabled(item);
 	                  const canRescheduleConflict = isSlotConflictCancelledPayShareMatch(item);
@@ -525,7 +595,7 @@ const OpenMatchesOverview = () => {
                           </span>
                         </div>
                         <div className="mobile-card-item">
-                          <span className="mobile-card-label">Fee / Player:</span>
+                          <span className="mobile-card-label">Fee:</span>
                           <span className="mobile-card-value text-end text-success fw-bold">{priceText}</span>
                         </div>
                         <div className="mt-2 pt-2 border-top">
