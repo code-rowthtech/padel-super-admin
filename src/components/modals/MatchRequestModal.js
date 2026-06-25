@@ -44,8 +44,6 @@ const MatchRequestModal = ({ show, onHide, matchId }) => {
     dispatch(setPagination({ page: 1 }));
   };
 
-  console.log({ matchRequestPlayers })
-
   const fetchPlayers = () => {
     dispatch(getMatchRequestPlayers({
       matchId,
