@@ -89,6 +89,7 @@ const EMPTY_PREFERENCE_FORM = {
 const EMPTY_PLAYER_FORM = { phoneNumber: "", name: "", email: "", gender: "", residence: "" };
 const EMPTY_FILTERS = {
   search: "",
+  categoryType: "",
   skillLevel: [],
   gender: [],
   residence: [],
@@ -324,6 +325,19 @@ const getMatchSlotTimeRange = (match) => {
   return times.length === 1 ? times[0] : `${times[0]} - ${times[times.length - 1]}`;
 };
 
+const getMatchTimeSlots = (match) => {
+  const times = (match?.slot || [])
+    .flatMap((slot) => slot?.slotTimes || [])
+    .map((slotTime) => slotTime?.bookingTime || slotTime?.time)
+    .filter(Boolean);
+
+  const normalizedSlots = times
+    .map((time) => normalizeTimeRangeLabel(time))
+    .filter((time) => time && time !== "Any Time");
+
+  return [...new Set(normalizedSlots)];
+};
+
 const getMatchTime = (match) =>
   normalizeTimeRangeLabel(
     match?.startTime && match?.endTime
@@ -334,6 +348,12 @@ const getMatchTime = (match) =>
 const getMatchClubName = (match) => match?.clubId?.clubName || match?.clubId?.name || "N/A";
 
 const getMatchCourtName = (match) => match?.slot?.[0]?.courtName || match?.courtName || "";
+
+const formatCurrencyAmount = (amount) => {
+  const numericAmount = Number(amount);
+  if (!Number.isFinite(numericAmount)) return "0";
+  return Number.isInteger(numericAmount) ? String(numericAmount) : numericAmount.toFixed(2);
+};
 
 const getMatchFee = (match) => {
   const bookingSlotTotal = (match?.bookingId?.slot || []).reduce((sum, slot) => (
@@ -742,6 +762,7 @@ const PlayerPreferences = () => {
       page,
       limit: 25,
       search: filters.search,
+      categoryType: filters.categoryType,
       skillLevel: filters.skillLevel,
       gender: filters.gender,
       residence: filters.residence,
@@ -764,9 +785,13 @@ const PlayerPreferences = () => {
     setFilters((current) => ({ ...current, [field]: value }));
   };
 
-  const resetFilters = () => {
+  const resetFilters = (options = {}) => {
     setFilters(EMPTY_FILTERS);
     setSelectedOpenMatch(null);
+    setRouteOpenMatchLoaded(false);
+    if (options.clearRoute !== false && (location.search || location.state?.selectedOpenMatchId)) {
+      navigate("/admin/player-preferences", { replace: true, state: {} });
+    }
   };
 
   const getPlayerId = (row) => row?.customerId?._id || "";
@@ -835,8 +860,10 @@ const PlayerPreferences = () => {
 
   const handleOpenMatchSelect = (match) => {
     const clubId = getEntityId(match?.clubId);
+    const categoryType = getEntityId(match?.categoryId);
     const day = getMatchDay(match);
-    const timeSlot = getMatchTime(match);
+    const timeSlots = getMatchTimeSlots(match);
+    const fallbackTimeSlot = getMatchTime(match);
     const skillLevel = match?.skillLevel;
 
     let mappedSkills = [];
@@ -856,9 +883,12 @@ const PlayerPreferences = () => {
     setSelectedOpenMatch(match);
     setFilters((current) => ({
       ...current,
+      categoryType: categoryType || "",
       clubId: clubId ? [clubId] : [],
       day: day ? [day] : [],
-      timeSlot: timeSlot && timeSlot !== "Any Time" ? [timeSlot] : [],
+      timeSlot: timeSlots.length
+        ? timeSlots
+        : (fallbackTimeSlot && fallbackTimeSlot !== "Any Time" ? [fallbackTimeSlot] : []),
       skillLevel: mappedSkills,
       hasPreference: ["yes"],
     }));
@@ -965,8 +995,8 @@ const PlayerPreferences = () => {
   const handleAddPlayerToMatch = async () => {
     if (!selectedPlayerForAdd) return;
 
-    const { player, match, team, slotIndex } = selectedPlayerForAdd;
-    const playerId = player._id || player.customerId?._id;
+    const { player, match, team } = selectedPlayerForAdd;
+    const playerId = player.customerId?._id || player._id;
     const matchId = match._id;
 
     // Convert team letter to API format (A -> teamA, B -> teamB)
@@ -974,6 +1004,36 @@ const PlayerPreferences = () => {
 
     setAddingPlayerToMatch(true);
     try {
+      if (isPayShareMatch(match)) {
+        const response = await ownerApi.post(
+          `/api/super-admin/pay-share-open-matches/${matchId}/payment-link`,
+          {
+            matchId,
+            playerId,
+            preferredTeam: teamName,
+          },
+        );
+        const data = response?.data?.data || {};
+        if (data.paymentLink) {
+          setPaymentLinksByPlayerId((current) => ({
+            ...current,
+            [playerId]: data,
+          }));
+          setCopyVisibleUntil((current) => ({
+            ...current,
+            [playerId]: Date.now() + 5000,
+          }));
+          setTimeout(() => {
+            setCopyVisibleUntil((current) => ({ ...current, [playerId]: 0 }));
+          }, 5000);
+        }
+        await loadOpenMatches(matchSearchQuery, matchGameTypeRef.current);
+        setShowAddPlayerModal(false);
+        setSelectedPlayerForAdd(null);
+        showSuccess(response?.data?.message || "Payment link generated successfully");
+        return;
+      }
+
       const response = await ownerApi.post('/openmatch/addPlayerToMatch', {
         matchId,
         playerId,
@@ -1383,12 +1443,13 @@ const PlayerPreferences = () => {
                 >
                   <FaFilter size={12} className="me-1" />
                   Filters
-                  {(filters.isCalled || filters.residence?.length > 0 ||
+                  {(filters.isCalled !== null || filters.categoryType || filters.residence?.length > 0 ||
                     filters.skillLevel?.length > 0 || filters.clubId?.length > 0 || filters.day?.length > 0 ||
                     filters.timeSlot?.length > 0 || filters.hasPreference?.length > 0 ||
                     filters.preferredDuration?.length > 0) && (
                       <Badge bg="danger" className="ms-1" style={{ fontSize: 9 }}>
                         {[
+                          filters.categoryType ? 1 : 0,
                           filters.gender?.length || 0,
                           filters.residence?.length || 0,
                           filters.skillLevel?.length || 0,
@@ -1397,6 +1458,7 @@ const PlayerPreferences = () => {
                           filters.timeSlot?.length || 0,
                           filters.hasPreference?.length || 0,
                           filters.preferredDuration?.length || 0,
+                          filters.isCalled !== null ? 1 : 0,
                         ].reduce((a, b) => a + (b > 0 ? 1 : 0), 0)}
                       </Badge>
                     )}
@@ -2275,7 +2337,7 @@ const PlayerPreferences = () => {
 	                          }}
 	                        >
 	                          <span className="text-muted text-decoration-underline">Players {joinedCount}/{maxPlayers}</span>
-	                          <span className="fw-semibold text-success">₹{0}</span>
+	                          <span className="fw-semibold text-success">₹{formatCurrencyAmount(fee.payable || fee.share || fee.total || 0)}</span>
 	                        </div>
 
                         {/* Player Icons Row - Only show for selected match */}
@@ -2470,7 +2532,7 @@ const PlayerPreferences = () => {
                           </div>
                           <div className="d-flex justify-content-between align-items-center mt-2" style={{ fontSize: 11 }}>
                             <span className="text-muted">Players {joinedCount}/{maxPlayers}</span>
-                            <span className="fw-semibold text-success">₹{fee.payable || 0}</span>
+                            <span className="fw-semibold text-success">₹{formatCurrencyAmount(fee.payable || fee.share || fee.total || 0)}</span>
                           </div>
                         </div>
                       );
@@ -2886,7 +2948,7 @@ const PlayerPreferences = () => {
       <Modal show={showAddPlayerModal} onHide={() => setShowAddPlayerModal(false)} centered>
         <Modal.Header closeButton style={{ borderBottom: "2px solid #1f41bb" }}>
           <Modal.Title style={{ color: "#1f41bb", fontSize: 18, fontWeight: 600 }}>
-            Confirm Player Addition
+            {isPayShareMatch(selectedPlayerForAdd?.match) ? "Generate Payment Link" : "Confirm Player Addition"}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body style={{ padding: "24px" }}>
@@ -2894,7 +2956,9 @@ const PlayerPreferences = () => {
             <>
               <div style={{ marginBottom: 20 }}>
                 <div style={{ fontSize: 14, color: "#666", marginBottom: 8 }}>
-                  You are about to add the following player:
+                  {isPayShareMatch(selectedPlayerForAdd.match)
+                    ? "You are about to generate a payment link for:"
+                    : "You are about to add the following player:"}
                 </div>
                 <div style={{
                   backgroundColor: "#f8f9fa",
@@ -2951,10 +3015,10 @@ const PlayerPreferences = () => {
                   Match Details
                 </div>
                 <div style={{ fontSize: 13, color: "#333", marginBottom: 4 }}>
-                  <strong>Club:</strong> {selectedPlayerForAdd.match?.clubName || "N/A"}
+                  <strong>Club:</strong> {getMatchClubName(selectedPlayerForAdd.match)}
                 </div>
                 <div style={{ fontSize: 13, color: "#333", marginBottom: 4 }}>
-                  <strong>Court:</strong> {selectedPlayerForAdd.match?.courtName || "N/A"}
+                  <strong>Court:</strong> {getMatchCourtName(selectedPlayerForAdd.match) || "N/A"}
                 </div>
                 <div style={{ fontSize: 13, color: "#333" }}>
                   <strong>Position:</strong> Team {selectedPlayerForAdd.team} - Slot {selectedPlayerForAdd.slotIndex + 1}
@@ -2969,7 +3033,10 @@ const PlayerPreferences = () => {
                 color: "#856404",
                 border: "1px solid #ffeaa7"
               }}>
-                <strong>Note:</strong> This action will add the player to the match. Make sure all details are correct before confirming.
+                <strong>Note:</strong>{" "}
+                {isPayShareMatch(selectedPlayerForAdd.match)
+                  ? "This action will generate a pay-share payment link. The player joins only after payment is completed."
+                  : "This action will add the player to the match. Make sure all details are correct before confirming."}
               </div>
             </>
           )}
@@ -2991,7 +3058,9 @@ const PlayerPreferences = () => {
             onClick={handleAddPlayerToMatch}
             disabled={addingPlayerToMatch}
           >
-            {addingPlayerToMatch ? <ButtonLoading size={8} /> : "Confirm"}
+            {addingPlayerToMatch
+              ? <ButtonLoading size={8} />
+              : isPayShareMatch(selectedPlayerForAdd?.match) ? "Generate Link" : "Confirm"}
           </Button>
         </Modal.Footer>
       </Modal>
