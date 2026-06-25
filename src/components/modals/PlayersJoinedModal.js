@@ -15,6 +15,9 @@ const PlayersJoinedModal = ({
   subtitle = "",
   hoverMode = false,
 }) => {
+  const matchStatus = String(players?.openMatchStatus || players?.status || "").toLowerCase();
+  const isMatchBooked = ["booked", "completed", "complete"].includes(matchStatus);
+
   const teamA = players?.teamA || [];
   const teamB = players?.teamB || [];
 
@@ -83,7 +86,7 @@ const PlayersJoinedModal = ({
               </span>
             </div>
           </div>
-          {onRemovePlayer && playerId && (
+          {onRemovePlayer && playerId && !isMatchBooked && (
             <button
               type="button"
               className="player-remove-icon"
