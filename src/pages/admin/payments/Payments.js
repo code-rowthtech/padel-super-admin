@@ -106,7 +106,6 @@ const Payments = () => {
   const [generatingPayment, setGeneratingPayment] = useState(false);
   const fileInputRef = useRef(null);
   const [selectedCategory, setSelectedCategory] = useState("");
-  console.log(activePayableFilter, "activePayableFilter");
   const setDateRange = (update) => {
     setStartDate(update[0]);
     setEndDate(update[1]);

@@ -468,7 +468,7 @@ const formatScheduleSummary = (preferredSchedule = [], maxRows = 2) => {
                 background: "rgba(31,65,187,0.12)",
                 borderRadius: 4,
                 color: "#1f41bb",
-                cursor: "help",
+                cursor: "pointer",
                 fontSize: 11,
                 fontWeight: 600,
                 padding: "3px 8px",
@@ -1571,25 +1571,25 @@ const PlayerPreferences = () => {
                           </div>
                         </td>
                       </tr>
-	                    ) : players.map((row, index) => {
-	                      const playerId = getPlayerId(row);
-	                      const isEditing = editingPreferencePlayerId === playerId;
-	                      const playerAlreadyAdded = isPlayerInMatch(selectedOpenMatch, playerId);
-	                      return (
+                    ) : players.map((row, index) => {
+                      const playerId = getPlayerId(row);
+                      const isEditing = editingPreferencePlayerId === playerId;
+                      const playerAlreadyAdded = isPlayerInMatch(selectedOpenMatch, playerId);
+                      return (
                         <tr key={row._id || playerId}>
                           <td className="text-muted text-center">{(pagination.page - 1) * 25 + index + 1}</td>
                           <td style={{ minWidth: 0 }}>
-	                            <div className="fw-semibold text-truncate" style={{ fontSize: 13 }}>
-	                              {row.customerId?.name || "N/A"} {row.customerId?.lastName || ""}
-	                            </div>
-	                            <div className="text-muted text-truncate" style={{ fontSize: 12 }}>
-	                              {row.customerId?.countryCode || "+91"} {row.customerId?.phoneNumber || "N/A"}
-	                            </div>
-	                            {playerAlreadyAdded && (
-	                              <Badge bg="success" className="mt-1" style={{ fontSize: 10 }}>
-	                                Added
-	                              </Badge>
-	                            )}
+                            <div className="fw-semibold text-truncate" style={{ fontSize: 13 }}>
+                              {row.customerId?.name || "N/A"} {row.customerId?.lastName || ""}
+                            </div>
+                            <div className="text-muted text-truncate" style={{ fontSize: 12 }}>
+                              {row.customerId?.countryCode || "+91"} {row.customerId?.phoneNumber || "N/A"}
+                            </div>
+                            {playerAlreadyAdded && (
+                              <Badge bg="success" className="mt-1" style={{ fontSize: 10 }}>
+                                Added
+                              </Badge>
+                            )}
                           </td>
                           <td>
                             {row.customerId?.gender ? (
@@ -1616,7 +1616,7 @@ const PlayerPreferences = () => {
                                 placement="top"
                                 overlay={<Tooltip>{row?.customerId?.cityName || row.customerId.city}</Tooltip>}
                               >
-                                <span className="text-muted text-truncate d-block" style={{ fontSize: 12, cursor: 'help' }}>
+                                <span className="text-muted text-truncate d-block" style={{ fontSize: 12, cursor: 'pointer' }}>
                                   {row?.customerId?.cityName || row.customerId.city}
                                 </span>
                               </OverlayTrigger>
@@ -1644,7 +1644,7 @@ const PlayerPreferences = () => {
                                   </Tooltip>
                                 }
                               >
-                                <span className="text-muted text-truncate d-block" style={{ fontSize: 12, cursor: 'help' }}>
+                                <span className="text-muted text-truncate d-block" style={{ fontSize: 12, cursor: 'pointer' }}>
                                   {(row.preferredClubs || []).map((club) => club.clubName || club.name).filter(Boolean).join(", ") || "No clubs"}
                                 </span>
                               </OverlayTrigger>
@@ -1768,14 +1768,14 @@ const PlayerPreferences = () => {
                           </td>
                           <td className="text-center">
                             <div className="d-flex flex-column gap-1 align-items-center">
-	                              {selectedOpenMatch && (
-	                                <>
-	                                  {playerAlreadyAdded ? (
-	                                    <Badge bg="success" style={{ fontSize: 11, minWidth: 118, padding: "7px 10px" }}>
-	                                      Added
-	                                    </Badge>
-	                                  ) : !selectedIsPayShareMatch && (
-	                                    <Button
+                              {selectedOpenMatch && (
+                                <>
+                                  {playerAlreadyAdded ? (
+                                    <Badge bg="success" style={{ fontSize: 11, minWidth: 118, padding: "7px 10px" }}>
+                                      Added
+                                    </Badge>
+                                  ) : !selectedIsPayShareMatch && (
+                                    <Button
                                       size="sm"
                                       onClick={() => handleRequestPlayer(row)}
                                       disabled={requestingPlayerId === playerId}
@@ -1788,9 +1788,9 @@ const PlayerPreferences = () => {
                                     >
                                       {requestingPlayerId === playerId ? <ButtonLoading size={6} /> : "Request Match"}
                                     </Button>
-	                                  )}
-	                                  {!playerAlreadyAdded && (paymentLinksByPlayerId[playerId]?.paymentLink ? (
-	                                    copyVisibleUntil[playerId] && copyVisibleUntil[playerId] > Date.now() ? (
+                                  )}
+                                  {!playerAlreadyAdded && (paymentLinksByPlayerId[playerId]?.paymentLink ? (
+                                    copyVisibleUntil[playerId] && copyVisibleUntil[playerId] > Date.now() ? (
                                       <>
                                         <Button
                                           size="sm"
@@ -1804,8 +1804,8 @@ const PlayerPreferences = () => {
                                           ₹{paymentLinksByPlayerId[playerId]?.paymentAmount || 0}
                                         </span>
                                       </>
-	                                  ) : (
-	                                    <Button
+                                    ) : (
+                                      <Button
                                         size="sm"
                                         variant="outline-primary"
                                         onClick={() => handleGeneratePaymentLink(row, true)}
@@ -1825,9 +1825,9 @@ const PlayerPreferences = () => {
                                     >
                                       {generatingLinkPlayerId === playerId ? <ButtonLoading size={6} color="blue" /> : "Generate Link"}
                                     </Button>
-	                                  ))}
-	                                </>
-	                              )}
+                                  ))}
+                                </>
+                              )}
                               {isEditing ? (
                                 <div className="d-flex gap-2">
                                   <FaTimes onClick={handleCancelEdit} size={13} style={{ cursor: 'pointer' }} className="text-danger" />
@@ -1855,11 +1855,11 @@ const PlayerPreferences = () => {
                   <div className="d-flex justify-content-center align-items-center text-muted" style={{ height: 200 }}>
                     No players found
                   </div>
-	                ) : players.map((row) => {
-	                  const playerId = getPlayerId(row);
-	                  const isEditing = editingPreferencePlayerId === playerId;
-	                  const playerAlreadyAdded = isPlayerInMatch(selectedOpenMatch, playerId);
-	                  return (
+                ) : players.map((row) => {
+                  const playerId = getPlayerId(row);
+                  const isEditing = editingPreferencePlayerId === playerId;
+                  const playerAlreadyAdded = isPlayerInMatch(selectedOpenMatch, playerId);
+                  return (
                     <div key={row._id || playerId} className="card mb-2 border-0 shadow-sm">
                       <div className="card-body p-2">
                         <div className="d-flex justify-content-between gap-2 align-items-start mb-2">
@@ -1870,14 +1870,14 @@ const PlayerPreferences = () => {
                             <div className="text-muted" style={{ fontSize: 12 }}>
                               {row.customerId?.countryCode || "+91"} {row.customerId?.phoneNumber || "N/A"}
                             </div>
-	                            <div className="text-muted" style={{ fontSize: 12 }}>
-	                              Gender: {row.customerId?.gender || "N/A"}
-	                            </div>
-	                            {playerAlreadyAdded && (
-	                              <Badge bg="success" className="mt-1" style={{ fontSize: 10 }}>
-	                                Added
-	                              </Badge>
-	                            )}
+                            <div className="text-muted" style={{ fontSize: 12 }}>
+                              Gender: {row.customerId?.gender || "N/A"}
+                            </div>
+                            {playerAlreadyAdded && (
+                              <Badge bg="success" className="mt-1" style={{ fontSize: 10 }}>
+                                Added
+                              </Badge>
+                            )}
                             {isEditing ? (
                               <Form.Select
                                 size="sm"
@@ -1898,14 +1898,14 @@ const PlayerPreferences = () => {
                             )}
                           </div>
                           <div className="d-flex flex-column gap-1" style={{ flex: "0 0 auto" }}>
-	                            {selectedOpenMatch && (
-	                              <>
-	                                {playerAlreadyAdded ? (
-	                                  <Badge bg="success" style={{ fontSize: 11, padding: "7px 10px" }}>
-	                                    Added
-	                                  </Badge>
-	                                ) : !selectedIsPayShareMatch && (
-	                                  <Button
+                            {selectedOpenMatch && (
+                              <>
+                                {playerAlreadyAdded ? (
+                                  <Badge bg="success" style={{ fontSize: 11, padding: "7px 10px" }}>
+                                    Added
+                                  </Badge>
+                                ) : !selectedIsPayShareMatch && (
+                                  <Button
                                     size="sm"
                                     onClick={() => handleRequestPlayer(row)}
                                     disabled={requestingPlayerId === playerId}
@@ -1913,9 +1913,9 @@ const PlayerPreferences = () => {
                                   >
                                     {requestingPlayerId === playerId ? <ButtonLoading size={6} /> : "Request"}
                                   </Button>
-	                                )}
-	                                {!playerAlreadyAdded && (paymentLinksByPlayerId[playerId]?.paymentLink ? (
-	                                  copyVisibleUntil[playerId] && copyVisibleUntil[playerId] > Date.now() ? (
+                                )}
+                                {!playerAlreadyAdded && (paymentLinksByPlayerId[playerId]?.paymentLink ? (
+                                  copyVisibleUntil[playerId] && copyVisibleUntil[playerId] > Date.now() ? (
                                     <Button
                                       size="sm"
                                       variant="outline-success"
@@ -1923,8 +1923,8 @@ const PlayerPreferences = () => {
                                     >
                                       Copy Link
                                     </Button>
-	                                ) : (
-	                                  <Button
+                                  ) : (
+                                    <Button
                                       size="sm"
                                       variant="outline-primary"
                                       onClick={() => handleGeneratePaymentLink(row, true)}
@@ -1942,9 +1942,9 @@ const PlayerPreferences = () => {
                                   >
                                     {generatingLinkPlayerId === playerId ? <ButtonLoading size={6} color="blue" /> : "Generate Link"}
                                   </Button>
-	                                ))}
-	                              </>
-	                            )}
+                                ))}
+                              </>
+                            )}
                           </div>
                         </div>
 
@@ -2329,18 +2329,18 @@ const PlayerPreferences = () => {
                           <span>{formatMatchDate(match)}</span>
                           <span>{getMatchTime(match)}</span>
                         </div>
-	                        <div
-	                          className="d-flex justify-content-between align-items-center mt-2"
-	                          style={{ fontSize: 11, cursor: "pointer" }}
-	                          title="View joined players"
-	                          onClick={(event) => {
-	                            event.stopPropagation();
-	                            openPlayersPopup(match);
-	                          }}
-	                        >
-	                          <span className="text-muted text-decoration-underline">Players {joinedCount}/{maxPlayers}</span>
-	                          <span className="fw-semibold text-success">₹{formatCurrencyAmount(fee.payable || fee.share || fee.total || 0)}</span>
-	                        </div>
+                        <div
+                          className="d-flex justify-content-between align-items-center mt-2"
+                          style={{ fontSize: 11, cursor: "pointer" }}
+                          title="View joined players"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            openPlayersPopup(match);
+                          }}
+                        >
+                          <span className="text-muted text-decoration-underline">Players {joinedCount}/{maxPlayers}</span>
+                          <span className="fw-semibold text-success">₹{formatCurrencyAmount(fee.payable || fee.share || fee.total || 0)}</span>
+                        </div>
 
                         {/* Player Icons Row - Only show for selected match */}
                         {isSelected && (
@@ -2545,35 +2545,35 @@ const PlayerPreferences = () => {
             )}
           </div>
         </Col>
-	      </Row>
+      </Row>
 
-	      <PlayersJoinedModal
-	        show={showPlayersModal}
-	        onHide={() => setShowPlayersModal(false)}
-	        players={playersModalMatch || selectedOpenMatch || []}
-	        onRemovePlayer={openRemovePlayerModal}
-	        removingPlayerId={removingPlayerId}
-	        subtitle={
-	          (playersModalMatch || selectedOpenMatch)?._id
-	            ? `${getMatchClubName(playersModalMatch || selectedOpenMatch)} • ${getMatchTime(playersModalMatch || selectedOpenMatch)}`
-	            : ""
-	        }
-	      />
+      <PlayersJoinedModal
+        show={showPlayersModal}
+        onHide={() => setShowPlayersModal(false)}
+        players={playersModalMatch || selectedOpenMatch || []}
+        onRemovePlayer={openRemovePlayerModal}
+        removingPlayerId={removingPlayerId}
+        subtitle={
+          (playersModalMatch || selectedOpenMatch)?._id
+            ? `${getMatchClubName(playersModalMatch || selectedOpenMatch)} • ${getMatchTime(playersModalMatch || selectedOpenMatch)}`
+            : ""
+        }
+      />
 
-	      <ReasonActionModal
-	        show={removeReasonModal.show}
-	        title="Remove Player"
-	        description="This will remove the selected player from this open match."
-	        reason={removeReasonModal.reason}
-	        onReasonChange={(reason) => setRemoveReasonModal((current) => ({ ...current, reason }))}
-	        onHide={closeRemovePlayerModal}
-	        onConfirm={handleRemovePlayerFromMatch}
-	        confirmText="Remove Player"
-	        loading={removeReasonModal.loading}
-	        placeholder="Why is this player being removed?"
-	      />
+      <ReasonActionModal
+        show={removeReasonModal.show}
+        title="Remove Player"
+        description="This will remove the selected player from this open match."
+        reason={removeReasonModal.reason}
+        onReasonChange={(reason) => setRemoveReasonModal((current) => ({ ...current, reason }))}
+        onHide={closeRemovePlayerModal}
+        onConfirm={handleRemovePlayerFromMatch}
+        confirmText="Remove Player"
+        loading={removeReasonModal.loading}
+        placeholder="Why is this player being removed?"
+      />
 
-	      {/* Call Status Confirmation Modal */}
+      {/* Call Status Confirmation Modal */}
       <Modal
         show={callConfirm.show}
         onHide={() => setCallConfirm({ show: false, row: null, nextValue: false, loading: false })}

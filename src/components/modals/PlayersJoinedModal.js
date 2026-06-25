@@ -117,53 +117,53 @@ const PlayersJoinedModal = ({
       className={hoverMode ? "players-joined-hover-modal" : "players-joined-modal"}
     >
       <div onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
-      <Modal.Header closeButton className="border-0 pb-2">
-        <div>
-          <Modal.Title className="fw-bold" style={{ fontSize: "18px", color: "#111827" }}>
-            {title}
-          </Modal.Title>
-          {subtitle && <div className="text-muted mt-1" style={{ fontSize: "12px" }}>{subtitle}</div>}
-        </div>
-      </Modal.Header>
-      <Modal.Body className="px-4 py-3">
-        {teamA.length === 0 && teamB.length === 0 ? (
-          <div className="text-center py-5 text-muted">No players joined yet</div>
-        ) : (
-          <div style={{ maxHeight: "500px", overflowY: "auto" }}>
-            {/* Team A */}
-            {teamA.length > 0 && (
-              <div className="mb-4">
-                <div
-                  className="d-flex align-items-center gap-2 mb-3 pb-2"
-                  style={{ borderBottom: "2px solid #667eea" }}
-                >
-                  <FaUsers style={{ color: "#667eea", fontSize: "16px" }} />
-                  <h6 className="mb-0 fw-bold" style={{ fontSize: "15px", color: "#667eea" }}>
-                    Team A ({teamA.length})
-                  </h6>
-                </div>
-                {teamA.map((player, index) => renderPlayer(player, `teamA-${index}`, "teamA"))}
-              </div>
-            )}
-
-            {/* Team B */}
-            {teamB.length > 0 && (
-              <div>
-                <div
-                  className="d-flex align-items-center gap-2 mb-3 pb-2"
-                  style={{ borderBottom: "2px solid #10b981" }}
-                >
-                  <FaUsers style={{ color: "#10b981", fontSize: "16px" }} />
-                  <h6 className="mb-0 fw-bold" style={{ fontSize: "15px", color: "#10b981" }}>
-                    Team B ({teamB.length})
-                  </h6>
-                </div>
-                {teamB.map((player, index) => renderPlayer(player, `teamB-${index}`, "teamB"))}
-              </div>
-            )}
+        <Modal.Header closeButton className="border-0 pb-2">
+          <div>
+            <Modal.Title className="fw-bold" style={{ fontSize: "18px", color: "#111827" }}>
+              {title}
+            </Modal.Title>
+            {subtitle && <div className="text-muted mt-1" style={{ fontSize: "12px" }}>{subtitle}</div>}
           </div>
-        )}
-      </Modal.Body>
+        </Modal.Header>
+        <Modal.Body className="px-4 py-3">
+          {teamA.length === 0 && teamB.length === 0 ? (
+            <div className="text-center py-5 text-muted">No players joined yet</div>
+          ) : (
+            <div style={{ maxHeight: "500px", overflowY: "auto" }}>
+              {/* Team A */}
+              {teamA.length > 0 && (
+                <div className="mb-4">
+                  <div
+                    className="d-flex align-items-center gap-2 mb-3 pb-2"
+                    style={{ borderBottom: "2px solid #667eea" }}
+                  >
+                    <FaUsers style={{ color: "#667eea", fontSize: "16px" }} />
+                    <h6 className="mb-0 fw-bold" style={{ fontSize: "15px", color: "#667eea" }}>
+                      Team A ({teamA.length})
+                    </h6>
+                  </div>
+                  {teamA.map((player, index) => renderPlayer(player, `teamA-${index}`, "teamA"))}
+                </div>
+              )}
+
+              {/* Team B */}
+              {teamB.length > 0 && (
+                <div>
+                  <div
+                    className="d-flex align-items-center gap-2 mb-3 pb-2"
+                    style={{ borderBottom: "2px solid #10b981" }}
+                  >
+                    <FaUsers style={{ color: "#10b981", fontSize: "16px" }} />
+                    <h6 className="mb-0 fw-bold" style={{ fontSize: "15px", color: "#10b981" }}>
+                      Team B ({teamB.length})
+                    </h6>
+                  </div>
+                  {teamB.map((player, index) => renderPlayer(player, `teamB-${index}`, "teamB"))}
+                </div>
+              )}
+            </div>
+          )}
+        </Modal.Body>
       </div>
     </Modal>
   );
