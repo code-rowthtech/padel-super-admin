@@ -1377,6 +1377,13 @@ const PlayerPreferences = () => {
     closeScheduleModal();
   };
 
+  const selectedMatchJoinedCount = selectedOpenMatch ? (Number(selectedOpenMatch.teamA?.length || 0) + Number(selectedOpenMatch.teamB?.length || 0)) : 0;
+  const selectedMatchMaxCount = selectedOpenMatch?.maxPlayers || selectedOpenMatch?.totalPlayersCount || 4;
+  const isSelectedMatchFull = selectedMatchJoinedCount >= selectedMatchMaxCount;
+  const selectedMatchStatus = String(selectedOpenMatch?.openMatchStatus || selectedOpenMatch?.status || "").toLowerCase();
+  const isSelectedMatchBooked = ["booked", "completed", "complete"].includes(selectedMatchStatus);
+  const disableGenerateLink = isSelectedMatchFull || isSelectedMatchBooked;
+
   return (
     <Container fluid className="player-preferences-workspace px-0 px-md-0 mt-md-0 mt-2">
       <style>
@@ -1809,7 +1816,7 @@ const PlayerPreferences = () => {
                                         size="sm"
                                         variant="outline-primary"
                                         onClick={() => handleGeneratePaymentLink(row, true)}
-                                        disabled={generatingLinkPlayerId === playerId}
+                                        disabled={generatingLinkPlayerId === playerId || disableGenerateLink}
                                         style={{ fontSize: 11, minWidth: 118 }}
                                       >
                                         {generatingLinkPlayerId === playerId ? <ButtonLoading size={6} color="blue" /> : "Resend Link"}
@@ -1820,7 +1827,7 @@ const PlayerPreferences = () => {
                                       size="sm"
                                       variant="outline-primary"
                                       onClick={() => handleGeneratePaymentLink(row)}
-                                      disabled={generatingLinkPlayerId === playerId}
+                                      disabled={generatingLinkPlayerId === playerId || disableGenerateLink}
                                       style={{ fontSize: 11, minWidth: 118 }}
                                     >
                                       {generatingLinkPlayerId === playerId ? <ButtonLoading size={6} color="blue" /> : "Generate Link"}
@@ -1928,7 +1935,7 @@ const PlayerPreferences = () => {
                                       size="sm"
                                       variant="outline-primary"
                                       onClick={() => handleGeneratePaymentLink(row, true)}
-                                      disabled={generatingLinkPlayerId === playerId}
+                                      disabled={generatingLinkPlayerId === playerId || disableGenerateLink}
                                     >
                                       {generatingLinkPlayerId === playerId ? <ButtonLoading size={6} color="blue" /> : "Resend Link"}
                                     </Button>
@@ -1938,7 +1945,7 @@ const PlayerPreferences = () => {
                                     size="sm"
                                     variant="outline-primary"
                                     onClick={() => handleGeneratePaymentLink(row)}
-                                    disabled={generatingLinkPlayerId === playerId}
+                                    disabled={generatingLinkPlayerId === playerId || disableGenerateLink}
                                   >
                                     {generatingLinkPlayerId === playerId ? <ButtonLoading size={6} color="blue" /> : "Generate Link"}
                                   </Button>
