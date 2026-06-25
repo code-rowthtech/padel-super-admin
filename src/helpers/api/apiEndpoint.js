@@ -111,7 +111,11 @@ export const UPDATE_LOGO = "/api/logo/updateLogo";
 export const GET_OPEN_MATCHES = "/api/openmatch/getAllOpenMatches";
 export const GET_OPEN_MATCH_BY_ID = "/api/openmatch/findByOpenMatchId";
 export const CREATE_OPEN_MATCH = "/api/openmatch/createOpenMatch ";
-export const CREATE_OPEN_MATCH_ADMIN = "/api/openmatch/createAdminOpenMatch";
+export const CREATE_OPEN_MATCH_ADMIN = "/api/super-admin/pay-share-open-matches";
+export const GET_PAY_SHARE_OPEN_MATCH = "/api/super-admin/pay-share-open-matches";
+export const CANCEL_PAY_SHARE_OPEN_MATCH = "/api/super-admin/pay-share-open-matches";
+export const RESCHEDULE_PAY_SHARE_OPEN_MATCH = "/api/super-admin/pay-share-open-matches";
+export const REMOVE_PAY_SHARE_PLAYER = "/api/super-admin/pay-share-open-matches";
 
 
 export const SEARCH_USER_BY_PHONE_NUMBER =

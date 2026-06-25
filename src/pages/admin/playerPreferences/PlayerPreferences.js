@@ -22,6 +22,8 @@ import { sendMatchRequest } from "../../../redux/admin/matchRequest/thunk";
 import PlayerFiltersPanel from "./PlayerFiltersPanel";
 import CreateMatchModal from "../openMatches/create/CreateMatchModal";
 import PlayerDetailsModal from "./PlayerDetailsModal";
+import PlayersJoinedModal from "../../../components/modals/PlayersJoinedModal";
+import ReasonActionModal from "../../../components/modals/ReasonActionModal";
 import { showError, showSuccess } from "../../../helpers/Toast";
 import { getCategoryList } from "../../../redux/thunks";
 
@@ -74,7 +76,8 @@ const DAY_OPTIONS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Sa
 const SKILL_LEVEL_OPTIONS = ["E", "D2", "D1", "C2", "C1", "B2", "B1", "A", "L"];
 const GENDER_OPTIONS = ["Male", "Female", "Other"];
 const SCHEDULE_TIME_SLOT_GROUPS = TIME_SLOT_GROUPS.filter((group) => group.label === "60 Minutes");
-const SKILL_COLORS = { E: "success", D2: "warning", D1: "danger", C2: "dark", C1: "primary", B2: "secondary", B1: "info", A: "light", L: "dark" };
+const SKILL_COLORS = { E: "success", D2: "warning", D1: "danger", C2: "dark", C1: "primary", B2: "secondary", B1: "info", A: "success", L: "dark" };
+const EDITABLE_SKILL_LEVELS = new Set(["", "E", "NE", "N/E"]);
 const EMPTY_PREFERENCE_FORM = {
   preferredClubs: [],
   preferredSchedule: [],
@@ -86,6 +89,7 @@ const EMPTY_PREFERENCE_FORM = {
 const EMPTY_PLAYER_FORM = { phoneNumber: "", name: "", email: "", gender: "", residence: "" };
 const EMPTY_FILTERS = {
   search: "",
+  categoryType: "",
   skillLevel: [],
   gender: [],
   residence: [],
@@ -132,6 +136,16 @@ const checkboxSelectStyles = {
     padding: "7px 10px",
   }),
   menu: (base) => ({ ...base, zIndex: 9999 }),
+};
+
+const normalizeSkillLevel = (skillLevel) => String(skillLevel || "").trim().toUpperCase();
+const canUpdateSkillLevel = (skillLevel) => {
+  const normalized = normalizeSkillLevel(skillLevel);
+  return normalized === "E" || normalized === "" || !SKILL_LEVEL_OPTIONS.includes(normalized);
+};
+const getEditableSkillSelectValue = (skillLevel) => {
+  const normalized = normalizeSkillLevel(skillLevel);
+  return SKILL_LEVEL_OPTIONS.includes(normalized) ? normalized : "";
 };
 
 const toSelectOptions = (arr) => arr.map((value) => ({ value, label: value }));
@@ -268,6 +282,22 @@ const normalizeTimeRangeLabel = (value) => {
     return TIME_SLOT_LABEL_BY_COMPACT[normalizeTimeSlotText(label)] || label;
   }
 
+  if (cleanParts.length === 1) {
+    const singleTime = cleanParts[0];
+    const matchTimePattern = singleTime.match(/^(\d{1,2})\s*(AM|PM)$/i);
+    if (matchTimePattern) {
+      const hour = parseInt(matchTimePattern[1]);
+      const period = matchTimePattern[2].toUpperCase();
+      let nextHour = hour === 12 ? 1 : hour + 1;
+      let nextPeriod = period;
+      if (hour === 11) {
+        nextPeriod = period === "AM" ? "PM" : "AM";
+      }
+      const label = `${singleTime} – ${nextHour} ${nextPeriod}`;
+      return TIME_SLOT_LABEL_BY_COMPACT[normalizeTimeSlotText(label)] || label;
+    }
+  }
+
   return TIME_SLOT_LABEL_BY_COMPACT[normalizeTimeSlotText(cleanParts[0])] || cleanParts[0] || normalized;
 };
 
@@ -295,6 +325,19 @@ const getMatchSlotTimeRange = (match) => {
   return times.length === 1 ? times[0] : `${times[0]} - ${times[times.length - 1]}`;
 };
 
+const getMatchTimeSlots = (match) => {
+  const times = (match?.slot || [])
+    .flatMap((slot) => slot?.slotTimes || [])
+    .map((slotTime) => slotTime?.bookingTime || slotTime?.time)
+    .filter(Boolean);
+
+  const normalizedSlots = times
+    .map((time) => normalizeTimeRangeLabel(time))
+    .filter((time) => time && time !== "Any Time");
+
+  return [...new Set(normalizedSlots)];
+};
+
 const getMatchTime = (match) =>
   normalizeTimeRangeLabel(
     match?.startTime && match?.endTime
@@ -305,6 +348,12 @@ const getMatchTime = (match) =>
 const getMatchClubName = (match) => match?.clubId?.clubName || match?.clubId?.name || "N/A";
 
 const getMatchCourtName = (match) => match?.slot?.[0]?.courtName || match?.courtName || "";
+
+const formatCurrencyAmount = (amount) => {
+  const numericAmount = Number(amount);
+  if (!Number.isFinite(numericAmount)) return "0";
+  return Number.isInteger(numericAmount) ? String(numericAmount) : numericAmount.toFixed(2);
+};
 
 const getMatchFee = (match) => {
   const bookingSlotTotal = (match?.bookingId?.slot || []).reduce((sum, slot) => (
@@ -322,7 +371,11 @@ const getMatchFee = (match) => {
     slotTotal ||
     0,
   );
-  const share = Number(match?.perPlayerMatchShare || (total > 0 ? total.toFixed(2) : 0));
+  const share = Number(
+    match?.perPlayerMatchShare ??
+    match?.perPlayerShare ??
+    (total > 0 ? (total / 4).toFixed(2) : 0),
+  );
   const platformFee = Number(match?.platformFee ?? 1);
   const gstOnPlatformFee = Number(
     match?.platformFeeGst ?? (platformFee * 0.18).toFixed(2),
@@ -332,7 +385,10 @@ const getMatchFee = (match) => {
     share,
     platformFee,
     gstOnPlatformFee,
-    payable: Number((share + platformFee + gstOnPlatformFee).toFixed(2)),
+    payable: Number(
+      match?.playerPayableAmount ??
+      (share + platformFee + gstOnPlatformFee).toFixed(2),
+    ),
   };
 };
 
@@ -579,6 +635,10 @@ const PlayerPreferences = () => {
   const [openMatches, setOpenMatches] = useState([]);
   const [openMatchesLoading, setOpenMatchesLoading] = useState(false);
   const [selectedOpenMatch, setSelectedOpenMatch] = useState(null);
+  const selectedIsPayShareMatch = Boolean(
+    selectedOpenMatch?.payShareMode ||
+    selectedOpenMatch?.type === "super_admin_pay_share",
+  );
   const [requestingPlayerId, setRequestingPlayerId] = useState("");
   const [generatingLinkPlayerId, setGeneratingLinkPlayerId] = useState("");
   const [paymentLinksByPlayerId, setPaymentLinksByPlayerId] = useState({});
@@ -600,6 +660,10 @@ const PlayerPreferences = () => {
   const [selectedPlayerForAdd, setSelectedPlayerForAdd] = useState(null);
   const [addingPlayerToMatch, setAddingPlayerToMatch] = useState(false);
   const [selectedPlayerDetails, setSelectedPlayerDetails] = useState(null);
+  const [showPlayersModal, setShowPlayersModal] = useState(false);
+  const [playersModalMatch, setPlayersModalMatch] = useState(null);
+  const [removeReasonModal, setRemoveReasonModal] = useState({ show: false, match: null, playerId: "", team: "", reason: "", loading: false });
+  const [removingPlayerId, setRemovingPlayerId] = useState("");
   const filterButtonRef = React.useRef(null);
   const scrollContainerRef = React.useRef(null);
   const autoScrollRef = React.useRef(null);
@@ -698,6 +762,7 @@ const PlayerPreferences = () => {
       page,
       limit: 25,
       search: filters.search,
+      categoryType: filters.categoryType,
       skillLevel: filters.skillLevel,
       gender: filters.gender,
       residence: filters.residence,
@@ -720,12 +785,30 @@ const PlayerPreferences = () => {
     setFilters((current) => ({ ...current, [field]: value }));
   };
 
-  const resetFilters = () => {
+  const resetFilters = (options = {}) => {
     setFilters(EMPTY_FILTERS);
     setSelectedOpenMatch(null);
+    setRouteOpenMatchLoaded(false);
+    if (options.clearRoute !== false && (location.search || location.state?.selectedOpenMatchId)) {
+      navigate("/admin/player-preferences", { replace: true, state: {} });
+    }
   };
 
   const getPlayerId = (row) => row?.customerId?._id || "";
+  const getJoinedPlayerId = (player) => String(player?.userId?._id || player?.userId || player?._id || "");
+  const getJoinedPlayerIds = (match) => [
+    ...(match?.teamA || []),
+    ...(match?.teamB || []),
+  ].map(getJoinedPlayerId).filter(Boolean);
+  const isPlayerInMatch = (match, playerId) => Boolean(playerId && getJoinedPlayerIds(match).includes(String(playerId)));
+  const getPlayerTeamInMatch = (match, playerId) => {
+    if (!playerId) return "";
+    if ((match?.teamA || []).some((player) => getJoinedPlayerId(player) === String(playerId))) return "teamA";
+    if ((match?.teamB || []).some((player) => getJoinedPlayerId(player) === String(playerId))) return "teamB";
+    return "";
+  };
+
+  const isPayShareMatch = (match) => Boolean(match?.payShareMode || match?.type === "super_admin_pay_share");
 
   const loadOpenMatches = useCallback(async (searchQuery = "", gameType) => {
     // Use the ref as the source of truth so all callers (interval, effects, etc.)
@@ -737,7 +820,16 @@ const PlayerPreferences = () => {
       const gameTypeParam = resolvedGameType.trim() ? `&gameType=${encodeURIComponent(resolvedGameType)}` : "";
       const res = await ownerApi.get(`${SUPER_ADMIN_OPEN_MATCH_OVERVIEW}?page=1&limit=50${searchParam}${gameTypeParam}&playerPreferences=true`);
       const payload = res?.data?.data || res?.data || {};
-      setOpenMatches(payload?.openMatches || payload?.data || []);
+      const matches = payload?.openMatches || payload?.data || [];
+      setOpenMatches(matches);
+      setSelectedOpenMatch((current) => {
+        if (!current?._id) return current;
+        return matches.find((match) => match?._id === current._id) || current;
+      });
+      setPlayersModalMatch((current) => {
+        if (!current?._id) return current;
+        return matches.find((match) => match?._id === current._id) || current;
+      });
     } catch (error) {
       setOpenMatches([]);
     } finally {
@@ -768,17 +860,36 @@ const PlayerPreferences = () => {
 
   const handleOpenMatchSelect = (match) => {
     const clubId = getEntityId(match?.clubId);
+    const categoryType = getEntityId(match?.categoryId);
     const day = getMatchDay(match);
-    const timeSlot = getMatchTime(match);
+    const timeSlots = getMatchTimeSlots(match);
+    const fallbackTimeSlot = getMatchTime(match);
     const skillLevel = match?.skillLevel;
+
+    let mappedSkills = [];
+    if (skillLevel) {
+      const skillLower = skillLevel.toLowerCase().trim();
+      if (skillLower === "beginner") {
+        mappedSkills = ["E", "D2", "D1", "L"];
+      } else if (skillLower === "intermediate") {
+        mappedSkills = ["C2", "C1", "B2", "B1"];
+      } else if (skillLower === "advanced" || skillLower === "professional") {
+        mappedSkills = ["A"];
+      } else {
+        mappedSkills = [skillLevel];
+      }
+    }
 
     setSelectedOpenMatch(match);
     setFilters((current) => ({
       ...current,
+      categoryType: categoryType || "",
       clubId: clubId ? [clubId] : [],
       day: day ? [day] : [],
-      timeSlot: timeSlot && timeSlot !== "Any Time" ? [timeSlot] : [],
-      skillLevel: skillLevel ? [skillLevel] : [],
+      timeSlot: timeSlots.length
+        ? timeSlots
+        : (fallbackTimeSlot && fallbackTimeSlot !== "Any Time" ? [fallbackTimeSlot] : []),
+      skillLevel: mappedSkills,
       hasPreference: ["yes"],
     }));
   };
@@ -800,7 +911,7 @@ const PlayerPreferences = () => {
 
   const handleRequestPlayer = async (row) => {
     const playerId = getPlayerId(row);
-    if (!selectedOpenMatch?._id || !playerId) return;
+    if (!selectedOpenMatch?._id || !playerId || selectedIsPayShareMatch) return;
 
     setRequestingPlayerId(playerId);
     try {
@@ -820,7 +931,10 @@ const PlayerPreferences = () => {
 
     setGeneratingLinkPlayerId(playerId);
     try {
-      const res = await ownerApi.post(POST_MATCH_REQUEST_PAYMENT_LINK, {
+      const paymentEndpoint = selectedIsPayShareMatch
+        ? `/api/super-admin/pay-share-open-matches/${selectedOpenMatch._id}/payment-link`
+        : POST_MATCH_REQUEST_PAYMENT_LINK;
+      const res = await ownerApi.post(paymentEndpoint, {
         matchId: selectedOpenMatch._id,
         playerId,
         preferredTeam: "any",
@@ -841,6 +955,9 @@ const PlayerPreferences = () => {
           setCopyVisibleUntil((current) => ({ ...current, [playerId]: 0 }));
         }, 5000);
       }
+      showSuccess(res?.data?.message || (isResend ? "Payment link resent" : "Payment link generated"));
+    } catch (error) {
+      showError(error?.response?.data?.message || error?.message || String(error) || "Unable to generate payment link");
     } finally {
       setGeneratingLinkPlayerId("");
     }
@@ -852,6 +969,7 @@ const PlayerPreferences = () => {
 
     if (navigator?.clipboard?.writeText) {
       await navigator.clipboard.writeText(link);
+      showSuccess("Payment link copied");
       return;
     }
 
@@ -863,6 +981,7 @@ const PlayerPreferences = () => {
     textarea.select();
     document.execCommand("copy");
     document.body.removeChild(textarea);
+    showSuccess("Payment link copied");
   };
 
   const handleViewPlayerDetails = (row) => {
@@ -878,8 +997,8 @@ const PlayerPreferences = () => {
   const handleAddPlayerToMatch = async () => {
     if (!selectedPlayerForAdd) return;
 
-    const { player, match, team, slotIndex } = selectedPlayerForAdd;
-    const playerId = player._id || player.customerId?._id;
+    const { player, match, team } = selectedPlayerForAdd;
+    const playerId = player.customerId?._id || player._id;
     const matchId = match._id;
 
     // Convert team letter to API format (A -> teamA, B -> teamB)
@@ -887,6 +1006,36 @@ const PlayerPreferences = () => {
 
     setAddingPlayerToMatch(true);
     try {
+      if (isPayShareMatch(match)) {
+        const response = await ownerApi.post(
+          `/api/super-admin/pay-share-open-matches/${matchId}/payment-link`,
+          {
+            matchId,
+            playerId,
+            preferredTeam: teamName,
+          },
+        );
+        const data = response?.data?.data || {};
+        if (data.paymentLink) {
+          setPaymentLinksByPlayerId((current) => ({
+            ...current,
+            [playerId]: data,
+          }));
+          setCopyVisibleUntil((current) => ({
+            ...current,
+            [playerId]: Date.now() + 5000,
+          }));
+          setTimeout(() => {
+            setCopyVisibleUntil((current) => ({ ...current, [playerId]: 0 }));
+          }, 5000);
+        }
+        await loadOpenMatches(matchSearchQuery, matchGameTypeRef.current);
+        setShowAddPlayerModal(false);
+        setSelectedPlayerForAdd(null);
+        showSuccess(response?.data?.message || "Payment link generated successfully");
+        return;
+      }
+
       const response = await ownerApi.post('/openmatch/addPlayerToMatch', {
         matchId,
         playerId,
@@ -906,6 +1055,58 @@ const PlayerPreferences = () => {
       showError(error.response?.data?.message || 'Failed to add player to match. Please try again.');
     } finally {
       setAddingPlayerToMatch(false);
+    }
+  };
+
+  const openPlayersPopup = (match) => {
+    setPlayersModalMatch(match);
+    setShowPlayersModal(true);
+  };
+
+  const openRemovePlayerModal = (playerId, meta = {}) => {
+    const match = playersModalMatch || selectedOpenMatch;
+    if (!match?._id || !playerId) return;
+    setRemoveReasonModal({
+      show: true,
+      match,
+      playerId,
+      team: meta.team || getPlayerTeamInMatch(match, playerId),
+      reason: "",
+      loading: false,
+    });
+  };
+
+  const closeRemovePlayerModal = () => {
+    if (removeReasonModal.loading) return;
+    setRemoveReasonModal({ show: false, match: null, playerId: "", team: "", reason: "", loading: false });
+  };
+
+  const handleRemovePlayerFromMatch = async () => {
+    const { match, playerId, team } = removeReasonModal;
+    const reason = removeReasonModal.reason.trim();
+    if (!match?._id || !playerId || reason.length < 3) return;
+
+    setRemoveReasonModal((current) => ({ ...current, loading: true }));
+    setRemovingPlayerId(playerId);
+    try {
+      const response = isPayShareMatch(match)
+        ? await ownerApi.put(`/api/super-admin/pay-share-open-matches/${match._id}/players/${playerId}/remove`, { reason })
+        : await ownerApi.put("/api/openmatch/removePlayerFromMatch", {
+          matchId: match._id,
+          playerId,
+          team,
+          reason,
+        });
+
+      showSuccess(response?.data?.message || "Player removed from match");
+      setShowPlayersModal(false);
+      setRemoveReasonModal({ show: false, match: null, playerId: "", team: "", reason: "", loading: false });
+      await loadOpenMatches(matchSearchQuery, matchGameTypeRef.current);
+    } catch (error) {
+      showError(error?.response?.data?.message || error?.message || String(error) || "Unable to remove player");
+      setRemoveReasonModal((current) => ({ ...current, loading: false }));
+    } finally {
+      setRemovingPlayerId("");
     }
   };
 
@@ -1110,7 +1311,9 @@ const PlayerPreferences = () => {
           return { value, label: value };
         }),
       })),
-      skillLevel: row.skillLevel || "",
+      skillLevel: canUpdateSkillLevel(row.skillLevel)
+        ? getEditableSkillSelectValue(row.skillLevel)
+        : row.skillLevel || "",
       residence: row.customerId?.city || "",
       notes: row.notes || "",
       playerTendency: row.playerTendency || "",
@@ -1131,7 +1334,9 @@ const PlayerPreferences = () => {
           typeof slot === "string" ? slot : slot?.value || slot?.label || slot
         )),
       })),
-      skillLevel: preferenceForm.skillLevel || undefined,
+      skillLevel: canUpdateSkillLevel(row.skillLevel)
+        ? preferenceForm.skillLevel || undefined
+        : row.skillLevel || undefined,
       city: preferenceForm.residence || undefined,
       notes: preferenceForm.notes || undefined,
       playerTendency: preferenceForm.playerTendency || undefined,
@@ -1240,12 +1445,13 @@ const PlayerPreferences = () => {
                 >
                   <FaFilter size={12} className="me-1" />
                   Filters
-                  {(filters.isCalled || filters.residence?.length > 0 ||
+                  {(filters.isCalled !== null || filters.categoryType || filters.residence?.length > 0 ||
                     filters.skillLevel?.length > 0 || filters.clubId?.length > 0 || filters.day?.length > 0 ||
                     filters.timeSlot?.length > 0 || filters.hasPreference?.length > 0 ||
                     filters.preferredDuration?.length > 0) && (
                       <Badge bg="danger" className="ms-1" style={{ fontSize: 9 }}>
                         {[
+                          filters.categoryType ? 1 : 0,
                           filters.gender?.length || 0,
                           filters.residence?.length || 0,
                           filters.skillLevel?.length || 0,
@@ -1254,6 +1460,7 @@ const PlayerPreferences = () => {
                           filters.timeSlot?.length || 0,
                           filters.hasPreference?.length || 0,
                           filters.preferredDuration?.length || 0,
+                          filters.isCalled !== null ? 1 : 0,
                         ].reduce((a, b) => a + (b > 0 ? 1 : 0), 0)}
                       </Badge>
                     )}
@@ -1364,19 +1571,25 @@ const PlayerPreferences = () => {
                           </div>
                         </td>
                       </tr>
-                    ) : players.map((row, index) => {
-                      const playerId = getPlayerId(row);
-                      const isEditing = editingPreferencePlayerId === playerId;
-                      return (
+	                    ) : players.map((row, index) => {
+	                      const playerId = getPlayerId(row);
+	                      const isEditing = editingPreferencePlayerId === playerId;
+	                      const playerAlreadyAdded = isPlayerInMatch(selectedOpenMatch, playerId);
+	                      return (
                         <tr key={row._id || playerId}>
                           <td className="text-muted text-center">{(pagination.page - 1) * 25 + index + 1}</td>
                           <td style={{ minWidth: 0 }}>
-                            <div className="fw-semibold text-truncate" style={{ fontSize: 13 }}>
-                              {row.customerId?.name || "N/A"} {row.customerId?.lastName || ""}
-                            </div>
-                            <div className="text-muted text-truncate" style={{ fontSize: 12 }}>
-                              {row.customerId?.countryCode || "+91"} {row.customerId?.phoneNumber || "N/A"}
-                            </div>
+	                            <div className="fw-semibold text-truncate" style={{ fontSize: 13 }}>
+	                              {row.customerId?.name || "N/A"} {row.customerId?.lastName || ""}
+	                            </div>
+	                            <div className="text-muted text-truncate" style={{ fontSize: 12 }}>
+	                              {row.customerId?.countryCode || "+91"} {row.customerId?.phoneNumber || "N/A"}
+	                            </div>
+	                            {playerAlreadyAdded && (
+	                              <Badge bg="success" className="mt-1" style={{ fontSize: 10 }}>
+	                                Added
+	                              </Badge>
+	                            )}
                           </td>
                           <td>
                             {row.customerId?.gender ? (
@@ -1438,7 +1651,7 @@ const PlayerPreferences = () => {
                             )}
                           </td>
                           <td>
-                            {isEditing ? (
+                            {isEditing && canUpdateSkillLevel(row.skillLevel) ? (
                               <Form.Select
                                 size="sm"
                                 value={preferenceForm.skillLevel}
@@ -1447,12 +1660,13 @@ const PlayerPreferences = () => {
                                 <option value="">Select level</option>
                                 {SKILL_LEVEL_OPTIONS.map((level) => <option key={level} value={level}>{level}</option>)}
                               </Form.Select>
-                            ) : row.skillLevel === "E" ? (
+                            ) : canUpdateSkillLevel(row.skillLevel) && row.skillLevel ? (
                               <Form.Select
                                 size="sm"
-                                value={row.skillLevel}
+                                value={getEditableSkillSelectValue(row.skillLevel)}
                                 onChange={async (event) => {
                                   const newSkillLevel = event.target.value;
+                                  if (!newSkillLevel || newSkillLevel === row.skillLevel) return;
                                   if (row.preferenceId) {
                                     await dispatch(updatePlayerPreference({
                                       id: row.preferenceId,
@@ -1554,23 +1768,29 @@ const PlayerPreferences = () => {
                           </td>
                           <td className="text-center">
                             <div className="d-flex flex-column gap-1 align-items-center">
-                              {selectedOpenMatch && (
-                                <>
-                                  <Button
-                                    size="sm"
-                                    onClick={() => handleRequestPlayer(row)}
-                                    disabled={requestingPlayerId === playerId}
-                                    style={{
-                                      backgroundColor: "#1f41bb",
-                                      border: "none",
-                                      fontSize: 11,
-                                      minWidth: 118,
-                                    }}
-                                  >
-                                    {requestingPlayerId === playerId ? <ButtonLoading size={6} /> : "Request Match"}
-                                  </Button>
-                                  {paymentLinksByPlayerId[playerId]?.paymentLink ? (
-                                    copyVisibleUntil[playerId] && copyVisibleUntil[playerId] > Date.now() ? (
+	                              {selectedOpenMatch && (
+	                                <>
+	                                  {playerAlreadyAdded ? (
+	                                    <Badge bg="success" style={{ fontSize: 11, minWidth: 118, padding: "7px 10px" }}>
+	                                      Added
+	                                    </Badge>
+	                                  ) : !selectedIsPayShareMatch && (
+	                                    <Button
+                                      size="sm"
+                                      onClick={() => handleRequestPlayer(row)}
+                                      disabled={requestingPlayerId === playerId}
+                                      style={{
+                                        backgroundColor: "#1f41bb",
+                                        border: "none",
+                                        fontSize: 11,
+                                        minWidth: 118,
+                                      }}
+                                    >
+                                      {requestingPlayerId === playerId ? <ButtonLoading size={6} /> : "Request Match"}
+                                    </Button>
+	                                  )}
+	                                  {!playerAlreadyAdded && (paymentLinksByPlayerId[playerId]?.paymentLink ? (
+	                                    copyVisibleUntil[playerId] && copyVisibleUntil[playerId] > Date.now() ? (
                                       <>
                                         <Button
                                           size="sm"
@@ -1584,15 +1804,15 @@ const PlayerPreferences = () => {
                                           ₹{paymentLinksByPlayerId[playerId]?.paymentAmount || 0}
                                         </span>
                                       </>
-                                    ) : (
-                                      <Button
+	                                  ) : (
+	                                    <Button
                                         size="sm"
                                         variant="outline-primary"
                                         onClick={() => handleGeneratePaymentLink(row, true)}
                                         disabled={generatingLinkPlayerId === playerId}
                                         style={{ fontSize: 11, minWidth: 118 }}
                                       >
-                                        {generatingLinkPlayerId === playerId ? <ButtonLoading size={6} color="blue" /> : "Regenerate Link"}
+                                        {generatingLinkPlayerId === playerId ? <ButtonLoading size={6} color="blue" /> : "Resend Link"}
                                       </Button>
                                     )
                                   ) : (
@@ -1605,9 +1825,9 @@ const PlayerPreferences = () => {
                                     >
                                       {generatingLinkPlayerId === playerId ? <ButtonLoading size={6} color="blue" /> : "Generate Link"}
                                     </Button>
-                                  )}
-                                </>
-                              )}
+	                                  ))}
+	                                </>
+	                              )}
                               {isEditing ? (
                                 <div className="d-flex gap-2">
                                   <FaTimes onClick={handleCancelEdit} size={13} style={{ cursor: 'pointer' }} className="text-danger" />
@@ -1635,10 +1855,11 @@ const PlayerPreferences = () => {
                   <div className="d-flex justify-content-center align-items-center text-muted" style={{ height: 200 }}>
                     No players found
                   </div>
-                ) : players.map((row) => {
-                  const playerId = getPlayerId(row);
-                  const isEditing = editingPreferencePlayerId === playerId;
-                  return (
+	                ) : players.map((row) => {
+	                  const playerId = getPlayerId(row);
+	                  const isEditing = editingPreferencePlayerId === playerId;
+	                  const playerAlreadyAdded = isPlayerInMatch(selectedOpenMatch, playerId);
+	                  return (
                     <div key={row._id || playerId} className="card mb-2 border-0 shadow-sm">
                       <div className="card-body p-2">
                         <div className="d-flex justify-content-between gap-2 align-items-start mb-2">
@@ -1649,9 +1870,14 @@ const PlayerPreferences = () => {
                             <div className="text-muted" style={{ fontSize: 12 }}>
                               {row.customerId?.countryCode || "+91"} {row.customerId?.phoneNumber || "N/A"}
                             </div>
-                            <div className="text-muted" style={{ fontSize: 12 }}>
-                              Gender: {row.customerId?.gender || "N/A"}
-                            </div>
+	                            <div className="text-muted" style={{ fontSize: 12 }}>
+	                              Gender: {row.customerId?.gender || "N/A"}
+	                            </div>
+	                            {playerAlreadyAdded && (
+	                              <Badge bg="success" className="mt-1" style={{ fontSize: 10 }}>
+	                                Added
+	                              </Badge>
+	                            )}
                             {isEditing ? (
                               <Form.Select
                                 size="sm"
@@ -1672,18 +1898,24 @@ const PlayerPreferences = () => {
                             )}
                           </div>
                           <div className="d-flex flex-column gap-1" style={{ flex: "0 0 auto" }}>
-                            {selectedOpenMatch && (
-                              <>
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleRequestPlayer(row)}
-                                  disabled={requestingPlayerId === playerId}
-                                  style={{ backgroundColor: "#1f41bb", border: "none" }}
-                                >
-                                  {requestingPlayerId === playerId ? <ButtonLoading size={6} /> : "Request"}
-                                </Button>
-                                {paymentLinksByPlayerId[playerId]?.paymentLink ? (
-                                  copyVisibleUntil[playerId] && copyVisibleUntil[playerId] > Date.now() ? (
+	                            {selectedOpenMatch && (
+	                              <>
+	                                {playerAlreadyAdded ? (
+	                                  <Badge bg="success" style={{ fontSize: 11, padding: "7px 10px" }}>
+	                                    Added
+	                                  </Badge>
+	                                ) : !selectedIsPayShareMatch && (
+	                                  <Button
+                                    size="sm"
+                                    onClick={() => handleRequestPlayer(row)}
+                                    disabled={requestingPlayerId === playerId}
+                                    style={{ backgroundColor: "#1f41bb", border: "none" }}
+                                  >
+                                    {requestingPlayerId === playerId ? <ButtonLoading size={6} /> : "Request"}
+                                  </Button>
+	                                )}
+	                                {!playerAlreadyAdded && (paymentLinksByPlayerId[playerId]?.paymentLink ? (
+	                                  copyVisibleUntil[playerId] && copyVisibleUntil[playerId] > Date.now() ? (
                                     <Button
                                       size="sm"
                                       variant="outline-success"
@@ -1691,14 +1923,14 @@ const PlayerPreferences = () => {
                                     >
                                       Copy Link
                                     </Button>
-                                  ) : (
-                                    <Button
+	                                ) : (
+	                                  <Button
                                       size="sm"
                                       variant="outline-primary"
                                       onClick={() => handleGeneratePaymentLink(row, true)}
                                       disabled={generatingLinkPlayerId === playerId}
                                     >
-                                      {generatingLinkPlayerId === playerId ? <ButtonLoading size={6} color="blue" /> : "Regenerate Link"}
+                                      {generatingLinkPlayerId === playerId ? <ButtonLoading size={6} color="blue" /> : "Resend Link"}
                                     </Button>
                                   )
                                 ) : (
@@ -1710,9 +1942,9 @@ const PlayerPreferences = () => {
                                   >
                                     {generatingLinkPlayerId === playerId ? <ButtonLoading size={6} color="blue" /> : "Generate Link"}
                                   </Button>
-                                )}
-                              </>
-                            )}
+	                                ))}
+	                              </>
+	                            )}
                           </div>
                         </div>
 
@@ -1738,7 +1970,7 @@ const PlayerPreferences = () => {
                             </Col>
                             <Col xs={12}>
                               <Form.Label className="small mb-1 fw-semibold">Skill Level</Form.Label>
-                              {isEditing ? (
+                              {isEditing && canUpdateSkillLevel(row.skillLevel) ? (
                                 <Form.Select
                                   size="sm"
                                   value={preferenceForm.skillLevel}
@@ -2097,10 +2329,18 @@ const PlayerPreferences = () => {
                           <span>{formatMatchDate(match)}</span>
                           <span>{getMatchTime(match)}</span>
                         </div>
-                        <div className="d-flex justify-content-between align-items-center mt-2" style={{ fontSize: 11 }}>
-                          <span className="text-muted">Players {joinedCount}/{maxPlayers}</span>
-                          <span className="fw-semibold text-success">₹{0}</span>
-                        </div>
+	                        <div
+	                          className="d-flex justify-content-between align-items-center mt-2"
+	                          style={{ fontSize: 11, cursor: "pointer" }}
+	                          title="View joined players"
+	                          onClick={(event) => {
+	                            event.stopPropagation();
+	                            openPlayersPopup(match);
+	                          }}
+	                        >
+	                          <span className="text-muted text-decoration-underline">Players {joinedCount}/{maxPlayers}</span>
+	                          <span className="fw-semibold text-success">₹{formatCurrencyAmount(fee.payable || fee.share || fee.total || 0)}</span>
+	                        </div>
 
                         {/* Player Icons Row - Only show for selected match */}
                         {isSelected && (
@@ -2152,83 +2392,101 @@ const PlayerPreferences = () => {
                                   }}
                                   onClick={(e) => e.stopPropagation()}
                                 >
-                                  <div style={{ fontSize: 11, fontWeight: 600, padding: "8px 12px", color: "#1f41bb" }}>
-                                    Add Player to Team {team} - Slot {parseInt(slotIndex) + 1}
-                                  </div>
-                                  {filteredAvailablePlayers.length > 0 ? (
-                                    filteredAvailablePlayers.slice(0, 20).map((p, idx) => {
-                                      const playerName = p.customerId?.name || "Unknown";
-                                      const playerPhone = p.customerId?.phoneNumber || "N/A";
-                                      const playerGender = p.customerId?.gender || "";
-                                      const playerSkillLevel = p.skillLevel || "";
+                                  {!isEmpty ? (
+                                    <>
+                                      <div style={{ fontSize: 11, fontWeight: 600, padding: "8px 12px", color: "#1f41bb" }}>
+                                        Player Details - Team {team} Slot {parseInt(slotIndex) + 1}
+                                      </div>
+                                      <div style={{ padding: "8px 12px", backgroundColor: "#fff", margin: "0 8px 8px", borderRadius: 4, border: "1px solid #dee2e6" }}>
+                                        <div className="fw-semibold" style={{ fontSize: 11, color: "#111827" }}>
+                                          Name: {player?.userId?.name || player?.name || "Unknown"}
+                                        </div>
+                                        <div className="text-muted" style={{ fontSize: 10, marginTop: 4 }}>
+                                          Phone: {player?.userId?.phoneNumber ? `${player.userId.countryCode || "+91"} ${player.userId.phoneNumber}` : (player?.phoneNumber || "N/A")}
+                                        </div>
+                                      </div>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <div style={{ fontSize: 11, fontWeight: 600, padding: "8px 12px", color: "#1f41bb" }}>
+                                        Add Player to Team {team} - Slot {parseInt(slotIndex) + 1}
+                                      </div>
+                                      {filteredAvailablePlayers.length > 0 ? (
+                                        filteredAvailablePlayers.slice(0, 20).map((p, idx) => {
+                                          const playerName = p.customerId?.name || "Unknown";
+                                          const playerPhone = p.customerId?.phoneNumber || "N/A";
+                                          const playerGender = p.customerId?.gender || "";
+                                          const playerSkillLevel = p.skillLevel || "";
 
-                                      return (
-                                        <div
-                                          key={p._id || idx}
-                                          style={{
-                                            fontSize: 11,
-                                            padding: "8px 12px",
-                                            cursor: 'pointer',
-                                            backgroundColor: "#fff",
-                                            marginBottom: 4,
-                                            marginLeft: 8,
-                                            marginRight: 8,
-                                            borderRadius: 4,
-                                          }}
-                                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#e3f2fd"}
-                                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#fff"}
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            setOpenDropdownKey(null);
-                                            setSelectedPlayerForAdd({
-                                              player: p,
-                                              playerName,
-                                              playerPhone,
-                                              playerGender,
-                                              playerSkillLevel,
-                                              team,
-                                              slotIndex: parseInt(slotIndex),
-                                              match,
-                                              color
-                                            });
-                                            setShowAddPlayerModal(true);
-                                          }}
-                                        >
-                                          <div className="d-flex align-items-center gap-2">
+                                          return (
                                             <div
+                                              key={p._id || idx}
                                               style={{
-                                                width: 24,
-                                                height: 24,
-                                                borderRadius: "50%",
-                                                backgroundColor: color,
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                                color: "#fff",
-                                                fontSize: 10,
-                                                fontWeight: 600,
+                                                fontSize: 11,
+                                                padding: "8px 12px",
+                                                cursor: 'pointer',
+                                                backgroundColor: "#fff",
+                                                marginBottom: 4,
+                                                marginLeft: 8,
+                                                marginRight: 8,
+                                                borderRadius: 4,
+                                              }}
+                                              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#e3f2fd"}
+                                              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#fff"}
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setOpenDropdownKey(null);
+                                                setSelectedPlayerForAdd({
+                                                  player: p,
+                                                  playerName,
+                                                  playerPhone,
+                                                  playerGender,
+                                                  playerSkillLevel,
+                                                  team,
+                                                  slotIndex: parseInt(slotIndex),
+                                                  match,
+                                                  color
+                                                });
+                                                setShowAddPlayerModal(true);
                                               }}
                                             >
-                                              {playerName.charAt(0)?.toUpperCase() || "?"}
-                                            </div>
-                                            <div style={{ flex: 1, minWidth: 0 }}>
-                                              <div className="fw-semibold text-truncate" style={{ fontSize: 11 }}>
-                                                {playerName}
+                                              <div className="d-flex align-items-center gap-2">
+                                                <div
+                                                  style={{
+                                                    width: 24,
+                                                    height: 24,
+                                                    borderRadius: "50%",
+                                                    backgroundColor: color,
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    justifyContent: "center",
+                                                    color: "#fff",
+                                                    fontSize: 10,
+                                                    fontWeight: 600,
+                                                  }}
+                                                >
+                                                  {playerName.charAt(0)?.toUpperCase() || "?"}
+                                                </div>
+                                                <div style={{ flex: 1, minWidth: 0 }}>
+                                                  <div className="fw-semibold text-truncate" style={{ fontSize: 11 }}>
+                                                    {playerName}
+                                                  </div>
+                                                  <div className="text-muted" style={{ fontSize: 9 }}>
+                                                    {playerSkillLevel && `${playerSkillLevel} • `}
+                                                    {playerGender && `${playerGender} • `}
+                                                    {playerPhone}
+                                                  </div>
+                                                </div>
                                               </div>
-                                              <div className="text-muted" style={{ fontSize: 9 }}>
-                                                {playerSkillLevel && `${playerSkillLevel} • `}
-                                                {playerGender && `${playerGender} • `}
-                                                {playerPhone}
-                                              </div>
                                             </div>
-                                          </div>
+                                          );
+                                        })
+                                      ) : (
+                                        <div style={{ fontSize: 11, padding: "8px 12px", color: "#999", textAlign: "center" }}>
+                                          No available players
                                         </div>
-                                      );
-                                    })
-                                  ) : (
-                                    <div style={{ fontSize: 11, padding: "8px 12px", color: "#999", textAlign: "center" }}>
-                                      No available players
-                                    </div>
+                                      )}
+                                    </>
                                   )}
                                 </div>
                               );
@@ -2276,7 +2534,7 @@ const PlayerPreferences = () => {
                           </div>
                           <div className="d-flex justify-content-between align-items-center mt-2" style={{ fontSize: 11 }}>
                             <span className="text-muted">Players {joinedCount}/{maxPlayers}</span>
-                            <span className="fw-semibold text-success">₹{fee.payable || 0}</span>
+                            <span className="fw-semibold text-success">₹{formatCurrencyAmount(fee.payable || fee.share || fee.total || 0)}</span>
                           </div>
                         </div>
                       );
@@ -2287,9 +2545,35 @@ const PlayerPreferences = () => {
             )}
           </div>
         </Col>
-      </Row>
+	      </Row>
 
-      {/* Call Status Confirmation Modal */}
+	      <PlayersJoinedModal
+	        show={showPlayersModal}
+	        onHide={() => setShowPlayersModal(false)}
+	        players={playersModalMatch || selectedOpenMatch || []}
+	        onRemovePlayer={openRemovePlayerModal}
+	        removingPlayerId={removingPlayerId}
+	        subtitle={
+	          (playersModalMatch || selectedOpenMatch)?._id
+	            ? `${getMatchClubName(playersModalMatch || selectedOpenMatch)} • ${getMatchTime(playersModalMatch || selectedOpenMatch)}`
+	            : ""
+	        }
+	      />
+
+	      <ReasonActionModal
+	        show={removeReasonModal.show}
+	        title="Remove Player"
+	        description="This will remove the selected player from this open match."
+	        reason={removeReasonModal.reason}
+	        onReasonChange={(reason) => setRemoveReasonModal((current) => ({ ...current, reason }))}
+	        onHide={closeRemovePlayerModal}
+	        onConfirm={handleRemovePlayerFromMatch}
+	        confirmText="Remove Player"
+	        loading={removeReasonModal.loading}
+	        placeholder="Why is this player being removed?"
+	      />
+
+	      {/* Call Status Confirmation Modal */}
       <Modal
         show={callConfirm.show}
         onHide={() => setCallConfirm({ show: false, row: null, nextValue: false, loading: false })}
@@ -2666,7 +2950,7 @@ const PlayerPreferences = () => {
       <Modal show={showAddPlayerModal} onHide={() => setShowAddPlayerModal(false)} centered>
         <Modal.Header closeButton style={{ borderBottom: "2px solid #1f41bb" }}>
           <Modal.Title style={{ color: "#1f41bb", fontSize: 18, fontWeight: 600 }}>
-            Confirm Player Addition
+            {isPayShareMatch(selectedPlayerForAdd?.match) ? "Generate Payment Link" : "Confirm Player Addition"}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body style={{ padding: "24px" }}>
@@ -2674,7 +2958,9 @@ const PlayerPreferences = () => {
             <>
               <div style={{ marginBottom: 20 }}>
                 <div style={{ fontSize: 14, color: "#666", marginBottom: 8 }}>
-                  You are about to add the following player:
+                  {isPayShareMatch(selectedPlayerForAdd.match)
+                    ? "You are about to generate a payment link for:"
+                    : "You are about to add the following player:"}
                 </div>
                 <div style={{
                   backgroundColor: "#f8f9fa",
@@ -2731,10 +3017,10 @@ const PlayerPreferences = () => {
                   Match Details
                 </div>
                 <div style={{ fontSize: 13, color: "#333", marginBottom: 4 }}>
-                  <strong>Club:</strong> {selectedPlayerForAdd.match?.clubName || "N/A"}
+                  <strong>Club:</strong> {getMatchClubName(selectedPlayerForAdd.match)}
                 </div>
                 <div style={{ fontSize: 13, color: "#333", marginBottom: 4 }}>
-                  <strong>Court:</strong> {selectedPlayerForAdd.match?.courtName || "N/A"}
+                  <strong>Court:</strong> {getMatchCourtName(selectedPlayerForAdd.match) || "N/A"}
                 </div>
                 <div style={{ fontSize: 13, color: "#333" }}>
                   <strong>Position:</strong> Team {selectedPlayerForAdd.team} - Slot {selectedPlayerForAdd.slotIndex + 1}
@@ -2749,7 +3035,10 @@ const PlayerPreferences = () => {
                 color: "#856404",
                 border: "1px solid #ffeaa7"
               }}>
-                <strong>Note:</strong> This action will add the player to the match. Make sure all details are correct before confirming.
+                <strong>Note:</strong>{" "}
+                {isPayShareMatch(selectedPlayerForAdd.match)
+                  ? "This action will generate a pay-share payment link. The player joins only after payment is completed."
+                  : "This action will add the player to the match. Make sure all details are correct before confirming."}
               </div>
             </>
           )}
@@ -2771,7 +3060,9 @@ const PlayerPreferences = () => {
             onClick={handleAddPlayerToMatch}
             disabled={addingPlayerToMatch}
           >
-            {addingPlayerToMatch ? <ButtonLoading size={8} /> : "Confirm"}
+            {addingPlayerToMatch
+              ? <ButtonLoading size={8} />
+              : isPayShareMatch(selectedPlayerForAdd?.match) ? "Generate Link" : "Confirm"}
           </Button>
         </Modal.Footer>
       </Modal>

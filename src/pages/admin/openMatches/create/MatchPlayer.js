@@ -1,13 +1,13 @@
-import React, { useEffect, useState, useRef, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useMemo } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { padal } from "../../../../assets/files";
-import { showError } from "../../../../helpers/Toast";
-import AddPlayer from "./AddPlayer";
+import { showError, showSuccess } from "../../../../helpers/Toast";
 import { adminCheckBooking, createOpenMatchAdmin, adminRemoveBookedBooking } from "../../../../redux/thunks";
 import { ButtonLoading } from "../../../../helpers/loading/Loaders";
 import { parseTimeToHour } from "../../../../utils/formatters";
 import { toLocalDateString, dateOnlyToLocalDate } from "../../../../utils/dateUtils";
+import { ownerApi } from "../../../../helpers/api/apiCore";
 
 const width = 370;
 const height = 70;
@@ -56,8 +56,6 @@ const contentStyle = {
 };
 
 const MatchPlayer = ({
-    addedPlayers: parentAddedPlayers,
-    setAddedPlayers: setParentAddedPlayers,
     selectedCourts,
     selectedDate,
     finalSkillDetails,
@@ -69,21 +67,12 @@ const MatchPlayer = ({
     selectedClubId,
     activeLocationId,
     activeCategoryId,
-    onAddPlayerToggle,
 }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const location = useLocation();
     const [selectedGender, setSelectedGender] = useState('');
-    const [localPlayers, setLocalPlayers] = useState(parentAddedPlayers || {});
-    const [defaultSkillLevel, setDefaultSkillLevel] = useState("Open Match");
-    const [showAddMeForm, setShowAddMeForm] = useState(false);
-    const [activeSlot, setActiveSlot] = useState(null);
-
-    const setShowAddMeFormWithCallback = (value) => {
-        const next = typeof value === 'function' ? value(showAddMeForm) : value;
-        setShowAddMeForm(next);
-        if (onAddPlayerToggle) onAddPlayerToggle(next);
-    };
+    const defaultSkillLevel = "Open Match";
     const createMatchesLoading = useSelector((state) => state?.openMatches?.openMatchesLoading);
     const resolveId = (value) => {
         if (!value) return "";
@@ -96,72 +85,6 @@ const MatchPlayer = ({
             }
         }
         return value._id || value.id || "";
-    };
-
-    useEffect(() => {
-        setLocalPlayers(parentAddedPlayers || {});
-    }, [parentAddedPlayers]);
-
-    useEffect(() => {
-        const syncFromStorage = () => {
-            const saved = localStorage.getItem("addedAdminPlayers");
-            const parsed = saved ? JSON.parse(saved) : {};
-            setLocalPlayers(parsed);
-            setParentAddedPlayers(parsed);
-        };
-
-        syncFromStorage();
-        window.addEventListener("storage", syncFromStorage);
-        const handleCustomUpdate = () => syncFromStorage();
-        window.addEventListener("playersUpdated", handleCustomUpdate);
-
-        return () => {
-            window.removeEventListener("storage", syncFromStorage);
-            window.removeEventListener("playersUpdated", handleCustomUpdate);
-        };
-    }, [setParentAddedPlayers]);
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            const saved = localStorage.getItem("addedAdminPlayers");
-            const parsed = saved ? JSON.parse(saved) : {};
-            if (JSON.stringify(parsed) !== JSON.stringify(localPlayers)) {
-                setLocalPlayers(parsed);
-                setParentAddedPlayers(parsed);
-            }
-        }, 500);
-
-        return () => clearInterval(interval);
-    }, []); // Remove dependencies to prevent infinite loop
-
-    useEffect(() => {
-        const players = JSON.parse(localStorage.getItem("addedAdminPlayers") || "{}");
-        const playerKeys = Object.keys(players).filter(k => k !== 'gameType');
-        if (players.gameType && typeof players.gameType === 'string' && playerKeys.length > 0) {
-            setSelectedGender(players.gameType);
-        }
-    }, []);
-
-    useEffect(() => {
-        const playerKeys = Object.keys(localPlayers).filter(k => k !== 'gameType');
-        if (selectedGender && typeof selectedGender === 'string' && playerKeys.length > 0) {
-            const current = JSON.parse(localStorage.getItem("addedAdminPlayers") || "{}");
-            current.gameType = selectedGender;
-            localStorage.setItem("addedAdminPlayers", JSON.stringify(current));
-        }
-    }, [selectedGender, localPlayers]);
-
-    const handleAddMeClick = (slot) => {
-        if (!selectedGender) {
-            showError("Please select game type");
-            return;
-        }
-        setShowAddMeFormWithCallback((prev) => (prev && activeSlot === slot ? false : true));
-        setActiveSlot((prev) => (prev === slot ? null : slot));
-    };
-
-    const getEditPlayerData = (slot) => {
-        return localPlayers[slot] || null;
     };
 
     const formatMatchDate = (dateString) => {
@@ -208,7 +131,7 @@ const MatchPlayer = ({
 
         if (halfSelectedSlots?.size > 0) {
             halfSelectedSlots.forEach(key => {
-                const [courtId, slotId, dateKey, side] = key.split('-');
+                const [courtId, slotId] = key.split('-');
                 const slotKey = `${courtId}-${slotId}`;
 
                 if (processedSlots.has(slotKey)) return;
@@ -434,42 +357,10 @@ const MatchPlayer = ({
         return true;
     };
 
-    const calculateHalfSlotTime = (originalTime, isRightHalf) => {
-        if (!isRightHalf) return originalTime;
-
-        const timeMatch = originalTime.match(/(\d+)(?::(\d+))?\s*(am|pm)/i);
-        if (!timeMatch) return originalTime;
-
-        let hour = parseInt(timeMatch[1]);
-        let minute = parseInt(timeMatch[2] || '0') + 30;
-        const period = timeMatch[3].toLowerCase();
-
-        if (minute >= 60) {
-            minute -= 60;
-            hour += 1;
-
-            if (hour === 13) {
-                hour = 1;
-            } else if (hour === 12 && period === 'am') {
-                return `12:00 pm`;
-            } else if (hour === 12 && period === 'pm') {
-                return `12:00 am`;
-            }
-        }
-
-        const displayHour = hour;
-        const displayMinute = minute.toString().padStart(2, '0');
-        return `${displayHour}:${displayMinute} ${period}`;
-    };
-
     const canBook = (totalSlots >= 1 || halfSelectedSlots?.size > 0);
 
-    const finalAddedPlayers = localPlayers;
-    const teamA = [finalAddedPlayers.slot1?._id, finalAddedPlayers.slot2?._id].filter(Boolean);
-    const teamB = [
-        finalAddedPlayers.slot3?._id,
-        finalAddedPlayers.slot4?._id,
-    ].filter(Boolean);
+    const teamA = [];
+    const teamB = [];
     const handleBookNow = async () => {
 
         if (!selectedGender) {
@@ -536,11 +427,7 @@ const MatchPlayer = ({
             if (timeSlot?.duration === 60 && timeSlot?.originalDuration === 90) {
                 finalDuration = 90;
             }
-            let bookingTime = timeSlot?.time;
             let matchTime = timeSlot?.time;
-            if (isRightHalf && !isLeftHalf) {
-                bookingTime = calculateHalfSlotTime(timeSlot?.time, true);
-            }
 
             return {
                 slotId: timeSlot?._id,
@@ -587,7 +474,33 @@ const MatchPlayer = ({
                 location: resolvedLocationId
             };
 
-            await dispatch(createOpenMatchAdmin(formattedMatch)).unwrap();
+            const rescheduleMatchId = location.state?.rescheduleMatchId;
+            if (rescheduleMatchId) {
+                await ownerApi.put(
+                    `/api/super-admin/pay-share-open-matches/${rescheduleMatchId}/reschedule`,
+                    {
+                        slot: formattedSlots,
+                        matchDate: formattedMatch.matchDate,
+                        matchTime: formattedMatch.matchTime,
+                        reason: location.state?.rescheduleReason || "Slot changed by Super Admin",
+                    },
+                );
+                showSuccess("Pay-share open match rescheduled successfully");
+            } else {
+                await dispatch(createOpenMatchAdmin(formattedMatch)).unwrap();
+            }
+            // Pay-share matches remain pending and must not reserve the slot
+            // until all four players have completed payment.
+            await Promise.allSettled(
+                formattedSlots.map((slot) => dispatch(adminRemoveBookedBooking({
+                    slotId: slot.slotId,
+                    courtId: slot.courtId,
+                    bookingDate: slot.bookingDate,
+                    time: slot.slotTimes[0]?.time,
+                    bookingTime: slot.bookingTime,
+                    duration: slot.duration
+                })))
+            );
             localStorage.removeItem("addedAdminPlayers");
             navigate('/admin/open-matches', { replace: true });
 
@@ -723,218 +636,7 @@ const MatchPlayer = ({
                     </p>
                 </div>
 
-                <div className="p-md-3 p-2 rounded-3 mb-2" style={{ backgroundColor: "#CBD6FF1A", border: "1px solid #ddd6d6ff" }}>
-                    <h6 className="mb-2" style={{ fontSize: "18px", fontWeight: 600 }}>Players</h6>
-
-                    <div className="row mx-auto">
-                        <div className="col-6 d-flex flex-lg-row ps-0">
-                            {localPlayers.slot1 ? (
-                                <div className="d-flex flex-column align-items-center me-auto mb-3">
-                                    <div
-                                        className="rounded-circle border d-flex justify-content-center align-items-center"
-                                        style={{
-                                            width: 64,
-                                            height: 64,
-                                            backgroundColor: localPlayers.slot1.profilePic ? "transparent" : "#3DBE64",
-                                            overflow: "hidden",
-                                        }}
-                                    >
-                                        {localPlayers.slot1.profilePic ? (
-                                            <img src={localPlayers.slot1.profilePic} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                                        ) : (
-                                            <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>
-                                                {(() => {
-                                                    const name = localPlayers?.slot1?.name || "U";
-                                                    const parts = name.trim().split(/\s+/);
-                                                    return parts.length > 1 ? `${parts[0][0]}${parts[1][0]}`.toUpperCase() : parts[0][0].toUpperCase();
-                                                })()}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className="d-flex align-items-center gap-1">
-                                        <p className="mb-0 mt-2 fw-semibold text-center" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
-                                            {localPlayers.slot1.name?.length > 12 ? `${localPlayers.slot1.name.substring(0, 12)}...` : localPlayers.slot1.name}
-                                        </p>
-                                        <i
-                                            className="bi bi-pencil-fill mt-2"
-                                            style={{ fontSize: "12px", color: "#1F41BB", cursor: "pointer" }}
-                                            onClick={() => handleAddMeClick("slot1")}
-                                        />
-                                    </div>
-                                    <span className="badge text-white" style={{ fontSize: "11px", backgroundColor: "#3DBE64" }}>
-                                        {localPlayers.slot1.level}
-                                    </span>
-                                </div>
-                            ) : (
-                                <div className="text-center me-auto" onClick={() => handleAddMeClick("slot1")} style={{ cursor: "pointer" }}>
-                                    <div
-                                        className="rounded-circle d-flex bg-white align-items-center justify-content-center"
-                                        style={{ width: 64, height: 64, border: "1px solid #3DBE64" }}
-                                    >
-                                        <span className="fs-3 pb-1" style={{ color: "#3DBE64" }}>+</span>
-                                    </div>
-                                    <p className="mb-0 mt-2" style={{ color: "#3DBE64", fontSize: "10px", fontWeight: "500", fontFamily: "Poppins" }}>Add</p>
-                                </div>
-                            )}
-
-                            {localPlayers.slot2 ? (
-                                <div className="d-flex flex-column align-items-center me-auto mb-3">
-                                    <div
-                                        className="rounded-circle border d-flex justify-content-center align-items-center"
-                                        style={{
-                                            width: 64,
-                                            height: 64,
-                                            backgroundColor: localPlayers.slot2.profilePic ? "transparent" : "#3DBE64",
-                                            overflow: "hidden",
-                                        }}
-                                    >
-                                        {localPlayers.slot2.profilePic ? (
-                                            <img src={localPlayers.slot2.profilePic} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                                        ) : (
-                                            <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>
-                                                {(() => {
-                                                    const name = localPlayers?.slot2?.name || "U";
-                                                    const parts = name.trim().split(/\s+/);
-                                                    return parts.length > 1 ? `${parts[0][0]}${parts[1][0]}`.toUpperCase() : parts[0][0].toUpperCase();
-                                                })()}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className="d-flex align-items-center gap-1">
-                                        <p className="mb-0 mt-2 fw-semibold text-center" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
-                                            {localPlayers.slot2.name?.length > 12 ? `${localPlayers.slot2.name.substring(0, 12)}...` : localPlayers.slot2.name}
-                                        </p>
-                                        <i
-                                            className="bi bi-pencil-fill mt-2"
-                                            style={{ fontSize: "12px", color: "#1F41BB", cursor: "pointer" }}
-                                            onClick={() => handleAddMeClick("slot2")}
-                                        />
-                                    </div>
-                                    <span className="badge text-white" style={{ fontSize: "11px", backgroundColor: "#3DBE64" }}>
-                                        {localPlayers.slot2.level}
-                                    </span>
-                                </div>
-                            ) : (
-                                <div className="text-center me-auto" onClick={() => handleAddMeClick("slot2")} style={{ cursor: "pointer" }}>
-                                    <div
-                                        className="rounded-circle d-flex bg-white align-items-center justify-content-center"
-                                        style={{ width: 64, height: 64, border: "1px solid #3DBE64" }}
-                                    >
-                                        <span className="fs-3 pb-1" style={{ color: "#3DBE64" }}>+</span>
-                                    </div>
-                                    <p className="mb-0 mt-2" style={{ color: "#3DBE64", fontSize: "10px", fontWeight: "500", fontFamily: "Poppins" }}>Add</p>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="col-6 d-flex flex-lg-row pe-0 border-start">
-                            {localPlayers.slot3 ? (
-                                <div className="d-flex flex-column align-items-center ms-auto mb-3">
-                                    <div
-                                        className="rounded-circle border d-flex justify-content-center align-items-center"
-                                        style={{
-                                            width: 64,
-                                            height: 64,
-                                            backgroundColor: localPlayers.slot3.profilePic ? "transparent" : "#1F41BB",
-                                            overflow: "hidden",
-                                        }}
-                                    >
-                                        {localPlayers.slot3.profilePic ? (
-                                            <img src={localPlayers.slot3.profilePic} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                                        ) : (
-                                            <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>
-                                                {(() => {
-                                                    const name = localPlayers?.slot3?.name || "U";
-                                                    const parts = name.trim().split(/\s+/);
-                                                    return parts.length > 1 ? `${parts[0][0]}${parts[1][0]}`.toUpperCase() : parts[0][0].toUpperCase();
-                                                })()}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className="d-flex align-items-center gap-1">
-                                        <p className="mb-0 mt-2 fw-semibold text-center" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
-                                            {localPlayers.slot3.name?.length > 12 ? `${localPlayers.slot3.name.substring(0, 12)}...` : localPlayers.slot3.name}
-                                        </p>
-                                        <i
-                                            className="bi bi-pencil-fill mt-2"
-                                            style={{ fontSize: "12px", color: "#1F41BB", cursor: "pointer" }}
-                                            onClick={() => handleAddMeClick("slot3")}
-                                        />
-                                    </div>
-                                    <span className="badge text-white" style={{ fontSize: "11px", backgroundColor: "#1F41BB" }}>
-                                        {localPlayers.slot3.level}
-                                    </span>
-                                </div>
-                            ) : (
-                                <div className="text-center ms-auto" onClick={() => handleAddMeClick("slot3")} style={{ cursor: "pointer" }}>
-                                    <div
-                                        className="rounded-circle d-flex bg-white align-items-center justify-content-center"
-                                        style={{ width: 64, height: 64, border: "1px solid #1F41BB" }}
-                                    >
-                                        <span className="fs-3 pb-1" style={{ color: "#1F41BB" }}>+</span>
-                                    </div>
-                                    <p className="mb-0 mt-2" style={{ color: "#1F41BB", fontSize: "10px", fontWeight: "500", fontFamily: "Poppins" }}>Add</p>
-                                </div>
-                            )}
-
-                            {localPlayers.slot4 ? (
-                                <div className="d-flex flex-column align-items-center ms-auto mb-3">
-                                    <div
-                                        className="rounded-circle border d-flex justify-content-center align-items-center"
-                                        style={{
-                                            width: 64,
-                                            height: 64,
-                                            backgroundColor: localPlayers.slot4.profilePic ? "transparent" : "#1F41BB",
-                                            overflow: "hidden",
-                                        }}
-                                    >
-                                        {localPlayers.slot4.profilePic ? (
-                                            <img src={localPlayers.slot4.profilePic} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                                        ) : (
-                                            <span style={{ color: "white", fontWeight: 600, fontSize: "24px" }}>
-                                                {(() => {
-                                                    const name = localPlayers?.slot4?.name || "U";
-                                                    const parts = name.trim().split(/\s+/);
-                                                    return parts.length > 1 ? `${parts[0][0]}${parts[1][0]}`.toUpperCase() : parts[0][0].toUpperCase();
-                                                })()}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className="d-flex align-items-center gap-1">
-                                        <p className="mb-0 mt-2 fw-semibold text-center" style={{ fontSize: "12px", fontWeight: "500", fontFamily: "Poppins" }}>
-                                            {localPlayers.slot4.name?.length > 12 ? `${localPlayers.slot4.name.substring(0, 12)}...` : localPlayers.slot4.name}
-                                        </p>
-                                        <i
-                                            className="bi bi-pencil-fill mt-2"
-                                            style={{ fontSize: "12px", color: "#1F41BB", cursor: "pointer" }}
-                                            onClick={() => handleAddMeClick("slot4")}
-                                        />
-                                    </div>
-                                    <span className="badge text-white" style={{ fontSize: "11px", backgroundColor: "#1F41BB" }}>
-                                        {localPlayers.slot4.level}
-                                    </span>
-                                </div>
-                            ) : (
-                                <div className="text-center ms-auto" onClick={() => handleAddMeClick("slot4")} style={{ cursor: "pointer" }}>
-                                    <div
-                                        className="rounded-circle d-flex bg-white align-items-center justify-content-center"
-                                        style={{ width: 64, height: 64, border: "1px solid #1F41BB" }}
-                                    >
-                                        <span className="fs-3 pb-1" style={{ color: "#1F41BB" }}>+</span>
-                                    </div>
-                                    <p className="mb-0 mt-2" style={{ color: "#1F41BB", fontSize: "10px", fontWeight: "500", fontFamily: "Poppins" }}>Add</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="d-flex justify-content-between mt-md-1 mt-0">
-                        <p className="mb-1" style={{ fontSize: "11px", fontWeight: "500", fontFamily: "Poppins", color: "#3DBE64" }}>Team A</p>
-                        <p className="mb-0" style={{ fontSize: "11px", fontWeight: "500", fontFamily: "Poppins", color: "#1F41BB" }}>Team B</p>
-                    </div>
-                </div>
-
-                <div className="d-flex justify-content-center align-items-center">
+                <div className="d-flex justify-content-center align-items-center mt-3">
                     <button
                         style={{
                             ...buttonStyle,
@@ -1001,15 +703,6 @@ const MatchPlayer = ({
                 )}
             </div>
 
-            <AddPlayer
-                showAddMeForm={showAddMeForm}
-                activeSlot={activeSlot}
-                setShowAddMeForm={setShowAddMeFormWithCallback}
-                setActiveSlot={setActiveSlot}
-                selectedGender={selectedGender}
-                editPlayerData={getEditPlayerData(activeSlot)}
-                skillDetails={"Beginner"}
-            />
         </>
     );
 };
