@@ -76,7 +76,7 @@ const DAY_OPTIONS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Sa
 const SKILL_LEVEL_OPTIONS = ["E", "D2", "D1", "C2", "C1", "B2", "B1", "A", "L"];
 const GENDER_OPTIONS = ["Male", "Female", "Other"];
 const SCHEDULE_TIME_SLOT_GROUPS = TIME_SLOT_GROUPS.filter((group) => group.label === "60 Minutes");
-const SKILL_COLORS = { E: "success", D2: "warning", D1: "danger", C2: "dark", C1: "primary", B2: "secondary", B1: "info", A: "light", L: "dark" };
+const SKILL_COLORS = { E: "success", D2: "warning", D1: "danger", C2: "dark", C1: "primary", B2: "secondary", B1: "info", A: "success", L: "dark" };
 const EDITABLE_SKILL_LEVELS = new Set(["", "E", "NE", "N/E"]);
 const EMPTY_PREFERENCE_FORM = {
   preferredClubs: [],
@@ -969,6 +969,7 @@ const PlayerPreferences = () => {
 
     if (navigator?.clipboard?.writeText) {
       await navigator.clipboard.writeText(link);
+      showSuccess("Payment link copied");
       return;
     }
 
@@ -980,6 +981,7 @@ const PlayerPreferences = () => {
     textarea.select();
     document.execCommand("copy");
     document.body.removeChild(textarea);
+    showSuccess("Payment link copied");
   };
 
   const handleViewPlayerDetails = (row) => {
