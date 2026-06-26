@@ -774,8 +774,9 @@ const PlayerPreferences = () => {
       is90: filters.preferredDuration?.includes("is90") || undefined,
       is120: filters.preferredDuration?.includes("is120") || undefined,
       isCalled: filters.isCalled !== null ? filters.isCalled : undefined,
+      matchId: selectedOpenMatch?._id || undefined,
     }));
-  }, [dispatch, filters]);
+  }, [dispatch, filters, selectedOpenMatch]);
 
   useEffect(() => {
     loadPlayers(1);
@@ -859,43 +860,30 @@ const PlayerPreferences = () => {
   }, [loadOpenMatches, showOpenMatchPanel]);
 
   const handleOpenMatchSelect = (match) => {
-    const clubId = getEntityId(match?.clubId);
-    const categoryType = getEntityId(match?.categoryId);
-    const day = getMatchDay(match);
-    const timeSlots = getMatchTimeSlots(match);
-    const fallbackTimeSlot = getMatchTime(match);
-    const skillLevel = match?.skillLevel;
-
-    let mappedSkills = [];
-    if (skillLevel) {
-      const skillLower = skillLevel.toLowerCase().trim();
-      if (skillLower === "beginner") {
-        mappedSkills = ["E", "D2", "D1", "L"];
-      } else if (skillLower === "intermediate") {
-        mappedSkills = ["C2", "C1", "B2", "B1"];
-      } else if (skillLower === "advanced" || skillLower === "professional") {
-        mappedSkills = ["A"];
-      } else {
-        mappedSkills = [skillLevel];
-      }
-    }
-
     setSelectedOpenMatch(match);
-    setFilters((current) => ({
-      ...current,
-      categoryType: categoryType || "",
-      clubId: clubId ? [clubId] : [],
-      day: day ? [day] : [],
-      timeSlot: timeSlots.length
-        ? timeSlots
-        : (fallbackTimeSlot && fallbackTimeSlot !== "Any Time" ? [fallbackTimeSlot] : []),
-      skillLevel: mappedSkills,
-      hasPreference: ["yes"],
-    }));
+    if (match) {
+      const matchGender = match.gender || "";
+      let genderFilter = [];
+      if (matchGender === "Male Only") {
+        genderFilter = ["Male"];
+      } else if (matchGender === "Female Only") {
+        genderFilter = ["Female"];
+      } else if (matchGender === "Mixed Doubles") {
+        genderFilter = ["Male", "Female"];
+      }
+      setFilters((current) => ({
+        ...current,
+        gender: genderFilter,
+      }));
+    }
   };
 
   useEffect(() => {
-    if (!routeMatchId || selectedOpenMatch?._id === routeMatchId) return;
+    if (!routeMatchId) return;
+
+    setShowCreateMatchModal(false);
+
+    if (selectedOpenMatch?._id === routeMatchId) return;
 
     const existingMatch = openMatches.find((match) => match?._id === routeMatchId);
     if (existingMatch) {
@@ -903,11 +891,8 @@ const PlayerPreferences = () => {
       return;
     }
 
-    if (!routeOpenMatchLoaded) {
-      setRouteOpenMatchLoaded(true);
-      loadOpenMatches();
-    }
-  }, [loadOpenMatches, openMatches, routeMatchId, routeOpenMatchLoaded, selectedOpenMatch]);
+    loadOpenMatches();
+  }, [loadOpenMatches, openMatches, routeMatchId, selectedOpenMatch]);
 
   const handleRequestPlayer = async (row) => {
     const playerId = getPlayerId(row);
@@ -1521,7 +1506,7 @@ const PlayerPreferences = () => {
                 <div style={{ minWidth: 0 }}>
                   <div className="fw-semibold text-truncate" style={{ fontSize: 13, color: "#111827" }}>
                     {formatMatchDate(selectedOpenMatch)} | {getMatchTime(selectedOpenMatch)} | {getMatchClubName(selectedOpenMatch)}
-                    {getMatchCourtName(selectedOpenMatch) ? ` | ${getMatchCourtName(selectedOpenMatch)}` : ""} | {selectedOpenMatch.skillLevel || "Any Level"}
+                    {getMatchCourtName(selectedOpenMatch) ? ` | ${getMatchCourtName(selectedOpenMatch)}` : ""}
                   </div>
                   <div className="text-muted" style={{ fontSize: 12 }}>
                     Player payable estimate: ₹{selectedMatchFee?.share || 0} match share + ₹{selectedMatchFee?.platformFee ?? 1} platform fee + ₹{selectedMatchFee?.gstOnPlatformFee ?? 0.18} GST = ₹{selectedMatchFee?.payable || 0}
