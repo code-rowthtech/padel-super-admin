@@ -137,6 +137,7 @@ const manualBookingSlice = createSlice({
     builder.addCase(getAdminSlotBooking.pending, (state) => {
       state.slotLoading = true;
       state.slotError = null;
+      state.slotData = null;
     });
     builder.addCase(getAdminSlotBooking.fulfilled, (state, action) => {
       state.slotLoading = false;
@@ -151,6 +152,7 @@ const manualBookingSlice = createSlice({
     builder.addCase(getAdminHalfSlotPrice.pending, (state) => {
       state.slotPriceLoading = true;
       state.slotPriceError = null;
+      state.slotPriceData = null;
     });
     builder.addCase(getAdminHalfSlotPrice.fulfilled, (state, action) => {
       state.slotPriceLoading = false;
@@ -165,6 +167,7 @@ const manualBookingSlice = createSlice({
     builder.addCase(getAdminSlotPrice.pending, (state) => {
       state.slotPriceLoading = true;
       state.slotPriceError = null;
+      state.slotPriceData = null;
     });
     builder.addCase(getAdminSlotPrice.fulfilled, (state, action) => {
       state.slotPriceLoading = false;

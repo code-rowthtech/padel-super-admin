@@ -24,6 +24,7 @@ import {
 import { getOwnerRegisteredClub, getAdminHalfSlotPrice, getAdminSlotBooking } from "../../../../redux/thunks";
 import { DataLoading } from "../../../../helpers/loading/Loaders";
 import { FaArrowLeftLong } from "react-icons/fa6";
+import { showError } from "../../../../helpers/Toast";
 import { getOwnerFromSession } from "../../../../helpers/api/apiCore";
 import { useSelector } from "react-redux";
 import { parseTimeToHour, parseTimeToHalfHour, shouldDisableSlotByDuration, isSlotDurationDisabled, isSlotDurationDisabledMultiple } from "../../../../utils/formatters";
@@ -237,6 +238,21 @@ const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null, 
     //   setSelectedCategoryId(firstCategoryId || "");
     // }
   }, [categoryOptions, selectedCategoryId]);
+
+  const isInitialRender = React.useRef(true);
+  useEffect(() => {
+    if (isInitialRender.current) {
+      isInitialRender.current = false;
+      return;
+    }
+    setSelectedCourts([]);
+    setSelectedTimes({});
+    setSelectedBuisness([]);
+    setHalfSelectedSlots(new Set());
+    setSlotError("");
+    setMatchPlayer(false);
+    setAddedPlayers([]);
+  }, [selectedClubId, selectedLocationId, selectedCategoryId]);
 
   useEffect(() => {
     if (selectedClubId) {
@@ -784,7 +800,10 @@ const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null, 
       halfSelectedSlots.forEach(key => {
         if (!key.includes(dateKey)) return;
 
-        const [courtId, slotId, , side] = key.split('-');
+        const parts = key.split('-');
+        const courtId = parts[0];
+        const slotId = parts[1];
+        const side = parts[parts.length - 1];
         const courtData = slotData?.data?.find(c => c._id === courtId);
         const slotFromKey = courtData?.slots?.find(s => s._id === slotId);
 
@@ -826,7 +845,10 @@ const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null, 
       halfSelectedSlots.forEach(key => {
         if (!key.includes(dateKey)) return;
 
-        const [courtId, slotId, , side] = key.split('-');
+        const parts = key.split('-');
+        const courtId = parts[0];
+        const slotId = parts[1];
+        const side = parts[parts.length - 1];
         const otherSide = side === 'left' ? 'right' : 'left';
         const otherKey = `${courtId}-${slotId}-${dateKey}-${otherSide}`;
 
@@ -1004,6 +1026,10 @@ const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null, 
     };
 
     const handleClick = (e) => {
+      if (!selectedCategoryId) {
+        showError("Please select a category first.");
+        return;
+      }
       if (isDisabled) return;
 
       const isDeselecting = isSlotSelected || leftHalf || rightHalf;
@@ -2126,7 +2152,10 @@ const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null, 
                         halfSelectedSlots.forEach(key => {
                           if (!key.includes(dateKey)) return;
 
-                          const [courtId, slotId, , side] = key.split('-');
+                          const parts = key.split('-');
+                          const courtId = parts[0];
+                          const slotId = parts[1];
+                          const side = parts[parts.length - 1];
                           const otherSide = side === 'left' ? 'right' : 'left';
                           const otherKey = `${courtId}-${slotId}-${dateKey}-${otherSide}`;
 
@@ -2266,6 +2295,7 @@ const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null, 
               activeHalves={{}}
               selectedDuration={60}
               onBackToSlots={() => setMatchPlayer(false)}
+              onClose={onClose}
               matchPlayer={matchPlayer}
               isAdminMode={true}
               ownerClubData={ownerClubData}

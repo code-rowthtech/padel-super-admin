@@ -182,7 +182,11 @@ export const useCreateMatchesLogic = () => {
     if (halfSelectedSlots.size > 0) {
       const slotGroups = new Map();
       halfSelectedSlots.forEach(key => {
-        const [courtId, slotId, date, side] = key.split('-');
+        const parts = key.split('-');
+        const courtId = parts[0];
+        const slotId = parts[1];
+        const side = parts[parts.length - 1];
+        const date = parts.slice(2, parts.length - 1).join('-');
         const groupKey = `${courtId}-${slotId}-${date}`;
         if (!slotGroups.has(groupKey)) {
           slotGroups.set(groupKey, { left: false, right: false });
@@ -428,6 +432,12 @@ export const useCreateMatchesLogic = () => {
       lockedSlotsRef.current.clear();
     };
   }, []);
+
+  useEffect(() => {
+    if (!halfSelectedSlots || halfSelectedSlots.size === 0) {
+      setShowHalfSlots(false);
+    }
+  }, [halfSelectedSlots]);
 
   useEffect(() => {
     if (selectedDate?.fullDate) {

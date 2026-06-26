@@ -62,6 +62,7 @@ const MatchPlayer = ({
     totalAmount,
     slotError,
     onBackToSlots,
+    onClose,
     slotData,
     halfSelectedSlots, ownerClubData,
     selectedClubId,
@@ -209,7 +210,11 @@ const MatchPlayer = ({
 
         const halfSlotGroups = new Map();
         halfSelectedSlots?.forEach(key => {
-            const [courtId, slotId, date, side] = key.split('-');
+            const parts = key.split('-');
+            const courtId = parts[0];
+            const slotId = parts[1];
+            const side = parts[parts.length - 1];
+            const date = parts.slice(2, parts.length - 1).join('-');
             const groupKey = `${courtId}-${slotId}-${date}`;
 
             const isInSelectedCourts = selectedCourts.some(court =>
@@ -259,7 +264,11 @@ const MatchPlayer = ({
             const slotGroups = new Map();
 
             halfSelectedSlots.forEach(key => {
-                const [courtId, slotId, date, side] = key.split('-');
+                const parts = key.split('-');
+                const courtId = parts[0];
+                const slotId = parts[1];
+                const side = parts[parts.length - 1];
+                const date = parts.slice(2, parts.length - 1).join('-');
                 const groupKey = `${courtId}-${slotId}-${date}`;
                 const slotKey = `${courtId}-${slotId}`;
 
@@ -474,6 +483,7 @@ const MatchPlayer = ({
                 location: resolvedLocationId
             };
 
+            let createdMatchId = null;
             const rescheduleMatchId = location.state?.rescheduleMatchId;
             if (rescheduleMatchId) {
                 await ownerApi.put(
@@ -486,8 +496,10 @@ const MatchPlayer = ({
                     },
                 );
                 showSuccess("Pay-share open match rescheduled successfully");
+                createdMatchId = rescheduleMatchId;
             } else {
-                await dispatch(createOpenMatchAdmin(formattedMatch)).unwrap();
+                const result = await dispatch(createOpenMatchAdmin(formattedMatch)).unwrap();
+                createdMatchId = result?.data?._id;
             }
             // Pay-share matches remain pending and must not reserve the slot
             // until all four players have completed payment.
@@ -502,7 +514,10 @@ const MatchPlayer = ({
                 })))
             );
             localStorage.removeItem("addedAdminPlayers");
-            navigate('/admin/open-matches', { replace: true });
+            if (onClose) {
+                onClose();
+            }
+            navigate('/admin/player-preferences', { replace: true, state: { selectedOpenMatchId: createdMatchId } });
 
         } catch (err) {
             if (formattedSlots?.length > 0) {
@@ -531,7 +546,7 @@ const MatchPlayer = ({
         if (onBackToSlots) {
             onBackToSlots();
         } else {
-            navigate('/admin/open-matches', { replace: true });
+            navigate('/admin/player-preferences', { replace: true });
         }
     };
 
