@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { Button, Card, Col, Form, Row } from "react-bootstrap";
+import { Button, Card, Form, Row } from "react-bootstrap";
 
 const PlayerFiltersPanel = ({
     show,
@@ -16,7 +16,6 @@ const PlayerFiltersPanel = ({
     TIME_SLOT_GROUPS,
     DAY_OPTIONS,
     SKILL_LEVEL_OPTIONS,
-    GENDER_OPTIONS,
     anchorRef,
 }) => {
     const panelRef = useRef(null);
@@ -88,7 +87,6 @@ const PlayerFiltersPanel = ({
 
     const getActiveFilterCount = () => {
         return [
-            filters.gender?.length || 0,
             filters.residence?.length || 0,
             filters.skillLevel?.length || 0,
             filters.clubId?.length || 0,
@@ -149,34 +147,17 @@ const PlayerFiltersPanel = ({
             </Card.Header>
             <Card.Body style={{ padding: 16 }}>
                 <Form>
-                    <Row className="g-2">
-                        <Col xs={6}>
-                            <Form.Group className="mb-3">
-                                <Form.Label style={{ fontFamily: "Poppins", fontSize: 12, fontWeight: 600, marginBottom: 6 }}>
-                                    Gender
-                                </Form.Label>
-                                <CheckboxMultiSelect
-                                    options={toSelectOptions(GENDER_OPTIONS)}
-                                    value={filters.gender}
-                                    onChange={(value) => onFilterChange("gender", value)}
-                                    placeholder={getMultiPlaceholder("All", filters.gender)}
-                                />
-                            </Form.Group>
-                        </Col>
-                        <Col xs={6}>
-                            <Form.Group className="mb-3">
-                                <Form.Label style={{ fontFamily: "Poppins", fontSize: 12, fontWeight: 600, marginBottom: 6 }}>
-                                    Skill Level
-                                </Form.Label>
-                                <CheckboxMultiSelect
-                                    options={toSelectOptions(SKILL_LEVEL_OPTIONS)}
-                                    value={filters.skillLevel}
-                                    onChange={(value) => onFilterChange("skillLevel", value)}
-                                    placeholder={getMultiPlaceholder("All", filters.skillLevel)}
-                                />
-                            </Form.Group>
-                        </Col>
-                    </Row>
+                    <Form.Group className="mb-3">
+                        <Form.Label style={{ fontFamily: "Poppins", fontSize: 12, fontWeight: 600, marginBottom: 6 }}>
+                            Skill Level
+                        </Form.Label>
+                        <CheckboxMultiSelect
+                            options={toSelectOptions(SKILL_LEVEL_OPTIONS)}
+                            value={filters.skillLevel}
+                            onChange={(value) => onFilterChange("skillLevel", value)}
+                            placeholder={getMultiPlaceholder("All", filters.skillLevel)}
+                        />
+                    </Form.Group>
                     <Form.Group className="mb-3">
                         <Form.Label style={{ fontFamily: "Poppins", fontSize: 12, fontWeight: 600, marginBottom: 6 }}>
                             Residence

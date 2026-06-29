@@ -132,6 +132,7 @@ const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null, 
     toggleTime,
     grandTotal,
     has30MinPrices,
+    selectedDuration,
     dispatch,
     navigate,
     location,
@@ -966,6 +967,17 @@ const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null, 
     const isBookedFor60Min = slot?.status === "booked" || slot?.status === "lock" || slot?.status === "tournament" && slot?.duration === 60;
     const bookingTime = slot?.bookingTime?.trim();
 
+    // ── Sibling slot check (mirrors Booking.js) ────────────────────────────
+    // When a court has 30-min prices, find the :30 sibling slot that follows
+    // this parent slot. If that sibling is unavailable / booked, the right
+    // half of this parent button must be disabled.
+    const slotMinutes = bookingTimeToMinutes(slot?.time);
+    const siblingSlot = (hasThirtyMinPrice && slotMinutes !== null)
+      ? slotData?.data?.find(c => c._id === courtId)?.slots?.find(
+          s => bookingTimeToMinutes(s?.time) === slotMinutes + 30
+        )
+      : null;
+
     let shouldDisableLeftClick = false;
     let shouldDisableRightClick = false;
 
@@ -986,6 +998,13 @@ const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null, 
       const isRightBooked = (bookingTime && /:30\s*(AM|PM)?$/i.test(bookingTime));
       shouldDisableLeftClick = isLeftBooked;
       shouldDisableRightClick = isRightBooked;
+    }
+
+    // Disable right side when sibling :30 slot is unavailable or booked
+    if (hasThirtyMinPrice && siblingSlot &&
+        (siblingSlot.availabilityStatus !== "available" ||
+         ["booked", "lock", "tournament"].includes(siblingSlot.status))) {
+      shouldDisableRightClick = true;
     }
 
     const getBackground = () => {
@@ -1082,6 +1101,68 @@ const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null, 
           return;
         }
 
+        // ── Chain validation: mirrors Booking.js lines 1776-1829 ───────────
+        // When the left side is booked/locked and the admin clicks the right
+        // half, require the NEXT slot's left side to already be selected first
+        // so the booking range stays contiguous.
+        if (clickSide === "right" && shouldDisableLeftClick) {
+          const toMin = (t) => {
+            const m = t?.time?.toString().toLowerCase().trim().match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)$/);
+            if (!m) return 0;
+            let h = parseInt(m[1]); const min = parseInt(m[2] || '0'); const p = m[3];
+            if (p === 'pm' && h !== 12) h += 12;
+            if (p === 'am' && h === 12) h = 0;
+            return h * 60 + min;
+          };
+          const courtSlots = slotData?.data?.find(c => c._id === courtId)?.slots || [];
+          const sortedSlots = [...courtSlots]
+            .filter(s => shouldShowParentSlot(courtSlots, s, has30MinPrices))
+            .sort((a, b) => toMin(a) - toMin(b));
+          const currentIndex = sortedSlots.findIndex(s => s._id === slot._id);
+          const nextSlot = sortedSlots[currentIndex + 1];
+          const nextCourtTimes = selectedTimes[courtId] || [];
+          const nextLeftKey = nextSlot ? `${courtId}-${nextSlot._id}-${dateKey}-left` : null;
+          const nextSelected = nextSlot && (
+            nextCourtTimes.some(t => t._id === nextSlot._id) ||
+            (nextLeftKey && halfSelectedSlots.has(nextLeftKey))
+          );
+          if (!nextSelected) {
+            showError("Select next slot first to enable this half slot");
+            return;
+          }
+        }
+
+        // When the right side is booked/locked and the admin clicks the left
+        // half, require the PREVIOUS slot's right side to already be selected.
+        if (clickSide === "left" && shouldDisableRightClick) {
+          const toMin = (t) => {
+            const m = t?.time?.toString().toLowerCase().trim().match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)$/);
+            if (!m) return 0;
+            let h = parseInt(m[1]); const min = parseInt(m[2] || '0'); const p = m[3];
+            if (p === 'pm' && h !== 12) h += 12;
+            if (p === 'am' && h === 12) h = 0;
+            return h * 60 + min;
+          };
+          const courtSlots = slotData?.data?.find(c => c._id === courtId)?.slots || [];
+          const sortedSlots = [...courtSlots]
+            .filter(s => shouldShowParentSlot(courtSlots, s, has30MinPrices))
+            .sort((a, b) => toMin(a) - toMin(b));
+          const currentIndex = sortedSlots.findIndex(s => s._id === slot._id);
+          const prevSlot = sortedSlots[currentIndex - 1];
+          const prevCourtTimes = selectedTimes[courtId] || [];
+          const prevRightKey = prevSlot ? `${courtId}-${prevSlot._id}-${dateKey}-right` : null;
+          const prevSelected = prevSlot && (
+            prevCourtTimes.some(t => t._id === prevSlot._id) ||
+            (prevRightKey && halfSelectedSlots.has(prevRightKey))
+          );
+          if (!prevSelected) {
+            showError("Select previous slot first to enable this half slot");
+            return;
+          }
+        }
+        // ──────────────────────────────────────────────────────────────────
+
+        const otherSideBooked = clickSide === "right" ? shouldDisableLeftClick : shouldDisableRightClick;
         toggleTime(slot, courtId, dateKey, clickSide);
       } else {
         toggleTime(slot, courtId, dateKey, null);
@@ -1994,17 +2075,21 @@ const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null, 
                             const slot = group[0];
                             const leftKey = `${court._id}-${slot._id}-${dateKey}-left`;
                             const rightKey = `${court._id}-${slot._id}-${dateKey}-right`;
-                            const leftHalf = halfSelectedSlots.has(leftKey);
-                            const rightHalf = halfSelectedSlots.has(rightKey);
+                            // Check halfSelectedSlots keys first; fall back to slot.side property
+                            // (set by updateSelectedBusinessAndCourts in CreateMatchesLogic)
+                            const leftHalf = halfSelectedSlots.has(leftKey) || slot.side === 'left';
+                            const rightHalf = halfSelectedSlots.has(rightKey) || slot.side === 'right';
+                            const isFullSlot = (!leftHalf && !rightHalf) || slot.side === 'both' ||
+                              (halfSelectedSlots.has(leftKey) && halfSelectedSlots.has(rightKey));
 
                             const hour = parseTimeToHour(slot.time);
                             const period = hour >= 12 ? 'PM' : 'AM';
                             const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
 
-                            if (leftHalf && !rightHalf) {
+                            if (!isFullSlot && leftHalf && !rightHalf) {
                               // Left half only: 4:00 PM - 4:30 PM
                               displayTime = `${displayHour}:00 ${period} - ${displayHour}:30 ${period}`;
-                            } else if (!leftHalf && rightHalf) {
+                            } else if (!isFullSlot && !leftHalf && rightHalf) {
                               // Right half only: 4:30 PM - 5:00 PM
                               const nextHour = hour + 1;
                               const nextPeriod = nextHour >= 12 ? 'PM' : 'AM';
@@ -2293,7 +2378,7 @@ const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null, 
               slotData={slotData}
               halfSelectedSlots={halfSelectedSlots}
               activeHalves={{}}
-              selectedDuration={60}
+              selectedDuration={selectedDuration}
               onBackToSlots={() => setMatchPlayer(false)}
               onClose={onClose}
               matchPlayer={matchPlayer}

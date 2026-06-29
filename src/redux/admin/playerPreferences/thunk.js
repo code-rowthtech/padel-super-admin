@@ -36,7 +36,6 @@ export const getAllPlayerPreferences = createAsyncThunk(
       if (params.categoryType) query.append("categoryType", params.categoryType);
       appendSearchParam(query, "skillLevel", params.skillLevel);
       appendSearchParam(query, "clubId", params.clubId);
-      appendSearchParam(query, "gender", params.gender);
       appendSearchParam(query, "residence", params.residence);
       appendSearchParam(query, "hasPreference", params.hasPreference);
       appendSearchParam(query, "day", params.day);

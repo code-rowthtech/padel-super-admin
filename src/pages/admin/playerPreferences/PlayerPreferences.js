@@ -91,7 +91,6 @@ const EMPTY_FILTERS = {
   search: "",
   categoryType: "",
   skillLevel: [],
-  gender: [],
   residence: [],
   clubId: [],
   day: [],
@@ -764,7 +763,6 @@ const PlayerPreferences = () => {
       search: filters.search,
       categoryType: filters.categoryType,
       skillLevel: filters.skillLevel,
-      gender: filters.gender,
       residence: filters.residence,
       clubId: filters.clubId,
       day: filters.day,
@@ -788,7 +786,7 @@ const PlayerPreferences = () => {
 
   const resetFilters = (options = {}) => {
     setFilters(EMPTY_FILTERS);
-    setSelectedOpenMatch(null);
+    // setSelectedOpenMatch(null);
     setRouteOpenMatchLoaded(false);
     if (options.clearRoute !== false && (location.search || location.state?.selectedOpenMatchId)) {
       navigate("/admin/player-preferences", { replace: true, state: {} });
@@ -861,21 +859,6 @@ const PlayerPreferences = () => {
 
   const handleOpenMatchSelect = (match) => {
     setSelectedOpenMatch(match);
-    if (match) {
-      const matchGender = match.gender || "";
-      let genderFilter = [];
-      if (matchGender === "Male Only") {
-        genderFilter = ["Male"];
-      } else if (matchGender === "Female Only") {
-        genderFilter = ["Female"];
-      } else if (matchGender === "Mixed Doubles") {
-        genderFilter = ["Male", "Female"];
-      }
-      setFilters((current) => ({
-        ...current,
-        gender: genderFilter,
-      }));
-    }
   };
 
   useEffect(() => {
@@ -1444,7 +1427,6 @@ const PlayerPreferences = () => {
                       <Badge bg="danger" className="ms-1" style={{ fontSize: 9 }}>
                         {[
                           filters.categoryType ? 1 : 0,
-                          filters.gender?.length || 0,
                           filters.residence?.length || 0,
                           filters.skillLevel?.length || 0,
                           filters.clubId?.length || 0,
@@ -1471,7 +1453,6 @@ const PlayerPreferences = () => {
                   TIME_SLOT_GROUPS={TIME_SLOT_GROUPS}
                   DAY_OPTIONS={DAY_OPTIONS}
                   SKILL_LEVEL_OPTIONS={SKILL_LEVEL_OPTIONS}
-                  GENDER_OPTIONS={GENDER_OPTIONS}
                   anchorRef={filterButtonRef}
                 />
                 <Button
