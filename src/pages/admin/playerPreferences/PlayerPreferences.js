@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { Badge, Button, Col, Container, Dropdown, Form, Modal, OverlayTrigger, Row, Table, Tooltip } from "react-bootstrap";
 import { FaCheck, FaEdit, FaFilter, FaPhone, FaPlus, FaRegEye, FaSave, FaSearch, FaTimes, FaUser } from "react-icons/fa";
 import Select, { components as selectComponents } from "react-select";
@@ -91,7 +91,6 @@ const EMPTY_FILTERS = {
   search: "",
   categoryType: "",
   skillLevel: [],
-  gender: [],
   residence: [],
   clubId: [],
   day: [],
@@ -345,6 +344,23 @@ const getMatchTime = (match) =>
       : match?.matchTime || getMatchSlotTimeRange(match),
   ) || "Any Time";
 
+const formatTime = (date) =>
+  new Date(date).toLocaleTimeString("en-IN", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+const getMatchTimeMap = (match) => {
+  if (match?.matchDateTime && match?.matchEndDateTime) {
+    return normalizeTimeRangeLabel(
+      `${formatTime(match.matchDateTime)} - ${formatTime(match.matchEndDateTime)}`
+    );
+  }
+
+  return normalizeTimeRangeLabel(
+    match?.matchTime || getMatchSlotTimeRange(match)
+  ) || "Any Time";
+};
 const getMatchClubName = (match) => match?.clubId?.clubName || match?.clubId?.name || "N/A";
 
 const getMatchCourtName = (match) => match?.slot?.[0]?.courtName || match?.courtName || "";
@@ -635,6 +651,7 @@ const PlayerPreferences = () => {
   const [openMatches, setOpenMatches] = useState([]);
   const [openMatchesLoading, setOpenMatchesLoading] = useState(false);
   const [selectedOpenMatch, setSelectedOpenMatch] = useState(null);
+  const hasAutoSelectedRouteMatch = useRef("");
   const selectedIsPayShareMatch = Boolean(
     selectedOpenMatch?.payShareMode ||
     selectedOpenMatch?.type === "super_admin_pay_share",
@@ -764,7 +781,6 @@ const PlayerPreferences = () => {
       search: filters.search,
       categoryType: filters.categoryType,
       skillLevel: filters.skillLevel,
-      gender: filters.gender,
       residence: filters.residence,
       clubId: filters.clubId,
       day: filters.day,
@@ -774,9 +790,9 @@ const PlayerPreferences = () => {
       is90: filters.preferredDuration?.includes("is90") || undefined,
       is120: filters.preferredDuration?.includes("is120") || undefined,
       isCalled: filters.isCalled !== null ? filters.isCalled : undefined,
-      matchId: selectedOpenMatch?._id || undefined,
+      matchId: selectedOpenMatch?._id ? String(selectedOpenMatch._id) : undefined,
     }));
-  }, [dispatch, filters, selectedOpenMatch]);
+  }, [dispatch, filters, selectedOpenMatch?._id]);
 
   useEffect(() => {
     loadPlayers(1);
@@ -788,7 +804,7 @@ const PlayerPreferences = () => {
 
   const resetFilters = (options = {}) => {
     setFilters(EMPTY_FILTERS);
-    setSelectedOpenMatch(null);
+    // setSelectedOpenMatch(null);
     setRouteOpenMatchLoaded(false);
     if (options.clearRoute !== false && (location.search || location.state?.selectedOpenMatchId)) {
       navigate("/admin/player-preferences", { replace: true, state: {} });
@@ -861,21 +877,6 @@ const PlayerPreferences = () => {
 
   const handleOpenMatchSelect = (match) => {
     setSelectedOpenMatch(match);
-    if (match) {
-      const matchGender = match.gender || "";
-      let genderFilter = [];
-      if (matchGender === "Male Only") {
-        genderFilter = ["Male"];
-      } else if (matchGender === "Female Only") {
-        genderFilter = ["Female"];
-      } else if (matchGender === "Mixed Doubles") {
-        genderFilter = ["Male", "Female"];
-      }
-      setFilters((current) => ({
-        ...current,
-        gender: genderFilter,
-      }));
-    }
   };
 
   useEffect(() => {
@@ -883,11 +884,17 @@ const PlayerPreferences = () => {
 
     setShowCreateMatchModal(false);
 
-    if (selectedOpenMatch?._id === routeMatchId) return;
+    if (hasAutoSelectedRouteMatch.current === routeMatchId) return;
+
+    if (selectedOpenMatch?._id === routeMatchId) {
+      hasAutoSelectedRouteMatch.current = routeMatchId;
+      return;
+    }
 
     const existingMatch = openMatches.find((match) => match?._id === routeMatchId);
     if (existingMatch) {
       handleOpenMatchSelect(existingMatch);
+      hasAutoSelectedRouteMatch.current = routeMatchId;
       return;
     }
 
@@ -1444,7 +1451,6 @@ const PlayerPreferences = () => {
                       <Badge bg="danger" className="ms-1" style={{ fontSize: 9 }}>
                         {[
                           filters.categoryType ? 1 : 0,
-                          filters.gender?.length || 0,
                           filters.residence?.length || 0,
                           filters.skillLevel?.length || 0,
                           filters.clubId?.length || 0,
@@ -1471,7 +1477,6 @@ const PlayerPreferences = () => {
                   TIME_SLOT_GROUPS={TIME_SLOT_GROUPS}
                   DAY_OPTIONS={DAY_OPTIONS}
                   SKILL_LEVEL_OPTIONS={SKILL_LEVEL_OPTIONS}
-                  GENDER_OPTIONS={GENDER_OPTIONS}
                   anchorRef={filterButtonRef}
                 />
                 <Button
@@ -2218,7 +2223,7 @@ const PlayerPreferences = () => {
                           <div
                             onClick={(e) => {
                               e.stopPropagation();
-                              setOpenDropdownKey(isDropdownOpen ? null : dropdownKey);
+                              // setOpenDropdownKey(isDropdownOpen ? null : dropdownKey);
                             }}
                             style={{
                               width: 20,
@@ -2235,9 +2240,14 @@ const PlayerPreferences = () => {
                             }}
                           >
                             {player ? (
-                              <FaUser size={8} color="#fff" />
+                              <OverlayTrigger placement='top' delay={{ show: 250, hide: 400 }}
+                                overlay={<Tooltip id={player?.userId?._id}>
+                                  {player?.userId?.name}
+                                </Tooltip>}>
+                                <FaUser size={8} color="#fff" style={{ cursor: 'pointer' }} />
+                              </OverlayTrigger>
                             ) : (
-                              <span style={{ color: color, fontSize: 12, fontWeight: "bold", lineHeight: "1", marginTop: "-1px" }}>+</span>
+                              <span style={{ color: color, fontSize: 12, fontWeight: "bold", lineHeight: "1", marginTop: "-1px" }}>?</span>
                             )}
                             {slotIndex === 0 && playerCount > 0 && (
                               <span
@@ -2313,13 +2323,10 @@ const PlayerPreferences = () => {
                               {getMatchCourtName(match) || "Court N/A"}
                             </div>
                           </div>
-                          {/* <Badge bg={SKILL_COLORS[match?.skillLevel] || "light"} text={match?.skillLevel ? undefined : "dark"} style={{ fontSize: 10 }}>
-                            {match?.skillLevel || "Any"}
-                          </Badge> */}
                         </div>
                         <div className="d-flex justify-content-between mt-2 text-muted" style={{ fontSize: 11 }}>
                           <span>{formatMatchDate(match)}</span>
-                          <span>{getMatchTime(match)}</span>
+                          <span>{getMatchTimeMap(match)}</span>
                         </div>
                         <div
                           className="d-flex justify-content-between align-items-center mt-2"
