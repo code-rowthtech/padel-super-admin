@@ -757,6 +757,7 @@ const PlayerPreferences = () => {
   }, [location.search, location.state]);
 
   const loadPlayers = useCallback((page = 1) => {
+    console.log("DEBUG loadPlayers: selectedOpenMatch is:", selectedOpenMatch, "matchId is:", selectedOpenMatch?._id);
     dispatch(getAllPlayerPreferences({
       page,
       limit: 25,
@@ -772,7 +773,7 @@ const PlayerPreferences = () => {
       is90: filters.preferredDuration?.includes("is90") || undefined,
       is120: filters.preferredDuration?.includes("is120") || undefined,
       isCalled: filters.isCalled !== null ? filters.isCalled : undefined,
-      matchId: selectedOpenMatch?._id || undefined,
+      matchId: selectedOpenMatch?._id ? String(selectedOpenMatch._id) : undefined,
     }));
   }, [dispatch, filters, selectedOpenMatch]);
 
