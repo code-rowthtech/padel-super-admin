@@ -269,6 +269,10 @@ export const useCreateMatchesLogic = () => {
     }
 
     if (selectedCourts?.length > 0) {
+      const has90 = selectedCourts.some(court =>
+        court.time?.some(t => t.duration === 90)
+      );
+      if (has90) return 90;
       return 60;
     }
 
@@ -435,7 +439,7 @@ export const useCreateMatchesLogic = () => {
           _id: currentSlot._id,
           time: currentSlot.time,
           amount: mergedAmount,
-          duration: 90,
+          duration: (currentSlot.duration || 60) + (adjacentSlot.duration || 60),
           side: "both",
           isHalfSlot: false
         };
@@ -444,7 +448,7 @@ export const useCreateMatchesLogic = () => {
           _id: adjacentSlot._id,
           time: adjacentSlot.time,
           amount: mergedAmount,
-          duration: 90,
+          duration: (currentSlot.duration || 60) + (adjacentSlot.duration || 60),
           side: "both",
           isHalfSlot: false
         };
