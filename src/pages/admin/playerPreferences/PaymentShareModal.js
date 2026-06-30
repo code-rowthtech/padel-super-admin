@@ -93,7 +93,7 @@ const PaymentShareModal = ({ show, onHide, match, player, paymentData }) => {
   const cardRef = useRef(null);
   const [copyingImage, setCopyingImage] = useState(false);
   const [sharingPayment, setSharingPayment] = useState(false);
-  const paymentLink = paymentData?.paymentLink || "";
+  const paymentLink = paymentData?.appPaymentLink || paymentData?.paymentLink || "";
   const fee = useMemo(() => getFeeBreakdown(match, paymentData), [match, paymentData]);
   const playerName = getPlayerName(player);
   const playerPhone = getPlayerPhone(player);
