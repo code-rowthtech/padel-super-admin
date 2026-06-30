@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { ownerApi } from '../../../helpers/api/apiCore';
 import { toast } from 'react-toastify';
-
+import { Tabs, Tab } from 'react-bootstrap';
+import AmericanoXpTab from '../americano/AmericanoXpTab';
 const DEFAULT_MULTIPLIERS = [
   { roundStart: 0, roundEnd: 3, multiplier: 10 },
   { roundStart: 4, roundEnd: 6, multiplier: 12 },
@@ -10,6 +11,7 @@ const DEFAULT_MULTIPLIERS = [
 ];
 
 const XpSettings = () => {
+  const [activeTab, setActiveTab] = useState('round');
   const [multipliers, setMultipliers] = useState(DEFAULT_MULTIPLIERS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -91,7 +93,13 @@ const XpSettings = () => {
     <div className="container-fluid py-4">
       <div className="row justify-content-center">
         <div className="col-12 col-lg-8">
-          <div className="card shadow-sm border-0">
+          <Tabs
+            activeKey={activeTab}
+            onSelect={(k) => setActiveTab(k)}
+            className="mb-4 custom-tabs"
+          >
+            <Tab eventKey="round" title="Round XP Multipliers">
+              <div className="card shadow-sm border-0">
             <div className="card-header d-flex justify-content-between align-items-center" style={{ background: 'rgb(31, 65, 187)', color: '#fff' }}>
               <h5 className="mb-0 fw-bold">⚙️ XP Multiplier Settings</h5>
               <button 
@@ -205,6 +213,11 @@ const XpSettings = () => {
               </button>
             </div>
           </div>
+            </Tab>
+            <Tab eventKey="americano" title="Americano Global XP">
+              <AmericanoXpTab />
+            </Tab>
+          </Tabs>
         </div>
       </div>
     </div>
