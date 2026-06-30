@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState, useRef } from "react";
-import { Badge, Button, Col, Container, Dropdown, Form, Modal, OverlayTrigger, Row, Table, Tooltip } from "react-bootstrap";
-import { FaCheck, FaEdit, FaFilter, FaPhone, FaPlus, FaRegEye, FaSave, FaSearch, FaTimes, FaUser } from "react-icons/fa";
+import { Badge, Button, Col, Container, Dropdown, Form, Modal, OverlayTrigger, Row, Spinner, Table, Tooltip } from "react-bootstrap";
+import { FaCheck, FaEdit, FaFileExcel, FaFilter, FaPhone, FaPlus, FaRegEye, FaSave, FaSearch, FaTimes, FaUser } from "react-icons/fa";
 import Select, { components as selectComponents } from "react-select";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -10,6 +10,7 @@ import {
   POST_MATCH_REQUEST_PAYMENT_LINK,
   SUPER_ADMIN_GET_ALL_CLUBS,
   SUPER_ADMIN_OPEN_MATCH_OVERVIEW,
+  PLAYER_PREF_EXPORT,
 } from "../../../helpers/api/apiEndpoint";
 import {
   createPlayerPreference,
@@ -27,6 +28,7 @@ import PlayersJoinedModal from "../../../components/modals/PlayersJoinedModal";
 import ReasonActionModal from "../../../components/modals/ReasonActionModal";
 import { showError, showSuccess } from "../../../helpers/Toast";
 import { getCategoryList } from "../../../redux/thunks";
+import { getMatchTimeMap } from "../../../utils/matchTime";
 
 const TIME_SLOT_GROUPS = [
   {
@@ -38,39 +40,6 @@ const TIME_SLOT_GROUPS = [
       "8 PM – 9 PM", "9 PM – 10 PM", "10 PM – 11 PM", "11 PM – 12 AM",
     ].map((value) => ({ value, label: value })),
   },
-  // {
-  //   label: "90 Minutes",
-  //   options: [
-  //     "5:00 AM – 6:30 AM", "6:00 AM – 7:30 AM", "7:00 AM – 8:30 AM", "8:00 AM – 9:30 AM",
-  //     "9:00 AM – 10:30 AM", "10:00 AM – 11:30 AM", "11:00 AM – 12:30 PM", "12:00 PM – 1:30 PM",
-  //     "1:00 PM – 2:30 PM", "2:00 PM – 3:30 PM", "3:00 PM – 4:30 PM", "4:00 PM – 5:30 PM",
-  //     "5:00 PM – 6:30 PM", "6:00 PM – 7:30 PM", "7:00 PM – 8:30 PM", "8:00 PM – 9:30 PM",
-  //     "9:00 PM – 10:30 PM", "10:00 PM – 11:30 PM", "11:00 PM – 12:30 AM",
-  //   ].map((value) => ({ value, label: value })),
-  // },
-  // {
-  //   label: "120 Minutes",
-  //   options: [
-  //     "5:00 AM – 7:00 AM",
-  //     "6:00 AM – 8:00 AM",
-  //     "7:00 AM – 9:00 AM",
-  //     "8:00 AM – 10:00 AM",
-  //     "9:00 AM – 11:00 AM",
-  //     "10:00 AM – 12:00 PM",
-  //     "11:00 AM – 1:00 PM",
-  //     "12:00 PM – 2:00 PM",
-  //     "1:00 PM – 3:00 PM",
-  //     "2:00 PM – 4:00 PM",
-  //     "3:00 PM – 5:00 PM",
-  //     "4:00 PM – 6:00 PM",
-  //     "5:00 PM – 7:00 PM",
-  //     "6:00 PM – 8:00 PM",
-  //     "7:00 PM – 9:00 PM",
-  //     "8:00 PM – 10:00 PM",
-  //     "9:00 PM – 11:00 PM",
-  //     "10:00 PM – 12:00 AM",
-  //   ].map((value) => ({ value, label: value })),
-  // }
 ];
 
 const DAY_OPTIONS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -351,17 +320,17 @@ const formatTime = (date) =>
     minute: "2-digit",
     hour12: true,
   });
-const getMatchTimeMap = (match) => {
-  if (match?.matchDateTime && match?.matchEndDateTime) {
-    return normalizeTimeRangeLabel(
-      `${formatTime(match.matchDateTime)} - ${formatTime(match.matchEndDateTime)}`
-    );
-  }
+// const getMatchTimeMap = (match) => {
+//   if (match?.matchDateTime && match?.matchEndDateTime) {
+//     return normalizeTimeRangeLabel(
+//       `${formatTime(match.matchDateTime)} - ${formatTime(match.matchEndDateTime)}`
+//     );
+//   }
 
-  return normalizeTimeRangeLabel(
-    match?.matchTime || getMatchSlotTimeRange(match)
-  ) || "Any Time";
-};
+//   return normalizeTimeRangeLabel(
+//     match?.matchTime || getMatchSlotTimeRange(match)
+//   ) || "Any Time";
+// };
 const getMatchClubName = (match) => match?.clubId?.clubName || match?.clubId?.name || "N/A";
 
 const getMatchCourtName = (match) => match?.slot?.[0]?.courtName || match?.courtName || "";
@@ -435,12 +404,6 @@ const formatScheduleSummary = (preferredSchedule = [], maxRows = 2) => {
           ? timeSlots.map(getSlotValue).join(", ")
           : "Any time";
 
-        // const tooltipContent = (
-        //   <div>
-        //     <div className="fw-bold mb-1">{entry.day}</div>
-        //     <div style={{ fontSize: 11 }}>{timeRange}</div>
-        //   </div>
-        // );
         const tooltipContent = (
           <div style={{ minWidth: 180 }}>
             <div
@@ -682,6 +645,7 @@ const PlayerPreferences = () => {
   const [playersModalMatch, setPlayersModalMatch] = useState(null);
   const [removeReasonModal, setRemoveReasonModal] = useState({ show: false, match: null, playerId: "", team: "", reason: "", loading: false });
   const [removingPlayerId, setRemovingPlayerId] = useState("");
+  const [exportLoading, setExportLoading] = useState(false);
   const filterButtonRef = React.useRef(null);
   const scrollContainerRef = React.useRef(null);
   const autoScrollRef = React.useRef(null);
@@ -799,6 +763,44 @@ const PlayerPreferences = () => {
     loadPlayers(1);
   }, [loadPlayers]);
 
+  const handleExport = async () => {
+    setExportLoading(true);
+    try {
+      const query = new URLSearchParams();
+      if (filters.search) query.append("search", filters.search);
+      if (filters.categoryType) query.append("categoryType", filters.categoryType);
+      if (filters.skillLevel?.length) query.append("skillLevel", filters.skillLevel.join(","));
+      if (filters.clubId?.length) query.append("clubId", filters.clubId.join(","));
+      if (filters.residence?.length) query.append("residence", filters.residence.join(","));
+      if (filters.day?.length) query.append("day", filters.day.join(","));
+      if (filters.timeSlot?.length) query.append("timeSlot", filters.timeSlot.join(","));
+      if (filters.hasPreference?.length) query.append("hasPreference", filters.hasPreference.join(","));
+      if (filters.preferredDuration?.includes("is60")) query.append("is60", "true");
+      if (filters.preferredDuration?.includes("is90")) query.append("is90", "true");
+      if (filters.preferredDuration?.includes("is120")) query.append("is120", "true");
+      if (filters.isCalled !== null) query.append("isCalled", String(filters.isCalled));
+      if (selectedOpenMatch?._id) query.append("matchId", String(selectedOpenMatch._id));
+
+      const res = await ownerApi.get(`${PLAYER_PREF_EXPORT}?${query.toString()}`);
+      const s3Url = res.data?.url;
+      if (!s3Url) throw new Error("No download URL received from server");
+
+      // Trigger browser download from S3 URL (no page navigation)
+      const link = document.createElement("a");
+      link.href = s3Url;
+      link.setAttribute("download", `players_export_${new Date().toISOString().slice(0, 10)}.xlsx`);
+      link.style.display = "none";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showSuccess(`${res.data?.totalExported || 0} player(s) exported — your download has started.`);
+    } catch (err) {
+      showError(err?.response?.data?.message || err?.message || "Export failed");
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
   const updateFilter = (field, value) => {
     setFilters((current) => ({ ...current, [field]: value }));
   };
@@ -913,8 +915,13 @@ const PlayerPreferences = () => {
       return;
     }
 
-    loadOpenMatches();
-  }, [loadOpenMatches, openMatches, routeMatchId, selectedOpenMatch]);
+    if (!routeOpenMatchLoaded) {
+      setRouteOpenMatchLoaded(true);
+      loadOpenMatches();
+    } else {
+      hasAutoSelectedRouteMatch.current = routeMatchId;
+    }
+  }, [loadOpenMatches, openMatches, routeMatchId, selectedOpenMatch, routeOpenMatchLoaded]);
 
   const handleRequestPlayer = async (row) => {
     const playerId = getPlayerId(row);
@@ -1481,6 +1488,20 @@ const PlayerPreferences = () => {
                   className="d-lg-none"
                 >
                   Open Match
+                </Button>
+                <Button
+                  size="sm"
+                  variant="success"
+                  onClick={handleExport}
+                  disabled={exportLoading}
+                  style={{ fontFamily: "Poppins", fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}
+                  title="Export players matching current filters to Excel"
+                >
+                  {exportLoading ? (
+                    <><Spinner size="sm" animation="border" /> Exporting...</>
+                  ) : (
+                    <><FaFileExcel size={13} /> Export</>
+                  )}
                 </Button>
                 <Button
                   size="sm"
