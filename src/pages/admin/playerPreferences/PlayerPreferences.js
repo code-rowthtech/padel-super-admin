@@ -434,12 +434,6 @@ const formatScheduleSummary = (preferredSchedule = [], maxRows = 2) => {
           ? timeSlots.map(getSlotValue).join(", ")
           : "Any time";
 
-        // const tooltipContent = (
-        //   <div>
-        //     <div className="fw-bold mb-1">{entry.day}</div>
-        //     <div style={{ fontSize: 11 }}>{timeRange}</div>
-        //   </div>
-        // );
         const tooltipContent = (
           <div style={{ minWidth: 180 }}>
             <div
