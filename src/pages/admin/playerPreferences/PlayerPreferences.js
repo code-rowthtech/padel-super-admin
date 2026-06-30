@@ -26,6 +26,7 @@ import PlayersJoinedModal from "../../../components/modals/PlayersJoinedModal";
 import ReasonActionModal from "../../../components/modals/ReasonActionModal";
 import { showError, showSuccess } from "../../../helpers/Toast";
 import { getCategoryList } from "../../../redux/thunks";
+import { getMatchTimeMap } from "../../../utils/matchTime";
 
 const TIME_SLOT_GROUPS = [
   {
@@ -37,39 +38,6 @@ const TIME_SLOT_GROUPS = [
       "8 PM – 9 PM", "9 PM – 10 PM", "10 PM – 11 PM", "11 PM – 12 AM",
     ].map((value) => ({ value, label: value })),
   },
-  // {
-  //   label: "90 Minutes",
-  //   options: [
-  //     "5:00 AM – 6:30 AM", "6:00 AM – 7:30 AM", "7:00 AM – 8:30 AM", "8:00 AM – 9:30 AM",
-  //     "9:00 AM – 10:30 AM", "10:00 AM – 11:30 AM", "11:00 AM – 12:30 PM", "12:00 PM – 1:30 PM",
-  //     "1:00 PM – 2:30 PM", "2:00 PM – 3:30 PM", "3:00 PM – 4:30 PM", "4:00 PM – 5:30 PM",
-  //     "5:00 PM – 6:30 PM", "6:00 PM – 7:30 PM", "7:00 PM – 8:30 PM", "8:00 PM – 9:30 PM",
-  //     "9:00 PM – 10:30 PM", "10:00 PM – 11:30 PM", "11:00 PM – 12:30 AM",
-  //   ].map((value) => ({ value, label: value })),
-  // },
-  // {
-  //   label: "120 Minutes",
-  //   options: [
-  //     "5:00 AM – 7:00 AM",
-  //     "6:00 AM – 8:00 AM",
-  //     "7:00 AM – 9:00 AM",
-  //     "8:00 AM – 10:00 AM",
-  //     "9:00 AM – 11:00 AM",
-  //     "10:00 AM – 12:00 PM",
-  //     "11:00 AM – 1:00 PM",
-  //     "12:00 PM – 2:00 PM",
-  //     "1:00 PM – 3:00 PM",
-  //     "2:00 PM – 4:00 PM",
-  //     "3:00 PM – 5:00 PM",
-  //     "4:00 PM – 6:00 PM",
-  //     "5:00 PM – 7:00 PM",
-  //     "6:00 PM – 8:00 PM",
-  //     "7:00 PM – 9:00 PM",
-  //     "8:00 PM – 10:00 PM",
-  //     "9:00 PM – 11:00 PM",
-  //     "10:00 PM – 12:00 AM",
-  //   ].map((value) => ({ value, label: value })),
-  // }
 ];
 
 const DAY_OPTIONS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -350,17 +318,17 @@ const formatTime = (date) =>
     minute: "2-digit",
     hour12: true,
   });
-const getMatchTimeMap = (match) => {
-  if (match?.matchDateTime && match?.matchEndDateTime) {
-    return normalizeTimeRangeLabel(
-      `${formatTime(match.matchDateTime)} - ${formatTime(match.matchEndDateTime)}`
-    );
-  }
+// const getMatchTimeMap = (match) => {
+//   if (match?.matchDateTime && match?.matchEndDateTime) {
+//     return normalizeTimeRangeLabel(
+//       `${formatTime(match.matchDateTime)} - ${formatTime(match.matchEndDateTime)}`
+//     );
+//   }
 
-  return normalizeTimeRangeLabel(
-    match?.matchTime || getMatchSlotTimeRange(match)
-  ) || "Any Time";
-};
+//   return normalizeTimeRangeLabel(
+//     match?.matchTime || getMatchSlotTimeRange(match)
+//   ) || "Any Time";
+// };
 const getMatchClubName = (match) => match?.clubId?.clubName || match?.clubId?.name || "N/A";
 
 const getMatchCourtName = (match) => match?.slot?.[0]?.courtName || match?.courtName || "";
@@ -434,12 +402,6 @@ const formatScheduleSummary = (preferredSchedule = [], maxRows = 2) => {
           ? timeSlots.map(getSlotValue).join(", ")
           : "Any time";
 
-        // const tooltipContent = (
-        //   <div>
-        //     <div className="fw-bold mb-1">{entry.day}</div>
-        //     <div style={{ fontSize: 11 }}>{timeRange}</div>
-        //   </div>
-        // );
         const tooltipContent = (
           <div style={{ minWidth: 180 }}>
             <div
@@ -898,8 +860,13 @@ const PlayerPreferences = () => {
       return;
     }
 
-    loadOpenMatches();
-  }, [loadOpenMatches, openMatches, routeMatchId, selectedOpenMatch]);
+    if (!routeOpenMatchLoaded) {
+      setRouteOpenMatchLoaded(true);
+      loadOpenMatches();
+    } else {
+      hasAutoSelectedRouteMatch.current = routeMatchId;
+    }
+  }, [loadOpenMatches, openMatches, routeMatchId, selectedOpenMatch, routeOpenMatchLoaded]);
 
   const handleRequestPlayer = async (row) => {
     const playerId = getPlayerId(row);
