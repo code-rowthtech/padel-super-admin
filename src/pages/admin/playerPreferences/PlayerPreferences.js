@@ -23,6 +23,7 @@ import { sendMatchRequest } from "../../../redux/admin/matchRequest/thunk";
 import PlayerFiltersPanel from "./PlayerFiltersPanel";
 import CreateMatchModal from "../openMatches/create/CreateMatchModal";
 import PlayerDetailsModal from "./PlayerDetailsModal";
+import PaymentShareModal from "./PaymentShareModal";
 import PlayersJoinedModal from "../../../components/modals/PlayersJoinedModal";
 import ReasonActionModal from "../../../components/modals/ReasonActionModal";
 import { showError, showSuccess } from "../../../helpers/Toast";
@@ -622,7 +623,7 @@ const PlayerPreferences = () => {
   const [requestingPlayerId, setRequestingPlayerId] = useState("");
   const [generatingLinkPlayerId, setGeneratingLinkPlayerId] = useState("");
   const [paymentLinksByPlayerId, setPaymentLinksByPlayerId] = useState({});
-  const [copyVisibleUntil, setCopyVisibleUntil] = useState({});
+  const [paymentShareModal, setPaymentShareModal] = useState({ show: false, match: null, player: null, paymentData: null });
   const [routeOpenMatchLoaded, setRouteOpenMatchLoaded] = useState(false);
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
   const [showCreateMatchModal, setShowCreateMatchModal] = useState(false);
@@ -814,6 +815,20 @@ const PlayerPreferences = () => {
   };
 
   const getPlayerId = (row) => row?.customerId?._id || "";
+
+  const openPaymentShareModal = ({ match, player, paymentData }) => {
+    if (!paymentData?.paymentLink) return;
+    setPaymentShareModal({
+      show: true,
+      match,
+      player,
+      paymentData,
+    });
+  };
+
+  const closePaymentShareModal = () => {
+    setPaymentShareModal({ show: false, match: null, player: null, paymentData: null });
+  };
   const getJoinedPlayerId = (player) => String(player?.userId?._id || player?.userId || player?._id || "");
   const getJoinedPlayerIds = (match) => [
     ...(match?.teamA || []),
@@ -945,14 +960,11 @@ const PlayerPreferences = () => {
           ...current,
           [playerId]: data,
         }));
-        // Show copy button for 5 seconds
-        setCopyVisibleUntil((current) => ({
-          ...current,
-          [playerId]: Date.now() + 5000,
-        }));
-        setTimeout(() => {
-          setCopyVisibleUntil((current) => ({ ...current, [playerId]: 0 }));
-        }, 5000);
+        openPaymentShareModal({
+          match: selectedOpenMatch,
+          player: row,
+          paymentData: data,
+        });
       }
       showSuccess(res?.data?.message || (isResend ? "Payment link resent" : "Payment link generated"));
     } catch (error) {
@@ -960,27 +972,6 @@ const PlayerPreferences = () => {
     } finally {
       setGeneratingLinkPlayerId("");
     }
-  };
-
-  const handleCopyPaymentLink = async (playerId) => {
-    const link = paymentLinksByPlayerId[playerId]?.paymentLink;
-    if (!link) return;
-
-    if (navigator?.clipboard?.writeText) {
-      await navigator.clipboard.writeText(link);
-      showSuccess("Payment link copied");
-      return;
-    }
-
-    const textarea = document.createElement("textarea");
-    textarea.value = link;
-    textarea.style.position = "fixed";
-    textarea.style.opacity = "0";
-    document.body.appendChild(textarea);
-    textarea.select();
-    document.execCommand("copy");
-    document.body.removeChild(textarea);
-    showSuccess("Payment link copied");
   };
 
   const handleViewPlayerDetails = (row) => {
@@ -1020,13 +1011,16 @@ const PlayerPreferences = () => {
             ...current,
             [playerId]: data,
           }));
-          setCopyVisibleUntil((current) => ({
-            ...current,
-            [playerId]: Date.now() + 5000,
-          }));
-          setTimeout(() => {
-            setCopyVisibleUntil((current) => ({ ...current, [playerId]: 0 }));
-          }, 5000);
+          openPaymentShareModal({
+            match,
+            player: {
+              ...player,
+              playerName: selectedPlayerForAdd.playerName,
+              playerPhone: selectedPlayerForAdd.playerPhone,
+              customerId: player.customerId || player,
+            },
+            paymentData: data,
+          });
         }
         await loadOpenMatches(matchSearchQuery, matchGameTypeRef.current);
         setShowAddPlayerModal(false);
@@ -1808,21 +1802,22 @@ const PlayerPreferences = () => {
                                     </Button>
                                   )}
                                   {!playerAlreadyAdded && (paymentLinksByPlayerId[playerId]?.paymentLink ? (
-                                    copyVisibleUntil[playerId] && copyVisibleUntil[playerId] > Date.now() ? (
-                                      <>
-                                        <Button
-                                          size="sm"
-                                          variant="outline-success"
-                                          onClick={() => handleCopyPaymentLink(playerId)}
-                                          style={{ fontSize: 11, minWidth: 118 }}
-                                        >
-                                          Copy Link
-                                        </Button>
-                                        <span className="text-muted" style={{ fontSize: 11 }}>
-                                          ₹{paymentLinksByPlayerId[playerId]?.paymentAmount || 0}
-                                        </span>
-                                      </>
-                                    ) : (
+                                    <>
+                                      <Button
+                                        size="sm"
+                                        variant="outline-success"
+                                        onClick={() => openPaymentShareModal({
+                                          match: selectedOpenMatch,
+                                          player: row,
+                                          paymentData: paymentLinksByPlayerId[playerId],
+                                        })}
+                                        style={{ fontSize: 11, minWidth: 118 }}
+                                      >
+                                        Share Payment
+                                      </Button>
+                                      <span className="text-muted" style={{ fontSize: 11 }}>
+                                        ₹{paymentLinksByPlayerId[playerId]?.paymentAmount || 0}
+                                      </span>
                                       <Button
                                         size="sm"
                                         variant="outline-primary"
@@ -1832,7 +1827,7 @@ const PlayerPreferences = () => {
                                       >
                                         {generatingLinkPlayerId === playerId ? <ButtonLoading size={6} color="blue" /> : "Resend Link"}
                                       </Button>
-                                    )
+                                    </>
                                   ) : (
                                     <Button
                                       size="sm"
@@ -1933,15 +1928,18 @@ const PlayerPreferences = () => {
                                   </Button>
                                 )}
                                 {!playerAlreadyAdded && (paymentLinksByPlayerId[playerId]?.paymentLink ? (
-                                  copyVisibleUntil[playerId] && copyVisibleUntil[playerId] > Date.now() ? (
+                                  <>
                                     <Button
                                       size="sm"
                                       variant="outline-success"
-                                      onClick={() => handleCopyPaymentLink(playerId)}
+                                      onClick={() => openPaymentShareModal({
+                                        match: selectedOpenMatch,
+                                        player: row,
+                                        paymentData: paymentLinksByPlayerId[playerId],
+                                      })}
                                     >
-                                      Copy Link
+                                      Share Payment
                                     </Button>
-                                  ) : (
                                     <Button
                                       size="sm"
                                       variant="outline-primary"
@@ -1950,7 +1948,7 @@ const PlayerPreferences = () => {
                                     >
                                       {generatingLinkPlayerId === playerId ? <ButtonLoading size={6} color="blue" /> : "Resend Link"}
                                     </Button>
-                                  )
+                                  </>
                                 ) : (
                                   <Button
                                     size="sm"
@@ -2964,6 +2962,14 @@ const PlayerPreferences = () => {
         show={showPlayerDetailsModal}
         onHide={closePlayerDetailsModal}
         playerData={selectedPlayerDetails}
+      />
+
+      <PaymentShareModal
+        show={paymentShareModal.show}
+        onHide={closePaymentShareModal}
+        match={paymentShareModal.match}
+        player={paymentShareModal.player}
+        paymentData={paymentShareModal.paymentData}
       />
 
       {/* Add Player Confirmation Modal */}
