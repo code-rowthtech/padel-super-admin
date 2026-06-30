@@ -100,121 +100,121 @@ const XpSettings = () => {
           >
             <Tab eventKey="round" title="Round XP Multipliers">
               <div className="card shadow-sm border-0">
-            <div className="card-header d-flex justify-content-between align-items-center" style={{ background: 'rgb(31, 65, 187)', color: '#fff' }}>
-              <h5 className="mb-0 fw-bold">⚙️ XP Multiplier Settings</h5>
-              <button 
-                className="btn btn-sm btn-light"
-                onClick={resetToDefaults}
-                disabled={loading || saving}
-              >
-                Reset to Defaults
-              </button>
-            </div>
-            <div className="card-body p-4">
-              <p className="text-muted small mb-4">
-                Configure round-based XP multipliers. Each round range can have a different multiplier value.
-                <br /><br />
-                <strong>Formula:</strong><br />
-                Winner gains: <code>baseXP × tierMultiplier × roundMultiplier</code><br />
-                Loser loses: <code>(baseXP × roundMultiplier) / 2</code>
-              </p>
-
-              {loading ? (
-                <div className="placeholder-glow">
-                  <span className="placeholder col-12 rounded mb-2" style={{ height: 60 }} />
-                  <span className="placeholder col-12 rounded mb-2" style={{ height: 60 }} />
-                  <span className="placeholder col-12 rounded" style={{ height: 60 }} />
+                <div className="card-header d-flex justify-content-between align-items-center" style={{ background: 'rgb(31, 65, 187)', color: '#fff' }}>
+                  <h5 className="mb-0 fw-bold">⚙️ XP Multiplier Settings</h5>
+                  <button
+                    className="btn btn-sm btn-light"
+                    onClick={resetToDefaults}
+                    disabled={loading || saving}
+                  >
+                    Reset to Defaults
+                  </button>
                 </div>
-              ) : (
-                <>
-                  <div className="table-responsive">
-                    <table className="table table-bordered">
-                      <thead style={{ background: '#f8f9fa' }}>
-                        <tr>
-                          <th>Round Start</th>
-                          <th>Round End</th>
-                          <th>Multiplier</th>
-                          <th style={{ width: '80px' }}>Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {multipliers.map((m, index) => (
-                          <tr key={index}>
-                            <td>
-                              <input
-                                type="number"
-                                className="form-control form-control-sm"
-                                value={m.roundStart}
-                                min="0"
-                                onChange={e => handleMultiplierChange(index, 'roundStart', e.target.value)}
-                              />
-                            </td>
-                            <td>
-                              <input
-                                type="number"
-                                className="form-control form-control-sm"
-                                value={m.roundEnd}
-                                min="0"
-                                onChange={e => handleMultiplierChange(index, 'roundEnd', e.target.value)}
-                              />
-                            </td>
-                            <td>
-                              <input
-                                type="number"
-                                className="form-control form-control-sm"
-                                value={m.multiplier}
-                                min="0.1"
-                                step="0.5"
-                                onChange={e => handleMultiplierChange(index, 'multiplier', e.target.value)}
-                              />
-                            </td>
-                            <td className="text-center">
-                              <button
-                                className="btn btn-sm btn-danger"
-                                onClick={() => removeRound(index)}
-                                disabled={multipliers.length <= 1}
-                                title="Remove round"
-                              >
-                                ×
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                <div className="card-body p-4">
+                  <p className="text-muted small mb-4">
+                    Configure round-based XP multipliers. Each round range can have a different multiplier value.
+                    <br /><br />
+                    <strong>Formula:</strong><br />
+                    Winner gains: <code>baseXP × tierMultiplier × roundMultiplier</code><br />
+                    Loser loses: <code>(baseXP × roundMultiplier) / 2</code>
+                  </p>
+
+                  {loading ? (
+                    <div className="placeholder-glow">
+                      <span className="placeholder col-12 rounded mb-2" style={{ height: 60 }} />
+                      <span className="placeholder col-12 rounded mb-2" style={{ height: 60 }} />
+                      <span className="placeholder col-12 rounded" style={{ height: 60 }} />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="table-responsive">
+                        <table className="table table-bordered">
+                          <thead style={{ background: '#f8f9fa' }}>
+                            <tr>
+                              <th>Round Start</th>
+                              <th>Round End</th>
+                              <th>Multiplier</th>
+                              <th style={{ width: '80px' }}>Action</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {multipliers.map((m, index) => (
+                              <tr key={index}>
+                                <td>
+                                  <input
+                                    type="number"
+                                    className="form-control form-control-sm"
+                                    value={m.roundStart}
+                                    min="0"
+                                    onChange={e => handleMultiplierChange(index, 'roundStart', e.target.value)}
+                                  />
+                                </td>
+                                <td>
+                                  <input
+                                    type="number"
+                                    className="form-control form-control-sm"
+                                    value={m.roundEnd}
+                                    min="0"
+                                    onChange={e => handleMultiplierChange(index, 'roundEnd', e.target.value)}
+                                  />
+                                </td>
+                                <td>
+                                  <input
+                                    type="number"
+                                    className="form-control form-control-sm"
+                                    value={m.multiplier}
+                                    min="0.1"
+                                    step="0.5"
+                                    onChange={e => handleMultiplierChange(index, 'multiplier', e.target.value)}
+                                  />
+                                </td>
+                                <td className="text-center">
+                                  <button
+                                    className="btn btn-sm btn-danger"
+                                    onClick={() => removeRound(index)}
+                                    disabled={multipliers.length <= 1}
+                                    title="Remove round"
+                                  >
+                                    ×
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <button
+                        className="btn btn-sm btn-outline-primary mb-3"
+                        onClick={addRound}
+                      >
+                        + Add Round
+                      </button>
+
+                      <div className="alert alert-info small">
+                        <strong>Examples:</strong>
+                        <ul className="mb-0 mt-2">
+                          <li>Rounds 0-3: 10x multiplier</li>
+                          <li>Rounds 4-6: 12x multiplier</li>
+                          <li>Rounds 7-10: 15x multiplier</li>
+                          <li>Rounds 11+: 20x multiplier</li>
+                        </ul>
+                      </div>
+                    </>
+                  )}
 
                   <button
-                    className="btn btn-sm btn-outline-primary mb-3"
-                    onClick={addRound}
+                    className="btn w-100 text-white fw-bold"
+                    style={{ background: 'rgb(31, 65, 187)' }}
+                    onClick={handleSave}
+                    disabled={saving || loading}
                   >
-                    + Add Round
+                    {saving ? 'Saving…' : 'Save Changes'}
                   </button>
-
-                  <div className="alert alert-info small">
-                    <strong>Examples:</strong>
-                    <ul className="mb-0 mt-2">
-                      <li>Rounds 0-3: 10x multiplier</li>
-                      <li>Rounds 4-6: 12x multiplier</li>
-                      <li>Rounds 7-10: 15x multiplier</li>
-                      <li>Rounds 11+: 20x multiplier</li>
-                    </ul>
-                  </div>
-                </>
-              )}
-
-              <button
-                className="btn w-100 text-white fw-bold"
-                style={{ background: 'rgb(31, 65, 187)' }}
-                onClick={handleSave}
-                disabled={saving || loading}
-              >
-                {saving ? 'Saving…' : 'Save Changes'}
-              </button>
-            </div>
-          </div>
+                </div>
+              </div>
             </Tab>
-            <Tab eventKey="americano" title="Americano Global XP">
+            <Tab eventKey="americano" title="Americano XP Multiplier">
               <AmericanoXpTab />
             </Tab>
           </Tabs>
