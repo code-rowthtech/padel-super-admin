@@ -391,11 +391,16 @@ const MatchPlayer = ({
             const rightKey = `${court._id}-${timeSlot._id}-${dateKey}-right`;
             const isLeftHalf = halfSelectedSlots?.has(leftKey);
             const isRightHalf = halfSelectedSlots?.has(rightKey);
+            // Use duration from slotInfo if timeSlot lacks it
+            const slotDurationFromInfo = slotInfo?.duration;
             const shouldBe60Minutes = () => {
                 if (isLeftHalf && isRightHalf) {
                     return true;
                 }
-
+                // Do not force 60 minutes for explicit 90‑minute slots
+                if (timeSlot?.duration === 90) {
+                    return false;
+                }
                 const slotHour = parseTimeToHour(timeSlot?.time);
                 if (slotHour !== null) {
                     const allSelectedHours = [];
@@ -407,14 +412,11 @@ const MatchPlayer = ({
                             }
                         });
                     });
-
                     allSelectedHours.sort((a, b) => a - b);
-
                     for (let i = 0; i < allSelectedHours.length - 2; i++) {
                         const first = allSelectedHours[i];
                         const second = allSelectedHours[i + 1];
                         const third = allSelectedHours[i + 2];
-
                         if (second === first + 1 && third === second + 1) {
                             if (slotHour === first || slotHour === second || slotHour === third) {
                                 return true;
@@ -422,20 +424,35 @@ const MatchPlayer = ({
                         }
                     }
                 }
-
                 return false;
             };
 
+            // Determine base duration: prefer explicit slot duration, else slotInfo duration
+            const explicitDuration = timeSlot?.duration ?? slotDurationFromInfo;
             let finalDuration = shouldBe60Minutes() ? 60 : 30;
 
             // If slot itself is 60-min and no half-selection, it must be 60
-            if (!isLeftHalf && !isRightHalf && timeSlot?.duration === 60) {
+            if (!isLeftHalf && !isRightHalf && explicitDuration === 60) {
                 finalDuration = 60;
             }
 
-            if (timeSlot?.duration === 60 && timeSlot?.originalDuration === 90) {
+            // Handle explicit 90-minute slots
+            if (explicitDuration === 90) {
                 finalDuration = 90;
             }
+
+            // Debug log for each slot mapping
+                console.log('Slot mapping debug:', {
+                    courtId: court._id,
+                    timeSlotId: timeSlot._id,
+                    explicitDuration,
+                    finalDuration,
+                    usedDuration: explicitDuration ?? finalDuration,
+                    isLeftHalf,
+                    isRightHalf
+                });
+
+
             let matchTime = timeSlot?.time;
 
             return {
@@ -445,12 +462,12 @@ const MatchPlayer = ({
                 courtName: court?.courtName,
                 courtId: court?._id,
                 bookingDate: new Date(court?.date || selectedDate?.fullDate).toISOString(),
-                duration: finalDuration,
+                // Use the explicit duration if available, otherwise the computed finalDuration
+                duration: explicitDuration ?? finalDuration,
                 bookingTime: matchTime,
                 totalTime: finalDuration
             };
         }));
-
         try {
             await lockSlots(formattedSlots);
             const resolvedClubId = resolveId(selectedClubId || ownerClubData?.[0]?._id || savedClubId);
@@ -482,7 +499,7 @@ const MatchPlayer = ({
                 categoryId: resolvedCategoryId,
                 location: resolvedLocationId
             };
-
+                console.log('Formatted match payload:', formattedMatch);
             let createdMatchId = null;
             const rescheduleMatchId = location.state?.rescheduleMatchId;
             if (rescheduleMatchId) {

@@ -351,10 +351,10 @@ const OpenMatchesOverview = () => {
                       const courtName = getCourtNameText(item);
                       const bookingDate = getBookingDate(item);
                       const timeText = getSlotTimesText(item);
-	                      const status = getOpenMatchDisplayStatus(item);
-	                      const isMatchCompleted = isMatchRequestDisabled(item);
-	                      const canRescheduleConflict = isSlotConflictCancelledPayShareMatch(item);
-	                      const isApproaching = item?.isWithin24Hours;
+                      const status = getOpenMatchDisplayStatus(item);
+                      const isMatchCompleted = isMatchRequestDisabled(item);
+                      const canRescheduleConflict = isSlotConflictCancelledPayShareMatch(item);
+                      const isApproaching = item?.isWithin24Hours;
                       const approachingStyle = isApproaching ? { backgroundColor: "#fffbeb" } : undefined;
                       const statusStyle = getStatusBadgeStyle(status);
 
@@ -488,32 +488,32 @@ const OpenMatchesOverview = () => {
                                   Request
                                 </button>
                               )}
-	                              {canRescheduleConflict && (
-	                                  <button
-	                                    className="btn btn-sm btn-outline-primary"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      navigate("/admin/open-matches/create", {
-                                        state: { rescheduleMatchId: item._id },
-                                      });
-                                    }}
-                                    style={{ fontSize: "11px", padding: "5px 9px" }}
-	                                  >
-	                                    Reschedule
-	                                  </button>
-	                              )}
-	                              {isPayShareMatch(item) && ["pending", "expired"].includes(String(item?.openMatchStatus || "").toLowerCase()) && (
-	                                  <button
-	                                    className="btn btn-sm btn-outline-danger"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      openCancelReasonModal(item);
-                                    }}
-                                    style={{ fontSize: "11px", padding: "5px 9px" }}
-	                                  >
-	                                    Cancel
-	                                  </button>
-	                              )}
+                              {canRescheduleConflict && (
+                                <button
+                                  className="btn btn-sm btn-outline-primary"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate("/admin/open-matches/create", {
+                                      state: { rescheduleMatchId: item._id },
+                                    });
+                                  }}
+                                  style={{ fontSize: "11px", padding: "5px 9px" }}
+                                >
+                                  Reschedule
+                                </button>
+                              )}
+                              {isPayShareMatch(item) && ["pending", "expired"].includes(String(item?.openMatchStatus || "").toLowerCase()) && (
+                                <button
+                                  className="btn btn-sm btn-outline-danger"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openCancelReasonModal(item);
+                                  }}
+                                  style={{ fontSize: "11px", padding: "5px 9px" }}
+                                >
+                                  Cancel
+                                </button>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -538,10 +538,10 @@ const OpenMatchesOverview = () => {
                   const courtName = getCourtNameText(item);
                   const bookingDate = getBookingDate(item);
                   const timeText = getSlotTimesText(item);
-	                  const status = getOpenMatchDisplayStatus(item);
-	                  const isMatchCompleted = isMatchRequestDisabled(item);
-	                  const canRescheduleConflict = isSlotConflictCancelledPayShareMatch(item);
-	                  const isApproaching = item?.isWithin24Hours;
+                  const status = getOpenMatchDisplayStatus(item);
+                  const isMatchCompleted = isMatchRequestDisabled(item);
+                  const canRescheduleConflict = isSlotConflictCancelledPayShareMatch(item);
+                  const isApproaching = item?.isWithin24Hours;
                   const statusStyle = getStatusBadgeStyle(status);
 
                   return (
@@ -602,12 +602,12 @@ const OpenMatchesOverview = () => {
                           <div className="d-flex justify-content-between mb-1" style={{ fontSize: "11px" }}>
                             <span className="fw-bold text-dark">Players Joined:</span>
                             <span
-	                              className="text-muted fw-bold"
-	                              style={{ cursor: "pointer", textDecoration: "underline" }}
-	                              onClick={(e) => {
-	                                e.stopPropagation();
-	                                openPlayersModal(item);
-	                              }}
+                              className="text-muted fw-bold"
+                              style={{ cursor: "pointer", textDecoration: "underline" }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openPlayersModal(item);
+                              }}
                             >
                               {joinedCount}/{maxCount} ({progressPct.toFixed(0)}%)
                             </span>
@@ -649,30 +649,30 @@ const OpenMatchesOverview = () => {
                           >
                             {isPayShareMatch(item) ? "Find Players" : "Send Request"}
                           </button>
-	                          {canRescheduleConflict && (
-	                              <button
-	                                className="btn btn-sm btn-outline-primary w-100 mt-2"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  navigate("/admin/open-matches/create", {
-                                    state: { rescheduleMatchId: item._id },
-                                  });
-                                }}
-	                              >
-	                                Reschedule Match
-	                              </button>
-	                          )}
-	                          {isPayShareMatch(item) && ["pending", "expired"].includes(String(item?.openMatchStatus || "").toLowerCase()) && (
-	                              <button
-	                                className="btn btn-sm btn-outline-danger w-100 mt-2"
-	                                onClick={(e) => {
-	                                  e.stopPropagation();
-	                                  openCancelReasonModal(item);
-	                                }}
-	                              >
-	                                Cancel Match
-	                              </button>
-	                          )}
+                          {canRescheduleConflict && (
+                            <button
+                              className="btn btn-sm btn-outline-primary w-100 mt-2"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate("/admin/open-matches/create", {
+                                  state: { rescheduleMatchId: item._id },
+                                });
+                              }}
+                            >
+                              Reschedule Match
+                            </button>
+                          )}
+                          {isPayShareMatch(item) && ["pending", "expired"].includes(String(item?.openMatchStatus || "").toLowerCase()) && (
+                            <button
+                              className="btn btn-sm btn-outline-danger w-100 mt-2"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openCancelReasonModal(item);
+                              }}
+                            >
+                              Cancel Match
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
