@@ -304,12 +304,6 @@ const PaymentShareModal = ({ show, onHide, match, player, paymentData }) => {
               <Button size="sm" variant="outline-primary" onClick={() => copyText(caption, "Payment caption copied")}>
                 Copy Caption
               </Button>
-              <Button size="sm" variant="outline-success" onClick={shareToWhatsApp} disabled={sharingPayment}>
-                {sharingPayment ? "Preparing..." : canAttemptNativeShare ? "Share to WhatsApp" : "Copy Image for WhatsApp"}
-              </Button>
-              <Button size="sm" variant="outline-secondary" onClick={() => window.open("https://web.whatsapp.com/", "_blank", "noopener,noreferrer")}>
-                Open WhatsApp Web
-              </Button>
             </div>
             <div className="text-muted mt-2" style={{ fontSize: 12, lineHeight: 1.4 }}>
               Direct image sharing works on supported mobile browsers. On desktop, copy the screenshot, paste it in WhatsApp Web, then copy the caption.
