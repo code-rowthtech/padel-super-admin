@@ -1,6 +1,7 @@
 import twoball from './images/booking-banner.png';
 import taness from './images/taness.png';
 import logo from './images/logo.png';
+import BallLogo from './images/BallLogo.png';
 import line from './images/line.png';
 import review from './images/reviewstar.png';
 import player from './images/player.png'
@@ -42,6 +43,7 @@ export {
     twoball,vs_image,
     taness,
     logo,
+    BallLogo,
     review,
     player,
     line,
