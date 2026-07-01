@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useState } from "react";
 import { Button, Modal } from "react-bootstrap";
 import html2canvas from "html2canvas";
-import { logo } from "../../../assets/files";
+import { BallLogo } from "../../../assets/files";
 import { showError, showSuccess } from "../../../helpers/Toast";
 
 const formatAmount = (amount) => {
@@ -226,7 +226,7 @@ const PaymentShareModal = ({ show, onHide, match, player, paymentData }) => {
           >
             <div style={{ background: "#1f41bb", color: "#fff", padding: "14px 16px" }}>
               <div className="d-flex align-items-center gap-2">
-                <img src={logo} alt="Padel" style={{ background: "#fff", borderRadius: 6, height: 34, objectFit: "contain", padding: 4, width: 34 }} />
+                <img src={BallLogo} alt="Swoot" style={{ background: "#fff", borderRadius: 6, height: 34, objectFit: "contain", padding: 4, width: 34 }} />
                 <div>
                   <div style={{ fontSize: 12, opacity: 0.85 }}>Open Match Payment</div>
                   <div style={{ fontSize: 17, fontWeight: 700, lineHeight: 1.2 }}>Payment Breakdown</div>
