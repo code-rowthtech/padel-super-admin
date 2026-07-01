@@ -189,6 +189,8 @@ export const DELETE_SCHEDULE = "/api/league-schedules";
 
 // Americano Management
 export const GET_CLUB_WISE_AMERICANOS = "/api/americanos/club-wise";
+export const AMER_XP_GET = "/api/americanos";
+export const AMER_XP_UPDATE = "/api/americanos";
 
 export const CREATE_QUICK_POINT = "/api/quick-points/createQuickPoint";
 export const GET_QUICK_POINTS = "/api/quick-points/getQuickPoints";
