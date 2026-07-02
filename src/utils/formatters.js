@@ -56,23 +56,37 @@ export const getPriceForSlot = (slotTime, day, isHalfSlot = false, slotPrice = [
   if (slotHour >= 17) period = "evening";
   else if (slotHour >= 12) period = "afternoon";
 
-  // Always search with duration 60 (backend stores prices as 60min entries)
-  const searchDuration = 60;
+  // Try exact match: courtId + day + timePeriod + actual duration
+  if (courtId) {
+    const exactMatch = slotPrice.find(p =>
+      p.day === day &&
+      p.timePeriod === period &&
+      p.courtId === courtId &&
+      p.duration === duration
+    );
+    if (exactMatch) return isHalfSlot ? exactMatch.price / 2 : exactMatch.price;
 
-  // Exact match: courtId + day + timePeriod + duration
-  const priceEntry = slotPrice.find(p =>
+    // Try courtId + day + timePeriod with duration 60 fallback
+    const courtFallback = slotPrice.find(p =>
+      p.day === day &&
+      p.timePeriod === period &&
+      p.courtId === courtId
+    );
+    if (courtFallback) return isHalfSlot ? courtFallback.price / 2 : courtFallback.price;
+  }
+
+  // Fallback: day + timePeriod + actual duration (no courtId filter)
+  const durationMatch = slotPrice.find(p =>
     p.day === day &&
     p.timePeriod === period &&
-    p.courtId === courtId &&
-    p.duration === searchDuration
+    p.duration === duration
   );
-  if (priceEntry) return isHalfSlot ? priceEntry.price / 2 : priceEntry.price;
+  if (durationMatch) return isHalfSlot ? durationMatch.price / 2 : durationMatch.price;
 
-  // Fallback: day + timePeriod + duration (no courtId filter)
+  // Last resort: day + timePeriod only
   const fallback = slotPrice.find(p =>
     p.day === day &&
-    p.timePeriod === period &&
-    p.duration === searchDuration
+    p.timePeriod === period
   );
   if (fallback) return isHalfSlot ? fallback.price / 2 : fallback.price;
 

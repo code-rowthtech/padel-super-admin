@@ -561,7 +561,6 @@ const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null, 
       }
     };
 
-
     const handleMouseMove = (e) => {
       if (window.innerWidth <= 768) return;
 
@@ -888,6 +887,7 @@ const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null, 
     })();
 
     const getMaxSlotsForDuration = (slotTime, day = selectedDate?.day) => {
+      if (has30MinPrices) return { maxSlots: 6, isDuration30: true };
       if (!slotPrice || !Array.isArray(slotPrice) || slotPrice.length === 0) return { maxSlots: 3, isDuration30: false };
 
       const slotHour = parseTimeToHour(slotTime);
@@ -916,16 +916,6 @@ const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null, 
         return false;
       }
 
-      // Check 90-minute slot limit (max 2)
-      if (is90MinSlot && has90MinSlotSelected) {
-        const count90MinSlots = selectedCourts.reduce((count, court) => {
-          return count + court.time.filter(t => t.duration === 90 || t.originalDuration === 90).length;
-        }, 0);
-        if (count90MinSlots >= 2) {
-          return true;
-        }
-      }
-
       if (maxSlots === 6) {
         const totalHalfSlots = halfSelectedSlots.size;
         if (totalHalfSlots >= 6) {
@@ -951,18 +941,11 @@ const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null, 
     const is90MinSelected = selectedCourts.some(c => c._id === courtId && c.time.some(t => t._id === slot._id && t.duration === 90));
     const isSlotSelectedOrFull = isSlotSelected || is90MinSelected;
 
-    // Block slots based on 90-min logic
+    // Block 90-min slots only when 60/30-min slots are already selected (and vice versa)
     let isDisabledDueTo90Min = false;
-    if (has90MinSlotSelected && is90MinSlot && !is90MinSelected) {
-      // 90-min slot selected: only disable if we already have 2
-      const count90MinSlots = selectedCourts.reduce((count, court) => {
-        return count + court.time.filter(t => t.duration === 90 || t.originalDuration === 90).length;
-      }, 0);
-      if (count90MinSlots >= 2) {
-        isDisabledDueTo90Min = true;
-      }
-    } else if (has60Or30MinSelected && is90MinSlot && !is90MinSelected) {
-      // 60/30-min slot selected: disable 90-min slots
+    if (has60Or30MinSelected && is90MinSlot && !is90MinSelected) {
+      isDisabledDueTo90Min = true;
+    } else if (has90MinSlotSelected && !is90MinSlot && !isSlotSelected) {
       isDisabledDueTo90Min = true;
     }
 
@@ -1070,32 +1053,14 @@ const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null, 
             setSlotError("Maximum 6 half slots (3.0 slots) allowed.");
             return;
           }
-          if (hasThirtyMinPrice) {
-            if (displayedSlotCount + 0.5 > 3.0) {
-              setSlotError("Maximum 3.0 slots allowed.");
-              return;
-            }
-          } else {
-            if (displayedSlotCount + 1.0 > 3.0) {
-              setSlotError("Maximum 3.0 slots allowed.");
-              return;
-            }
-          }
-        } else {
-          if (displayedSlotCount >= 3.0) {
+          if (hasThirtyMinPrice ? displayedSlotCount + 0.5 > 3.0 : displayedSlotCount + 1.0 > 3.0) {
             setSlotError("Maximum 3.0 slots allowed.");
             return;
           }
-          if (hasThirtyMinPrice) {
-            if (displayedSlotCount + 0.5 > 3.0) {
-              setSlotError("Maximum 3.0 slots allowed.");
-              return;
-            }
-          } else {
-            if (displayedSlotCount + 1.0 > 3.0) {
-              setSlotError("Maximum 3.0 slots allowed.");
-              return;
-            }
+        } else {
+          if (displayedSlotCount >= 3.0 || (hasThirtyMinPrice ? displayedSlotCount + 0.5 > 3.0 : displayedSlotCount + 1.0 > 3.0)) {
+            setSlotError("Maximum 3.0 slots allowed.");
+            return;
           }
         }
       }
@@ -1587,8 +1552,8 @@ const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null, 
                     const isSelected = selectedDateObj && !isNaN(selectedDateObj.getTime()) ? formatDate(selectedDateObj) === d?.fullDate : false;
                     const dateSlotCount = Object.values(selectedTimes).reduce(
                       (acc, courtDates) => {
-                        const dateSlots = (typeof courtDates === 'object' && !Array.isArray(courtDates)) 
-                          ? (courtDates[d?.fullDate] || []) 
+                        const dateSlots = (typeof courtDates === 'object' && !Array.isArray(courtDates))
+                          ? (courtDates[d?.fullDate] || [])
                           : [];
                         return acc + dateSlots?.length;
                       },
@@ -2010,7 +1975,7 @@ const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null, 
                       {/* Display all slots from selectedCourts - grouped by consecutive times */}
                       {selectedCourts?.map((court, courtIndex) => {
                         // Group consecutive slots for the same court
-                        const sortedSlots = [...court.time].sort((a, b) => parseTimeToHour(a.time) - parseTimeToHour(b.time));
+                        const sortedSlots = [...court.time].sort((a, b) => bookingTimeToMinutes(a.time) - bookingTimeToMinutes(b.time));
                         const groupedSlots = [];
                         let currentGroup = [];
 
@@ -2019,11 +1984,12 @@ const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null, 
                             currentGroup.push(slot);
                           } else {
                             const lastSlot = currentGroup[currentGroup.length - 1];
-                            const lastHour = parseTimeToHour(lastSlot.time);
-                            const currentHour = parseTimeToHour(slot.time);
+                            const lastStartMin = bookingTimeToMinutes(lastSlot.time);
+                            const lastDuration = lastSlot.duration || 60;
+                            const currentStartMin = bookingTimeToMinutes(slot.time);
 
-                            // Check if consecutive
-                            if (currentHour === lastHour + 1) {
+                            // Consecutive if current slot starts exactly when last slot ends
+                            if (currentStartMin === lastStartMin + lastDuration) {
                               currentGroup.push(slot);
                             } else {
                               groupedSlots.push([...currentGroup]);
@@ -2069,6 +2035,10 @@ const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null, 
                             const hour = parseTimeToHour(slot.time);
                             const period = hour >= 12 ? 'PM' : 'AM';
                             const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+                            // Parse actual minutes from slot.time (e.g. "7:30 am" → 30)
+                            const slotTimeStr = slot.time?.toString().toLowerCase().trim() || '';
+                            const slotMinMatch = slotTimeStr.match(/(\d+):(\d+)/);
+                            const slotStartMinute = slotMinMatch ? parseInt(slotMinMatch[2], 10) : 0;
 
                             if (!isFullSlot && leftHalf && !rightHalf) {
                               // Left half only: 4:00 PM - 4:30 PM
@@ -2080,17 +2050,17 @@ const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null, 
                               const displayNextHour = nextHour > 12 ? nextHour - 12 : nextHour === 0 ? 12 : nextHour;
                               displayTime = `${displayHour}:30 ${period} - ${displayNextHour}:00 ${nextPeriod}`;
                             } else {
-                              // Full slot: handle both 60-min and 90-min slots
-                              let nextHour = hour + 1;
-                              let nextMinute = 0;
-                              if (slot.duration === 90) {
-                                nextHour = hour + 1;
-                                nextMinute = 30;
-                              }
-                              const nextPeriod = nextHour >= 12 ? 'PM' : 'AM';
-                              const displayNextHour = nextHour > 12 ? nextHour - 12 : nextHour === 0 ? 12 : nextHour;
-                              const timeStr = nextMinute === 30 ? `${displayNextHour}:30 ${nextPeriod}` : `${displayNextHour}:00 ${nextPeriod}`;
-                              displayTime = `${displayHour}:00 ${period} - ${timeStr}`;
+                              // Full slot: compute end time from actual start minutes + duration
+                              const slotDuration = slot.duration || 60;
+                              const startTotalMinutes = hour * 60 + slotStartMinute;
+                              const endTotalMinutes = startTotalMinutes + slotDuration;
+                              const endHour24 = Math.floor(endTotalMinutes / 60);
+                              const endMin = endTotalMinutes % 60;
+                              const nextPeriod = endHour24 >= 12 ? 'PM' : 'AM';
+                              const displayNextHour = endHour24 > 12 ? endHour24 - 12 : endHour24 === 0 ? 12 : endHour24;
+                              const startStr = slotStartMinute === 0 ? `${displayHour}:00` : `${displayHour}:${slotStartMinute.toString().padStart(2, '0')}`;
+                              const endStr = endMin === 0 ? `${displayNextHour}:00` : `${displayNextHour}:${endMin.toString().padStart(2, '0')}`;
+                              displayTime = `${startStr} ${period} - ${endStr} ${nextPeriod}`;
                             }
                           } else {
                             // Multiple consecutive slots - show range
@@ -2101,9 +2071,12 @@ const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null, 
                             const slotStates = group.map(slot => {
                               const leftKey = `${court._id}-${slot._id}-${dateKey}-left`;
                               const rightKey = `${court._id}-${slot._id}-${dateKey}-right`;
+                              const timeStr = slot.time?.toString().toLowerCase().trim() || '';
+                              const minMatch = timeStr.match(/(\d+):(\d+)/);
                               return {
                                 slot,
                                 hour: parseTimeToHour(slot.time),
+                                minute: minMatch ? parseInt(minMatch[2], 10) : 0,
                                 hasLeft: halfSelectedSlots.has(leftKey),
                                 hasRight: halfSelectedSlots.has(rightKey)
                               };
@@ -2112,38 +2085,37 @@ const CreateMatches = ({ isModal = false, onClose = null, initialClubId = null, 
                             // Calculate start time from first slot
                             const firstState = slotStates[0];
                             let startHour = firstState.hour;
-                            let startMinute = 0;
+                            let startMinute = firstState.minute;
                             if (!firstState.hasLeft && firstState.hasRight) {
                               // Starts from right half only (e.g., 12:30)
                               startMinute = 30;
                             }
 
-                            // Calculate end time from last slot
+                            // Calculate end time from last slot using actual duration
                             const lastState = slotStates[slotStates.length - 1];
-                            let endHour = lastState.hour;
-                            let endMinute = 0;
+                            const lastSlotDuration = lastState.slot.duration || 60;
+                            let endTotalMinutes;
 
-                            if (lastState.hasLeft && lastState.hasRight) {
-                              // Both halves = full slot, end at next hour
-                              endHour = endHour + 1;
+                            if (lastState.hasLeft && !lastState.hasRight) {
+                              // Only left half, end at :30
+                              endTotalMinutes = lastState.hour * 60 + lastState.minute + 30;
                             } else if (!lastState.hasLeft && lastState.hasRight) {
-                              // Only right half, end at next hour (e.g., 2pm right = 3:00pm)
-                              endHour = endHour + 1;
-                            } else if (lastState.hasLeft && !lastState.hasRight) {
-                              // Only left half, end at :30 (e.g., 2pm left = 2:30pm)
-                              endMinute = 30;
+                              // Only right half, end at next hour
+                              endTotalMinutes = lastState.hour * 60 + lastState.minute + 60;
                             } else {
-                              // No half info (full slot), end at next hour
-                              endHour = endHour + 1;
+                              // Full slot (both halves or no half info): end = start + duration
+                              endTotalMinutes = lastState.hour * 60 + lastState.minute + lastSlotDuration;
                             }
 
+                            const endHour24 = Math.floor(endTotalMinutes / 60);
+                            const endMin = endTotalMinutes % 60;
                             const startPeriod = startHour >= 12 ? 'PM' : 'AM';
-                            const endPeriod = endHour >= 12 ? 'PM' : 'AM';
+                            const endPeriod = endHour24 >= 12 ? 'PM' : 'AM';
                             const displayStartHour = startHour > 12 ? startHour - 12 : startHour === 0 ? 12 : startHour;
-                            const displayEndHour = endHour > 12 ? endHour - 12 : endHour === 0 ? 12 : endHour;
+                            const displayEndHour = endHour24 > 12 ? endHour24 - 12 : endHour24 === 0 ? 12 : endHour24;
 
-                            const startTimeStr = startMinute === 30 ? `${displayStartHour}:30 ${startPeriod}` : `${displayStartHour}:00 ${startPeriod}`;
-                            const endTimeStr = endMinute === 30 ? `${displayEndHour}:30 ${endPeriod}` : `${displayEndHour}:00 ${endPeriod}`;
+                            const startTimeStr = startMinute === 0 ? `${displayStartHour}:00 ${startPeriod}` : `${displayStartHour}:${startMinute.toString().padStart(2, '0')} ${startPeriod}`;
+                            const endTimeStr = endMin === 0 ? `${displayEndHour}:00 ${endPeriod}` : `${displayEndHour}:${endMin.toString().padStart(2, '0')} ${endPeriod}`;
                             displayTime = `${startTimeStr} - ${endTimeStr}`;
                           }
 

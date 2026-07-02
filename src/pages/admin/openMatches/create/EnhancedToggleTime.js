@@ -98,19 +98,18 @@ export const createEnhancedToggleTime = (
         const leftKey = `${courtId}-${slot._id}-${dateKeyStr}-left`;
         const rightKey = `${courtId}-${slot._id}-${dateKeyStr}-right`;
 
-        // NON-30-MIN COURTS (STANDARD 60-MIN LOGIC)
+        // NON-30-MIN COURTS (STANDARD 60-MIN / 90-MIN LOGIC)
         if (!slot?.has30MinPrice || !has30MinPrices) {
             const isSelected = currentCourtTimes.some(t => t._id === slot?._id);
+            const is90Min = slot?.duration === 90;
 
-            // Count total slots including half slots as 0.5
+            // Count slots by count (each slot = 1, regardless of duration)
             let totalCount = 0;
             Object.keys(selectedTimes).forEach(cId => {
                 Object.values(selectedTimes[cId] || {}).forEach(times => {
                     if (times && Array.isArray(times)) {
                         times.forEach(t => {
-                            if (t.side === "both") {
-                                totalCount += 1;
-                            } else if (t.side === "left" || t.side === "right") {
+                            if (t.side === "left" || t.side === "right") {
                                 totalCount += 0.5;
                             } else {
                                 totalCount += 1;
@@ -120,18 +119,14 @@ export const createEnhancedToggleTime = (
                 });
             });
 
-            // Check 3-slot limit for open matches (changed from 15 in Booking.js)
-            if (!isSelected && totalCount >= 3) {
+            if (!isSelected && totalCount + 1 > 3) {
                 showError("Maximum 3 slots allowed for open matches");
                 return;
             }
 
-            const price = getPriceForSlotWrapper(slot.time, selectedDate?.day, false, courtId) || 0;
-            if (price === null || price === undefined) {
-                console.warn('Price not found for slot:', slot.time, selectedDate?.day);
-            }
+            const price = getPriceForSlotWrapper(slot.time, selectedDate?.day, false, courtId, slot?.duration || 60) || 0;
             if (!isSelected) {
-                const newTimes = [...currentCourtTimes, { ...slot, side: 'both', amount: price }];
+                const newTimes = [...currentCourtTimes, { ...slot, side: 'both', amount: price, duration: slot?.duration || 60 }];
                 setSelectedTimes(prev => ({
                     ...prev,
                     [courtId]: { ...prev[courtId], [dateKeyStr]: newTimes }
@@ -207,117 +202,119 @@ export const createEnhancedToggleTime = (
             const newSet = new Set(halfSelectedSlots);
             newSet.delete(targetKey);
 
-            let newTimes = currentCourtTimes.filter(t => t._id !== slot._id);
+            // Build a complete block map from ALL currently selected slots (including the one being deselected)
+            // so we can determine which slots become disconnected after removal
+            const buildBlockMap = (timesArr, halfSet) => {
+                const map = new Map(); // minute -> slotId
+                timesArr.forEach(t => {
+                    const tMin = timeToMinutes(t.time);
+                    if (tMin === null) return;
+                    if (t.side === 'both') {
+                        map.set(tMin, t._id);
+                        map.set(tMin + 30, t._id);
+                    } else {
+                        const tLK = `${courtId}-${t._id}-${dateKeyStr}-left`;
+                        const tRK = `${courtId}-${t._id}-${dateKeyStr}-right`;
+                        if (halfSet.has(tLK)) map.set(tMin, t._id);
+                        if (halfSet.has(tRK)) map.set(tMin + 30, t._id);
+                    }
+                });
+                return map;
+            };
 
+            // The minute block being removed
+            const removedMin = clickSide === 'left' ? slotTimeInMinutes : slotTimeInMinutes + 30;
+
+            // If other half is also selected, decide what to do
             if (otherHalfSelected) {
-                // Check if the other half is connected to more slots on its outer side
-                const otherBlockMin = clickSide === 'left' ? slotTimeInMinutes + 30 : slotTimeInMinutes;
-                const outerNeighborMin = clickSide === 'left' ? otherBlockMin + 30 : otherBlockMin - 30;
-                const outerNeighborConnected = (() => {
-                    return currentCourtTimes.some(t => {
-                        if (t._id === slot._id) return false;
-                        const tMin = timeToMinutes(t.time);
-                        if (tMin === null) return false;
-                        const tLeftKey = `${courtId}-${t._id}-${dateKeyStr}-left`;
-                        const tRightKey = `${courtId}-${t._id}-${dateKeyStr}-right`;
-                        if (t.side === 'both') return tMin === outerNeighborMin || tMin + 30 === outerNeighborMin;
-                        if (halfSelectedSlots.has(tLeftKey) && tMin === outerNeighborMin) return true;
-                        if (halfSelectedSlots.has(tRightKey) && tMin + 30 === outerNeighborMin) return true;
-                        return false;
-                    });
-                })();
+                // The other half's minute block
+                const otherMin = clickSide === 'left' ? slotTimeInMinutes + 30 : slotTimeInMinutes;
+                // Check if the other half has an outer neighbor (slot on the far side)
+                const outerMin = clickSide === 'left' ? otherMin + 30 : otherMin - 30;
+                const blockMapFull = buildBlockMap(currentCourtTimes, halfSelectedSlots);
+                const outerNeighborConnected = blockMapFull.has(outerMin) && blockMapFull.get(outerMin) !== slot._id;
 
                 if (outerNeighborConnected) {
-                    // Only unselect the clicked half, cascade remove dangling slots
-                    const clickedBlockMin = clickSide === 'left' ? slotTimeInMinutes : slotTimeInMinutes + 30;
+                    // Keep the other half, cascade-remove everything on the clicked side
                     const cascadeDirection = clickSide === 'left' ? -1 : 1;
-                    const cascadeStartMin = clickedBlockMin + cascadeDirection * 30;
+                    const cascadeStartMin = removedMin + cascadeDirection * 30;
 
-                    const blockMap = new Map();
-                    currentCourtTimes.forEach(t => {
-                        if (t._id === slot._id) return;
-                        const tMin = timeToMinutes(t.time);
-                        if (tMin === null) return;
-                        if (t.side === 'both') {
-                            blockMap.set(tMin, t._id);
-                            blockMap.set(tMin + 30, t._id);
-                        } else {
-                            const tLK = `${courtId}-${t._id}-${dateKeyStr}-left`;
-                            const tRK = `${courtId}-${t._id}-${dateKeyStr}-right`;
-                            if (halfSelectedSlots.has(tLK)) blockMap.set(tMin, t._id);
-                            if (halfSelectedSlots.has(tRK)) blockMap.set(tMin + 30, t._id);
-                        }
-                    });
+                    // Build map excluding the current slot
+                    const blockMapOthers = buildBlockMap(
+                        currentCourtTimes.filter(t => t._id !== slot._id),
+                        halfSelectedSlots
+                    );
 
                     const cascadeSet = new Set();
                     let cur = cascadeStartMin;
-                    while (blockMap.has(cur)) {
-                        const sid = blockMap.get(cur);
+                    while (blockMapOthers.has(cur)) {
+                        const sid = blockMapOthers.get(cur);
                         if (cascadeSet.has(sid)) break;
-                        const nextMin = cur + cascadeDirection * 30;
-                        if (blockMap.has(nextMin) && !cascadeSet.has(blockMap.get(nextMin))) break;
                         cascadeSet.add(sid);
                         newSet.delete(`${courtId}-${sid}-${dateKeyStr}-left`);
                         newSet.delete(`${courtId}-${sid}-${dateKeyStr}-right`);
-                        blockMap.delete(cur);
-                        cur = nextMin;
+                        // advance in cascade direction
+                        blockMapOthers.delete(cur);
+                        cur = cur + cascadeDirection * 30;
                     }
 
                     const apiPrice = getPriceForSlotWrapper(slot.time, selectedDate?.day, false, courtId) || 0;
+                    const remainingSide = clickSide === 'left' ? 'right' : 'left';
                     const updatedTimes = currentCourtTimes
                         .filter(t => !cascadeSet.has(t._id))
-                        .map(t => t._id === slot._id ? { ...t, side: clickSide === 'left' ? 'right' : 'left', amount: apiPrice / 2 } : t);
+                        .map(t => t._id === slot._id
+                            ? { ...t, side: remainingSide, amount: apiPrice / 2 }
+                            : t
+                        );
 
                     updateSplitSelection(updatedTimes, newSet);
                     return;
                 }
-                // No outer neighbor - unselect both halves
+
+                // No outer neighbor on the other side — deselect both halves
                 newSet.delete(otherKey);
             }
 
-            // Build blockMinute -> slotId map for remaining selected halves
-            const blockToSlotId = new Map();
-            newTimes.forEach(t => {
-                const tMin = timeToMinutes(t.time);
-                if (tMin === null) return;
-                if (t.side === 'both') {
-                    blockToSlotId.set(tMin, t._id);
-                    blockToSlotId.set(tMin + 30, t._id);
-                } else {
-                    const tLeftKey = `${courtId}-${t._id}-${dateKeyStr}-left`;
-                    const tRightKey = `${courtId}-${t._id}-${dateKeyStr}-right`;
-                    if (newSet.has(tLeftKey)) blockToSlotId.set(tMin, t._id);
-                    if (newSet.has(tRightKey)) blockToSlotId.set(tMin + 30, t._id);
-                }
-            });
+            // At this point: only the clicked half was selected (or both halves with no outer neighbor)
+            // Remove the slot entry and cascade-remove any slots that are now disconnected
+            let newTimes = currentCourtTimes.filter(t => t._id !== slot._id);
 
-            // Collect removed block minutes
-            const removedMins = [];
-            if (clickSide === 'left' || otherHalfSelected) removedMins.push(slotTimeInMinutes);
-            if (clickSide === 'right' || otherHalfSelected) removedMins.push(slotTimeInMinutes + 30);
+            // Build block map for remaining slots after removing this slot
+            const blockToSlotId = buildBlockMap(newTimes, newSet);
+
+            // Determine which minute blocks were just removed
+            const removedMins = [removedMin];
+            if (otherHalfSelected) {
+                // both halves removed
+                const otherMin = clickSide === 'left' ? slotTimeInMinutes + 30 : slotTimeInMinutes;
+                removedMins.push(otherMin);
+            }
 
             const toRemoveSlotIds = new Set();
 
+            // Cascade: walk away from each removed minute in the direction that has no anchor
             const cascadeRemove = (startMin, direction) => {
                 let cur = startMin;
                 while (blockToSlotId.has(cur)) {
                     const slotId = blockToSlotId.get(cur);
                     if (toRemoveSlotIds.has(slotId)) break;
-                    const otherSideMin = cur + direction * 30;
-                    if (blockToSlotId.has(otherSideMin) && !toRemoveSlotIds.has(blockToSlotId.get(otherSideMin))) break;
+                    // The anchor side is opposite to cascade direction
+                    const anchorMin = cur - direction * 30;
+                    // If the anchor side still has a block that is NOT being removed, stop
+                    if (blockToSlotId.has(anchorMin) && !toRemoveSlotIds.has(blockToSlotId.get(anchorMin))) break;
                     toRemoveSlotIds.add(slotId);
                     newSet.delete(`${courtId}-${slotId}-${dateKeyStr}-left`);
                     newSet.delete(`${courtId}-${slotId}-${dateKeyStr}-right`);
                     blockToSlotId.delete(cur);
-                    cur = otherSideMin;
+                    cur = cur + direction * 30;
                 }
             };
 
-            removedMins.forEach(removedMin => {
-                const hadLeft = blockToSlotId.has(removedMin - 30);
-                const hadRight = blockToSlotId.has(removedMin + 30);
-                if (hadLeft && !hadRight) cascadeRemove(removedMin - 30, -1);
-                else if (hadRight && !hadLeft) cascadeRemove(removedMin + 30, 1);
+            removedMins.forEach(rMin => {
+                // Cascade forward (right) if the right neighbor has no left anchor
+                if (blockToSlotId.has(rMin + 30)) cascadeRemove(rMin + 30, 1);
+                // Cascade backward (left) if the left neighbor has no right anchor
+                if (blockToSlotId.has(rMin - 30)) cascadeRemove(rMin - 30, -1);
             });
 
             if (toRemoveSlotIds.size > 0) {

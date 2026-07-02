@@ -428,7 +428,7 @@ const MatchPlayer = ({
             };
 
             // Determine base duration: prefer explicit slot duration, else slotInfo duration
-            const explicitDuration = timeSlot?.duration ?? slotDurationFromInfo;
+            let explicitDuration = timeSlot?.duration ?? slotDurationFromInfo;
             let finalDuration = shouldBe60Minutes() ? 60 : 30;
 
             // If slot itself is 60-min and no half-selection, it must be 60
@@ -439,6 +439,12 @@ const MatchPlayer = ({
             // Handle explicit 90-minute slots
             if (explicitDuration === 90) {
                 finalDuration = 90;
+            }
+
+            // When only one half is selected, the actual booking duration is 30 min
+            if ((isLeftHalf && !isRightHalf) || (!isLeftHalf && isRightHalf)) {
+                finalDuration = 30;
+                explicitDuration = 30;
             }
 
             // Debug log for each slot mapping
