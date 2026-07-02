@@ -609,11 +609,19 @@ export const useCreateMatchesLogic = () => {
       });
     }
 
-    const normalizeAmount = (time, side) => {
+    const normalizeAmount = (time, side, duration) => {
       const slotHour = parseTimeToHour(time);
       let period = "morning";
       if (slotHour >= 17) period = "evening";
       else if (slotHour >= 12) period = "afternoon";
+
+      // For 90-min slots, look up 90-min price first
+      if (duration === 90) {
+        const ninetyPrice = slotPrice.find(
+          p => p.day === selectedDate?.day && p.duration === 90 && p.timePeriod === period
+        )?.price;
+        if (ninetyPrice) return Number(ninetyPrice);
+      }
 
       let apiPrice = slotPrice.find(
         p =>
@@ -655,7 +663,7 @@ export const useCreateMatchesLogic = () => {
       let amount = t.amount;
 
       if (amount === null || amount === undefined || amount === 0) {
-        amount = normalizeAmount(t.time, t.side);
+        amount = normalizeAmount(t.time, t.side, t.duration);
       }
 
       return {
@@ -696,6 +704,7 @@ export const useCreateMatchesLogic = () => {
         time: t.time,
         side: t.side,
         amount: Number(t.amount),
+        duration: t.duration,
         selectedDuration: t.selectedDuration,
       }));
 
